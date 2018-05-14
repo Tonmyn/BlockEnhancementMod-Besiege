@@ -182,7 +182,8 @@ namespace BlockEnhancementMod
 
             if (block.BlockID == (int)BlockType.Suspension)
             {
-
+                if (block.GetComponent<SuspensionScript>() == null)
+                    block.gameObject.AddComponent<SuspensionScript>();
                 //new Suspension(block);
 
             }

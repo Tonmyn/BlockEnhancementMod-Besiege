@@ -79,6 +79,14 @@ namespace BlockEnhancementMod
             }
         }
 
+        private void FixedUpdate()
+        {
+            if (StatMaster.levelSimulating)
+            {
+                OnSimulateFixedUpdate();
+            }
+        }
+
         /// <summary>
         /// 储存配置
         /// </summary>
@@ -123,6 +131,8 @@ namespace BlockEnhancementMod
         /// 在模拟模式下的Update
         /// </summary>
         protected virtual void OnSimulateUpdate() { }
+
+        protected virtual void OnSimulateFixedUpdate() { }
 
         /// <summary>
         /// 加载网格信息

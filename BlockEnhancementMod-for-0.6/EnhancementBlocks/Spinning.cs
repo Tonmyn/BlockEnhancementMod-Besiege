@@ -111,13 +111,13 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            SS.Rotation = Tools.Get_List_keycode(RotationKey);
-            SS.Locked = Locked;
-            SS.Lerp = Lerp;
-        }
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    SS.Rotation = Tools.Get_List_keycode(RotationKey);
+        //    SS.Locked = Locked;
+        //    SS.Lerp = Lerp;
+        //}
 
         public override void DisplayInMapper(bool value)
         {

@@ -135,14 +135,14 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            PS.Switch = Tools.Get_List_keycode(SwitchKey);
-            PS.Hardness = Hardness;
-            PS.Effect = Effect;
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    PS.Switch = Tools.Get_List_keycode(SwitchKey);
+        //    PS.Hardness = Hardness;
+        //    PS.Effect = Effect;
             
-        }
+        //}
 
         public override void DisplayInMapper(bool value)
         {

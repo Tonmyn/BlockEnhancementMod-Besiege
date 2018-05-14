@@ -55,6 +55,9 @@ public class CannonScript : EnhancementBlock
     protected override void SafeStart()
     {
 
+        foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }     
+        StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedPropertise(); };
+
         IntervalSlider = new MSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
         IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedPropertise(); };
         CurrentMapperTypes.Add(IntervalSlider);
@@ -257,7 +260,7 @@ public class CannonScript : EnhancementBlock
 
     float timer;
 
-    //private float knockBackSpeed;
+    private float knockBackSpeed;
 
     protected override void OnSimulateStart()
     {
@@ -270,7 +273,7 @@ public class CannonScript : EnhancementBlock
         BR = Bullet.GetComponent<Rigidbody>();
 
         //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-        //knockBackSpeed = KnockBackSpeed * (8000 + BulletMass * CB.boltSpeed * Strength / Time.fixedTime);
+        knockBackSpeed = KnockBackSpeed * (8000 + BulletMass * CB.boltSpeed * Strength / Time.fixedTime);
 
         //CB.enabled = !bBullet;
         timer = Interval;
@@ -294,6 +297,9 @@ public class CannonScript : EnhancementBlock
         //    CB.randomDelay = RandomDelay;
         //    CB.knockbackSpeed = knockBackSpeed;
         //}
+
+        CB.randomDelay = RandomDelay;
+        CB.knockbackSpeed = knockBackSpeed;
 
         if (cBullet)
         {

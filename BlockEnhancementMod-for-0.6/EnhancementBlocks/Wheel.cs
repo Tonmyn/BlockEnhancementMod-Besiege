@@ -89,17 +89,17 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void ChangedPropertise()
-        {
+        //public override void ChangedPropertise()
+        //{
 
-            WS.Brake = Tools.Get_List_keycode(BrakeKey);
-            WS.BrakeForce = BrakeForce;
-            WS.Collider = Collider;
-            WS.FrictionT = FrictionT;
-            WS.Friction = Friction;
-            WS.Lerp = Lerp;
+        //    WS.Brake = Tools.Get_List_keycode(BrakeKey);
+        //    WS.BrakeForce = BrakeForce;
+        //    WS.Collider = Collider;
+        //    WS.FrictionT = FrictionT;
+        //    WS.Friction = Friction;
+        //    WS.Lerp = Lerp;
             
-        }
+        //}
 
         public override void DisplayInMapper(bool value)
         {
