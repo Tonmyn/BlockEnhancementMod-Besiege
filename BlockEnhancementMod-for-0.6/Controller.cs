@@ -35,6 +35,7 @@ namespace BlockEnhancementMod
 
         private void Start()
         {
+
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
 
@@ -154,34 +155,35 @@ namespace BlockEnhancementMod
 #endif
             if (block.BlockID == (int)BlockType.Cannon)
             {
-
-
-                new Cannon(block);
+                if(block.GetComponent<CannonScript>()== null)
+                block.gameObject.AddComponent<CannonScript>();
+                //new Cannon(block);
             }
 
             if (block.BlockID == (int)BlockType.BallJoint)
             {
-
-                new BallJoint(block);
+                if (block.GetComponent<BallJointScript>() == null)
+                    block.gameObject.AddComponent<BallJointScript>();
+                //new BallJoint(block);
             }
 
             if (Wheel.IsWheel(block.BlockID))
             {
 
-                new Wheel(block);
+                //new Wheel(block);
             }
 
             if (block.BlockID == (int)BlockType.GripPad)
             {
 
-                new GripPad(block);
+                //new GripPad(block);
 
             }
 
             if (block.BlockID == (int)BlockType.Suspension)
             {
 
-                new Suspension(block);
+                //new Suspension(block);
 
             }
 
@@ -195,43 +197,43 @@ namespace BlockEnhancementMod
             if (block.BlockID == (int)BlockType.Decoupler)
             {
 
-                new Decoupler(block);
+                //new Decoupler(block);
             }
 
             if (block.BlockID == (int)BlockType.SmallWheel)
             {
 
-                new Smallwheel(block);
+                //new Smallwheel(block);
             }
 
             if (block.BlockID == (int)BlockType.Slider)
             {
 
-                new Blocks.Slider(block);
+                //new Blocks.Slider(block);
             }
 
             if (block.BlockID == (int)BlockType.Piston)
             {
 
-                new Blocks.Piston(block);
+                //new Blocks.Piston(block);
             }
 
             if (block.BlockID == (int)BlockType.SpinningBlock)
             {
 
-                new Blocks.Spinning(block);
+                //new Blocks.Spinning(block);
             }
 
             if (block.BlockID == (int)BlockType.Spring)
             {
 
-                new Blocks.Spring(block);
+                //new Blocks.Spring(block);
             }
 
             if (Propeller.IsPropeller(block.BlockID))
             {
 
-                new Blocks.Propeller(block);
+                //new Blocks.Propeller(block);
             }
 
             //if (Cog.IsCog(block.BlockID))
