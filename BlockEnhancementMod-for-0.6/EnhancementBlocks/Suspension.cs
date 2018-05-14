@@ -130,8 +130,8 @@ namespace BlockEnhancementMod.Blocks
 
                     blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
 
-                    blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, Tools.Get_List_keycode(ExtendKey));
-
+                    //blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, Tools.Get_List_keycode(ExtendKey));
+                    blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, ExtendKey.Serialize().RawValue);
                     blockinfo.BlockData.Write("bmt-" + ShrinkKey.Key, Tools.Get_List_keycode(ShrinkKey));
                     blockinfo.BlockData.Write("bmt-" + PressureToggle.Key, PressureToggle.IsActive);
                     blockinfo.BlockData.Write("bmt-" + FeedSlider.Key, FeedSlider.Value);
