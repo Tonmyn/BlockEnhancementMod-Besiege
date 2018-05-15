@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    class Slider : Block
+    class SliderScript : EnhancementBlock
     {
 
-        SliderScript SS;
+        //SliderScript SS;
 
         MMenu HardnessMenu;
 
@@ -19,12 +19,8 @@ namespace BlockEnhancementMod.Blocks
 
         float Limit = 1;
 
-        public Slider(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
-
-            if (BB.GetComponent<SliderScript>() == null)
-            {
-                SS = BB.gameObject.AddComponent<SliderScript>();
 
                 HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
                 HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
@@ -33,17 +29,9 @@ namespace BlockEnhancementMod.Blocks
                 LimitSlider = new MSlider("限制", "Limit", Limit, 0f, 2f, false);
                 LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedPropertise(); };
                 CurrentMapperTypes.Add(LimitSlider);
-            }
-
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("滑块添加进阶属性");
+           BesiegeConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
 
         }
@@ -92,12 +80,12 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            SS.Hardness = Hardness;
-            SS.Limit = Limit;
-        }
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    SS.Hardness = Hardness;
+        //    SS.Limit = Limit;
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -106,24 +94,22 @@ namespace BlockEnhancementMod.Blocks
             LimitSlider.DisplayInMapper = value;
         }
 
-        class SliderScript : BlockScript
+        ConfigurableJoint CJ;
+
+        //public int Hardness;
+
+        //public float Limit;
+
+        protected override void OnSimulateStart()
         {
-            ConfigurableJoint CJ;
 
-            public int Hardness;
+            CJ = GetComponent<ConfigurableJoint>();
 
-            public float Limit;
+            SoftJointLimit limit = CJ.linearLimit;
+            limit.limit = Mathf.Abs(Limit);
+            CJ.linearLimit = limit;
 
-            private void Start()
-            {
-                CJ = GetComponent<ConfigurableJoint>();
-
-                SoftJointLimit limit = CJ.linearLimit;
-                limit.limit = Mathf.Abs(Limit);
-                CJ.linearLimit = limit;
-
-                SwitchWoodHardness(Hardness, CJ);
-            }
+            SwitchWoodHardness(Hardness, CJ);
         }
 
     }

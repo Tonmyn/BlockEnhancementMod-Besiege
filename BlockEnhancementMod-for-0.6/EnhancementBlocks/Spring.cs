@@ -4,38 +4,26 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    class Spring :Block
+    class SpringScript :EnhancementBlock
     {
-        SpringScript SS;
+        //SpringScript SS;
 
         MSlider DragSlider;
 
         float Drag = 2;
 
-        public Spring(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
 
-            if (BB.GetComponent<SpringScript>() == null)
-            {
+            DragSlider = new MSlider("阻力", "Drag", Drag, 0f, 3f, false);
+            DragSlider.ValueChanged += (float value) => { Drag = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(DragSlider);
 
-                SS = BB.gameObject.AddComponent<SpringScript>();
-
-                DragSlider = new MSlider("阻力", "Drag", Drag, 0f, 3f, false);
-                DragSlider.ValueChanged += (float value) => { Drag = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(DragSlider);
-
-            }
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("皮筋添加进阶属性");
+            BesiegeConsoleController.ShowMessage("皮筋添加进阶属性");
 #endif
         }
 
@@ -79,11 +67,11 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            SS.Drag = Drag;
-        }
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    SS.Drag = Drag;
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -91,21 +79,19 @@ namespace BlockEnhancementMod.Blocks
             DragSlider.DisplayInMapper = value;
         }
 
-        class SpringScript : BlockScript
+        Rigidbody A, B;
+
+        //public float Drag;
+
+        protected override void OnSimulateStart()
         {
 
-            Rigidbody A,B;
+            A = GameObject.Find("A").GetComponent<Rigidbody>();
+            B = GameObject.Find("B").GetComponent<Rigidbody>();
 
-            public float Drag;
-
-            private void Start()
-            {
-                A = GameObject.Find("A").GetComponent<Rigidbody>();
-                B = GameObject.Find("B").GetComponent<Rigidbody>();
-
-                A.drag = B.drag = Drag;
-            }
-
+            A.drag = B.drag = Drag;
         }
+
+
     }
 }

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
-    class Wheel : Block
+    class WheelScript : EnhancementBlock
     {
-        WheelScript WS;
+        //WheelScript WS;
 
         MKey BrakeKey;
 
@@ -30,19 +30,10 @@ namespace BlockEnhancementMod.Blocks
 
         float Lerp;
 
-
-        public Wheel(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
 
-            if (BB.GetComponent<WheelScript>() == null)
-            {
-
-
-
-                WS = BB.gameObject.AddComponent<WheelScript>();
-
-
-                BrakeKey = new MKey("刹车", "Brake", KeyCode.B);
+                BrakeKey = new MKey("刹车", "Brake", KeyCode.None);
                 BrakeKey.KeysChanged += ChangedPropertise;
                 CurrentMapperTypes.Add(BrakeKey);
 
@@ -74,17 +65,8 @@ namespace BlockEnhancementMod.Blocks
 
                 }
 
-            }
-
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
-
 #if DEBUG
-            Debug.Log("动力组件添加进阶属性");
+            BesiegeConsoleController.ShowMessage("动力组件添加进阶属性");
 #endif
 
         }
@@ -213,233 +195,230 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        class WheelScript : BlockScript
+        int MyId;
+
+        //MKey BrakeKey;
+
+        HingeJoint HJ;
+
+        Collider[] Colliders;
+
+        CogMotorControllerHinge CMCH;
+
+
+        //public List<KeyCode> Brake;
+
+        //public float BrakeForce;
+
+        //public bool Collider;
+
+        //public bool FrictionT;
+
+        //public float Friction;
+
+        //public float Lerp;
+
+        public Mesh WheelMesh;
+
+
+
+        private MeshFilter mFilter;
+
+        private MeshRenderer mRenderer;
+
+        private MeshCollider mCollider;
+
+        private PhysicMaterial PM;
+
+        public GameObject WheelCollider;
+
+        private float angleDrag;
+
+        protected override void OnSimulateStart()
         {
-            int MyId;
 
-            MKey BrakeKey;
+            //BrakeKey = GetKey(Brake);
+            HJ = GetComponent<HingeJoint>();
+            Colliders = GetComponentsInChildren<Collider>();
+            MyId = GetComponent<BlockVisualController>().ID;
 
-            HingeJoint HJ;
+            angleDrag = GetComponent<Rigidbody>().angularDrag;
 
-            Collider[] Colliders;
-
-            CogMotorControllerHinge CMCH;                        
-
-           
-            public List<KeyCode> Brake;
-
-            public float BrakeForce;
-
-            public bool Collider;
-
-            public bool FrictionT;
-
-            public float Friction;
-
-            public float Lerp;
-
-            public Mesh WheelMesh;
+            JointLimits jl = HJ.limits;
+            jl.min = jl.max = jl.bounciness = jl.bounceMinVelocity = 0;
+            HJ.limits = jl;
 
 
+            HJ.spring = new JointSpring() { damper = 10000, spring = 10000, targetPosition = 0 };
 
-            private MeshFilter mFilter;
-
-            private MeshRenderer mRenderer;
-
-            private MeshCollider mCollider;
-
-            private PhysicMaterial PM;
-
-            public GameObject WheelCollider;
-
-            private float angleDrag;
-
-            private void Start()
+            if (Collider)
             {
 
-                BrakeKey = GetKey(Brake);
-                HJ = GetComponent<HingeJoint>();
-                Colliders = GetComponentsInChildren<Collider>();
-                MyId = GetComponent<BlockVisualController>().ID;
-
-                angleDrag = GetComponent<Rigidbody>().angularDrag;
-
-                JointLimits jl = HJ.limits;
-                jl.min = jl.max = jl.bounciness = jl.bounceMinVelocity = 0;
-                HJ.limits = jl;
-
-
-                HJ.spring = new JointSpring() {  damper =10000, spring = 10000, targetPosition = 0 };
-
-                if (Collider)
+                //禁用原有碰撞
+                foreach (Collider c in Colliders)
                 {
-
-                    //禁用原有碰撞
-                    foreach (Collider c in Colliders)
+                    if (c.name == "CubeColliders")
                     {
-                        if (c.name == "CubeColliders")
-                        {
-                            c.enabled = false;
-                        }
+                        c.enabled = false;
                     }
+                }
 
-                    WheelCollider = new GameObject("Wheel Collider");
+                WheelCollider = new GameObject("Wheel Collider");
 
-                    mFilter = WheelCollider.AddComponent<MeshFilter>();
-                    mFilter.mesh = WheelMesh = Block.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel/Wheel.obj");
+                mFilter = WheelCollider.AddComponent<MeshFilter>();
+                mFilter.mesh = WheelMesh = Block.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel/Wheel.obj");
 
-                    mCollider = WheelCollider.AddComponent<MeshCollider>();
-                    mCollider.convex = true;
+                mCollider = WheelCollider.AddComponent<MeshCollider>();
+                mCollider.convex = true;
 
-                    PM = mCollider.material;
+                PM = mCollider.material;
 
-                    //静摩擦力
-                    PM.staticFriction = Friction;
-                    //动摩擦力
-                    PM.dynamicFriction = Friction;
-                    //摩擦力组合
-                    PM.frictionCombine = PhysicMaterialCombine.Multiply;
-                    //弹力
-                    PM.bounciness = 0;
-                    //弹力组合
-                    PM.bounceCombine = PhysicMaterialCombine.Minimum;
+                //静摩擦力
+                PM.staticFriction = Friction;
+                //动摩擦力
+                PM.dynamicFriction = Friction;
+                //摩擦力组合
+                PM.frictionCombine = PhysicMaterialCombine.Multiply;
+                //弹力
+                PM.bounciness = 0;
+                //弹力组合
+                PM.bounceCombine = PhysicMaterialCombine.Minimum;
 
 
 #if DEBUG
-                    mRenderer = WheelCollider.AddComponent<MeshRenderer>();
-                    mRenderer.material.color = Color.red;
+                mRenderer = WheelCollider.AddComponent<MeshRenderer>();
+                mRenderer.material.color = Color.red;
 #endif
 
-                    PAS pas = GetPositionAndScale(MyId);
+                PaS pas = GetPositionAndScale(MyId);
 
-                    WheelCollider.transform.parent = mCollider.transform.parent = transform;
-                    WheelCollider.transform.rotation = mCollider.transform.rotation = transform.rotation;
-                    WheelCollider.transform.position = mCollider.transform.position = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
-                    WheelCollider.transform.localScale = mCollider.transform.localScale = pas.Scale;
-                    WheelCollider.AddComponent<DestroyIfEditMode>();
-
-                }
-                else if (FrictionT)
-                {
-                    //设置原有碰撞的参数
-                    foreach (Collider c in Colliders)
-                    {
-                        if (c.name == "CubeColliders")
-                        {
-
-                            PhysicMaterial PM = c.GetComponent<BoxCollider>().material;
-
-                            //静摩擦力
-                            PM.staticFriction = Friction;
-                            //动摩擦力
-                            PM.dynamicFriction = Friction;
-                            Debug.Log(PM.bounciness);
-                            //摩擦力组合
-                            PM.frictionCombine = PhysicMaterialCombine.Multiply;
-                            //弹力
-                            PM.bounciness = 0;
-                            //弹力组合
-                            PM.bounceCombine = PhysicMaterialCombine.Minimum;
-                        }
-                    }
-
-                }
-
-                if (MyId == (int)BlockType.Wheel || MyId == (int)BlockType.LargeWheel)
-                {
-                    CMCH = GetComponent<CogMotorControllerHinge>();
-                    CMCH.speedLerpSmooth = Lerp;
-                }
-
+                WheelCollider.transform.parent = mCollider.transform.parent = transform;
+                WheelCollider.transform.rotation = mCollider.transform.rotation = transform.rotation;
+                WheelCollider.transform.position = mCollider.transform.position = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
+                WheelCollider.transform.localScale = mCollider.transform.localScale = pas.Scale;
+                WheelCollider.AddComponent<DestroyIfEditMode>();
 
             }
-
-            private void FixedUpdate()
+            else if (FrictionT)
             {
-
-                if (StatMaster.levelSimulating)
+                //设置原有碰撞的参数
+                foreach (Collider c in Colliders)
                 {
-
-                    if (HJ)
+                    if (c.name == "CubeColliders")
                     {
 
-                        if (BrakeKey.IsDown)
-                        {
-                            HJ.motor = new JointMotor() { force = Mathf.MoveTowards(0f, 5000f, BrakeForce * 1000f), targetVelocity = 0 };
-                        }
-                        if (BrakeKey.IsPressed)
-                        {
-                            GetComponent<Rigidbody>().angularDrag = 100f * BrakeForce;
-                            HJ.useSpring = true;
-                        }
-                        if (BrakeKey.IsReleased)
-                        {
-                            GetComponent<Rigidbody>().angularDrag = angleDrag;
-                            HJ.useSpring = false;
-                        }
+                        PhysicMaterial PM = c.GetComponent<BoxCollider>().material;
 
+                        //静摩擦力
+                        PM.staticFriction = Friction;
+                        //动摩擦力
+                        PM.dynamicFriction = Friction;
+                        Debug.Log(PM.bounciness);
+                        //摩擦力组合
+                        PM.frictionCombine = PhysicMaterialCombine.Multiply;
+                        //弹力
+                        PM.bounciness = 0;
+                        //弹力组合
+                        PM.bounceCombine = PhysicMaterialCombine.Minimum;
                     }
-
                 }
-                else if (Collider)
-                {
-                    //启用原有碰撞
-                    foreach (Collider c in Colliders)
-                    {
-                        if (c.name == "CubeColliders")
-                        {
-                            c.enabled = enabled;
-                        }
-                    }
 
-                }
             }
 
-            private struct PAS
+            if (MyId == (int)BlockType.Wheel || MyId == (int)BlockType.LargeWheel)
             {
-                public Vector3 Position;
-                public Vector3 Scale;
-
-                public static PAS one = new PAS { Position = Vector3.one, Scale = Vector3.one };
-
+                CMCH = GetComponent<CogMotorControllerHinge>();
+                CMCH.speedLerpSmooth = Lerp;
             }
 
-            private PAS GetPositionAndScale(int id)
-            {
-
-                PAS pas = new PAS();
-
-                if (id == (int)BlockType.Wheel)
-                {
-                    pas.Position = new Vector3(0, 0, 0.165f);
-                    pas.Scale = Vector3.one;
-                    return pas;
-                }
-                if (id == (int)BlockType.LargeWheel)
-                {
-                    pas.Position = new Vector3(0, 0, 0.165f);
-                    pas.Scale = Vector3.one;
-                    return pas;
-                }
-                if (id == (int)BlockType.WheelUnpowered)
-                {
-                    pas.Position = new Vector3(0, 0, 0.165f);
-                    pas.Scale = Vector3.one;
-                    return pas;
-                }
-                if (id == (int)BlockType.LargeWheelUnpowered)
-                {
-                    pas.Position = new Vector3(0, 0, 0.165f);
-                    pas.Scale = Vector3.one;
-                    return pas;
-                }
-
-                return PAS.one;
-
-            }
 
         }
-    }
 
-    
+        protected override void OnSimulateFixedUpdate()
+        {
+            if (StatMaster.levelSimulating)
+            {
+
+                if (HJ)
+                {
+
+                    if (BrakeKey.IsDown)
+                    {
+                        HJ.motor = new JointMotor() { force = Mathf.MoveTowards(0f, 5000f, BrakeForce * 1000f), targetVelocity = 0 };
+                    }
+                    if (BrakeKey.IsPressed)
+                    {
+                        GetComponent<Rigidbody>().angularDrag = 100f * BrakeForce;
+                        HJ.useSpring = true;
+                    }
+                    if (BrakeKey.IsReleased)
+                    {
+                        GetComponent<Rigidbody>().angularDrag = angleDrag;
+                        HJ.useSpring = false;
+                    }
+
+                }
+
+            }
+            else if (Collider)
+            {
+                //启用原有碰撞
+                foreach (Collider c in Colliders)
+                {
+                    if (c.name == "CubeColliders")
+                    {
+                        c.enabled = enabled;
+                    }
+                }
+
+            }
+        }
+
+        private struct PaS
+        {
+            public Vector3 Position;
+            public Vector3 Scale;
+
+            public static PaS one = new PaS { Position = Vector3.one, Scale = Vector3.one };
+
+        }
+
+        private PaS GetPositionAndScale(int id)
+        {
+
+            PaS pas = new PaS();
+
+            if (id == (int)BlockType.Wheel)
+            {
+                pas.Position = new Vector3(0, 0, 0.165f);
+                pas.Scale = Vector3.one;
+                return pas;
+            }
+            if (id == (int)BlockType.LargeWheel)
+            {
+                pas.Position = new Vector3(0, 0, 0.165f);
+                pas.Scale = Vector3.one;
+                return pas;
+            }
+            if (id == (int)BlockType.WheelUnpowered)
+            {
+                pas.Position = new Vector3(0, 0, 0.165f);
+                pas.Scale = Vector3.one;
+                return pas;
+            }
+            if (id == (int)BlockType.LargeWheelUnpowered)
+            {
+                pas.Position = new Vector3(0, 0, 0.165f);
+                pas.Scale = Vector3.one;
+                return pas;
+            }
+
+            return PaS.one;
+
+        }
+
+    }
 }
+
+
+

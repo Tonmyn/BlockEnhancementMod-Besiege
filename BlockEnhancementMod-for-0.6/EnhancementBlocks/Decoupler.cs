@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    class Decoupler : Block
+    class DecouplerScript : EnhancementBlock
     {
-        DecouplerScript DS;
+        //DecouplerScript DS;
 
         MSlider ExplodeForceSlider;
 
@@ -18,32 +18,21 @@ namespace BlockEnhancementMod.Blocks
 
         float ExplodeTorque = 2000f;
 
-        public Decoupler(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
+            //DS = BB.gameObject.AddComponent<DecouplerScript>();
 
-            if (BB.GetComponent<DecouplerScript>() == null)
-            {
+            ExplodeForceSlider = new MSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);
+            ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(ExplodeForceSlider);
 
-                DS = BB.gameObject.AddComponent<DecouplerScript>();
+            ExplodeTorqueSlider = new MSlider("爆炸扭矩", "ExplodeTorque", ExplodeTorque, 0, 2500f, false);
+            ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(ExplodeTorqueSlider);
 
-                ExplodeForceSlider = new MSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);
-                ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(ExplodeForceSlider);
-
-                ExplodeTorqueSlider = new MSlider("爆炸扭矩", "ExplodeTorque", ExplodeTorque, 0, 2500f, false);
-                ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(ExplodeTorqueSlider);
-
-            }
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("分离铰链添加进阶属性");
+            BesiegeConsoleController.ShowMessage("分离铰链添加进阶属性");
 #endif
 
         }
@@ -92,13 +81,13 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
 
-            DS.ExplodeForce = ExplodeForce;
-            DS.ExplodeTorque = ExplodeTorque;
-        }
+        //    DS.ExplodeForce = ExplodeForce;
+        //    DS.ExplodeTorque = ExplodeTorque;
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -109,23 +98,20 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        class DecouplerScript : BlockScript
+
+        //public float ExplodeForce;
+
+        //public float ExplodeTorque;
+
+        private ExplosiveBolt EB;
+
+        protected override void OnSimulateStart()
         {
-
-            public float ExplodeForce;
-
-            public float ExplodeTorque;
-
-            private ExplosiveBolt EB;
-
-            private void Start()
-            {
-                EB = GetComponent<ExplosiveBolt>();
-                EB.explodePower = ExplodeForce;
-                EB.explodeTorquePower = ExplodeTorque;
-            }
-
+            EB = GetComponent<ExplosiveBolt>();
+            EB.explodePower = ExplodeForce;
+            EB.explodeTorquePower = ExplodeTorque;
         }
+
     }
 
 

@@ -6,37 +6,25 @@ using UnityEngine;
 
 
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    public class Smallwheel : Block
+    public class SmallwheelScript : EnhancementBlock
     {
-        SmallWheelScript SWS;
+        //SmallWheelScript SWS;
 
         MSlider SpeedSlider;
 
         public float Speed = 5;
 
-        public Smallwheel(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
 
-            if (BB.GetComponent<SmallWheelScript>() == null)
-            {
-                SWS = BB.gameObject.AddComponent<SmallWheelScript>();
-
-                SpeedSlider = new MSlider("旋转速度", "Speed", Speed, 0f, 5f, false);
-                SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(SpeedSlider);
-            }
-
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
+            SpeedSlider = new MSlider("旋转速度", "Speed", Speed, 0f, 5f, false);
+            SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(SpeedSlider);
 
 #if DEBUG
-            Debug.Log("小轮子添加进阶属性");
+            BesiegeConsoleController.ShowMessage("小轮子添加进阶属性");
 #endif
         }
 
@@ -80,11 +68,11 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            SWS.Speed = Speed;
-        }
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    SWS.Speed = Speed;
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -92,15 +80,12 @@ namespace BlockEnhancementMod.Blocks
             SpeedSlider.DisplayInMapper = value;
         }
 
-        class SmallWheelScript : MonoBehaviour
+
+        //public float Speed;
+        protected override void OnSimulateStart()
         {
-
-            public float Speed;
-
-            private void Start()
-            {
-                GetComponent<SmallWheel>().speed = Speed;
-            }
+            GetComponent<SmallWheel>().speed = Speed;
         }
+
     }
 }

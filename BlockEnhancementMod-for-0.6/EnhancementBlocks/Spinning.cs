@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    class Spinning : Block
+    class SpinningScript : EnhancementBlock
     {
 
-        SpinningScript SS;
+        //SpinningScript SS;
 
         MKey RotationKey;
 
@@ -21,13 +21,8 @@ namespace BlockEnhancementMod.Blocks
 
         float Lerp = 12f;
 
-        public Spinning (BlockBehaviour block):base(block)
+        protected override void SafeStart()
         {
-
-            if (BB.GetComponent<SpinningScript>() == null)
-            {
-
-                SS = BB.gameObject.AddComponent<SpinningScript>();
 
                 RotationKey = new MKey("旋转", "Rotation", KeyCode.R);
                 RotationKey.KeysChanged += ChangedPropertise;
@@ -41,17 +36,8 @@ namespace BlockEnhancementMod.Blocks
                 LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedPropertise(); };
                 CurrentMapperTypes.Add(LerpSlider);
 
-            }
-
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
-
 #if DEBUG
-            Debug.Log("自转块添加进阶属性");
+            BesiegeConsoleController.ShowMessage ("自转块添加进阶属性");
 #endif
         }
 
@@ -127,61 +113,60 @@ namespace BlockEnhancementMod.Blocks
             LerpSlider.DisplayInMapper = value;
         }
 
-        class SpinningScript : BlockScript
-        {
 
             HingeJoint HJ;
 
             CogMotorControllerHinge CMCH;
 
-            MKey RotationKey;
+        //MKey RotationKey;
 
-            public List<KeyCode> Rotation;
+        //public List<KeyCode> Rotation;
 
-            public bool Locked;
+        //public bool Locked;
 
-            public float Lerp;
+        //public float Lerp;
 
-            private void Start()
+        protected override void OnSimulateStart()
+        {
+
+            //RotationKey = GetKey(Rotation);
+
+            HJ = GetComponent<HingeJoint>();
+            CMCH = GetComponent<CogMotorControllerHinge>();
+
+            CMCH.speedLerpSmooth = Lerp;
+
+            if (Locked)
             {
-                RotationKey = GetKey(Rotation);
-
-                HJ = GetComponent<HingeJoint>();
-                CMCH = GetComponent<CogMotorControllerHinge>();
-
-                CMCH.speedLerpSmooth = Lerp;
-
-                if (Locked)
-                {
-                    HJ.useLimits = true;
-                }
-                else
-                {
-                    HJ.useLimits = false;
-                }
-                
+                HJ.useLimits = true;
+            }
+            else
+            {
+                HJ.useLimits = false;
             }
 
-            private void Update()
+        }
+
+        protected override void OnSimulateUpdate()
+        {
+            MotorFreezeRotation(RotationKey.IsDown);
+        }
+
+        private void MotorFreezeRotation(bool value)
+        {
+            if (value)
             {
-                MotorFreezeRotation(RotationKey.IsDown);
+                HJ.useMotor = false;
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationZ;
+            }
+            else
+            {
+                GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
+                HJ.useMotor = true;
             }
 
-            private void MotorFreezeRotation(bool value)
-            {
-                if (value)
-                {
-                    HJ.useMotor = false;
-                    GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotationZ;
-                }
-                else
-                {
-                    GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
-                    HJ.useMotor = true;
-                }
-                
 
-            }
         }
     }
+
 }

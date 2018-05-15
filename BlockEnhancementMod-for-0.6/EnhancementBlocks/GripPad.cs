@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    public class GripPad : Block
+    public class GripPadScript : EnhancementBlock
     {
 
         public GripPadScript GPS;
@@ -19,33 +19,23 @@ namespace BlockEnhancementMod.Blocks
 
         public int Hardness = 1;
 
-
-
-        public GripPad(BlockBehaviour block ) : base(block)
+        protected override void SafeStart()
         {
-            if (BB.GetComponent<GripPadScript>() == null)
-            {
-                GPS = BB.gameObject.AddComponent<GripPadScript>();
 
-                HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
-                HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(HardnessMenu);
+            //GPS = BB.gameObject.AddComponent<GripPadScript>();
 
-                FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1000f, false);
-                FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedPropertise(); };
-                CurrentMapperTypes.Add(FrictionSlider);
-            }
+            HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(HardnessMenu);
 
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
+            FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1000f, false);
+            FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedPropertise(); };
+            CurrentMapperTypes.Add(FrictionSlider);
 
 
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("摩擦垫添加进阶属性");
+            BesiegeConsoleController.ShowMessage("摩擦垫添加进阶属性");
 #endif
 
         }
@@ -101,44 +91,43 @@ namespace BlockEnhancementMod.Blocks
             FrictionSlider.DisplayInMapper = value;
         }
 
-        public override void ChangedPropertise()
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    GPS.Hardness = Hardness;
+        //    GPS.Friction = Friction;
+        //}
+
+        //public int Hardness;
+
+        //public float Friction;
+
+        private ConfigurableJoint CJ;
+
+        private Collider[] colliders;
+
+        protected override void OnSimulateStart()
         {
-            base.ChangedPropertise();
-            GPS.Hardness = Hardness;
-            GPS.Friction = Friction;
-        }
 
-        public class GripPadScript : BlockScript
-        {
-            public int Hardness;
+            colliders = GetComponentsInChildren<Collider>();
+            CJ = GetComponent<ConfigurableJoint>();
 
-            public float Friction;
-
-            private ConfigurableJoint CJ;
-
-            private Collider[] colliders;
-
-            void Start()
+            foreach (Collider c in colliders)
             {
-                colliders = GetComponentsInChildren<Collider>();
-                CJ = GetComponent<ConfigurableJoint>();
-
-                foreach (Collider c in colliders)
+                if (c.name == "Collider")
                 {
-                    if (c.name == "Collider")
-                    {
-                        c.material.staticFriction = c.material.dynamicFriction = Friction;
+                    c.material.staticFriction = c.material.dynamicFriction = Friction;
 
-                        break;
-                    }
-
+                    break;
                 }
-
-                SwitchWoodHardness(Hardness, CJ);
 
             }
 
+            SwitchWoodHardness(Hardness, CJ);
+
         }
+
+
     }
 
     

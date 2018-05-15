@@ -4,38 +4,26 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod 
 {
-    class Piston : Block
+    class PistonScript : EnhancementBlock
     {
-
-        PistonScript PS;
 
         MMenu HardnessMenu;
 
         int Hardness = 0;
 
-        public Piston(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
 
-            if (BB.GetComponent<PistonScript>() == null)
-            {
-                PS = BB.gameObject.AddComponent<PistonScript>();
 
-                HardnessMenu = new MMenu("Hardness", Hardness, new List<string>() { "低碳钢", "中碳钢", "高碳钢" }, false);
-                HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(HardnessMenu);
-            }
+            HardnessMenu = new MMenu("Hardness", Hardness, new List<string>() { "低碳钢", "中碳钢", "高碳钢" }, false);
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(HardnessMenu);
 
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("活塞添加进阶属性");
+            BesiegeConsoleController.ShowMessage("活塞添加进阶属性");
 #endif
         }
 
@@ -79,11 +67,11 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void ChangedPropertise()
-        {
-            base.ChangedPropertise();
-            PS.Hardness = Hardness;
-        }
+        //public override void ChangedPropertise()
+        //{
+        //    base.ChangedPropertise();
+        //    PS.Hardness = Hardness;
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -91,19 +79,16 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu.DisplayInMapper = value;
         }
 
-        class PistonScript : BlockScript
+        ConfigurableJoint CJ;
+
+        //public int Hardness;
+
+        protected override void OnSimulateStart()
         {
 
-            ConfigurableJoint CJ;
+            CJ = GetComponent<ConfigurableJoint>();
 
-            public int Hardness;
-
-            private void Start()
-            {
-                CJ = GetComponent<ConfigurableJoint>();
-
-                SwitchMatalHardness(Hardness, CJ);
-            }
+            SwitchMatalHardness(Hardness, CJ);
 
         }
     }

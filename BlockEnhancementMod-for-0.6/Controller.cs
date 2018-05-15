@@ -167,15 +167,17 @@ namespace BlockEnhancementMod
                 //new BallJoint(block);
             }
 
-            if (Wheel.IsWheel(block.BlockID))
+            if (WheelScript.IsWheel(block.BlockID))
             {
-
+                if (block.GetComponent<WheelScript>() == null)
+                    block.gameObject.AddComponent<WheelScript>();
                 //new Wheel(block);
             }
 
             if (block.BlockID == (int)BlockType.GripPad)
             {
-
+                if (block.GetComponent<GripPadScript>() == null)
+                    block.gameObject.AddComponent<GripPadScript>();
                 //new GripPad(block);
 
             }
@@ -197,43 +199,50 @@ namespace BlockEnhancementMod
 
             if (block.BlockID == (int)BlockType.Decoupler)
             {
-
+                if (block.GetComponent<DecouplerScript>() == null)
+                    block.gameObject.AddComponent<DecouplerScript>();
                 //new Decoupler(block);
             }
 
             if (block.BlockID == (int)BlockType.SmallWheel)
             {
-
+                if (block.GetComponent<SmallwheelScript>() == null)
+                    block.gameObject.AddComponent<SmallwheelScript>();
                 //new Smallwheel(block);
             }
 
             if (block.BlockID == (int)BlockType.Slider)
             {
-
+                if (block.GetComponent<SliderScript>() == null)
+                    block.gameObject.AddComponent<SliderScript>();
                 //new Blocks.Slider(block);
             }
 
             if (block.BlockID == (int)BlockType.Piston)
             {
-
+                if (block.GetComponent<PistonScript>() == null)
+                    block.gameObject.AddComponent<PistonScript>();
                 //new Blocks.Piston(block);
             }
 
             if (block.BlockID == (int)BlockType.SpinningBlock)
             {
-
+                if (block.GetComponent<SpinningScript>() == null)
+                    block.gameObject.AddComponent<SpinningScript>();
                 //new Blocks.Spinning(block);
             }
 
             if (block.BlockID == (int)BlockType.Spring)
             {
-
+                if (block.GetComponent<SpringScript>() == null)
+                    block.gameObject.AddComponent<SpringScript>();
                 //new Blocks.Spring(block);
             }
 
-            if (Propeller.IsPropeller(block.BlockID))
+            if (PropellerScript.IsPropeller(block.BlockID))
             {
-
+                if (block.GetComponent<PropellerScript>() == null)
+                    block.gameObject.AddComponent<PropellerScript>();
                 //new Blocks.Propeller(block);
             }
 

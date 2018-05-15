@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    class Propeller : Block
+    class PropellerScript : EnhancementBlock
     {
-        PropellerScript PS;
+  
 
         MKey SwitchKey;
 
@@ -20,35 +20,24 @@ namespace BlockEnhancementMod.Blocks
 
         bool Effect = true;
 
-        public Propeller(BlockBehaviour block) : base(block)
+        protected override void SafeStart()
         {
-            if (BB.GetComponent<PropellerScript>() == null)
-            {
 
-                PS = BB.gameObject.AddComponent<PropellerScript>();
+            SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
+            SwitchKey.KeysChanged += ChangedPropertise;
+            CurrentMapperTypes.Add(SwitchKey);
 
-                SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
-                SwitchKey.KeysChanged += ChangedPropertise;
-                CurrentMapperTypes.Add(SwitchKey);
+            HardnessMenu = new MMenu("", Hardness, WoodHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(HardnessMenu);
 
-                HardnessMenu = new MMenu("", Hardness, WoodHardness, false);
-                HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(HardnessMenu);
+            EffectToggle = new MToggle("初始生效", "Effect", Effect);
+            EffectToggle.Toggled += (bool value) => { Effect = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(EffectToggle);
 
-                EffectToggle = new MToggle("初始生效", "Effect", Effect);
-                EffectToggle.Toggled += (bool value) => { Effect = value; ChangedPropertise(); };
-                CurrentMapperTypes.Add(EffectToggle);
-
-            }
-            LoadConfiguration();
-
-            ChangedPropertise();
-            DisplayInMapper(EnhancementEnable);
-
-            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
 #if DEBUG
-            Debug.Log("桨叶添加进阶属性");
+            BesiegeConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
         }
 
@@ -89,7 +78,7 @@ namespace BlockEnhancementMod.Blocks
                 if (blockinfo.Guid == BB.Guid)
                 {
 
-                    blockinfo.BlockData.Write("bmt-" + SwitchKey.Key, Tools.Get_List_keycode(SwitchKey));
+                    blockinfo.BlockData.Write("bmt-" + SwitchKey.Key, SwitchKey.Serialize().RawValue);
 
                     blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
 
@@ -152,39 +141,90 @@ namespace BlockEnhancementMod.Blocks
             EffectToggle.DisplayInMapper = value;
         }
 
-        class PropellerScript : BlockScript
+
+
+        //public List<KeyCode> Switch;
+
+        //public int Hardness;
+
+        //public bool Effect;
+
+        //private MKey SwitchKey;
+
+        private ConfigurableJoint CJ;
+
+        //private AxialDrag AD;
+
+        //private PropellorController PC;
+
+        private GameObject liftObject;
+
+        private int MyId,i=0;
+
+        protected override void OnSimulateStart()
         {
-            public List<KeyCode> Switch;
+            MyId = GetComponent<BlockVisualController>().ID;
 
-            public int Hardness;
-
-            public bool Effect;
-
-            private MKey SwitchKey;
-
-            private ConfigurableJoint CJ;
-
-            private AxialDrag AD;
-
-            private void Start()
+            //SwitchKey = GetKey(Switch);
+            CJ = GetComponent<ConfigurableJoint>();
+            //AD = GetComponent<AxialDrag>();
+            //PC = GetComponent<PropellorController>();
+            Transform go;
+            while (liftObject == null)
             {
-                SwitchKey = GetKey(Switch);
-                CJ = GetComponent<ConfigurableJoint>();
-                AD = GetComponent<AxialDrag>();
-
-                AD.enabled = Effect;
-
-                SwitchWoodHardness(Hardness,CJ);
-
-            }
-
-            private void Update()
-            {
-                if (SwitchKey.IsPressed)
+                if (gameObject.transform.GetChild(i) != null)
                 {
-                    AD.enabled = Effect = !Effect;
+                    go = gameObject.transform.GetChild(i++);
+                    if (go.name == "liftNormal")
+                    {
+                        liftObject = go.gameObject;
+                        BesiegeConsoleController.ShowMessage(liftObject.name);
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
                 }
             }
+
+
+
+            //AD.enabled = Effect;
+            //PC.enabled = Effect;
+            //liftObject.SetActive(Effect);
+            if (!Effect)
+            {
+                Destroy(gameObject.transform.GetChild(i).gameObject);
+            }
+            
+            
+
+            SwitchWoodHardness(Hardness, CJ);
+
+        }
+
+        protected override void OnSimulateUpdate()
+        {
+
+            if (SwitchKey.IsPressed)
+            {
+
+                BesiegeConsoleController.ShowMessage("propeller");
+                //AD.enabled = Effect = !Effect;
+                //PC.enabled = Effect = !Effect;
+
+                //Effect = !Effect;
+                //if (!Effect)
+                //{
+                //    Destroy(gameObject.transform.GetChild(i).gameObject);
+                //}
+                //else
+                //{
+                //    if(gameObject.transform.GetChild)
+                //}
+            }
+
 
         }
     }
