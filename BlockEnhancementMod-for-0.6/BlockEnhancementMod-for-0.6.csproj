@@ -83,7 +83,7 @@
     <Compile Include="Tool\ConfigurationEventArgs.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tool\getlistkeycode.cs" />
+    <Compile Include="Tool\GetListOfKeyCode.cs" />
     <Compile Include="Tool\SimpleJSON.cs" />
   </ItemGroup>
   <ItemGroup />

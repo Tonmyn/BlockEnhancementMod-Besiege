@@ -153,108 +153,142 @@ namespace BlockEnhancementMod
 #if DEBUG
             BesiegeConsoleController.ShowMessage(block.BlockID.ToString());
 #endif
-            if (block.BlockID == (int)BlockType.Cannon)
-            {
-                if(block.GetComponent<CannonScript>()== null)
-                block.gameObject.AddComponent<CannonScript>();
-                //new Cannon(block);
-            }
-
-            if (block.BlockID == (int)BlockType.BallJoint)
-            {
-                if (block.GetComponent<BallJointScript>() == null)
-                    block.gameObject.AddComponent<BallJointScript>();
-                //new BallJoint(block);
-            }
-
-            if (WheelScript.IsWheel(block.BlockID))
-            {
-                if (block.GetComponent<WheelScript>() == null)
-                    block.gameObject.AddComponent<WheelScript>();
-                //new Wheel(block);
-            }
-
-            if (block.BlockID == (int)BlockType.GripPad)
-            {
-                if (block.GetComponent<GripPadScript>() == null)
-                    block.gameObject.AddComponent<GripPadScript>();
-                //new GripPad(block);
-
-            }
-
-            if (block.BlockID == (int)BlockType.Suspension)
-            {
-                if (block.GetComponent<SuspensionScript>() == null)
-                    block.gameObject.AddComponent<SuspensionScript>();
-                //new Suspension(block);
-
-            }
-
-            //if (block.GetBlockID() == (int)BlockType.SteeringHinge)
+            //if (block.BlockID == (int)BlockType.Cannon)
             //{
+            //    if(block.GetComponent<CannonScript>()== null)
+            //    block.gameObject.AddComponent<CannonScript>();
+            //    //new Cannon(block);
+            //}
+            if (dic_EnhancementBlock.ContainsKey(block.BlockID))
+            {
+                var EB = dic_EnhancementBlock[block.BlockID];
+                if (block.GetComponent(EB) == null)
+                {
+                    block.gameObject.AddComponent(EB);
+                }
+            }
 
-            //    new SteeringHinge(block);
+            //if (block.BlockID == (int)BlockType.BallJoint)
+            //{
+            //    if (block.GetComponent<BallJointScript>() == null)
+            //        block.gameObject.AddComponent<BallJointScript>();
+            //    //new BallJoint(block);
+            //}
+
+            //if (WheelScript.IsWheel(block.BlockID))
+            //{
+            //    if (block.GetComponent<WheelScript>() == null)
+            //        block.gameObject.AddComponent<WheelScript>();
+            //    //new Wheel(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.GripPad)
+            //{
+            //    if (block.GetComponent<GripPadScript>() == null)
+            //        block.gameObject.AddComponent<GripPadScript>();
+            //    //new GripPad(block);
 
             //}
 
-            if (block.BlockID == (int)BlockType.Decoupler)
-            {
-                if (block.GetComponent<DecouplerScript>() == null)
-                    block.gameObject.AddComponent<DecouplerScript>();
-                //new Decoupler(block);
-            }
-
-            if (block.BlockID == (int)BlockType.SmallWheel)
-            {
-                if (block.GetComponent<SmallwheelScript>() == null)
-                    block.gameObject.AddComponent<SmallwheelScript>();
-                //new Smallwheel(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Slider)
-            {
-                if (block.GetComponent<SliderScript>() == null)
-                    block.gameObject.AddComponent<SliderScript>();
-                //new Blocks.Slider(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Piston)
-            {
-                if (block.GetComponent<PistonScript>() == null)
-                    block.gameObject.AddComponent<PistonScript>();
-                //new Blocks.Piston(block);
-            }
-
-            if (block.BlockID == (int)BlockType.SpinningBlock)
-            {
-                if (block.GetComponent<SpinningScript>() == null)
-                    block.gameObject.AddComponent<SpinningScript>();
-                //new Blocks.Spinning(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Spring)
-            {
-                if (block.GetComponent<SpringScript>() == null)
-                    block.gameObject.AddComponent<SpringScript>();
-                //new Blocks.Spring(block);
-            }
-
-            if (PropellerScript.IsPropeller(block.BlockID))
-            {
-                if (block.GetComponent<PropellerScript>() == null)
-                    block.gameObject.AddComponent<PropellerScript>();
-                //new Blocks.Propeller(block);
-            }
-
-            //if (Cog.IsCog(block.BlockID))
+            //if (block.BlockID == (int)BlockType.Suspension)
             //{
+            //    if (block.GetComponent<SuspensionScript>() == null)
+            //        block.gameObject.AddComponent<SuspensionScript>();
+            //    //new Suspension(block);
 
-            //    new Blocks.Cog(block);
             //}
+
+            ////if (block.GetBlockID() == (int)BlockType.SteeringHinge)
+            ////{
+
+            ////    new SteeringHinge(block);
+
+            ////}
+
+            //if (block.BlockID == (int)BlockType.Decoupler)
+            //{
+            //    if (block.GetComponent<DecouplerScript>() == null)
+            //        block.gameObject.AddComponent<DecouplerScript>();
+            //    //new Decoupler(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.SmallWheel)
+            //{
+            //    if (block.GetComponent<SmallwheelScript>() == null)
+            //        block.gameObject.AddComponent<SmallwheelScript>();
+            //    //new Smallwheel(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.Slider)
+            //{
+            //    if (block.GetComponent<SliderScript>() == null)
+            //        block.gameObject.AddComponent<SliderScript>();
+            //    //new Blocks.Slider(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.Piston)
+            //{
+            //    if (block.GetComponent<PistonScript>() == null)
+            //        block.gameObject.AddComponent<PistonScript>();
+            //    //new Blocks.Piston(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.SpinningBlock)
+            //{
+            //    if (block.GetComponent<SpinningScript>() == null)
+            //        block.gameObject.AddComponent<SpinningScript>();
+            //    //new Blocks.Spinning(block);
+            //}
+
+            //if (block.BlockID == (int)BlockType.Spring)
+            //{
+            //    if (block.GetComponent<SpringScript>() == null)
+            //        block.gameObject.AddComponent<SpringScript>();
+            //    //new Blocks.Spring(block);
+            //}
+
+            //if (PropellerScript.IsPropeller(block.BlockID))
+            //{
+            //    if (block.GetComponent<PropellerScript>() == null)
+            //        block.gameObject.AddComponent<PropellerScript>();
+            //    //new Blocks.Propeller(block);
+            //}
+
+            ////if (Cog.IsCog(block.BlockID))
+            ////{
+
+            ////    new Blocks.Cog(block);
+            ////}
 
         }
 
+        /// <summary>
+        /// 模块扩展脚本字典   通过字典自动为模块加载扩展脚本
+        /// </summary>
+        public static Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
+        {
+            {(int)BlockType.BallJoint,typeof(BallJointScript) },
+            {(int)BlockType.Cannon,typeof(CannonScript) },
+            //{(int)BlockType.CogLargeUnpowered,typeof(cog) },
+            //{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
+            //{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
+            {(int)BlockType.Decoupler,typeof(DecouplerScript) },
+            {(int)BlockType.GripPad,typeof(GripPadScript) },
+            {(int)BlockType.Piston,typeof(PistonScript) },
+            {(int)BlockType.Propeller,typeof(PropellerScript) },
+            {(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            {(int)BlockType.Slider,typeof(SliderScript) },
+            {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
+            {(int)BlockType.SpinningBlock,typeof(SpinningScript) },
+            {(int)BlockType.Spring,typeof(SpringScript) },
+            //{(int)BlockType.SteeringHinge,typeof(ste) },
+            {(int)BlockType.Suspension,typeof(SuspensionScript) },
+            {(int)BlockType.Wheel,typeof(WheelScript) },
+            {(int)BlockType.LargeWheel,typeof(WheelScript) },
+            {(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            {(int)BlockType.WheelUnpowered,typeof(WheelScript) },
 
+        };
 
 
         public virtual void LoadConfiguration(MachineInfo mi)
