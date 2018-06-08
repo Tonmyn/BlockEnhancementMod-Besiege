@@ -23,7 +23,7 @@ namespace BlockEnhancementMod
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedPropertise(); };
             CurrentMapperTypes.Add(RotationToggle);
           
-            BesiegeConsoleController.ShowMessage("球铰添加进阶属性...");
+            BesiegeConsoleController.ShowMessage("球铰添加进阶属性..."); 
         }
 
         protected override void OnSimulateStart()
