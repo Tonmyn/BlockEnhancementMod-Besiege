@@ -83,7 +83,7 @@ namespace BlockEnhancementMod
             }
             remove
             {
-                //var mod = GetModFromAssembly(Assembly.GetCallingAssembly());
+                //var mod = GetModFromAssembly(Assembly.GetCallingAssembly()); 
                 //if (mod == null)
                 //{
                 //    throw new InvalidOperationException("Cannon remove event listener: "
