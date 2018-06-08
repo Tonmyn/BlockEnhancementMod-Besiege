@@ -73,7 +73,9 @@ namespace BlockEnhancementMod
                 {
                     isFirstFrame = false;
                     OnSimulateStart();
+#if DEBUG
                     BesiegeConsoleController.ShowMessage("on start");
+#endif
                 }
                 OnSimulateUpdate();
             }
@@ -272,6 +274,7 @@ namespace BlockEnhancementMod
         /// </summary>
         /// <param name="keycode">键值清单</param>
         /// <returns></returns>
+        [Obsolete]
         internal static MKey GetKey(List<KeyCode> keycode)
         {
             MKey MK = new MKey("", "", KeyCode.None);

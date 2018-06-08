@@ -16,22 +16,18 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
-        /// <summary>
-        /// 存档信息
-        /// </summary>
+        /// <summary>存档信息</summary>
         internal static MachineInfo MI;
 
         internal static bool Refresh = false;
 
-        private bool _keyMapperOpen;
+        public static event OnBlockPlaced OnBlockPlaced;      
 
-        private BlockBehaviour _lastBlock;
-
-        
-
-        public static event OnBlockPlaced OnBlockPlaced;
+        private BlockBehaviour _lastBlock;               
 
         private int machineBlockCount = 1;
+
+        private bool _keyMapperOpen;
 
         private void Start()
         {
@@ -97,9 +93,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>
-        /// 获取菜单类型
-        /// </summary>
+        /// <summary>反射获取菜单私有属性</summary>
         public static FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>是否有进阶属性</summary>
@@ -108,9 +102,7 @@ namespace BlockEnhancementMod
             return block.MapperTypes.Exists(match => match.Key == "Enhancement");
         }
 
-        /// <summary>
-        /// 对所有具有进阶属性的零件添加进阶属性控件
-        /// </summary>
+        /// <summary>对所有没有进阶属性的零件添加进阶属性控件</summary>
         public static void AddAllSliders()
         {
             foreach (BlockBehaviour block in Machine.Active().BuildingBlocks.FindAll(block => !HasEnhancement(block)))
@@ -119,35 +111,15 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>
-        /// 对有进阶属性的零件添加进阶属性控件 
-        /// </summary>
-        /// <param name="block"></param>
+        /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private static void AddSliders(Transform block)
         {
             BlockBehaviour blockbehaviour = block.GetComponent<BlockBehaviour>();
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
-        }
+        }  
 
-        public static IEnumerator RefreshSliders()
-        {
-            int i = 0;
-            while (i++ < 3)
-            {
-                yield return new WaitForEndOfFrame();
-            }
-            foreach (BlockBehaviour block in Machine.Active().BuildingBlocks)
-            {
-                AddSliders(block);
-            }
-            Debug.Log("Refresh");
-        }
-
-        /// <summary>
-        /// 添加进阶属性
-        /// </summary>
-        /// <param name="block"></param>
+        /// <summary>添加进阶属性</summary>
         public static void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
@@ -262,9 +234,7 @@ namespace BlockEnhancementMod
 
         }
 
-        /// <summary>
-        /// 模块扩展脚本字典   通过字典自动为模块加载扩展脚本
-        /// </summary>
+        /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
         public static Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
         {
             {(int)BlockType.BallJoint,typeof(BallJointScript) },
@@ -290,7 +260,25 @@ namespace BlockEnhancementMod
 
         };
 
+        /// <summary>刷新菜单组件</summary>
+        public static IEnumerator RefreshSliders()
+        {
+            int i = 0;
+            while (i++ < 3)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+            foreach (BlockBehaviour block in Machine.Active().BuildingBlocks)
+            {
+                AddSliders(block);
+            }
+#if DEBUG
+            BesiegeConsoleController.ShowMessage("Refresh");
+#endif
+        }
 
+
+        /// <summary>载入存档信息</summary>
         public virtual void LoadConfiguration(MachineInfo mi)
         {
 
@@ -306,7 +294,6 @@ namespace BlockEnhancementMod
             //load?.Invoke();
 
         }
-
 
         public delegate void SaveConfigurationHandler(MachineInfo mi);
 
