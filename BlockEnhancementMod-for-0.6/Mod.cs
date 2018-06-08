@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
             var controller = Controller.Instance;
             controller.transform.SetParent(mod.transform);
             UnityEngine.Object.DontDestroyOnLoad(mod);
-            DontDestroyOnLoad(controller);
+            DontDestroyOnLoad(controller); 
             
         }
 
