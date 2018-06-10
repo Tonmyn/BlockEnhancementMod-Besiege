@@ -257,7 +257,8 @@ namespace BlockEnhancementMod
             {(int)BlockType.LargeWheel,typeof(WheelScript) },
             {(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.WheelUnpowered,typeof(WheelScript) },
-
+            {(int)BlockType.Rocket,typeof(RocketScript)},
+            {(int)BlockType.CameraBlock,typeof(CameraScript)}
         };
 
         /// <summary>刷新菜单组件</summary>
