@@ -15,8 +15,8 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidedRocketTorqueSlider;
         MKey LockTargetKey;
 
-        List<string> explosionTypes;
-        
+        //List<string> explosionTypes;
+
 
         public enum ExplosionType
         {
@@ -29,10 +29,12 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketIsActivated = false;
         public int noOfRocketsInPod = 18;
         public bool hasFired = false;
-        float torque = 100f;
+        public float torque = 100f;
+        public float previousAngleDiff = 0;
+        public float angleDiffCumulative = 0;
         public Transform target;
         public TimedRocket rocket;
-        //public bool exploding = false;
+        public bool exploding = false;
         //public int explosionType = 0;
 
         protected override void SafeStart()
@@ -75,7 +77,7 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
+            //base.DisplayInMapper(value);
             //RocketPodToggle.DisplayInMapper = value;
             //ExplosionTypeMenu.DisplayInMapper = value;
             GuidedRocketToggle.DisplayInMapper = value;
@@ -170,90 +172,65 @@ namespace BlockEnhancementMod.Blocks
                     // Calculating the rotating axis
                     Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
                     Vector3 positionDiff = target.position - transform.position;
-                    float angle = Vector3.Angle(positionDiff, velocityNormarlised);
+                    float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
                     Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
-
+                    float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
                     // if the velocity is more than 90 degree apart from the target direction, use maximum torque
                     // otherwise use proportional torque.
-                    if (angle > 90)
+                    if (angleDiff > 90)
                     {
                         transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
                     }
                     else
                     {
-                        transform.GetComponent<Rigidbody>().AddTorque(torque / 90 * angle * rotatingAxis);
+                        transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
                     }
+                    //Trying to implement a PID controller
+                    //BesiegeConsoleController.ShowMessage("PID working");
+                    //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                 }
 
             }
         }
-        //void OnCollisionEnter(Collision collision)
-        //{
-        //    BesiegeConsoleController.ShowMessage("collision detected");
-        //    if (rocket.hasFired)
-        //    {
-        //        if (!exploding)
-        //        {
-        //            exploding = true;
-        //            StartCoroutine(Explode());
-        //        }
-        //    }
-        //}
-        //void OnCollisionStay(Collision coll)
-        //{
-        //    if (rocket.hasFired)
-        //    {
-        //        if (!exploding)
-        //        {
-        //            exploding = true;
-        //            StartCoroutine(Explode());
-        //        }
-        //    }
-        //}
 
-        //IEnumerator Explode()
-        //{
-        //    if (explosionType == (int) ExplosionType.bomb)
-        //    {
-        //        GameObject explo = (GameObject) Instantiate(PrefabMaster.BlockPrefabs[23].gameObject,transform.position,transform.rotation);
-        //        explo.transform.localScale = Vector3.one * 0.01f;
-        //        ExplodeOnCollideBlock ac = explo.GetComponent<ExplodeOnCollideBlock>();
-        //        ac.radius = 7f;
-        //        ac.power = 2100f;
-        //        ac.torquePower = 100000;
-        //        ac.upPower = 0;
-        //        ac.Explodey();
-        //        Destroy(this.gameObject);
-        //    }
-        //    //else if (explosionType == (int)ExplosionType.grenade)
-        //    //{
-        //    //    GameObject explo = (GameObject)GameObject.Instantiate(PrefabMaster.BlockPrefabs[54].gameObject, this.transform.position, this.transform.rotation);
-        //    //    explo.transform.localScale = Vector3.one * 0.01f;
-        //    //    ControllableBomb ac = explo.GetComponent<ControllableBomb>();
-        //    //    ac.radius = 3 * ECS.RangeMultiplierOfExplosion;
-        //    //    ac.power = 1500 * ECS.PowerMultiplierOfExplosion;
-        //    //    ac.randomDelay = 0.00001f;
-        //    //    ac.upPower = 0f;
-        //    //    ac.StartCoroutine_Auto(ac.Explode());
-        //    //    explo.AddComponent<TimedSelfDestruct>();
-        //    //    Destroy(this.gameObject);
-        //    //}
-        //    //else if (explosionType == (int)ExplosionType.rocket)
-        //    //{
-        //    //    GameObject explo = (GameObject)GameObject.Instantiate(PrefabMaster.BlockPrefabs[59].gameObject, this.transform.position, this.transform.rotation);
-        //    //    explo.transform.localScale = Vector3.one * 0.01f;
-        //    //    TimedRocket ac = explo.GetComponent<TimedRocket>();
-        //    //    ac.SetSlip(Color.white);
-        //    //    ac.radius = 3 * ECS.RangeMultiplierOfExplosion;
-        //    //    ac.power = 1500 * ECS.PowerMultiplierOfExplosion;
-        //    //    ac.randomDelay = 0.000001f;
-        //    //    ac.upPower = 0;
-        //    //    ac.StartCoroutine(ac.Explode(0.01f));
-        //    //    explo.AddComponent<TimedSelfDestruct>();
-        //    //    Destroy(this.gameObject);
-        //    //}
-        //    yield break;
-        //}
+        float PIDControl(float angleDiff)
+        {
+            float controlOutput = 0;
+
+            float p = 0.001f;
+            float i = 0.00001f;
+            float d = 0.0001f;
+
+            //P
+            controlOutput += p * angleDiff;
+
+            //I
+            angleDiffCumulative += angleDiff * Time.fixedDeltaTime;
+            controlOutput += i * angleDiffCumulative;
+
+            //D
+            float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
+            controlOutput += d * angularSpeed;
+
+            previousAngleDiff = angleDiff;
+
+            return controlOutput;
+        }
+
+        void OnCollisionEnter(Collision collision)
+        {
+            if (rocket.hasFired && collision.impulse.magnitude > 1)
+            {
+                rocket.OnExplode();
+            }
+        }
+        void OnCollisionStay(Collision collision)
+        {
+            if (rocket.hasFired && collision.impulse.magnitude > 1)
+            {
+                rocket.OnExplode();
+            }
+        }
     }
 }
 

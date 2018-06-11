@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BlockEnhancementMod
 {
@@ -21,13 +22,14 @@ namespace BlockEnhancementMod
 
         internal static bool Refresh = false;
 
-        public static event OnBlockPlaced OnBlockPlaced;      
+        public static event OnBlockPlaced OnBlockPlaced;
 
-        private BlockBehaviour _lastBlock;               
+        private BlockBehaviour _lastBlock;
 
         private int machineBlockCount = 1;
 
         private bool _keyMapperOpen;
+        string currentSceneName;
 
         private void Start()
         {
@@ -43,31 +45,39 @@ namespace BlockEnhancementMod
 
             ////添加打开菜单事件委托
             //Game.OnKeymapperOpen += OnKeymapperOpen;
+            currentSceneName = SceneManager.GetActiveScene().name;
         }
 
         private void Update()
         {
+
             if (BlockMapper.CurrentInstance != null && BlockMapper.CurrentInstance.Block != null)
             {
                 //AddPiece.Instance.
 
                 // Check for open keymapper
+                OnKeymapperOpen();
                 if (!_keyMapperOpen)
                 {
-                    OnKeymapperOpen();
+                    //OnKeymapperOpen();
                     _keyMapperOpen = true;
                     BesiegeConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
                 {
-                    OnKeymapperOpen();
+                    //OnKeymapperOpen();
                     _lastBlock = BlockMapper.CurrentInstance.Block;
                 }
 
             }
             else
             {
+                if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
+                {
+                    AddAllSliders();
+                    currentSceneName = SceneManager.GetActiveScene().name;
+                }
                 _keyMapperOpen = false;
             }
 
@@ -80,9 +90,9 @@ namespace BlockEnhancementMod
                     int currentCount = Machine.Active().BuildingBlocks.Count;
                     if (currentCount > machineBlockCount)
                     {
-                        if(Controller.OnBlockPlaced != null)
+                        if (Controller.OnBlockPlaced != null)
                         {
-                            Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount-1].transform);
+                            Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
                         }
 #if DEBUG
                         BesiegeConsoleController.ShowMessage("on place");
@@ -117,7 +127,7 @@ namespace BlockEnhancementMod
             BlockBehaviour blockbehaviour = block.GetComponent<BlockBehaviour>();
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
-        }  
+        }
 
         /// <summary>添加进阶属性</summary>
         public static void AddSliders(BlockBehaviour block)
@@ -133,6 +143,7 @@ namespace BlockEnhancementMod
             //}
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
             {
+
                 var EB = dic_EnhancementBlock[block.BlockID];
                 if (block.GetComponent(EB) == null)
                 {
@@ -273,6 +284,7 @@ namespace BlockEnhancementMod
             {
                 AddSliders(block);
             }
+            Refresh = false;
 #if DEBUG
             BesiegeConsoleController.ShowMessage("Refresh");
 #endif
@@ -280,6 +292,8 @@ namespace BlockEnhancementMod
 
 
         /// <summary>载入存档信息</summary>
+        /// 
+
         public virtual void LoadConfiguration(MachineInfo mi)
         {
 
