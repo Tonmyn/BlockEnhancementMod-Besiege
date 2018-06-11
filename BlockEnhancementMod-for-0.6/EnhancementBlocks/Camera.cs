@@ -24,6 +24,7 @@ namespace BlockEnhancementMod.Blocks
             CameraFollowSmoothSlider.ValueChanged += (float value) => { cameraFollowSmooth = value; ChangedPropertise(); };
             CurrentMapperTypes.Add(CameraFollowSmoothSlider);
 
+
 #if DEBUG
             BesiegeConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
@@ -32,9 +33,9 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
+            //base.DisplayInMapper(value);
             CameraLookAtToggle.DisplayInMapper = value;
-            CameraFollowSmoothSlider.DisplayInMapper = value && cameraLookAtToggled;
+            CameraFollowSmoothSlider.DisplayInMapper = value;
         }
 
         public override void LoadConfiguration()
@@ -100,8 +101,11 @@ namespace BlockEnhancementMod.Blocks
             }
             if (cameraLookAtToggled)
             {
-                Vector3 relativePos = transform.position - target.position;
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(relativePos), cameraFollowSmooth);
+                Vector3 positionDiff = transform.position - target.position;
+                Vector3 rotatingAxis = -Vector3.Cross(positionDiff, transform.forward);
+                rotatingAxis = (transform.forward - Vector3.Dot(positionDiff, transform.forward) * positionDiff).normalized;
+                //transform.LookAt(target, rotatingAxis);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(positionDiff, rotatingAxis), cameraFollowSmooth);
             }
         }
     }

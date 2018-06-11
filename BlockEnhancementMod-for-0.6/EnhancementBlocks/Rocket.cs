@@ -11,6 +11,8 @@ namespace BlockEnhancementMod.Blocks
         MMenu ExplosionTypeMenu;
         MToggle RocketPodToggle;
         MToggle GuidedRocketToggle;
+        MSlider GuidedRocketTorqueSlider;
+        MKey LockTargetKey;
 
         List<string> explosionTypes;
 
@@ -25,7 +27,7 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketIsActivated = false;
         public int noOfRocketsInPod = 18;
         public bool hasFired = false;
-        private float force = 1f;
+        float torque = 100f;
         public Transform target;
 
         protected override void SafeStart()
@@ -45,8 +47,20 @@ namespace BlockEnhancementMod.Blocks
             CurrentMapperTypes.Add(RocketPodToggle);
 
             GuidedRocketToggle = new MToggle("追踪目标 Tracking Target", "TrackingRocket", guidedRocketIsActivated);
-            GuidedRocketToggle.Toggled += (bool value) => { guidedRocketIsActivated = value; ChangedPropertise(); };
+            GuidedRocketToggle.Toggled += (bool value) =>
+            {
+                guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value;
+                ChangedPropertise();
+            };
             CurrentMapperTypes.Add(GuidedRocketToggle);
+
+            LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
+            LockTargetKey.KeysChanged += ChangedPropertise;
+            CurrentMapperTypes.Add(LockTargetKey);
+
+            GuidedRocketTorqueSlider = new MSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 1000, false);
+            GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedPropertise(); };
+            CurrentMapperTypes.Add(GuidedRocketTorqueSlider);
 
 #if DEBUG
             BesiegeConsoleController.ShowMessage("火箭添加进阶属性");
@@ -60,6 +74,8 @@ namespace BlockEnhancementMod.Blocks
             RocketPodToggle.DisplayInMapper = value;
             ExplosionTypeMenu.DisplayInMapper = value;
             GuidedRocketToggle.DisplayInMapper = value;
+            GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketIsActivated;
+            LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
 
         public override void LoadConfiguration()
@@ -89,6 +105,14 @@ namespace BlockEnhancementMod.Blocks
                     {
                         GuidedRocketToggle.IsActive = guidedRocketIsActivated = bd.ReadBool("bmt-" + GuidedRocketToggle.Key);
                     }
+                    if (bd.HasKey("bmt-" + LockTargetKey.Key))
+                    {
+                        int index = 0;
+                        foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
+                        {
+                            LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+                        }
+                    }
                     break;
                 }
 
@@ -106,6 +130,7 @@ namespace BlockEnhancementMod.Blocks
                     blockinfo.BlockData.Write("bmt-" + ExplosionTypeMenu.Key, ExplosionTypeMenu.Value);
                     blockinfo.BlockData.Write("bmt-" + RocketPodToggle.Key, RocketPodToggle.IsActive);
                     blockinfo.BlockData.Write("bmt-" + GuidedRocketToggle.Key, GuidedRocketToggle.IsActive);
+                    blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
                     break;
                 }
 
@@ -133,15 +158,25 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (target != null)
                 {
-                    //BesiegeConsoleController.ShowMessage("start guiding");
-                    transform.rotation = Quaternion.Slerp(transform.localRotation, Quaternion.LookRotation(target.position - transform.position), 0.8f);
-                    //Vector3 targetDelta = target.position - transform.position;
-                    //float angleDiff = Vector3.Angle(transform.forward, targetDelta);
-                    //Vector3 cross = Vector3.Cross(transform.forward, targetDelta);
-                    //transform.GetComponent<Rigidbody>().AddTorque(-cross * angleDiff * 100000f);
+                    Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
+                    Vector3 positionDiff = target.position - transform.position;
+                    float angle = Vector3.Angle(positionDiff, velocityNormarlised);
+                    Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
+                    if (angle > 90)
+                    {
+                        transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                    }
+                    else
+                    {
+                        transform.GetComponent<Rigidbody>().AddTorque(torque / 90 * angle * rotatingAxis);
+                    }
                 }
 
             }
+        }
+        void OnCollisionEnter(Collision collision)
+        {
+            BesiegeConsoleController.ShowMessage("collision detected");
         }
     }
 }
