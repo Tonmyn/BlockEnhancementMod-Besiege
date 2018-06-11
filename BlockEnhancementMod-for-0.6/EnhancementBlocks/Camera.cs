@@ -123,6 +123,7 @@ namespace BlockEnhancementMod.Blocks
 
                     
                     ConsoleController.ShowMessage(target.gameObject.GetComponent<BlockBehaviour>().BuildingBlock.Guid.ToString());
+
                 }
 
             }
