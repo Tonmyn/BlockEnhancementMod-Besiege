@@ -136,6 +136,8 @@ namespace BlockEnhancementMod
 
         protected virtual void OnSimulateFixedUpdate() { }
 
+        protected virtual void LateUpdate() { }
+
         /// <summary>
         /// 加载网格信息
         /// </summary>
