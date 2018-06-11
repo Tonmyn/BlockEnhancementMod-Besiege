@@ -56,17 +56,16 @@ namespace BlockEnhancementMod
                 //AddPiece.Instance.
 
                 // Check for open keymapper
-                OnKeymapperOpen();
                 if (!_keyMapperOpen)
                 {
-                    //OnKeymapperOpen();
+                    OnKeymapperOpen();
                     _keyMapperOpen = true;
                     BesiegeConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
                 {
-                    //OnKeymapperOpen();
+                    OnKeymapperOpen();
                     _lastBlock = BlockMapper.CurrentInstance.Block;
                 }
 
@@ -75,6 +74,7 @@ namespace BlockEnhancementMod
             {
                 if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
                 {
+                    //ConsoleController.ShowMessage("Update machine, should be just once");
                     AddAllSliders();
                     currentSceneName = SceneManager.GetActiveScene().name;
                 }
@@ -150,99 +150,6 @@ namespace BlockEnhancementMod
                     block.gameObject.AddComponent(EB);
                 }
             }
-
-            //if (block.BlockID == (int)BlockType.BallJoint)
-            //{
-            //    if (block.GetComponent<BallJointScript>() == null)
-            //        block.gameObject.AddComponent<BallJointScript>();
-            //    //new BallJoint(block);
-            //}
-
-            //if (WheelScript.IsWheel(block.BlockID))
-            //{
-            //    if (block.GetComponent<WheelScript>() == null)
-            //        block.gameObject.AddComponent<WheelScript>();
-            //    //new Wheel(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.GripPad)
-            //{
-            //    if (block.GetComponent<GripPadScript>() == null)
-            //        block.gameObject.AddComponent<GripPadScript>();
-            //    //new GripPad(block);
-
-            //}
-
-            //if (block.BlockID == (int)BlockType.Suspension)
-            //{
-            //    if (block.GetComponent<SuspensionScript>() == null)
-            //        block.gameObject.AddComponent<SuspensionScript>();
-            //    //new Suspension(block);
-
-            //}
-
-            ////if (block.GetBlockID() == (int)BlockType.SteeringHinge)
-            ////{
-
-            ////    new SteeringHinge(block);
-
-            ////}
-
-            //if (block.BlockID == (int)BlockType.Decoupler)
-            //{
-            //    if (block.GetComponent<DecouplerScript>() == null)
-            //        block.gameObject.AddComponent<DecouplerScript>();
-            //    //new Decoupler(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.SmallWheel)
-            //{
-            //    if (block.GetComponent<SmallwheelScript>() == null)
-            //        block.gameObject.AddComponent<SmallwheelScript>();
-            //    //new Smallwheel(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.Slider)
-            //{
-            //    if (block.GetComponent<SliderScript>() == null)
-            //        block.gameObject.AddComponent<SliderScript>();
-            //    //new Blocks.Slider(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.Piston)
-            //{
-            //    if (block.GetComponent<PistonScript>() == null)
-            //        block.gameObject.AddComponent<PistonScript>();
-            //    //new Blocks.Piston(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.SpinningBlock)
-            //{
-            //    if (block.GetComponent<SpinningScript>() == null)
-            //        block.gameObject.AddComponent<SpinningScript>();
-            //    //new Blocks.Spinning(block);
-            //}
-
-            //if (block.BlockID == (int)BlockType.Spring)
-            //{
-            //    if (block.GetComponent<SpringScript>() == null)
-            //        block.gameObject.AddComponent<SpringScript>();
-            //    //new Blocks.Spring(block);
-            //}
-
-            //if (PropellerScript.IsPropeller(block.BlockID))
-            //{
-            //    if (block.GetComponent<PropellerScript>() == null)
-            //        block.gameObject.AddComponent<PropellerScript>();
-            //    //new Blocks.Propeller(block);
-            //}
-
-            ////if (Cog.IsCog(block.BlockID))
-            ////{
-
-            ////    new Blocks.Cog(block);
-            ////}
-
         }
 
         /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
@@ -284,7 +191,7 @@ namespace BlockEnhancementMod
             {
                 AddSliders(block);
             }
-            Refresh = false;
+            //Refresh = false;
 #if DEBUG
             BesiegeConsoleController.ShowMessage("Refresh");
 #endif

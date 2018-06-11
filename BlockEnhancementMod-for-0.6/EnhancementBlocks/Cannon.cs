@@ -58,46 +58,46 @@ namespace BlockEnhancementMod.Blocks
         {
 
             foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }
-            StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedPropertise(); };
+            StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedProperties(); };
 
             IntervalSlider = new MSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
-            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedPropertise(); };
+            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
             CurrentMapperTypes.Add(IntervalSlider);
 
             RandomDelaySlider = new MSlider("随机延迟", "RandomDelay", RandomDelay, 0f, 0.5f, false);
-            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedPropertise(); };
+            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
             CurrentMapperTypes.Add(RandomDelaySlider);
 
             KnockBackSpeedSlider = new MSlider("后坐力", "KnockBackSpeed", KnockBackSpeed, 0.2f, 1f, false);
-            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedPropertise(); };
+            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedProperties(); };
             CurrentMapperTypes.Add(KnockBackSpeedSlider);
 
             BulletToggle = new MToggle("自定子弹", "Bullet", cBullet);
-            BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedPropertise(); };
+            BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
             CurrentMapperTypes.Add(BulletToggle);
 
             InheritSizeToggle = new MToggle("尺寸继承", "InheritSize", InheritSize);
-            InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedPropertise(); };
+            InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
             CurrentMapperTypes.Add(InheritSizeToggle);
 
             BulletMassSlider = new MSlider("子弹质量", "BulletMass", BulletMass, 0.1f, 2f, false);
-            BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedPropertise(); };
+            BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
             CurrentMapperTypes.Add(BulletMassSlider);
 
             BulletDragSlider = new MSlider("子弹阻力", "BulletDrag", BulletDrag, 0.01f, 0.5f, false);
-            BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedPropertise(); };
+            BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
             CurrentMapperTypes.Add(BulletDragSlider);
 
             TrailToggle = new MToggle("显示尾迹", "Trail", Trail);
-            TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedPropertise(); };
+            TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
             CurrentMapperTypes.Add(TrailToggle);
 
             TrailLengthSlider = new MSlider("尾迹长度", "trail length", TrailLength, 0.2f, 2f, false);
-            TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedPropertise(); };
+            TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
             CurrentMapperTypes.Add(TrailLengthSlider);
 
             TrailColorSlider = new MColourSlider("尾迹颜色", "trail color", TrailColor, false);
-            TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedPropertise(); };
+            TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
             CurrentMapperTypes.Add(TrailColorSlider);
 
 

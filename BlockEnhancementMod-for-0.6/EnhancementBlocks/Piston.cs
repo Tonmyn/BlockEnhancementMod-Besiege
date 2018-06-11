@@ -18,7 +18,7 @@ namespace BlockEnhancementMod.Blocks
 
 
             HardnessMenu = new MMenu("Hardness", Hardness, new List<string>() { "低碳钢", "中碳钢", "高碳钢" }, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
 

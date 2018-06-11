@@ -24,15 +24,15 @@ namespace BlockEnhancementMod.Blocks
         {
 
             SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
-            SwitchKey.KeysChanged += ChangedPropertise;
+            SwitchKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(SwitchKey);
 
             HardnessMenu = new MMenu("", Hardness, WoodHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
             EffectToggle = new MToggle("初始生效", "Effect", Effect);
-            EffectToggle.Toggled += (bool value) => { Effect = value; ChangedPropertise(); };
+            EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
             CurrentMapperTypes.Add(EffectToggle);
 
 

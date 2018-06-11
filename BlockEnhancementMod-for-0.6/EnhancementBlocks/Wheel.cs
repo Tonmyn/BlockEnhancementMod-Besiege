@@ -34,23 +34,23 @@ namespace BlockEnhancementMod.Blocks
         {
 
                 BrakeKey = new MKey("刹车", "Brake", KeyCode.None);
-                BrakeKey.KeysChanged += ChangedPropertise;
+                BrakeKey.KeysChanged += ChangedProperties;
                 CurrentMapperTypes.Add(BrakeKey);
 
                 BrakeForceSlider = new MSlider("刹车力度", "BrakeForce", BrakeForce, 0, 5, false);
-                BrakeForceSlider.ValueChanged += (float value) => { BrakeForce = value; ChangedPropertise(); };
+                BrakeForceSlider.ValueChanged += (float value) => { BrakeForce = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(BrakeForceSlider);
 
                 ColliderToggle = new MToggle("自定碰撞", "Collider", Collider);
-                ColliderToggle.Toggled += (bool value) => { Collider = value; ChangedPropertise(); };
+                ColliderToggle.Toggled += (bool value) => { Collider = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(ColliderToggle);
 
                 FrictionToggle = new MToggle("自定摩擦", "FrictionT", FrictionT);
-                FrictionToggle.Toggled += (bool value) => { FrictionT = FrictionSlider.DisplayInMapper = value; ChangedPropertise(); };
+                FrictionToggle.Toggled += (bool value) => { FrictionT = FrictionSlider.DisplayInMapper = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(FrictionToggle);
 
                 FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1f, false);
-                FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedPropertise(); };
+                FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(FrictionSlider);
 
                 if (BB.BlockID == (int)BlockType.Wheel || BB.BlockID == (int)BlockType.LargeWheel)
@@ -60,7 +60,7 @@ namespace BlockEnhancementMod.Blocks
                     else
                     { Lerp = 8; }
                     LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 30f, false);
-                    LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedPropertise(); };
+                    LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
                     CurrentMapperTypes.Add(LerpSlider);
 
                 }

@@ -20,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeStart()
         {
             RotationToggle = new MToggle("万向节", "Rotation", Rotation);
-            RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedPropertise(); };
+            RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
             CurrentMapperTypes.Add(RotationToggle);
           
             BesiegeConsoleController.ShowMessage("球铰添加进阶属性...");   

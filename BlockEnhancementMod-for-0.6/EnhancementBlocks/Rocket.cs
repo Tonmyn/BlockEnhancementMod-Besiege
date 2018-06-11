@@ -57,16 +57,16 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value;
-                ChangedPropertise();
+                ChangedProperties();
             };
             CurrentMapperTypes.Add(GuidedRocketToggle);
 
             LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
-            LockTargetKey.KeysChanged += ChangedPropertise;
+            LockTargetKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(LockTargetKey);
 
             GuidedRocketTorqueSlider = new MSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 1000, false);
-            GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedPropertise(); };
+            GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             CurrentMapperTypes.Add(GuidedRocketTorqueSlider);
 
 #if DEBUG

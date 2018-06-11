@@ -55,7 +55,7 @@ namespace BlockEnhancementMod
 
             LoadConfiguration();
 
-            ChangedPropertise();
+            ChangedProperties();
             DisplayInMapper(EnhancementEnable);
 
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
@@ -117,7 +117,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
-        public virtual void ChangedPropertise() { }
+        public virtual void ChangedProperties() { }
 
         /// <summary>
         /// 安全开始 模块只需要关心自己要添加什么控件就行了

@@ -18,7 +18,7 @@ namespace BlockEnhancementMod.Blocks
         {
 
             DragSlider = new MSlider("阻力", "Drag", Drag, 0f, 3f, false);
-            DragSlider.ValueChanged += (float value) => { Drag = value; ChangedPropertise(); };
+            DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
             CurrentMapperTypes.Add(DragSlider);
 
 

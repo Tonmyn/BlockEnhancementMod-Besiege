@@ -20,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
 
             CameraLookAtToggle = new MToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
             //CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = CameraFollowSmoothSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedProperties(); };
             CurrentMapperTypes.Add(CameraLookAtToggle);
 
             //CameraFollowSmoothSlider = new MSlider("平滑", "cameraSmooth", cameraFollowSmooth, 0, 1, false);
@@ -28,7 +28,7 @@ namespace BlockEnhancementMod.Blocks
             //CurrentMapperTypes.Add(CameraFollowSmoothSlider);
 
             LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
-            LockTargetKey.KeysChanged += ChangedPropertise;
+            LockTargetKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(LockTargetKey);
 
 

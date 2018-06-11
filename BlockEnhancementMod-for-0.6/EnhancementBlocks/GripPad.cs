@@ -25,11 +25,11 @@ namespace BlockEnhancementMod.Blocks
             //GPS = BB.gameObject.AddComponent<GripPadScript>();
 
             HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
             FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1000f, false);
-            FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedPropertise(); };
+            FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
             CurrentMapperTypes.Add(FrictionSlider);
 
 

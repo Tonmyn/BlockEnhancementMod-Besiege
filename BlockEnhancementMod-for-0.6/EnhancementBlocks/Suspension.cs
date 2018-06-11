@@ -37,31 +37,31 @@ namespace BlockEnhancementMod.Blocks
         {
 
             HardnessMenu = new MMenu("Hardness", Hardness, new List<string> { "低碳钢", "中碳钢", "高碳钢" }, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
             ExtendKey = new MKey("伸出", "Extend", KeyCode.E);
-            ExtendKey.KeysChanged += ChangedPropertise;
+            ExtendKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(ExtendKey);
 
             ShrinkKey = new MKey("收回", "Shrink", KeyCode.F);
-            ShrinkKey.KeysChanged += ChangedPropertise;
+            ShrinkKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(ShrinkKey);
 
             PressureToggle = new MToggle("液压模式", "Pressure", Pressure);
-            PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedPropertise(); };
+            PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
             CurrentMapperTypes.Add(PressureToggle);
 
             FeedSlider = new MSlider("进给速度", "feed", Feed, 0f, 2f, false);
-            FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedPropertise(); };
+            FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
             CurrentMapperTypes.Add(FeedSlider);
 
             ExtendLimitSlider = new MSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
-            ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedPropertise(); };
+            ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
             CurrentMapperTypes.Add(ExtendLimitSlider);
 
             ShrinkLimitSlider = new MSlider("收缩限制", "ShrinkLimit", ShrinkLimit, 0f, 3f, false);
-            ShrinkLimitSlider.ValueChanged += (float value) => { ShrinkLimit = value; ChangedPropertise(); };
+            ShrinkLimitSlider.ValueChanged += (float value) => { ShrinkLimit = value; ChangedProperties(); };
             CurrentMapperTypes.Add(ShrinkLimitSlider);
 
 #if DEBUG

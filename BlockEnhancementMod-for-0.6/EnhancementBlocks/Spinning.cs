@@ -25,15 +25,15 @@ namespace BlockEnhancementMod.Blocks
         {
 
                 RotationKey = new MKey("旋转", "Rotation", KeyCode.R);
-                RotationKey.KeysChanged += ChangedPropertise;
+                RotationKey.KeysChanged += ChangedProperties;
                 CurrentMapperTypes.Add(RotationKey);
 
                 LockedToggle = new MToggle("锁定旋转", "Locked", Locked);
-                LockedToggle.Toggled += (bool value) => { Locked = value; ChangedPropertise(); };
+                LockedToggle.Toggled += (bool value) => { Locked = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(LockedToggle);
 
                 LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 20f, false);
-                LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedPropertise(); };
+                LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(LerpSlider);
 
 #if DEBUG
