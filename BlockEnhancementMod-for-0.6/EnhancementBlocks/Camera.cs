@@ -8,21 +8,27 @@ namespace BlockEnhancementMod.Blocks
     {
         MToggle CameraLookAtToggle;
         MSlider CameraFollowSmoothSlider;
+        MKey LockTargetKey;
 
         public bool cameraLookAtToggled = false;
         public float cameraFollowSmooth = 0.25f;
         public Transform target;
+        public Transform realCameraTransform;
 
         protected override void SafeStart()
         {
 
-            CameraLookAtToggle = new MToggle("追踪摄像机 Tracking Camera", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = value; ChangedPropertise(); };
+            CameraLookAtToggle = new MToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = CameraFollowSmoothSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
             CurrentMapperTypes.Add(CameraLookAtToggle);
 
             CameraFollowSmoothSlider = new MSlider("平滑", "cameraSmooth", cameraFollowSmooth, 0, 1, false);
             CameraFollowSmoothSlider.ValueChanged += (float value) => { cameraFollowSmooth = value; ChangedPropertise(); };
             CurrentMapperTypes.Add(CameraFollowSmoothSlider);
+
+            LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
+            LockTargetKey.KeysChanged += ChangedPropertise;
+            CurrentMapperTypes.Add(LockTargetKey);
 
 
 #if DEBUG
@@ -35,7 +41,8 @@ namespace BlockEnhancementMod.Blocks
         {
             //base.DisplayInMapper(value);
             CameraLookAtToggle.DisplayInMapper = value;
-            CameraFollowSmoothSlider.DisplayInMapper = value;
+            CameraFollowSmoothSlider.DisplayInMapper = value && cameraLookAtToggled;
+            LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
         public override void LoadConfiguration()
@@ -61,6 +68,14 @@ namespace BlockEnhancementMod.Blocks
                     {
                         CameraFollowSmoothSlider.Value = cameraFollowSmooth = bd.ReadFloat("bmt-" + CameraFollowSmoothSlider.Key);
                     }
+                    if (bd.HasKey("bmt-" + LockTargetKey.Key))
+                    {
+                        int index = 0;
+                        foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
+                        {
+                            LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+                        }
+                    }
                     break;
                 }
 
@@ -77,6 +92,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     blockinfo.BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
                     blockinfo.BlockData.Write("bmt-" + CameraFollowSmoothSlider.Key, CameraFollowSmoothSlider.Value);
+                    blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
                     break;
                 }
 
@@ -85,12 +101,15 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            // Get the actual camera's transform, not the joint's transform
+            realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
         }
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (Input.GetMouseButtonDown(2))
+            if (LockTargetKey.IsReleased)
             {
+                // Aquire the target to look at
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit))
@@ -99,13 +118,13 @@ namespace BlockEnhancementMod.Blocks
                 }
 
             }
-            if (cameraLookAtToggled)
+            if (cameraLookAtToggled && target != null)
             {
-                Vector3 positionDiff = transform.position - target.position;
-                Vector3 rotatingAxis = -Vector3.Cross(positionDiff, transform.forward);
-                rotatingAxis = (transform.forward - Vector3.Dot(positionDiff, transform.forward) * positionDiff).normalized;
-                //transform.LookAt(target, rotatingAxis);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(positionDiff, rotatingAxis), cameraFollowSmooth);
+                // Keep the camera focusing on the target
+                Vector3 positionDiff = target.position - realCameraTransform.position;
+                Vector3 rotatingAxis = (transform.up - Vector3.Dot(positionDiff, transform.up) * positionDiff).normalized;
+                //realCameraTransform.LookAt(target); 
+                realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, Quaternion.LookRotation(positionDiff, rotatingAxis), cameraFollowSmooth);
             }
         }
     }
