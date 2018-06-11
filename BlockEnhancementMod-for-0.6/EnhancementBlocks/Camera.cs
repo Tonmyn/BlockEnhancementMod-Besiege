@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -14,6 +16,8 @@ namespace BlockEnhancementMod.Blocks
         //public float cameraFollowSmooth = 0.25f;
         public Transform target;
         public Transform realCameraTransform;
+
+        bool s = false;
 
         protected override void SafeStart()
         {
@@ -116,19 +120,27 @@ namespace BlockEnhancementMod.Blocks
                 if (Physics.Raycast(ray, out hit))
                 {
                     target = hit.transform;
+
+                    
+                    ConsoleController.ShowMessage(target.gameObject.GetComponent<BlockBehaviour>().BuildingBlock.Guid.ToString());
                 }
 
             }
             if (cameraLookAtToggled && target != null)
             {
-                ConsoleController.ShowMessage(target.name);
+                //ConsoleController.ShowMessage(target.name);
                 // Keep the camera focusing on the target
                 //BlockBehaviour block;
                 Vector3 positionDiff = target.position - realCameraTransform.position;
                 Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
                 realCameraTransform.LookAt(target);
                 //realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, Quaternion.LookRotation(positionDiff), cameraFollowSmooth);
+
+               
+
+                
             }
         }
+
     }
 }
