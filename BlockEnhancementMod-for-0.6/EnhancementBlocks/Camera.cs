@@ -7,11 +7,11 @@ namespace BlockEnhancementMod.Blocks
     class CameraScript : EnhancementBlock
     {
         MToggle CameraLookAtToggle;
-        MSlider CameraFollowSmoothSlider;
+        //MSlider CameraFollowSmoothSlider;
         MKey LockTargetKey;
 
         public bool cameraLookAtToggled = false;
-        public float cameraFollowSmooth = 0.25f;
+        //public float cameraFollowSmooth = 0.25f;
         public Transform target;
         public Transform realCameraTransform;
 
@@ -19,12 +19,13 @@ namespace BlockEnhancementMod.Blocks
         {
 
             CameraLookAtToggle = new MToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = CameraFollowSmoothSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
+            //CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = CameraFollowSmoothSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedPropertise(); };
             CurrentMapperTypes.Add(CameraLookAtToggle);
 
-            CameraFollowSmoothSlider = new MSlider("平滑", "cameraSmooth", cameraFollowSmooth, 0, 1, false);
-            CameraFollowSmoothSlider.ValueChanged += (float value) => { cameraFollowSmooth = value; ChangedPropertise(); };
-            CurrentMapperTypes.Add(CameraFollowSmoothSlider);
+            //CameraFollowSmoothSlider = new MSlider("平滑", "cameraSmooth", cameraFollowSmooth, 0, 1, false);
+            //CameraFollowSmoothSlider.ValueChanged += (float value) => { cameraFollowSmooth = value; ChangedPropertise(); };
+            //CurrentMapperTypes.Add(CameraFollowSmoothSlider);
 
             LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
             LockTargetKey.KeysChanged += ChangedPropertise;
@@ -41,7 +42,7 @@ namespace BlockEnhancementMod.Blocks
         {
             //base.DisplayInMapper(value);
             CameraLookAtToggle.DisplayInMapper = value;
-            CameraFollowSmoothSlider.DisplayInMapper = value && cameraLookAtToggled;
+            //CameraFollowSmoothSlider.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
@@ -64,10 +65,10 @@ namespace BlockEnhancementMod.Blocks
                     {
                         CameraLookAtToggle.IsActive = cameraLookAtToggled = bd.ReadBool("bmt-" + CameraLookAtToggle.Key);
                     }
-                    if (bd.HasKey("bmt-" + CameraFollowSmoothSlider.Key))
-                    {
-                        CameraFollowSmoothSlider.Value = cameraFollowSmooth = bd.ReadFloat("bmt-" + CameraFollowSmoothSlider.Key);
-                    }
+                    //if (bd.HasKey("bmt-" + CameraFollowSmoothSlider.Key))
+                    //{
+                    //    CameraFollowSmoothSlider.Value = cameraFollowSmooth = bd.ReadFloat("bmt-" + CameraFollowSmoothSlider.Key);
+                    //}
                     if (bd.HasKey("bmt-" + LockTargetKey.Key))
                     {
                         int index = 0;
@@ -91,7 +92,7 @@ namespace BlockEnhancementMod.Blocks
                 if (blockinfo.Guid == BB.Guid)
                 {
                     blockinfo.BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + CameraFollowSmoothSlider.Key, CameraFollowSmoothSlider.Value);
+                    //blockinfo.BlockData.Write("bmt-" + CameraFollowSmoothSlider.Key, CameraFollowSmoothSlider.Value);
                     blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
                     break;
                 }
@@ -105,7 +106,7 @@ namespace BlockEnhancementMod.Blocks
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
         }
 
-        protected override void OnSimulateFixedUpdate()
+        protected override void LateUpdate()
         {
             if (LockTargetKey.IsReleased)
             {
@@ -120,14 +121,14 @@ namespace BlockEnhancementMod.Blocks
             }
             if (cameraLookAtToggled && target != null)
             {
+                ConsoleController.ShowMessage(target.name);
                 // Keep the camera focusing on the target
+                //BlockBehaviour block;
                 Vector3 positionDiff = target.position - realCameraTransform.position;
-                Vector3 rotatingAxis = (transform.up - Vector3.Dot(positionDiff, transform.up) * positionDiff).normalized;
-                //realCameraTransform.LookAt(target); 
-                realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, Quaternion.LookRotation(positionDiff, rotatingAxis), cameraFollowSmooth);
+                Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
+                realCameraTransform.LookAt(target);
+                //realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, Quaternion.LookRotation(positionDiff), cameraFollowSmooth);
             }
         }
     }
 }
-
-

@@ -264,10 +264,10 @@ namespace BlockEnhancementMod
             {(int)BlockType.Spring,typeof(SpringScript) },
             //{(int)BlockType.SteeringHinge,typeof(ste) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
-            {(int)BlockType.Wheel,typeof(WheelScript) },
-            {(int)BlockType.LargeWheel,typeof(WheelScript) },
-            {(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
-            {(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+            //{(int)BlockType.Wheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.Rocket,typeof(RocketScript)},
             {(int)BlockType.CameraBlock,typeof(CameraScript)}
         };
