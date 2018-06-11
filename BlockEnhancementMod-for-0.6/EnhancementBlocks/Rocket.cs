@@ -144,7 +144,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (Input.GetMouseButtonDown(2))
+            if (LockTargetKey.IsDown)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -152,7 +152,6 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = hit.collider.transform;
                 }
-
             }
             if (guidedRocketIsActivated && gameObject.GetComponent<TimedRocket>().hasFired)
             {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod 
+namespace BlockEnhancementMod.Blocks
 {
     class PistonScript : EnhancementBlock
     {

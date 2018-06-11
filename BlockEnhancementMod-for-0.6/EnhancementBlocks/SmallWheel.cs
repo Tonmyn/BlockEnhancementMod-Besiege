@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 
-namespace BlockEnhancementMod
+namespace BlockEnhancementMod.Blocks
 {
     public class SmallwheelScript : EnhancementBlock
     {
