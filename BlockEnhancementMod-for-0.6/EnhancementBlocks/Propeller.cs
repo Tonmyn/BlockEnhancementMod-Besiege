@@ -24,20 +24,20 @@ namespace BlockEnhancementMod.Blocks
         {
 
             SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
-            SwitchKey.KeysChanged += ChangedPropertise;
+            SwitchKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(SwitchKey);
 
             HardnessMenu = new MMenu("", Hardness, WoodHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
             EffectToggle = new MToggle("初始生效", "Effect", Effect);
-            EffectToggle.Toggled += (bool value) => { Effect = value; ChangedPropertise(); };
+            EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
             CurrentMapperTypes.Add(EffectToggle);
 
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("桨叶添加进阶属性");
+            ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
         }
 
@@ -178,7 +178,7 @@ namespace BlockEnhancementMod.Blocks
                     if (go.name == "liftNormal")
                     {
                         liftObject = go.gameObject;
-                        BesiegeConsoleController.ShowMessage(liftObject.name);
+                        ConsoleController.ShowMessage(liftObject.name);
                         break;
                     }
                 }
@@ -210,7 +210,7 @@ namespace BlockEnhancementMod.Blocks
             if (SwitchKey.IsPressed)
             {
 
-                BesiegeConsoleController.ShowMessage("propeller");
+                ConsoleController.ShowMessage("propeller");
                 //AD.enabled = Effect = !Effect;
                 //PC.enabled = Effect = !Effect;
 

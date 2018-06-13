@@ -41,6 +41,29 @@ namespace BlockEnhancementMod
 
         private void Start()
         {
+            //if (!StatMaster.levelSimulating)
+            //{
+            //    BB = GetComponent<BlockBehaviour>();
+
+            //    CurrentMapperTypes = BB.MapperTypes;
+
+            //    Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
+
+            //    Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
+
+            //    CurrentMapperTypes.Add(Enhancement);
+
+            //    SafeStart();
+
+            //    LoadConfiguration();
+
+            //    ChangedProperties();
+            //    DisplayInMapper(EnhancementEnable);
+
+            //    Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+
+            //    Controller.Save += SaveConfiguration;
+            //}
             BB = GetComponent<BlockBehaviour>();
 
             CurrentMapperTypes = BB.MapperTypes;
@@ -55,13 +78,12 @@ namespace BlockEnhancementMod
 
             LoadConfiguration();
 
-            ChangedPropertise();
+            ChangedProperties();
             DisplayInMapper(EnhancementEnable);
 
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
             Controller.Save += SaveConfiguration;
-
         }
 
 
@@ -74,7 +96,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    BesiegeConsoleController.ShowMessage("on start");
+                    ConsoleController.ShowMessage("on start");
 #endif
                 }
                 OnSimulateUpdate();
@@ -117,7 +139,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
-        public virtual void ChangedPropertise() { }
+        public virtual void ChangedProperties() { }
 
         /// <summary>
         /// 安全开始 模块只需要关心自己要添加什么控件就行了

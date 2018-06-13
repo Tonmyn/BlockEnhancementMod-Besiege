@@ -20,11 +20,11 @@ namespace BlockEnhancementMod.Blocks
         {
 
             SpeedSlider = new MSlider("旋转速度", "Speed", Speed, 0f, 5f, false);
-            SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedPropertise(); };
+            SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedProperties(); };
             CurrentMapperTypes.Add(SpeedSlider);
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("小轮子添加进阶属性");
+            ConsoleController.ShowMessage("小轮子添加进阶属性");
 #endif
         }
 

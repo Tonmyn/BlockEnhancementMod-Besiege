@@ -23,15 +23,15 @@ namespace BlockEnhancementMod.Blocks
         {
 
                 HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
-                HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedPropertise(); };
+                HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(HardnessMenu);
 
                 LimitSlider = new MSlider("限制", "Limit", Limit, 0f, 2f, false);
-                LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedPropertise(); };
+                LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
                 CurrentMapperTypes.Add(LimitSlider);
 
 #if DEBUG
-           BesiegeConsoleController.ShowMessage("滑块添加进阶属性");
+            ConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
 
         }

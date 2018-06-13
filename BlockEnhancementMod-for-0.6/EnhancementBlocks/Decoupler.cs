@@ -23,16 +23,16 @@ namespace BlockEnhancementMod.Blocks
             //DS = BB.gameObject.AddComponent<DecouplerScript>();
 
             ExplodeForceSlider = new MSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);
-            ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedPropertise(); };
+            ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedProperties(); };
             CurrentMapperTypes.Add(ExplodeForceSlider);
 
             ExplodeTorqueSlider = new MSlider("爆炸扭矩", "ExplodeTorque", ExplodeTorque, 0, 2500f, false);
-            ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedPropertise(); };
+            ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedProperties(); };
             CurrentMapperTypes.Add(ExplodeTorqueSlider);
 
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("分离铰链添加进阶属性");
+            ConsoleController.ShowMessage("分离铰链添加进阶属性");
 #endif
 
         }
