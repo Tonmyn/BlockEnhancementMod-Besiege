@@ -60,7 +60,7 @@ namespace BlockEnhancementMod
                 {
                     OnKeymapperOpen();
                     _keyMapperOpen = true;
-                    ConsoleController.ShowMessage("keyMapperOpen");
+                    //ConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
@@ -133,18 +133,13 @@ namespace BlockEnhancementMod
         public static void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            ConsoleController.ShowMessage(block.BlockID.ToString());
+            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
-            //if (block.BlockID == (int)BlockType.Cannon)
-            //{
-            //    if(block.GetComponent<CannonScript>()== null)
-            //    block.gameObject.AddComponent<CannonScript>();
-            //    //new Cannon(block);
-            //}
+
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
             {
-
                 var EB = dic_EnhancementBlock[block.BlockID];
+
                 if (block.GetComponent(EB) == null)
                 {
                     block.gameObject.AddComponent(EB);
@@ -228,6 +223,8 @@ namespace BlockEnhancementMod
 
         public virtual void SaveConfiguration(MachineInfo mi)
         {
+            Configuration.Save();
+
             Save(mi);
         }
 

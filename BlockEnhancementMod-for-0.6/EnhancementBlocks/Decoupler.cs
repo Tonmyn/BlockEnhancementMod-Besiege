@@ -37,49 +37,49 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void LoadConfiguration()
-        {
-            base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;                 
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;                 
 
-                    if (bd.HasKey("bmt-" + ExplodeForceSlider.Key)) { ExplodeForceSlider.Value = ExplodeForce = bd.ReadFloat("bmt-" + ExplodeForceSlider.Key); }
+        //            if (bd.HasKey("bmt-" + ExplodeForceSlider.Key)) { ExplodeForceSlider.Value = ExplodeForce = bd.ReadFloat("bmt-" + ExplodeForceSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + ExplodeTorqueSlider.Key)) { ExplodeTorqueSlider.Value = ExplodeTorque = bd.ReadFloat("bmt-" + ExplodeTorqueSlider.Key); }
+        //            if (bd.HasKey("bmt-" + ExplodeTorqueSlider.Key)) { ExplodeTorqueSlider.Value = ExplodeTorque = bd.ReadFloat("bmt-" + ExplodeTorqueSlider.Key); }
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + ExplodeForceSlider.Key, ExplodeForceSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + ExplodeForceSlider.Key, ExplodeForceSlider.Value);
 
-                    blockinfo.BlockData.Write("bmt-" + ExplodeTorqueSlider.Key, ExplodeTorqueSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + ExplodeTorqueSlider.Key, ExplodeTorqueSlider.Value);
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         //public override void ChangedPropertise()
         //{

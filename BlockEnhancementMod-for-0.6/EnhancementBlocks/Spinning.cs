@@ -41,61 +41,61 @@ namespace BlockEnhancementMod.Blocks
 #endif
         }
 
-        public override void LoadConfiguration()
-        {
-            base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
 
-                    if (bd.HasKey("bmt-" + RotationKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + RotationKey.Key))
-                        {
-                            RotationKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
+        //            if (bd.HasKey("bmt-" + RotationKey.Key))
+        //            {
+        //                int index = 0;
+        //                foreach (string str in bd.ReadStringArray("bmt-" + RotationKey.Key))
+        //                {
+        //                    RotationKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+        //                }
+        //            }
 
-                    if (bd.HasKey("bmt-" + LockedToggle.Key)) { LockedToggle.IsActive = Locked = bd.ReadBool("bmt-" + LockedToggle.Key); }
+        //            if (bd.HasKey("bmt-" + LockedToggle.Key)) { LockedToggle.IsActive = Locked = bd.ReadBool("bmt-" + LockedToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + LerpSlider.Key)) { LerpSlider.Value = Lerp = bd.ReadFloat("bmt-" + LerpSlider.Key); }
+        //            if (bd.HasKey("bmt-" + LerpSlider.Key)) { LerpSlider.Value = Lerp = bd.ReadFloat("bmt-" + LerpSlider.Key); }
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + RotationKey.Key, Tools.Get_List_keycode(RotationKey));
+        //            blockinfo.BlockData.Write("bmt-" + RotationKey.Key, Tools.Get_List_keycode(RotationKey));
 
-                    blockinfo.BlockData.Write("bmt-" + LockedToggle.Key, LockedToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + LockedToggle.Key, LockedToggle.IsActive);
 
-                    blockinfo.BlockData.Write("bmt-" + LerpSlider.Key, LerpSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + LerpSlider.Key, LerpSlider.Value);
 
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         //public override void ChangedPropertise()
         //{

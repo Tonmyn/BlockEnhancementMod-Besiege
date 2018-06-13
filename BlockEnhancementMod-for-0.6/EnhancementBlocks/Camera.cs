@@ -23,13 +23,21 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedProperties(); };
             CurrentMapperTypes.Add(CameraLookAtToggle);
 
-            LockTargetKey = new MKey("锁定目标", "lockTarget", lockKeys[0]);
-            //for (int i = 0; i < lockKeys.Count; i++)
-            //{
-            //    LockTargetKey.AddOrReplaceKey(i, lockKeys[i]);
-            //}
-            LockTargetKey.KeysChanged += ChangedProperties;
-            CurrentMapperTypes.Add(LockTargetKey);
+            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys, () =>
+             {
+                 foreach (KeyCode k in lockKeys)
+                 {
+                     ConsoleController.ShowMessage(string.Format("Key :{0}", k.ToString()));
+                 }            
+             }
+            );
+            //LockTargetKey = new MKey("锁定目标", "lockTarget", lockKeys[0]);
+            ////for (int i = 0; i < lockKeys.Count; i++)
+            ////{
+            ////    LockTargetKey.AddOrReplaceKey(i, lockKeys[i]);
+            ////}
+            //LockTargetKey.KeysChanged += ChangedProperties;
+            //CurrentMapperTypes.Add(LockTargetKey);
 
             if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             {
@@ -43,15 +51,15 @@ namespace BlockEnhancementMod.Blocks
 #endif
 
         }
-        public override void ChangedProperties()
-        {
-            lockKeys.Clear();
-            for (int i = 0; i < LockTargetKey.KeysCount; i++)
-            {
-                lockKeys.Add(LockTargetKey.GetKey(i));
-                ConsoleController.ShowMessage(LockTargetKey.GetKey(i).ToString());
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    lockKeys.Clear();
+        //    for (int i = 0; i < LockTargetKey.KeysCount; i++)
+        //    {
+        //        lockKeys.Add(LockTargetKey.GetKey(i));
+        //        ConsoleController.ShowMessage(LockTargetKey.GetKey(i).ToString());
+        //    }
+        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -61,62 +69,98 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
-        public override void LoadConfiguration()
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
+
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
+
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
+
+        //            if (bd.HasKey("bmt-" + CameraLookAtToggle.Key))
+        //            {
+        //                CameraLookAtToggle.IsActive = cameraLookAtToggled = bd.ReadBool("bmt-" + CameraLookAtToggle.Key);
+        //            }
+        //            if (bd.HasKey("bmt-" + LockTargetKey.Key))
+        //            {
+        //                int index = 0;
+        //                foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
+        //                {
+        //                    LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+        //                }
+        //            }
+        //            if (bd.HasKey("bmt-" + "CameraTarget"))
+        //            {
+        //                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, bd.ReadInt("bmt-" + "CameraTarget"));
+        //            }
+        //            break;
+        //        }
+
+        //    }
+        //}
+
+        public override void LoadConfiguration(XDataHolder BlockData)
         {
-            base.LoadConfiguration();
 
-            if (Controller.MI == null)
+            if (BlockData.HasKey("bmt-" + CameraLookAtToggle.Key))
             {
-                return;
+                CameraLookAtToggle.IsActive = cameraLookAtToggled = BlockData.ReadBool("bmt-" + CameraLookAtToggle.Key);
+            }
+            //if (BlockData.HasKey("bmt-" + LockTargetKey.Key))
+            //{
+            //    int index = 0;
+            //    foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
+            //    {
+            //        LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+            //    }
+            //}
+            if (BlockData.HasKey("bmt-" + "CameraTarget"))
+            {
+                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, BlockData.ReadInt("bmt-" + "CameraTarget"));
             }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
 
-                    if (bd.HasKey("bmt-" + CameraLookAtToggle.Key))
-                    {
-                        CameraLookAtToggle.IsActive = cameraLookAtToggled = bd.ReadBool("bmt-" + CameraLookAtToggle.Key);
-                    }
-                    if (bd.HasKey("bmt-" + LockTargetKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
-                        {
-                            LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
-                    if (bd.HasKey("bmt-" + "CameraTarget"))
-                    {
-                        Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, bd.ReadInt("bmt-" + "CameraTarget"));
-                    }
-                    break;
-                }
-
-            }
         }
 
-        public override void SaveConfiguration(MachineInfo mi)
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
+
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            blockinfo.BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
+        //            //ConsoleController.ShowMessage(Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Count.ToString());
+        //            if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(GetComponent<BlockBehaviour>().BuildIndex))
+        //            {
+        //                blockinfo.BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[GetComponent<BlockBehaviour>().BuildIndex]);
+        //            }
+        //            break;
+        //        }
+
+        //    }
+        //}
+
+        public override void SaveConfiguration(XDataHolder BlockData)
         {
-            base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
+            BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
+            //BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
+            //ConsoleController.ShowMessage(Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Count.ToString());
+            if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(GetComponent<BlockBehaviour>().BuildIndex))
             {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    blockinfo.BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
-                    //ConsoleController.ShowMessage(Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Count.ToString());
-                    if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(GetComponent<BlockBehaviour>().BuildIndex))
-                    {
-                        blockinfo.BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[GetComponent<BlockBehaviour>().BuildIndex]);
-                    }
-                    break;
-                }
-
+                BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[GetComponent<BlockBehaviour>().BuildIndex]);
             }
+
         }
 
         protected override void OnSimulateStart()

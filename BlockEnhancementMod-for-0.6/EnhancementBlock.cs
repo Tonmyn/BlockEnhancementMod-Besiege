@@ -37,33 +37,22 @@ namespace BlockEnhancementMod
 
         internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };
 
+        ///// <summary>按键列表</summary>
+        //internal List<List<KeyCode>> keyCode_lists;
 
+        public delegate void BlockDataLoadHandle(XDataHolder BlockData);
+
+        /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
+        public event BlockDataLoadHandle BlockDataLoadEvent;
+
+        public delegate void BlockDataSaveHandle(XDataHolder BlockData);
+
+        /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
+        public event BlockDataSaveHandle BlockDataSaveEvent;
 
         private void Start()
         {
-            //if (!StatMaster.levelSimulating)
-            //{
-            //    BB = GetComponent<BlockBehaviour>();
 
-            //    CurrentMapperTypes = BB.MapperTypes;
-
-            //    Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
-
-            //    Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            //    CurrentMapperTypes.Add(Enhancement);
-
-            //    SafeStart();
-
-            //    LoadConfiguration();
-
-            //    ChangedProperties();
-            //    DisplayInMapper(EnhancementEnable);
-
-            //    Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-
-            //    Controller.Save += SaveConfiguration;
-            //}
             BB = GetComponent<BlockBehaviour>();
 
             CurrentMapperTypes = BB.MapperTypes;
@@ -76,16 +65,40 @@ namespace BlockEnhancementMod
 
             SafeStart();
 
-            LoadConfiguration();
+            if (!StatMaster.levelSimulating)
+            {
 
-            ChangedProperties();
-            DisplayInMapper(EnhancementEnable);
+                loadConfiguration();
 
+                ChangedProperties();
+
+                DisplayInMapper(EnhancementEnable);
+
+                Controller.Save += saveConfiguration;
+            }
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
-            Controller.Save += SaveConfiguration;
-        }
+            //BB = GetComponent<BlockBehaviour>();
 
+            //CurrentMapperTypes = BB.MapperTypes;
+
+            //Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
+
+            //Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
+
+            //CurrentMapperTypes.Add(Enhancement);
+
+            //SafeStart();
+
+            //loadConfiguration();
+
+            //ChangedProperties();
+            //DisplayInMapper(EnhancementEnable);
+
+            //Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+
+            //Controller.Save += saveConfiguration;
+        }
 
         private void Update()
         {
@@ -96,10 +109,15 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    ConsoleController.ShowMessage("on start");
+                    ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
+            }
+            else
+            {
+                OnBuildingUpdate();
+                isFirstFrame = true;
             }
         }
 
@@ -111,25 +129,61 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>
-        /// 储存配置
-        /// </summary>
-        /// <param name="mi">当前存档信息</param>
-        public virtual void SaveConfiguration(MachineInfo mi)
+        private void saveConfiguration(MachineInfo Mi)
         {
 
-            Configuration.Save();
-
-            if (mi == null)
+            if (Mi == null)
             {
                 return;
+            }
+
+            foreach (var blockinfo in Mi.Blocks)
+            {
+                if (blockinfo.Guid == BB.Guid)
+                {
+                    XDataHolder bd = blockinfo.BlockData;
+
+                    BlockDataSaveEvent(bd);
+
+                    SaveConfiguration(bd);
+
+                    break;
+                }
+            }
+        }
+
+        private void loadConfiguration()
+        {
+            if (Controller.MI == null)
+            {
+                return;
+            }
+
+            foreach (var blockinfo in Controller.MI.Blocks)
+            {
+                if (blockinfo.Guid == BB.Guid)
+                {
+                    XDataHolder bd = blockinfo.BlockData;
+
+                    BlockDataLoadEvent(bd);
+
+                    LoadConfiguration(bd);
+
+                    break;
+                }
             }
         }
 
         /// <summary>
+        /// 储存配置
+        /// </summary>
+        /// <param name="mi">当前存档信息</param>
+        public virtual void SaveConfiguration(XDataHolder BlockData) { }
+
+        /// <summary>
         /// 加载配置
         /// </summary>
-        public virtual void LoadConfiguration() { }
+        public virtual void LoadConfiguration(XDataHolder BlockData) { }
 
         /// <summary>
         /// 显示在Mapper里面
@@ -157,6 +211,8 @@ namespace BlockEnhancementMod
         protected virtual void OnSimulateUpdate() { }
 
         protected virtual void OnSimulateFixedUpdate() { }
+
+        protected virtual void OnBuildingUpdate() { }
 
         protected virtual void LateUpdate() { }
 
@@ -355,6 +411,130 @@ namespace BlockEnhancementMod
             }
 
         }
+
+
+        //public class EKey : MKey
+        //{
+
+        //    public List<KeyCode> Keys;
+
+        //    public EKey(string displayName, string key, List<KeyCode> keys, KeysChangeHandler KeysChanged) : base(displayName, key, keys[0])
+        //    {
+        //        Keys = keys;
+
+        //        this.KeysChanged += KeysChanged;
+
+
+        //    }
+
+
+
+
+        //}
+
+        public MKey AddKey(string displayName, string key, List<KeyCode> keys, KeysChangeHandler KeysChanged)
+        {
+            MKey mKey = new MKey(displayName, key, keys[0]);
+
+            foreach (KeyCode k in keys)
+            {
+                mKey.AddOrReplaceKey(keys.IndexOf(k), k);
+            }
+
+            mKey.KeysChanged += () => 
+            {
+                keys.Clear();
+
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));           
+                }
+
+            };
+
+            mKey.KeysChanged += KeysChanged;
+
+            CurrentMapperTypes.Add(mKey);
+
+            BlockDataLoadEvent += (XDataHolder value) =>
+             {
+                 if (value.HasKey("bmt-" + mKey.Key))
+                 {
+                     int index = 0; keys.Clear();
+                     foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
+                     {
+                         KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), str, true);
+                         mKey.AddOrReplaceKey(index++, kc);
+                         keys.Add(kc);
+                     }
+                 }
+             };
+
+            BlockDataSaveEvent += (XDataHolder value) => { value.Write("bmt-" + mKey.Key, mKey.Serialize().RawValue); };
+
+            return mKey;  
+
+        }
+
+        public MSlider AddSlider(string displayName,string key,float value,float min,float max,bool disableLimit,ValueChangeHandler valueChangeHandler,BlockDataLoadHandle blockDataLoadHandle)
+        {
+            MSlider mSlider = new MSlider(displayName,key,value,min,max,disableLimit);
+
+            mSlider.ValueChanged += valueChangeHandler;
+
+            CurrentMapperTypes.Add(mSlider);
+
+            BlockDataLoadEvent += (XDataHolder data) =>
+              {
+                  if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
+              };
+
+            BlockDataLoadEvent += blockDataLoadHandle;
+
+            BlockDataSaveEvent += (XDataHolder data) =>
+            {
+                if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
+            };
+
+            return mSlider;
+
+        }
+
+
+        public MToggle AddToggle(string displayName, string key, bool defaltValue,ToggleHandler toggleHandler,BlockDataLoadHandle blockDataLoadHandle)
+        {
+            MToggle mToggle = new MToggle(displayName, key, defaltValue);
+
+            mToggle.Toggled += toggleHandler;
+
+            CurrentMapperTypes.Add(mToggle);
+
+            BlockDataLoadEvent += (XDataHolder data) =>
+            {
+                if (data.HasKey("bmt-" + mToggle.Key)) { mToggle.IsActive = data.ReadBool("bmt-" + mToggle.Key); }
+            };
+
+            BlockDataLoadEvent += blockDataLoadHandle;
+
+            BlockDataSaveEvent += (XDataHolder data) =>
+             {
+                 data.Write("bmt-" + mToggle.Key, mToggle.IsActive);
+             };
+
+            return mToggle;
+        }
+
+        //public MMenu AddMenu()
+        //{
+
+        //}
+
+        //public MColourSlider AddColorSlider()
+        //{
+
+        //}
+
+
 
     }
 

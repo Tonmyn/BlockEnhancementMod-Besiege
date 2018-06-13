@@ -28,45 +28,45 @@ namespace BlockEnhancementMod.Blocks
 #endif
         }
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + SpeedSlider.Key, SpeedSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + SpeedSlider.Key, SpeedSlider.Value);
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
-        public override void LoadConfiguration()
-        {
-            base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
 
-                    if (bd.HasKey("bmt-" + SpeedSlider.Key)) { SpeedSlider.Value = Speed = bd.ReadFloat("bmt-" + SpeedSlider.Key); }
+        //            if (bd.HasKey("bmt-" + SpeedSlider.Key)) { SpeedSlider.Value = Speed = bd.ReadFloat("bmt-" + SpeedSlider.Key); }
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         //public override void ChangedPropertise()
         //{

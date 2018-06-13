@@ -33,6 +33,8 @@ namespace BlockEnhancementMod.Blocks
 
         public float ShrinkLimit = 1f;
 
+        public List<KeyCode> ExtendKeyCodes = new List<KeyCode> { KeyCode.E };
+
         protected override void SafeStart()
         {
 
@@ -40,9 +42,10 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             CurrentMapperTypes.Add(HardnessMenu);
 
-            ExtendKey = new MKey("伸出", "Extend", KeyCode.E);
-            ExtendKey.KeysChanged += ChangedProperties;
-            CurrentMapperTypes.Add(ExtendKey);
+            //ExtendKey = new MKey("伸出", "Extend", KeyCode.E);
+            //ExtendKey.KeysChanged += ChangedProperties;
+            //CurrentMapperTypes.Add(ExtendKey);
+            ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes, null);
 
             ShrinkKey = new MKey("收回", "Shrink", KeyCode.F);
             ShrinkKey.KeysChanged += ChangedProperties;
@@ -56,13 +59,16 @@ namespace BlockEnhancementMod.Blocks
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
             CurrentMapperTypes.Add(FeedSlider);
 
-            ExtendLimitSlider = new MSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
-            ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(ExtendLimitSlider);
+            //ExtendLimitSlider = new MSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
+            //ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
+            //CurrentMapperTypes.Add(ExtendLimitSlider);
+            ExtendLimitSlider = AddSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false, (float value) => { ExtendLimit = value; ChangedProperties(); }, (XDataHolder value) => { ExtendLimit = ExtendLimitSlider.Value; });
 
             ShrinkLimitSlider = new MSlider("收缩限制", "ShrinkLimit", ShrinkLimit, 0f, 3f, false);
             ShrinkLimitSlider.ValueChanged += (float value) => { ShrinkLimit = value; ChangedProperties(); };
             CurrentMapperTypes.Add(ShrinkLimitSlider);
+
+
 
 #if DEBUG
             ConsoleController.ShowMessage("悬挂添加进阶属性");
@@ -70,79 +76,66 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void LoadConfiguration()
+        public override void LoadConfiguration(XDataHolder BlockData)
         {
-            base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+                    //if (bd.HasKey("bmt-" + HardnessMenu.Key)) { HardnessMenu.Value = Hardness = bd.ReadInt("bmt-" + HardnessMenu.Key); }
 
-                    if (bd.HasKey("bmt-" + HardnessMenu.Key)) { HardnessMenu.Value = Hardness = bd.ReadInt("bmt-" + HardnessMenu.Key); }
+                    //if (bd.HasKey("bmt-" + ExtendKey.Key))
+                    //{
+                    //    int index = 0;
+                    //    foreach (string str in bd.ReadStringArray("bmt-" + ExtendKey.Key))
+                    //    {
+                    //        ExtendKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+                    //    }
+                    //}
 
-                    if (bd.HasKey("bmt-" + ExtendKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + ExtendKey.Key))
-                        {
-                            ExtendKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
+                    //if (bd.HasKey("bmt-" + ShrinkKey.Key))
+                    //{
+                    //    int index = 0;
+                    //    foreach (string str in bd.ReadStringArray("bmt-" + ShrinkKey.Key))
+                    //    {
+                    //        ShrinkKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+                    //    }
+                    //}
 
-                    if (bd.HasKey("bmt-" + ShrinkKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + ShrinkKey.Key))
-                        {
-                            ShrinkKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
+                    //if (bd.HasKey("bmt-" + PressureToggle.Key)) { PressureToggle.IsActive = Pressure = bd.ReadBool("bmt-" + PressureToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + PressureToggle.Key)) { PressureToggle.IsActive = Pressure = bd.ReadBool("bmt-" + PressureToggle.Key); }
+                    //if (bd.HasKey("bmt-" + FeedSlider.Key)) { FeedSlider.Value = Feed = bd.ReadFloat("bmt-" + FeedSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + FeedSlider.Key)) { FeedSlider.Value = Feed = bd.ReadFloat("bmt-" + FeedSlider.Key); }
+                    //if (bd.HasKey("bmt-" + ExtendLimitSlider.Key)) { ExtendLimitSlider.Value = ExtendLimit = bd.ReadFloat("bmt-" + ExtendLimitSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + ExtendLimitSlider.Key)) { ExtendLimitSlider.Value = ExtendLimit = bd.ReadFloat("bmt-" + ExtendLimitSlider.Key); }
+                    //if (bd.HasKey("bmt-" + ShrinkLimitSlider.Key)) { ShrinkLimitSlider.Value = ShrinkLimit = bd.ReadFloat("bmt-" + ShrinkLimitSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + ShrinkLimitSlider.Key)) { ShrinkLimitSlider.Value = ShrinkLimit = bd.ReadFloat("bmt-" + ShrinkLimitSlider.Key); }
 
-                    break;
-                }
 
-            }
         }
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
+        //            blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
 
-                    //blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, Tools.Get_List_keycode(ExtendKey));
-                    blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, ExtendKey.Serialize().RawValue);
-                    blockinfo.BlockData.Write("bmt-" + ShrinkKey.Key, Tools.Get_List_keycode(ShrinkKey));
-                    blockinfo.BlockData.Write("bmt-" + PressureToggle.Key, PressureToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + FeedSlider.Key, FeedSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + ExtendLimitSlider.Key, ExtendLimitSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + ShrinkLimitSlider.Key, ShrinkLimitSlider.Value);
+        //            //blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, Tools.Get_List_keycode(ExtendKey));
+        //            blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, ExtendKey.Serialize().RawValue);
+        //            blockinfo.BlockData.Write("bmt-" + ShrinkKey.Key, Tools.Get_List_keycode(ShrinkKey));
+        //            blockinfo.BlockData.Write("bmt-" + PressureToggle.Key, PressureToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + FeedSlider.Key, FeedSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + ExtendLimitSlider.Key, ExtendLimitSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + ShrinkLimitSlider.Key, ShrinkLimitSlider.Value);
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         //public override void ChangedPropertise()
         //{
@@ -208,6 +201,11 @@ namespace BlockEnhancementMod.Blocks
             CJ.linearLimit = limit;
 
             SwitchMatalHardness(Hardness, CJ);
+
+            foreach (KeyCode k in ExtendKeyCodes)
+            {
+                ConsoleController.ShowMessage(string.Format("Key :{0}", k.ToString()));
+            }
         }
         //    private void Start()
         //    {
@@ -230,7 +228,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (Pressure)
             {
-                if (ExtendKey.IsDown)
+                if (ExtendKey.IsDown && !ExtendKey.ignored)
                 {
 
                     RB.WakeUp();
@@ -245,7 +243,7 @@ namespace BlockEnhancementMod.Blocks
 
                 }
 
-                if (ShrinkKey.IsDown)
+                if (ShrinkKey.IsDown && !ExtendKey.ignored)
                 {
                     RB.WakeUp();
                     if (CJ.targetPosition.x + Feed * 0.005f < ShrinkLimit)
@@ -293,6 +291,7 @@ namespace BlockEnhancementMod.Blocks
         //        }
         //    }
         //}
+
     }
 
   

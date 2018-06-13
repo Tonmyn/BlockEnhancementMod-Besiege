@@ -97,72 +97,72 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void LoadConfiguration()
-        {
-            base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;                  
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;                  
 
-                    if (bd.HasKey("bmt-" + BrakeKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + BrakeKey.Key))
-                        {           
-                            BrakeKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
+        //            if (bd.HasKey("bmt-" + BrakeKey.Key))
+        //            {
+        //                int index = 0;
+        //                foreach (string str in bd.ReadStringArray("bmt-" + BrakeKey.Key))
+        //                {           
+        //                    BrakeKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+        //                }
+        //            }
 
-                    if (bd.HasKey("bmt-" + BrakeForceSlider.Key)) { BrakeForceSlider.Value = BrakeForce = bd.ReadFloat("bmt-" + BrakeForceSlider.Key); }
+        //            if (bd.HasKey("bmt-" + BrakeForceSlider.Key)) { BrakeForceSlider.Value = BrakeForce = bd.ReadFloat("bmt-" + BrakeForceSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + ColliderToggle.Key)) { ColliderToggle.IsActive = Collider = bd.ReadBool("bmt-" + ColliderToggle.Key); }
+        //            if (bd.HasKey("bmt-" + ColliderToggle.Key)) { ColliderToggle.IsActive = Collider = bd.ReadBool("bmt-" + ColliderToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + FrictionToggle.Key)) { FrictionToggle.IsActive = FrictionT = bd.ReadBool("bmt-" + FrictionToggle.Key); }
+        //            if (bd.HasKey("bmt-" + FrictionToggle.Key)) { FrictionToggle.IsActive = FrictionT = bd.ReadBool("bmt-" + FrictionToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + FrictionSlider.Key)) { FrictionSlider.Value = Friction = bd.ReadFloat("bmt-" + FrictionSlider.Key); }
+        //            if (bd.HasKey("bmt-" + FrictionSlider.Key)) { FrictionSlider.Value = Friction = bd.ReadFloat("bmt-" + FrictionSlider.Key); }
 
-                    if (LerpSlider != null)
-                    {
-                        if (bd.HasKey("bmt-" + LerpSlider.Key)) { LerpSlider.Value = Lerp = bd.ReadFloat("bmt-" + LerpSlider.Key); }
-                    }
+        //            if (LerpSlider != null)
+        //            {
+        //                if (bd.HasKey("bmt-" + LerpSlider.Key)) { LerpSlider.Value = Lerp = bd.ReadFloat("bmt-" + LerpSlider.Key); }
+        //            }
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + BrakeKey.Key, Tools.Get_List_keycode(BrakeKey));
+        //            blockinfo.BlockData.Write("bmt-" + BrakeKey.Key, Tools.Get_List_keycode(BrakeKey));
 
-                    blockinfo.BlockData.Write("bmt-" + BrakeForceSlider.Key, BrakeForceSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + BrakeForceSlider.Key, BrakeForceSlider.Value);
 
-                    blockinfo.BlockData.Write("bmt-" + ColliderToggle.Key, ColliderToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + FrictionToggle.Key, FrictionToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + FrictionSlider.Key, FrictionSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + LerpSlider.Key, LerpSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + ColliderToggle.Key, ColliderToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + FrictionToggle.Key, FrictionToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + FrictionSlider.Key, FrictionSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + LerpSlider.Key, LerpSlider.Value);
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         /// <summary>
         /// 是否是轮子零件

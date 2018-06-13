@@ -89,59 +89,59 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
 
-        public override void LoadConfiguration()
-        {
-            base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
 
-                    if (bd.HasKey("bmt-" + GuidedRocketToggle.Key))
-                    {
-                        GuidedRocketToggle.IsActive = guidedRocketIsActivated = bd.ReadBool("bmt-" + GuidedRocketToggle.Key);
-                    }
-                    if (bd.HasKey("bmt-" + GuidedRocketTorqueSlider.Key))
-                    {
-                        GuidedRocketTorqueSlider.Value = torque = bd.ReadFloat("bmt-" + GuidedRocketTorqueSlider.Key);
-                    }
-                    if (bd.HasKey("bmt-" + LockTargetKey.Key))
-                    {
-                        int index = 0;
-                        foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
-                        {
-                            LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                        }
-                    }
-                    break;
-                }
+        //            if (bd.HasKey("bmt-" + GuidedRocketToggle.Key))
+        //            {
+        //                GuidedRocketToggle.IsActive = guidedRocketIsActivated = bd.ReadBool("bmt-" + GuidedRocketToggle.Key);
+        //            }
+        //            if (bd.HasKey("bmt-" + GuidedRocketTorqueSlider.Key))
+        //            {
+        //                GuidedRocketTorqueSlider.Value = torque = bd.ReadFloat("bmt-" + GuidedRocketTorqueSlider.Key);
+        //            }
+        //            if (bd.HasKey("bmt-" + LockTargetKey.Key))
+        //            {
+        //                int index = 0;
+        //                foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
+        //                {
+        //                    LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
+        //                }
+        //            }
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            base.SaveConfiguration(mi);
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    base.SaveConfiguration(mi);
 
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    blockinfo.BlockData.Write("bmt-" + GuidedRocketToggle.Key, GuidedRocketToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + GuidedRocketTorqueSlider.Key, GuidedRocketTorqueSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
-                    break;
-                }
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            blockinfo.BlockData.Write("bmt-" + GuidedRocketToggle.Key, GuidedRocketToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + GuidedRocketTorqueSlider.Key, GuidedRocketTorqueSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
+        //            break;
+        //        }
 
-            }
-        }
+        //    }
+        //}
 
         protected override void OnSimulateStart()
         {

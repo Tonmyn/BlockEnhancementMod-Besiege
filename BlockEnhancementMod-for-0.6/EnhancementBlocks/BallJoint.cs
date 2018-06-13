@@ -43,44 +43,44 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
 
-                    blockinfo.BlockData.Write("bmt-" + RotationToggle.Key, RotationToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + RotationToggle.Key, RotationToggle.IsActive);
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
+        //    }
 
-        }
+        //}
 
-        public override void LoadConfiguration()
-        {
+        //public override void LoadConfiguration()
+        //{
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
 
-                    if (bd.HasKey("bmt-" + RotationToggle.Key)) { RotationToggle.IsActive = Rotation = bd.ReadBool("bmt-" + RotationToggle.Key); }
+        //            if (bd.HasKey("bmt-" + RotationToggle.Key)) { RotationToggle.IsActive = Rotation = bd.ReadBool("bmt-" + RotationToggle.Key); }
 
-                    break;
-                }
+        //            break;
+        //        }
 
-            }
+        //    }
 
-        }
+        //}
 
         public override void DisplayInMapper(bool value)
         {

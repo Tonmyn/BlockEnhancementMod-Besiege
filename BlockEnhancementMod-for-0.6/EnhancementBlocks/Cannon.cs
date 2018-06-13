@@ -110,85 +110,85 @@ namespace BlockEnhancementMod.Blocks
 
 
 
-        public override void LoadConfiguration()
-        {
-            //base.LoadConfiguration();
+        //public override void LoadConfiguration()
+        //{
+        //    //base.LoadConfiguration();
 
-            if (Controller.MI == null)
-            {
-                return;
-            }
+        //    if (Controller.MI == null)
+        //    {
+        //        return;
+        //    }
 
-            foreach (var blockinfo in Controller.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+        //    foreach (var blockinfo in Controller.MI.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            XDataHolder bd = blockinfo.BlockData;
 
-                    ////Enhancement.IsActive = EnhancementEnable = Configuration.GetBool(Enhancement.Key, false);
+        //            ////Enhancement.IsActive = EnhancementEnable = Configuration.GetBool(Enhancement.Key, false);
 
-                    ////if (bd.HasKey("bmt-" + StrengthSlider.Key)) { StrengthSlider.Value = Strength = bd.ReadFloat("bmt-" + StrengthSlider.Key); }
+        //            ////if (bd.HasKey("bmt-" + StrengthSlider.Key)) { StrengthSlider.Value = Strength = bd.ReadFloat("bmt-" + StrengthSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + IntervalSlider.Key)) { IntervalSlider.Value = Interval = bd.ReadFloat("bmt-" + IntervalSlider.Key); }
+        //            if (bd.HasKey("bmt-" + IntervalSlider.Key)) { IntervalSlider.Value = Interval = bd.ReadFloat("bmt-" + IntervalSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + RandomDelaySlider.Key)) { RandomDelaySlider.Value = RandomDelay = bd.ReadFloat("bmt-" + RandomDelaySlider.Key); }
+        //            if (bd.HasKey("bmt-" + RandomDelaySlider.Key)) { RandomDelaySlider.Value = RandomDelay = bd.ReadFloat("bmt-" + RandomDelaySlider.Key); }
 
-                    if (bd.HasKey("bmt-" + KnockBackSpeedSlider.Key)) { KnockBackSpeedSlider.Value = KnockBackSpeed = bd.ReadFloat("bmt-" + KnockBackSpeedSlider.Key); }
+        //            if (bd.HasKey("bmt-" + KnockBackSpeedSlider.Key)) { KnockBackSpeedSlider.Value = KnockBackSpeed = bd.ReadFloat("bmt-" + KnockBackSpeedSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + BulletToggle.Key)) { BulletToggle.IsActive = cBullet = bd.ReadBool("bmt-" + BulletToggle.Key); }
+        //            if (bd.HasKey("bmt-" + BulletToggle.Key)) { BulletToggle.IsActive = cBullet = bd.ReadBool("bmt-" + BulletToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + InheritSizeToggle.Key)) { InheritSizeToggle.IsActive = InheritSize = bd.ReadBool("bmt-" + InheritSizeToggle.Key); }
+        //            if (bd.HasKey("bmt-" + InheritSizeToggle.Key)) { InheritSizeToggle.IsActive = InheritSize = bd.ReadBool("bmt-" + InheritSizeToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + BulletMassSlider.Key)) { BulletMassSlider.Value = BulletMass = bd.ReadFloat("bmt-" + BulletMassSlider.Key); }
+        //            if (bd.HasKey("bmt-" + BulletMassSlider.Key)) { BulletMassSlider.Value = BulletMass = bd.ReadFloat("bmt-" + BulletMassSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + BulletDragSlider.Key)) { BulletDragSlider.Value = BulletDrag = bd.ReadFloat("bmt-" + BulletDragSlider.Key); }
+        //            if (bd.HasKey("bmt-" + BulletDragSlider.Key)) { BulletDragSlider.Value = BulletDrag = bd.ReadFloat("bmt-" + BulletDragSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + TrailToggle.Key)) { TrailToggle.IsActive = Trail = bd.ReadBool("bmt-" + TrailToggle.Key); }
+        //            if (bd.HasKey("bmt-" + TrailToggle.Key)) { TrailToggle.IsActive = Trail = bd.ReadBool("bmt-" + TrailToggle.Key); }
 
-                    if (bd.HasKey("bmt-" + TrailLengthSlider.Key)) { TrailLengthSlider.Value = TrailLength = bd.ReadFloat("bmt-" + TrailLengthSlider.Key); }
+        //            if (bd.HasKey("bmt-" + TrailLengthSlider.Key)) { TrailLengthSlider.Value = TrailLength = bd.ReadFloat("bmt-" + TrailLengthSlider.Key); }
 
-                    if (bd.HasKey("bmt-" + TrailColorSlider.Key)) { TrailColorSlider.Value = TrailColor = bd.ReadColor("bmt-" + TrailColorSlider.Key); }
-
-
-                    break;
-                }
-
-            }
+        //            if (bd.HasKey("bmt-" + TrailColorSlider.Key)) { TrailColorSlider.Value = TrailColor = bd.ReadColor("bmt-" + TrailColorSlider.Key); }
 
 
+        //            break;
+        //        }
 
-        }
-
-        public override void SaveConfiguration(MachineInfo mi)
-        {
-
-
-            foreach (var blockinfo in mi.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    //blockinfo.BlockData.Write("bmt-" + "shoot", new string[] { "E", "R" });
-                    //blockinfo.BlockData.Write("bmt-" + StrengthSlider.Key, Strength);
-                    blockinfo.BlockData.Write("bmt-" + IntervalSlider.Key, IntervalSlider.Value);
-
-                    blockinfo.BlockData.Write("bmt-" + RandomDelaySlider.Key, RandomDelaySlider.Value);
-
-                    blockinfo.BlockData.Write("bmt-" + KnockBackSpeedSlider.Key, KnockBackSpeedSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + BulletToggle.Key, BulletToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + InheritSizeToggle.Key, InheritSizeToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + BulletMassSlider.Key, BulletMassSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + BulletDragSlider.Key, BulletDragSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + TrailToggle.Key, TrailToggle.IsActive);
-                    blockinfo.BlockData.Write("bmt-" + TrailLengthSlider.Key, TrailLengthSlider.Value);
-                    blockinfo.BlockData.Write("bmt-" + TrailColorSlider.Key, TrailColorSlider.Value);
-
-                    break;
-                }
-
-            }
+        //    }
 
 
-        }
+
+        //}
+
+        //public override void SaveConfiguration(MachineInfo mi)
+        //{
+
+
+        //    foreach (var blockinfo in mi.Blocks)
+        //    {
+        //        if (blockinfo.Guid == BB.Guid)
+        //        {
+        //            //blockinfo.BlockData.Write("bmt-" + "shoot", new string[] { "E", "R" });
+        //            //blockinfo.BlockData.Write("bmt-" + StrengthSlider.Key, Strength);
+        //            blockinfo.BlockData.Write("bmt-" + IntervalSlider.Key, IntervalSlider.Value);
+
+        //            blockinfo.BlockData.Write("bmt-" + RandomDelaySlider.Key, RandomDelaySlider.Value);
+
+        //            blockinfo.BlockData.Write("bmt-" + KnockBackSpeedSlider.Key, KnockBackSpeedSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + BulletToggle.Key, BulletToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + InheritSizeToggle.Key, InheritSizeToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + BulletMassSlider.Key, BulletMassSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + BulletDragSlider.Key, BulletDragSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + TrailToggle.Key, TrailToggle.IsActive);
+        //            blockinfo.BlockData.Write("bmt-" + TrailLengthSlider.Key, TrailLengthSlider.Value);
+        //            blockinfo.BlockData.Write("bmt-" + TrailColorSlider.Key, TrailColorSlider.Value);
+
+        //            break;
+        //        }
+
+        //    }
+
+
+        //}
 
         public override void DisplayInMapper(bool value)
         {
