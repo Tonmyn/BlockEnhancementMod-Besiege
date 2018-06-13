@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("桨叶添加进阶属性");
+            ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
         }
 
@@ -178,7 +178,7 @@ namespace BlockEnhancementMod.Blocks
                     if (go.name == "liftNormal")
                     {
                         liftObject = go.gameObject;
-                        BesiegeConsoleController.ShowMessage(liftObject.name);
+                        ConsoleController.ShowMessage(liftObject.name);
                         break;
                     }
                 }
@@ -210,7 +210,7 @@ namespace BlockEnhancementMod.Blocks
             if (SwitchKey.IsPressed)
             {
 
-                BesiegeConsoleController.ShowMessage("propeller");
+                ConsoleController.ShowMessage("propeller");
                 //AD.enabled = Effect = !Effect;
                 //PC.enabled = Effect = !Effect;
 

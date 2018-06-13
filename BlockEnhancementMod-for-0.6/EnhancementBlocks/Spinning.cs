@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
                 CurrentMapperTypes.Add(LerpSlider);
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage ("自转块添加进阶属性");
+            ConsoleController.ShowMessage("自转块添加进阶属性");
 #endif
         }
 

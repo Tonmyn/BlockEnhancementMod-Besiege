@@ -102,7 +102,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("加农炮添加进阶属性");
+            ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
 
         }

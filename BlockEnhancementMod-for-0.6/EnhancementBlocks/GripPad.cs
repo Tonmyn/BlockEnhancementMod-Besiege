@@ -35,7 +35,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("摩擦垫添加进阶属性");
+            ConsoleController.ShowMessage("摩擦垫添加进阶属性");
 #endif
 
         }

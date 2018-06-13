@@ -70,7 +70,7 @@ namespace BlockEnhancementMod.Blocks
             CurrentMapperTypes.Add(GuidedRocketTorqueSlider);
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("火箭添加进阶属性");
+            ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
 
         }

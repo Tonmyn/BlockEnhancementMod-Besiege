@@ -65,7 +65,7 @@ namespace BlockEnhancementMod.Blocks
             CurrentMapperTypes.Add(ShrinkLimitSlider);
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("悬挂添加进阶属性");
+            ConsoleController.ShowMessage("悬挂添加进阶属性");
 #endif
 
         }

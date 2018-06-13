@@ -24,7 +24,7 @@ namespace BlockEnhancementMod.Blocks
             CurrentMapperTypes.Add(SpeedSlider);
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("小轮子添加进阶属性");
+            ConsoleController.ShowMessage("小轮子添加进阶属性");
 #endif
         }
 

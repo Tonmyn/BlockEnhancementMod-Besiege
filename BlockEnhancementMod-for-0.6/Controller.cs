@@ -60,7 +60,7 @@ namespace BlockEnhancementMod
                 {
                     OnKeymapperOpen();
                     _keyMapperOpen = true;
-                    BesiegeConsoleController.ShowMessage("keyMapperOpen");
+                    ConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
@@ -95,7 +95,7 @@ namespace BlockEnhancementMod
                             Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
                         }
 #if DEBUG
-                        BesiegeConsoleController.ShowMessage("on place");
+                        ConsoleController.ShowMessage("on place");
 #endif
                     }
                     machineBlockCount = currentCount;
@@ -133,7 +133,7 @@ namespace BlockEnhancementMod
         public static void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            BesiegeConsoleController.ShowMessage(block.BlockID.ToString());
+            ConsoleController.ShowMessage(block.BlockID.ToString());
 #endif
             //if (block.BlockID == (int)BlockType.Cannon)
             //{
@@ -167,7 +167,7 @@ namespace BlockEnhancementMod
             {(int)BlockType.SmallPropeller,typeof(PropellerScript) },
             {(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
-            {(int)BlockType.SpinningBlock,typeof(SpinningScript) },
+            //{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
             //{(int)BlockType.SteeringHinge,typeof(ste) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
@@ -193,7 +193,7 @@ namespace BlockEnhancementMod
             }
             //Refresh = false;
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("Refresh");
+            ConsoleController.ShowMessage("Refresh");
 #endif
         }
 
@@ -205,7 +205,7 @@ namespace BlockEnhancementMod
         {
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("载入存档");
+            ConsoleController.ShowMessage("载入存档");
 #endif
             MI = mi;
 

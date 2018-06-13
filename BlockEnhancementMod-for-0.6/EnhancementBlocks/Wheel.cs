@@ -66,7 +66,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("动力组件添加进阶属性");
+            ConsoleController.ShowMessage("动力组件添加进阶属性");
 #endif
 
         }

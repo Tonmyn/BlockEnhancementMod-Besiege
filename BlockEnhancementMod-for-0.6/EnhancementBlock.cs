@@ -74,7 +74,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    BesiegeConsoleController.ShowMessage("on start");
+                    ConsoleController.ShowMessage("on start");
 #endif
                 }
                 OnSimulateUpdate();

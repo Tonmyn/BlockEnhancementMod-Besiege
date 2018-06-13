@@ -31,7 +31,7 @@ namespace BlockEnhancementMod.Blocks
                 CurrentMapperTypes.Add(LimitSlider);
 
 #if DEBUG
-           BesiegeConsoleController.ShowMessage("滑块添加进阶属性");
+            ConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
 
         }
