@@ -41,6 +41,29 @@ namespace BlockEnhancementMod
 
         private void Start()
         {
+            //if (!StatMaster.levelSimulating)
+            //{
+            //    BB = GetComponent<BlockBehaviour>();
+
+            //    CurrentMapperTypes = BB.MapperTypes;
+
+            //    Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
+
+            //    Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
+
+            //    CurrentMapperTypes.Add(Enhancement);
+
+            //    SafeStart();
+
+            //    LoadConfiguration();
+
+            //    ChangedProperties();
+            //    DisplayInMapper(EnhancementEnable);
+
+            //    Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+
+            //    Controller.Save += SaveConfiguration;
+            //}
             BB = GetComponent<BlockBehaviour>();
 
             CurrentMapperTypes = BB.MapperTypes;
@@ -61,7 +84,6 @@ namespace BlockEnhancementMod
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
             Controller.Save += SaveConfiguration;
-
         }
 
 

@@ -14,6 +14,7 @@ namespace BlockEnhancementMod.Blocks
         //public float cameraFollowSmooth = 0.25f;
         public Transform target;
         Transform realCameraTransform;
+        public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         protected override void SafeStart()
         {
@@ -22,20 +23,34 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedProperties(); };
             CurrentMapperTypes.Add(CameraLookAtToggle);
 
-            LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
+            LockTargetKey = new MKey("锁定目标", "lockTarget", lockKeys[0]);
+            //for (int i = 0; i < lockKeys.Count; i++)
+            //{
+            //    LockTargetKey.AddOrReplaceKey(i, lockKeys[i]);
+            //}
             LockTargetKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(LockTargetKey);
 
             if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             {
-                ConsoleController.ShowMessage(GetComponent<FixedCameraBlock>().CompositeTracker.gameObject.name);
+                //ConsoleController.ShowMessage(GetComponent<FixedCameraBlock>().CompositeTracker.gameObject.name);
                 Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
             }
 
+            
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
 
+        }
+        public override void ChangedProperties()
+        {
+            lockKeys.Clear();
+            for (int i = 0; i < LockTargetKey.KeysCount; i++)
+            {
+                lockKeys.Add(LockTargetKey.GetKey(i));
+                ConsoleController.ShowMessage(LockTargetKey.GetKey(i).ToString());
+            }
         }
 
         public override void DisplayInMapper(bool value)
@@ -92,11 +107,11 @@ namespace BlockEnhancementMod.Blocks
                 if (blockinfo.Guid == BB.Guid)
                 {
                     blockinfo.BlockData.Write("bmt-" + CameraLookAtToggle.Key, CameraLookAtToggle.IsActive);
-                    //blockinfo.BlockData.Write("bmt-" + CameraFollowSmoothSlider.Key, CameraFollowSmoothSlider.Value);
                     blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
-                    if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Count > 0)
+                    //ConsoleController.ShowMessage(Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Count.ToString());
+                    if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(GetComponent<BlockBehaviour>().BuildIndex))
                     {
-                        blockinfo.BlockData.Write("bmt-" + "CameraTarget", target.GetComponent<BlockBehaviour>().BuildIndex);
+                        blockinfo.BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[GetComponent<BlockBehaviour>().BuildIndex]);
                     }
                     break;
                 }
@@ -123,7 +138,6 @@ namespace BlockEnhancementMod.Blocks
             {
                 Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
                 simBlock = Machine.Active().GetSimBlock(targetBlock);
-                //ConsoleController.ShowMessage(simBlock.Guid.ToString());
             }
             catch (Exception)
             {
@@ -160,25 +174,21 @@ namespace BlockEnhancementMod.Blocks
                         {
                             ConsoleController.ShowMessage("Not a machine block");
                         }
-                        //ConsoleController.ShowMessage(targetIndex.ToString());
+                        ////ConsoleController.ShowMessage(targetIndex.ToString());
                         if (targetIndex != -1)
                         {
                             try
                             {
                                 Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(transform.GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
                             }
-                            catch (ArgumentNullException)
-                            {
-                                ConsoleController.ShowMessage("Cannot find build index");
-                            }
-                            catch (ArgumentException)
+                            catch (Exception)
                             {
                                 Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(GetComponent<BlockBehaviour>().BuildIndex
                                     );
+                                ConsoleController.ShowMessage("Old dic entry removed");
                                 Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
+                                ConsoleController.ShowMessage("New dic entry added");
                             }
-                            //ConsoleController.ShowMessage(GetComponent<BlockBehaviour>().BuildIndex.ToString());
-                            //ConsoleController.ShowMessage(target.GetComponent<BlockBehaviour>().BuildIndex.ToString());
                         }
                     }
 

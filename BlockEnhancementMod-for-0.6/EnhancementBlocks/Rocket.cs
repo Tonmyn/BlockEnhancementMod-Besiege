@@ -15,15 +15,9 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidedRocketTorqueSlider;
         MKey LockTargetKey;
 
+        public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+
         //List<string> explosionTypes;
-
-
-        public enum ExplosionType
-        {
-            rocket = 0,
-            bomb = 1,
-            grenade = 2
-        }
 
         public bool rocketPodIsActivated = false;
         public bool guidedRocketIsActivated = false;
@@ -61,7 +55,7 @@ namespace BlockEnhancementMod.Blocks
             };
             CurrentMapperTypes.Add(GuidedRocketToggle);
 
-            LockTargetKey = new MKey("锁定目标", "lockTarget", KeyCode.Delete);
+            LockTargetKey = new MKey("锁定目标", "lockTarget", lockKeys[0]);
             LockTargetKey.KeysChanged += ChangedProperties;
             CurrentMapperTypes.Add(LockTargetKey);
 
@@ -73,6 +67,16 @@ namespace BlockEnhancementMod.Blocks
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
 
+        }
+
+        public override void ChangedProperties()
+        {
+            lockKeys.Clear();
+            for (int i = 0; i < LockTargetKey.KeysCount; i++)
+            {
+                lockKeys.Add(LockTargetKey.GetKey(i));
+                //ConsoleController.ShowMessage(LockTargetKey.GetKey(i).ToString());
+            }
         }
 
         public override void DisplayInMapper(bool value)
@@ -100,21 +104,13 @@ namespace BlockEnhancementMod.Blocks
                 {
                     XDataHolder bd = blockinfo.BlockData;
 
-                    //if (bd.HasKey("bmt-" + ExplosionTypeMenu.Key))
-                    //{
-                    //    ExplosionTypeMenu.Value = bd.ReadInt("bmt-" + ExplosionTypeMenu.Key);
-                    //}
-                    //if (bd.HasKey("bmt-" + RocketPodToggle.Key))
-                    //{
-                    //    RocketPodToggle.IsActive = rocketPodIsActivated = bd.ReadBool("bmt-" + RocketPodToggle.Key);
-                    //}
                     if (bd.HasKey("bmt-" + GuidedRocketToggle.Key))
                     {
                         GuidedRocketToggle.IsActive = guidedRocketIsActivated = bd.ReadBool("bmt-" + GuidedRocketToggle.Key);
                     }
                     if (bd.HasKey("bmt-" + GuidedRocketTorqueSlider.Key))
                     {
-                        GuidedRocketTorqueSlider.Value = torque = bd.ReadFloat("bmt-" + GuidedRocketTorqueSlider.Value);
+                        GuidedRocketTorqueSlider.Value = torque = bd.ReadFloat("bmt-" + GuidedRocketTorqueSlider.Key);
                     }
                     if (bd.HasKey("bmt-" + LockTargetKey.Key))
                     {
@@ -138,8 +134,6 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (blockinfo.Guid == BB.Guid)
                 {
-                    //blockinfo.BlockData.Write("bmt-" + ExplosionTypeMenu.Key, ExplosionTypeMenu.Value);
-                    //blockinfo.BlockData.Write("bmt-" + RocketPodToggle.Key, RocketPodToggle.IsActive);
                     blockinfo.BlockData.Write("bmt-" + GuidedRocketToggle.Key, GuidedRocketToggle.IsActive);
                     blockinfo.BlockData.Write("bmt-" + GuidedRocketTorqueSlider.Key, GuidedRocketTorqueSlider.Value);
                     blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
@@ -156,7 +150,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (LockTargetKey.IsDown)
+            if (LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -165,31 +159,36 @@ namespace BlockEnhancementMod.Blocks
                     target = hit.collider.transform;
                 }
             }
-            if (guidedRocketIsActivated && rocket.hasFired)
+        }
+        protected override void LateUpdate()
+        {
+            if (StatMaster.levelSimulating)
             {
-                if (target != null)
+                if (guidedRocketIsActivated && rocket.hasFired)
                 {
-                    // Calculating the rotating axis
-                    Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
-                    Vector3 positionDiff = target.position - transform.position;
-                    float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
-                    Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
-                    float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
-                    // if the velocity is more than 90 degree apart from the target direction, use maximum torque
-                    // otherwise use proportional torque.
-                    if (angleDiff > 90)
+                    if (target != null)
                     {
-                        transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                        // Calculating the rotating axis
+                        Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
+                        Vector3 positionDiff = target.position - transform.position;
+                        float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
+                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
+                        float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
+                        // if the velocity is more than 90 degree apart from the target direction, use maximum torque
+                        // otherwise use proportional torque.
+                        if (angleDiff > 90)
+                        {
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                        }
+                        else
+                        {
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
+                        }
+                        //Trying to implement a PID controller
+                        //BesiegeConsoleController.ShowMessage("PID working");
+                        //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                     }
-                    else
-                    {
-                        transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
-                    }
-                    //Trying to implement a PID controller
-                    //BesiegeConsoleController.ShowMessage("PID working");
-                    //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                 }
-
             }
         }
 

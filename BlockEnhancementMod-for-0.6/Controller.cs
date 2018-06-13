@@ -207,6 +207,11 @@ namespace BlockEnhancementMod
 #if DEBUG
             ConsoleController.ShowMessage("载入存档");
 #endif
+            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+            {
+                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+            }
+
             MI = mi;
 
             Refresh = true;
