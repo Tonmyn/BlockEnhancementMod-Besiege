@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -15,6 +17,8 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         Transform realCameraTransform;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+
+        bool s = false;
 
         protected override void SafeStart()
         {
@@ -155,58 +159,27 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void LateUpdate()
         {
-            if (cameraLookAtToggled)
+            if (LockTargetKey.IsReleased)
             {
-                if (LockTargetKey.IsReleased)
+                // Aquire the target to look at
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
                 {
-                    // Aquire the target to look at
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit))
-                    {
-                        target = hit.transform;
-                        long targetIndex = -1;
-                        try
-                        {
-                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
-                        }
-                        catch (Exception)
-                        {
-                            ConsoleController.ShowMessage("Not a machine block");
-                        }
-                        ////ConsoleController.ShowMessage(targetIndex.ToString());
-                        if (targetIndex != -1)
-                        {
-                            try
-                            {
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(transform.GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
-                            }
-                            catch (Exception)
-                            {
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(GetComponent<BlockBehaviour>().BuildIndex
-                                    );
-                                ConsoleController.ShowMessage("Old dic entry removed");
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
-                                ConsoleController.ShowMessage("New dic entry added");
-                            }
-                        }
-                    }
+                    target = hit.transform;
+                }
 
-                }
-                if (target != null && StatMaster.levelSimulating)
-                {
-                    // Keep the camera focusing on the targetX
-                    Vector3 positionDiff = target.position - realCameraTransform.position;
-                    Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
-                    realCameraTransform.LookAt(target);
-                }
+            }
+            if (cameraLookAtToggled && target != null)
+            {
+                ConsoleController.ShowMessage(target.name);
+                // Keep the camera focusing on the target
+                //BlockBehaviour block;
+                Vector3 positionDiff = target.position - realCameraTransform.position;
+                Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
+                realCameraTransform.LookAt(target);
+                //realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, Quaternion.LookRotation(positionDiff), cameraFollowSmooth);
             }
         }
-    }
-
-    class CameraCompositeTrackerScript : MonoBehaviour
-    {
-        //public Transform PreviousTarget { get; set; }
-        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
     }
 }
