@@ -11,6 +11,7 @@ namespace BlockEnhancementMod
     /// <summary>
     /// 模块基类
     /// </summary>
+    [Obsolete]
     public class Block
     {
         /// <summary>

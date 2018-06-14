@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BlockEnhancementMod
 {
@@ -16,25 +17,23 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
-        /// <summary>
-        /// 存档信息
-        /// </summary>
+        /// <summary>存档信息</summary>
         internal static MachineInfo MI;
 
         internal static bool Refresh = false;
 
-        private bool _keyMapperOpen;
+        public static event OnBlockPlaced OnBlockPlaced;
 
         private BlockBehaviour _lastBlock;
 
-        
-
-        public static event OnBlockPlaced OnBlockPlaced;
-
         private int machineBlockCount = 1;
+
+        private bool _keyMapperOpen;
+        string currentSceneName;
 
         private void Start()
         {
+
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
 
@@ -46,10 +45,12 @@ namespace BlockEnhancementMod
 
             ////添加打开菜单事件委托
             //Game.OnKeymapperOpen += OnKeymapperOpen;
+            currentSceneName = SceneManager.GetActiveScene().name;
         }
 
         private void Update()
         {
+
             if (BlockMapper.CurrentInstance != null && BlockMapper.CurrentInstance.Block != null)
             {
                 //AddPiece.Instance.
@@ -59,7 +60,7 @@ namespace BlockEnhancementMod
                 {
                     OnKeymapperOpen();
                     _keyMapperOpen = true;
-                    BesiegeConsoleController.ShowMessage("keyMapperOpen");
+                    //ConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
@@ -71,6 +72,12 @@ namespace BlockEnhancementMod
             }
             else
             {
+                if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
+                {
+                    //ConsoleController.ShowMessage("Update machine, should be just once");
+                    AddAllSliders();
+                    currentSceneName = SceneManager.GetActiveScene().name;
+                }
                 _keyMapperOpen = false;
             }
 
@@ -83,12 +90,12 @@ namespace BlockEnhancementMod
                     int currentCount = Machine.Active().BuildingBlocks.Count;
                     if (currentCount > machineBlockCount)
                     {
-                        if(Controller.OnBlockPlaced != null)
+                        if (Controller.OnBlockPlaced != null)
                         {
-                            Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount-1].transform);
+                            Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
                         }
 #if DEBUG
-                        BesiegeConsoleController.ShowMessage("on place");
+                        ConsoleController.ShowMessage("on place");
 #endif
                     }
                     machineBlockCount = currentCount;
@@ -96,9 +103,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>
-        /// 获取菜单类型
-        /// </summary>
+        /// <summary>反射获取菜单私有属性</summary>
         public static FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>是否有进阶属性</summary>
@@ -107,9 +112,7 @@ namespace BlockEnhancementMod
             return block.MapperTypes.Exists(match => match.Key == "Enhancement");
         }
 
-        /// <summary>
-        /// 对所有具有进阶属性的零件添加进阶属性控件
-        /// </summary>
+        /// <summary>对所有没有进阶属性的零件添加进阶属性控件</summary>
         public static void AddAllSliders()
         {
             foreach (BlockBehaviour block in Machine.Active().BuildingBlocks.FindAll(block => !HasEnhancement(block)))
@@ -118,10 +121,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>
-        /// 对有进阶属性的零件添加进阶属性控件 
-        /// </summary>
-        /// <param name="block"></param>
+        /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private static void AddSliders(Transform block)
         {
             BlockBehaviour blockbehaviour = block.GetComponent<BlockBehaviour>();
@@ -129,6 +129,52 @@ namespace BlockEnhancementMod
                 AddSliders(blockbehaviour);
         }
 
+        /// <summary>添加进阶属性</summary>
+        public static void AddSliders(BlockBehaviour block)
+        {
+#if DEBUG
+            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+#endif
+
+            if (dic_EnhancementBlock.ContainsKey(block.BlockID))
+            {
+                var EB = dic_EnhancementBlock[block.BlockID];
+
+                if (block.GetComponent(EB) == null)
+                {
+                    block.gameObject.AddComponent(EB);
+                }
+            }
+        }
+
+        /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
+        public static Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
+        {
+            {(int)BlockType.BallJoint,typeof(BallJointScript) },
+            {(int)BlockType.Cannon,typeof(CannonScript) },
+            //{(int)BlockType.CogLargeUnpowered,typeof(cog) },
+            //{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
+            //{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
+            {(int)BlockType.Decoupler,typeof(DecouplerScript) },
+            {(int)BlockType.GripPad,typeof(GripPadScript) },
+            {(int)BlockType.Piston,typeof(PistonScript) },
+            //{(int)BlockType.Propeller,typeof(PropellerScript) },
+            //{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            {(int)BlockType.Slider,typeof(SliderScript) },
+            {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
+            //{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
+            {(int)BlockType.Spring,typeof(SpringScript) },
+            //{(int)BlockType.SteeringHinge,typeof(ste) },
+            {(int)BlockType.Suspension,typeof(SuspensionScript) },
+            //{(int)BlockType.Wheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+            {(int)BlockType.Rocket,typeof(RocketScript)},
+            {(int)BlockType.CameraBlock,typeof(CameraScript)}
+        };
+
+        /// <summary>刷新菜单组件</summary>
         public static IEnumerator RefreshSliders()
         {
             int i = 0;
@@ -140,117 +186,27 @@ namespace BlockEnhancementMod
             {
                 AddSliders(block);
             }
-            Debug.Log("Refresh");
-        }
-
-        /// <summary>
-        /// 添加进阶属性
-        /// </summary>
-        /// <param name="block"></param>
-        public static void AddSliders(BlockBehaviour block)
-        {
+            //Refresh = false;
 #if DEBUG
-            BesiegeConsoleController.ShowMessage(block.BlockID.ToString());
+            ConsoleController.ShowMessage("Refresh");
 #endif
-            if (block.BlockID == (int)BlockType.Cannon)
-            {
-
-
-                new Cannon(block);
-            }
-
-            if (block.BlockID == (int)BlockType.BallJoint)
-            {
-
-                new BallJoint(block);
-            }
-
-            if (Wheel.IsWheel(block.BlockID))
-            {
-
-                new Wheel(block);
-            }
-
-            if (block.BlockID == (int)BlockType.GripPad)
-            {
-
-                new GripPad(block);
-
-            }
-
-            if (block.BlockID == (int)BlockType.Suspension)
-            {
-
-                new Suspension(block);
-
-            }
-
-            //if (block.GetBlockID() == (int)BlockType.SteeringHinge)
-            //{
-
-            //    new SteeringHinge(block);
-
-            //}
-
-            if (block.BlockID == (int)BlockType.Decoupler)
-            {
-
-                new Decoupler(block);
-            }
-
-            if (block.BlockID == (int)BlockType.SmallWheel)
-            {
-
-                new Smallwheel(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Slider)
-            {
-
-                new Blocks.Slider(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Piston)
-            {
-
-                new Blocks.Piston(block);
-            }
-
-            if (block.BlockID == (int)BlockType.SpinningBlock)
-            {
-
-                new Blocks.Spinning(block);
-            }
-
-            if (block.BlockID == (int)BlockType.Spring)
-            {
-
-                new Blocks.Spring(block);
-            }
-
-            if (Propeller.IsPropeller(block.BlockID))
-            {
-
-                new Blocks.Propeller(block);
-            }
-
-            //if (Cog.IsCog(block.BlockID))
-            //{
-
-            //    new Blocks.Cog(block);
-            //}
-
         }
 
 
-
+        /// <summary>载入存档信息</summary>
+        /// 
 
         public virtual void LoadConfiguration(MachineInfo mi)
         {
 
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("载入存档");
+            ConsoleController.ShowMessage("载入存档");
 #endif
+            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+            {
+                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+            }
+
             MI = mi;
 
             Refresh = true;
@@ -261,13 +217,14 @@ namespace BlockEnhancementMod
 
         }
 
-
         public delegate void SaveConfigurationHandler(MachineInfo mi);
 
         public static event SaveConfigurationHandler Save;
 
         public virtual void SaveConfiguration(MachineInfo mi)
         {
+            Configuration.Save();
+
             Save(mi);
         }
 

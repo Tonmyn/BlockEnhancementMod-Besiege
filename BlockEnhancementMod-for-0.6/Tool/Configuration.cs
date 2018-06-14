@@ -351,7 +351,7 @@ namespace BlockEnhancementMod
         [Obsolete("KeyExists is deprecated, use DoesKeyExist instead", true)]
         public static bool KeyExists(string key)
         {
-            BesiegeConsoleController.ShowMessage("Use Configuration.DoesKeyExist instead of Configuration.KeyExists.\n"
+            ConsoleController.ShowMessage("Use Configuration.DoesKeyExist instead of Configuration.KeyExists.\n"
               + "Configuration.KeyExists is deprecated and will be removed.");
             return DoesKeyExist(key);
         }

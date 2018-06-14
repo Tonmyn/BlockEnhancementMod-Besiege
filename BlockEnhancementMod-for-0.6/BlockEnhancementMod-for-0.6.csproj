@@ -63,26 +63,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Block.cs" />
-    <Compile Include="Blocks\BallJoint.cs" />
-    <Compile Include="Blocks\Cannon.cs" />
-    <Compile Include="Blocks\Cog.cs" />
-    <Compile Include="Blocks\Decoupler.cs" />
-    <Compile Include="Blocks\GripPad.cs" />
-    <Compile Include="Blocks\Piston.cs" />
-    <Compile Include="Blocks\Propeller.cs" />
-    <Compile Include="Blocks\Slider.cs" />
-    <Compile Include="Blocks\SmallWheel.cs" />
-    <Compile Include="Blocks\Spinning.cs" />
-    <Compile Include="Blocks\Spring.cs" />
-    <Compile Include="Blocks\SteeringHinge.cs" />
-    <Compile Include="Blocks\Suspension.cs" />
-    <Compile Include="Blocks\Wheel.cs" />
+    <Compile Include="EnhancementBlocks\Camera.cs" />
+    <Compile Include="EnhancementBlocks\Cog.cs" />
+    <Compile Include="EnhancementBlocks\Decoupler.cs" />
+    <Compile Include="EnhancementBlocks\GripPad.cs" />
+    <Compile Include="EnhancementBlocks\Piston.cs" />
+    <Compile Include="EnhancementBlocks\Propeller.cs" />
+    <Compile Include="EnhancementBlocks\Rocket.cs" />
+    <Compile Include="EnhancementBlocks\Slider.cs" />
+    <Compile Include="EnhancementBlocks\SmallWheel.cs" />
+    <Compile Include="EnhancementBlocks\Spinning.cs" />
+    <Compile Include="EnhancementBlocks\Spring.cs" />
+    <Compile Include="EnhancementBlocks\SteeringHinge.cs" />
+    <Compile Include="EnhancementBlocks\Suspension.cs" />
+    <Compile Include="EnhancementBlocks\BallJoint.cs" />
+    <Compile Include="EnhancementBlocks\Cannon.cs" />
+    <Compile Include="EnhancementBlocks\Wheel.cs" />
     <Compile Include="Controller.cs" />
+    <Compile Include="EnhancementBlock.cs" />
     <Compile Include="Tool\Configuration.cs" />
     <Compile Include="Tool\ConfigurationEventArgs.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tool\getlistkeycode.cs" />
+    <Compile Include="Tool\GetListOfKeyCode.cs" />
     <Compile Include="Tool\SimpleJSON.cs" />
   </ItemGroup>
   <ItemGroup />
