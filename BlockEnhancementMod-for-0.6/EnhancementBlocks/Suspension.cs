@@ -35,38 +35,33 @@ namespace BlockEnhancementMod.Blocks
 
         public List<KeyCode> ExtendKeyCodes = new List<KeyCode> { KeyCode.E };
 
+        public List<KeyCode> ShrinkKeyCodes = new List<KeyCode> { KeyCode.F };
+            
         protected override void SafeStart()
         {
 
-            HardnessMenu = new MMenu("Hardness", Hardness, new List<string> { "低碳钢", "中碳钢", "高碳钢" }, false);
+            HardnessMenu = AddMenu("Hardness", Hardness, new List<string> { "低碳钢", "中碳钢", "高碳钢" }, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(HardnessMenu);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
-            //ExtendKey = new MKey("伸出", "Extend", KeyCode.E);
-            //ExtendKey.KeysChanged += ChangedProperties;
-            //CurrentMapperTypes.Add(ExtendKey);
-            ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes, null);
+            ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes);
+            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);
 
-            ShrinkKey = new MKey("收回", "Shrink", KeyCode.F);
-            ShrinkKey.KeysChanged += ChangedProperties;
-            CurrentMapperTypes.Add(ShrinkKey);
-
-            PressureToggle = new MToggle("液压模式", "Pressure", Pressure);
+            PressureToggle = AddToggle("液压模式", "Pressure", Pressure);
             PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(PressureToggle);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Pressure = PressureToggle.IsActive; };
 
-            FeedSlider = new MSlider("进给速度", "feed", Feed, 0f, 2f, false);
+            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f, false);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(FeedSlider);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Feed = FeedSlider.Value; };
 
-            //ExtendLimitSlider = new MSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
-            //ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
-            //CurrentMapperTypes.Add(ExtendLimitSlider);
-            ExtendLimitSlider = AddSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false, (float value) => { ExtendLimit = value; ChangedProperties(); }, (XDataHolder value) => { ExtendLimit = ExtendLimitSlider.Value; });
+            ExtendLimitSlider = AddSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
+            ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { ExtendLimit = ExtendLimitSlider.Value; };
 
-            ShrinkLimitSlider = new MSlider("收缩限制", "ShrinkLimit", ShrinkLimit, 0f, 3f, false);
+            ShrinkLimitSlider = AddSlider("收缩限制", "ShrinkLimit", ShrinkLimit, 0f, 3f, false);
             ShrinkLimitSlider.ValueChanged += (float value) => { ShrinkLimit = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(ShrinkLimitSlider);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { ShrinkLimit = ShrinkLimitSlider.Value; };
 
 
 
@@ -75,80 +70,6 @@ namespace BlockEnhancementMod.Blocks
 #endif
 
         }
-
-        public override void LoadConfiguration(XDataHolder BlockData)
-        {
-
-
-                    //if (bd.HasKey("bmt-" + HardnessMenu.Key)) { HardnessMenu.Value = Hardness = bd.ReadInt("bmt-" + HardnessMenu.Key); }
-
-                    //if (bd.HasKey("bmt-" + ExtendKey.Key))
-                    //{
-                    //    int index = 0;
-                    //    foreach (string str in bd.ReadStringArray("bmt-" + ExtendKey.Key))
-                    //    {
-                    //        ExtendKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                    //    }
-                    //}
-
-                    //if (bd.HasKey("bmt-" + ShrinkKey.Key))
-                    //{
-                    //    int index = 0;
-                    //    foreach (string str in bd.ReadStringArray("bmt-" + ShrinkKey.Key))
-                    //    {
-                    //        ShrinkKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-                    //    }
-                    //}
-
-                    //if (bd.HasKey("bmt-" + PressureToggle.Key)) { PressureToggle.IsActive = Pressure = bd.ReadBool("bmt-" + PressureToggle.Key); }
-
-                    //if (bd.HasKey("bmt-" + FeedSlider.Key)) { FeedSlider.Value = Feed = bd.ReadFloat("bmt-" + FeedSlider.Key); }
-
-                    //if (bd.HasKey("bmt-" + ExtendLimitSlider.Key)) { ExtendLimitSlider.Value = ExtendLimit = bd.ReadFloat("bmt-" + ExtendLimitSlider.Key); }
-
-                    //if (bd.HasKey("bmt-" + ShrinkLimitSlider.Key)) { ShrinkLimitSlider.Value = ShrinkLimit = bd.ReadFloat("bmt-" + ShrinkLimitSlider.Key); }
-
-
-
-        }
-
-        //public override void SaveConfiguration(MachineInfo mi)
-        //{
-        //    base.SaveConfiguration(mi);
-
-        //    foreach (var blockinfo in mi.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-
-        //            blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
-
-        //            //blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, Tools.Get_List_keycode(ExtendKey));
-        //            blockinfo.BlockData.Write("bmt-" + ExtendKey.Key, ExtendKey.Serialize().RawValue);
-        //            blockinfo.BlockData.Write("bmt-" + ShrinkKey.Key, Tools.Get_List_keycode(ShrinkKey));
-        //            blockinfo.BlockData.Write("bmt-" + PressureToggle.Key, PressureToggle.IsActive);
-        //            blockinfo.BlockData.Write("bmt-" + FeedSlider.Key, FeedSlider.Value);
-        //            blockinfo.BlockData.Write("bmt-" + ExtendLimitSlider.Key, ExtendLimitSlider.Value);
-        //            blockinfo.BlockData.Write("bmt-" + ShrinkLimitSlider.Key, ShrinkLimitSlider.Value);
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void ChangedPropertise()
-        //{
-        //    base.ChangedPropertise();
-        //    SS.Hardness = Hardness;
-        //    SS.Extend = Tools.Get_List_keycode(Extend);
-        //    SS.Shrink = Tools.Get_List_keycode(Shrink);
-        //    SS.Pressure = Pressure;
-        //    SS.Feed = Feed;
-        //    SS.ExtendLimit = ExtendLimit;
-        //    SS.ShrinkLimit = ShrinkLimit;
-
-        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -162,30 +83,9 @@ namespace BlockEnhancementMod.Blocks
             ShrinkLimitSlider.DisplayInMapper = value;
         }
 
-        //public class SuspensionScript : Block.BlockScript
-        //{
-
         ConfigurableJoint CJ;
 
         Rigidbody RB;
-
-        //MKey ExtendKey;
-
-        //MKey ShrinkKey;
-
-        //public int Hardness;
-
-        //public List<KeyCode> Extend;
-
-        //public List<KeyCode> Shrink;
-
-        //public bool Pressure;
-
-        //public float Feed;
-
-        //public float ExtendLimit;
-
-        //public float ShrinkLimit;
 
         protected override void OnSimulateStart()
         {
@@ -193,8 +93,6 @@ namespace BlockEnhancementMod.Blocks
 
             CJ = GetComponent<ConfigurableJoint>();
             RB = GetComponent<Rigidbody>();
-            //ExtendKey = GetKey(ExtendKey);
-            //ShrinkKey = GetKey(ShrinkKey);
 
             SoftJointLimit limit = CJ.linearLimit;
             limit.limit = Mathf.Max(ExtendLimit, ShrinkLimit);
@@ -207,21 +105,7 @@ namespace BlockEnhancementMod.Blocks
                 ConsoleController.ShowMessage(string.Format("Key :{0}", k.ToString()));
             }
         }
-        //    private void Start()
-        //    {
-        //        CJ = GetComponent<ConfigurableJoint>();
-        //        RB = GetComponent<Rigidbody>();
-        //        ExtendKey = GetKey(Extend);
-        //        ShrinkKey = GetKey(Shrink);
 
-        //        SoftJointLimit limit = CJ.linearLimit;
-        //        limit.limit = Mathf.Max(ExtendLimit, ShrinkLimit);
-        //        CJ.linearLimit = limit;
-
-        //        SwitchMatalHardness(Hardness, CJ);
-
-
-        //    }
         protected override void OnSimulateFixedUpdate()
         {
             base.OnSimulateFixedUpdate();
@@ -257,41 +141,6 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
         }
-        //    private void FixedUpdate()
-        //    {
-        //        if (StatMaster.levelSimulating && Pressure)
-        //        {
-        //            if (ExtendKey.IsDown)
-        //            {
-
-        //                RB.WakeUp();
-        //                if ((CJ.targetPosition.x - Feed * 0.005f) > -ExtendLimit)
-        //                {
-        //                    CJ.targetPosition -= new Vector3(Feed * 0.005f, 0, 0);
-        //                }
-        //                else
-        //                {
-        //                    CJ.targetPosition = new Vector3(-ExtendLimit, 0, 0);
-        //                }
-
-        //            }
-
-        //            if (ShrinkKey.IsDown)
-        //            {
-        //                RB.WakeUp();
-        //                if (CJ.targetPosition.x + Feed * 0.005f < ShrinkLimit)
-        //                {
-        //                    CJ.targetPosition += new Vector3(Feed * 0.005f, 0, 0);
-        //                }
-        //                else
-        //                {
-        //                    CJ.targetPosition = new Vector3(ShrinkLimit, 0, 0);
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
     }
 
   

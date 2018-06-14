@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
-{
+{   [Obsolete]
     class PropellerScript : EnhancementBlock
     {
   

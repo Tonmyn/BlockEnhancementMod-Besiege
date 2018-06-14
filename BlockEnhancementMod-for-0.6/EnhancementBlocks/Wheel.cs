@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
+    [Obsolete]
     class WheelScript : EnhancementBlock
     {
         //WheelScript WS;

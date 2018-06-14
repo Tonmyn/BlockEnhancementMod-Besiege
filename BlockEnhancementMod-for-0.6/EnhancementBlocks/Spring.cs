@@ -8,7 +8,6 @@ namespace BlockEnhancementMod.Blocks
 {
     class SpringScript :EnhancementBlock
     {
-        //SpringScript SS;
 
         MSlider DragSlider;
 
@@ -17,61 +16,15 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeStart()
         {
 
-            DragSlider = new MSlider("阻力", "Drag", Drag, 0f, 3f, false);
+            DragSlider = AddSlider("阻力", "Drag", Drag, 0f, 3f, false);
             DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(DragSlider);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Drag = DragSlider.Value; };
 
 
 #if DEBUG
             ConsoleController.ShowMessage("皮筋添加进阶属性");
 #endif
         }
-
-        //public override void LoadConfiguration()
-        //{
-        //    base.LoadConfiguration();
-
-        //    if (Controller.MI == null)
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (var blockinfo in Controller.MI.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-        //            XDataHolder bd = blockinfo.BlockData;
-
-        //            if (bd.HasKey("bmt-" + DragSlider.Key)) { DragSlider.Value = Drag = bd.ReadFloat("bmt-" + DragSlider.Key); }
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void SaveConfiguration(MachineInfo mi)
-        //{
-        //    base.SaveConfiguration(mi);
-
-        //    foreach (var blockinfo in mi.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-
-        //            blockinfo.BlockData.Write("bmt-" + DragSlider.Key, DragSlider.Value);
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void ChangedPropertise()
-        //{
-        //    base.ChangedPropertise();
-        //    SS.Drag = Drag;
-        //}
 
         public override void DisplayInMapper(bool value)
         {
@@ -80,8 +33,6 @@ namespace BlockEnhancementMod.Blocks
         }
 
         Rigidbody A, B;
-
-        //public float Drag;
 
         protected override void OnSimulateStart()
         {

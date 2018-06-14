@@ -9,19 +9,15 @@ namespace BlockEnhancementMod.Blocks
     class RocketScript : EnhancementBlock
     {
 
-        //MMenu ExplosionTypeMenu;
-        //MToggle RocketPodToggle;
         MToggle GuidedRocketToggle;
         MSlider GuidedRocketTorqueSlider;
         MKey LockTargetKey;
 
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        //List<string> explosionTypes;
-
-        public bool rocketPodIsActivated = false;
+        //public bool rocketPodIsActivated = false;
         public bool guidedRocketIsActivated = false;
-        public int noOfRocketsInPod = 18;
+        //public int noOfRocketsInPod = 18;
         public bool hasFired = false;
         public float torque = 100f;
         public float previousAngleDiff = 0;
@@ -33,35 +29,20 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void SafeStart()
         {
-            //explosionTypes = new List<string> { "Rocket", "Bomb", "Grenade" };
-            //ExplosionTypeMenu = new MMenu("ExplosionType", (int)RocketScript.ExplosionType.rocket, explosionTypes, false);
-            //CurrentMapperTypes.Add(ExplosionTypeMenu);
-            //ExplosionTypeMenu.ValueChanged += (int value) =>
-            //{
-            //    ExplosionTypeMenu.Value = explosionType = value;
-            //    ChangedPropertise();
-            //    BesiegeConsoleController.ShowMessage(value.ToString());
-            //};
 
-            //RocketPodToggle = new MToggle("火箭巢", "RocketPod", rocketPodIsActivated);
-            //RocketPodToggle.Toggled += (bool value) => { rocketPodIsActivated = value; ChangedPropertise(); };
-            //CurrentMapperTypes.Add(RocketPodToggle);
-
-            GuidedRocketToggle = new MToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
+            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value;
                 ChangedProperties();
             };
-            CurrentMapperTypes.Add(GuidedRocketToggle);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketIsActivated = GuidedRocketToggle.IsActive; };
 
-            LockTargetKey = new MKey("锁定目标", "lockTarget", lockKeys[0]);
-            LockTargetKey.KeysChanged += ChangedProperties;
-            CurrentMapperTypes.Add(LockTargetKey);
+            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
 
-            GuidedRocketTorqueSlider = new MSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 1000, false);
+            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 1000, false);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(GuidedRocketTorqueSlider);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
@@ -69,79 +50,12 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void ChangedProperties()
-        {
-            lockKeys.Clear();
-            for (int i = 0; i < LockTargetKey.KeysCount; i++)
-            {
-                lockKeys.Add(LockTargetKey.GetKey(i));
-                //ConsoleController.ShowMessage(LockTargetKey.GetKey(i).ToString());
-            }
-        }
-
         public override void DisplayInMapper(bool value)
         {
-            //base.DisplayInMapper(value);
-            //RocketPodToggle.DisplayInMapper = value;
-            //ExplosionTypeMenu.DisplayInMapper = value;
             GuidedRocketToggle.DisplayInMapper = value;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketIsActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
-
-        //public override void LoadConfiguration()
-        //{
-        //    base.LoadConfiguration();
-
-        //    if (Controller.MI == null)
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (var blockinfo in Controller.MI.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-        //            XDataHolder bd = blockinfo.BlockData;
-
-        //            if (bd.HasKey("bmt-" + GuidedRocketToggle.Key))
-        //            {
-        //                GuidedRocketToggle.IsActive = guidedRocketIsActivated = bd.ReadBool("bmt-" + GuidedRocketToggle.Key);
-        //            }
-        //            if (bd.HasKey("bmt-" + GuidedRocketTorqueSlider.Key))
-        //            {
-        //                GuidedRocketTorqueSlider.Value = torque = bd.ReadFloat("bmt-" + GuidedRocketTorqueSlider.Key);
-        //            }
-        //            if (bd.HasKey("bmt-" + LockTargetKey.Key))
-        //            {
-        //                int index = 0;
-        //                foreach (string str in bd.ReadStringArray("bmt-" + LockTargetKey.Key))
-        //                {
-        //                    LockTargetKey.AddOrReplaceKey(index++, (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-        //                }
-        //            }
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void SaveConfiguration(MachineInfo mi)
-        //{
-        //    base.SaveConfiguration(mi);
-
-        //    foreach (var blockinfo in mi.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-        //            blockinfo.BlockData.Write("bmt-" + GuidedRocketToggle.Key, GuidedRocketToggle.IsActive);
-        //            blockinfo.BlockData.Write("bmt-" + GuidedRocketTorqueSlider.Key, GuidedRocketTorqueSlider.Value);
-        //            blockinfo.BlockData.Write("bmt-" + LockTargetKey.Key, LockTargetKey.Serialize().RawValue);
-        //            break;
-        //        }
-
-        //    }
-        //}
 
         protected override void OnSimulateStart()
         {

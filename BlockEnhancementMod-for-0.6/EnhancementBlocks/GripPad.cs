@@ -9,8 +9,6 @@ namespace BlockEnhancementMod.Blocks
     public class GripPadScript : EnhancementBlock
     {
 
-        public GripPadScript GPS;
-
         public MSlider FrictionSlider;
 
         public MMenu HardnessMenu;
@@ -22,15 +20,13 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeStart()
         {
 
-            //GPS = BB.gameObject.AddComponent<GripPadScript>();
-
-            HardnessMenu = new MMenu("Hardness", Hardness, WoodHardness, false);
+            HardnessMenu = AddMenu("Hardness", Hardness, WoodHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
-            CurrentMapperTypes.Add(HardnessMenu);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
-            FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1000f, false);
+            FrictionSlider = AddSlider("摩擦力", "Friction", Friction, 0f, 1000f, false);
             FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
-            CurrentMapperTypes.Add(FrictionSlider);
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Friction = FrictionSlider.Value; };
 
 
 
@@ -40,67 +36,12 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        //public override void LoadConfiguration()
-        //{
-        //    base.LoadConfiguration();
-
-        //    if (Controller.MI == null)
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (var blockinfo in Controller.MI.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-        //            XDataHolder bd = blockinfo.BlockData;
-
-        //            if (bd.HasKey("bmt-" + HardnessMenu.Key)) { HardnessMenu.Value = Hardness = bd.ReadInt("bmt-" + HardnessMenu.Key); }
-
-        //            if (bd.HasKey("bmt-" + FrictionSlider.Key)) { FrictionSlider.Value = Friction = bd.ReadFloat("bmt-" + FrictionSlider.Key); }
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void SaveConfiguration(MachineInfo mi)
-        //{
-        //    base.SaveConfiguration(mi);
-
-        //    foreach (var blockinfo in mi.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-
-        //            blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
-
-        //            blockinfo.BlockData.Write("bmt-" + FrictionSlider.Key, FrictionSlider.Value);
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
         public override void DisplayInMapper(bool value)
         {
             base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
             FrictionSlider.DisplayInMapper = value;
         }
-
-        //public override void ChangedPropertise()
-        //{
-        //    base.ChangedPropertise();
-        //    GPS.Hardness = Hardness;
-        //    GPS.Friction = Friction;
-        //}
-
-        //public int Hardness;
-
-        //public float Friction;
 
         private ConfigurableJoint CJ;
 
@@ -126,7 +67,6 @@ namespace BlockEnhancementMod.Blocks
             SwitchWoodHardness(Hardness, CJ);
 
         }
-
 
     }
 

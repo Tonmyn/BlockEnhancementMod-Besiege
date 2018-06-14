@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
+    [Obsolete]
     class SteeringHinge : Block
     {
         SteeringHingeScript SHS;

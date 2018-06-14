@@ -37,9 +37,6 @@ namespace BlockEnhancementMod
 
         internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };
 
-        ///// <summary>按键列表</summary>
-        //internal List<List<KeyCode>> keyCode_lists;
-
         public delegate void BlockDataLoadHandle(XDataHolder BlockData);
 
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
@@ -57,11 +54,9 @@ namespace BlockEnhancementMod
 
             CurrentMapperTypes = BB.MapperTypes;
 
-            Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
+            Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
 
             Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            CurrentMapperTypes.Add(Enhancement);
 
             SafeStart();
 
@@ -78,26 +73,6 @@ namespace BlockEnhancementMod
             }
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
-            //BB = GetComponent<BlockBehaviour>();
-
-            //CurrentMapperTypes = BB.MapperTypes;
-
-            //Enhancement = new MToggle("进阶属性", "Enhancement", EnhancementEnable);
-
-            //Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            //CurrentMapperTypes.Add(Enhancement);
-
-            //SafeStart();
-
-            //loadConfiguration();
-
-            //ChangedProperties();
-            //DisplayInMapper(EnhancementEnable);
-
-            //Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-
-            //Controller.Save += saveConfiguration;
         }
 
         private void Update()
@@ -412,27 +387,7 @@ namespace BlockEnhancementMod
 
         }
 
-
-        //public class EKey : MKey
-        //{
-
-        //    public List<KeyCode> Keys;
-
-        //    public EKey(string displayName, string key, List<KeyCode> keys, KeysChangeHandler KeysChanged) : base(displayName, key, keys[0])
-        //    {
-        //        Keys = keys;
-
-        //        this.KeysChanged += KeysChanged;
-
-
-        //    }
-
-
-
-
-        //}
-
-        public MKey AddKey(string displayName, string key, List<KeyCode> keys, KeysChangeHandler KeysChanged)
+        protected MKey AddKey(string displayName, string key, List<KeyCode> keys)
         {
             MKey mKey = new MKey(displayName, key, keys[0]);
 
@@ -451,8 +406,6 @@ namespace BlockEnhancementMod
                 }
 
             };
-
-            mKey.KeysChanged += KeysChanged;
 
             CurrentMapperTypes.Add(mKey);
 
@@ -476,11 +429,9 @@ namespace BlockEnhancementMod
 
         }
 
-        public MSlider AddSlider(string displayName,string key,float value,float min,float max,bool disableLimit,ValueChangeHandler valueChangeHandler,BlockDataLoadHandle blockDataLoadHandle)
+        protected MSlider AddSlider(string displayName,string key,float value,float min,float max,bool disableLimit)
         {
             MSlider mSlider = new MSlider(displayName,key,value,min,max,disableLimit);
-
-            mSlider.ValueChanged += valueChangeHandler;
 
             CurrentMapperTypes.Add(mSlider);
 
@@ -488,8 +439,6 @@ namespace BlockEnhancementMod
               {
                   if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
               };
-
-            BlockDataLoadEvent += blockDataLoadHandle;
 
             BlockDataSaveEvent += (XDataHolder data) =>
             {
@@ -500,12 +449,9 @@ namespace BlockEnhancementMod
 
         }
 
-
-        public MToggle AddToggle(string displayName, string key, bool defaltValue,ToggleHandler toggleHandler,BlockDataLoadHandle blockDataLoadHandle)
+        protected MToggle AddToggle(string displayName, string key, bool defaltValue)
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
-
-            mToggle.Toggled += toggleHandler;
 
             CurrentMapperTypes.Add(mToggle);
 
@@ -513,8 +459,6 @@ namespace BlockEnhancementMod
             {
                 if (data.HasKey("bmt-" + mToggle.Key)) { mToggle.IsActive = data.ReadBool("bmt-" + mToggle.Key); }
             };
-
-            BlockDataLoadEvent += blockDataLoadHandle;
 
             BlockDataSaveEvent += (XDataHolder data) =>
              {
@@ -524,16 +468,43 @@ namespace BlockEnhancementMod
             return mToggle;
         }
 
-        //public MMenu AddMenu()
-        //{
+        protected MMenu AddMenu(string key,int defaultIndex,List<string> items,bool footerMenu)
+        {
+            MMenu mMenu = new MMenu(key, defaultIndex, items, footerMenu);
 
-        //}
+            CurrentMapperTypes.Add(mMenu);
 
-        //public MColourSlider AddColorSlider()
-        //{
+            BlockDataLoadEvent += (XDataHolder data) =>
+             {
+                 if (data.HasKey("bmt-" + mMenu.Key)) { mMenu.Value = data.ReadInt("bmt-" + mMenu.Key); }
+             };
 
-        //}
+            BlockDataSaveEvent += (XDataHolder data) =>
+             {
+                 data.Write("bmt-" + mMenu.Key, mMenu.Value);
+             };
 
+            return mMenu;
+        }
+
+        protected MColourSlider AddColorSlider(string displayName,string key,Color value,bool snapToClosestColor)
+        {
+            MColourSlider mColorSlider = new MColourSlider(displayName, key, value, snapToClosestColor);
+
+            CurrentMapperTypes.Add(mColorSlider);
+
+            BlockDataLoadEvent += (XDataHolder BlockData) =>
+             {
+                 if (BlockData.HasKey("bmt-" + mColorSlider.Key)) { mColorSlider.Value = BlockData.ReadColor("bmt-" + mColorSlider.Key); }
+             };
+
+            BlockDataSaveEvent += (XDataHolder BlockData) =>
+            {
+                BlockData.Write("bmt-" + mColorSlider.Key, mColorSlider.Value);
+            };
+
+            return mColorSlider;
+        }
 
 
     }

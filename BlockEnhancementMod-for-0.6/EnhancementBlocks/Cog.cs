@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
+    [Obsolete]
     class Cog : Block
     {
         CogScript CS;
@@ -61,7 +62,7 @@ namespace BlockEnhancementMod.Blocks
             return result;
 
         }
-
+        
         public class CogScript : BlockScript
         {
 
