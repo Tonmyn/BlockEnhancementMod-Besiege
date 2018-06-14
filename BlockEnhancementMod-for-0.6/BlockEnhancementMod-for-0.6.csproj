@@ -62,7 +62,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Block.cs" />
     <Compile Include="EnhancementBlocks\Camera.cs" />
     <Compile Include="EnhancementBlocks\Cog.cs" />
     <Compile Include="EnhancementBlocks\Decoupler.cs" />
