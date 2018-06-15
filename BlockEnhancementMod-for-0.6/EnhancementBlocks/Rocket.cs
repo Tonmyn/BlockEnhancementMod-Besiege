@@ -15,9 +15,7 @@ namespace BlockEnhancementMod.Blocks
 
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        //public bool rocketPodIsActivated = false;
         public bool guidedRocketIsActivated = false;
-        //public int noOfRocketsInPod = 18;
         public bool hasFired = false;
         public float torque = 100f;
         public float previousAngleDiff = 0;
@@ -25,9 +23,6 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public bool exploding = false;
-
-        public int test = -1;
-        //public int explosionType = 0;
 
         protected override void SafeStart()
         {
@@ -63,7 +58,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            
+
         }
 
         protected override void OnSimulateFixedUpdate()
@@ -86,34 +81,25 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (target != null)
                     {
-                        try
+                        // Calculating the rotating axis
+                        Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
+                        Vector3 positionDiff = target.position - transform.position;
+                        float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
+                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
+                        float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
+                        // if the velocity is more than 90 degree apart from the target direction, use maximum torque
+                        // otherwise use proportional torque.
+                        if (angleDiff > 90)
                         {
-                            // Calculating the rotating axis
-                            Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
-                            Vector3 positionDiff = target.position - transform.position;
-                            float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
-                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
-                            float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
-                            // if the velocity is more than 90 degree apart from the target direction, use maximum torque
-                            // otherwise use proportional torque.
-                            if (angleDiff > 90)
-                            {
-                                transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
-                            }
-                            else
-                            {
-                                transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
-                            }
-                            //Trying to implement a PID controller
-                            //BesiegeConsoleController.ShowMessage("PID working");
-                            //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
                         }
-                        catch (Exception)
+                        else
                         {
-                            //For some reason the target.position can sometimes be null even the target is not null.
-                            //Just using this try-catch to ignore the exception message
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
                         }
-                        
+                        //Trying to implement a PID controller
+                        //BesiegeConsoleController.ShowMessage("PID working");
+                        //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                     }
                 }
             }
