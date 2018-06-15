@@ -63,13 +63,13 @@ namespace BlockEnhancementMod
             if (!StatMaster.levelSimulating)
             {
 
-                loadConfiguration();
+                LoadConfiguration();
 
                 ChangedProperties();
 
                 DisplayInMapper(EnhancementEnable);
 
-                Controller.Save += saveConfiguration;
+                Controller.Save += SaveConfiguration;
             }
             Controller.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
@@ -104,7 +104,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        private void saveConfiguration(MachineInfo Mi)
+        private void SaveConfiguration(MachineInfo Mi)
         {
 
             if (Mi == null)
@@ -127,7 +127,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        private void loadConfiguration()
+        private void LoadConfiguration()
         {
             if (Controller.MI == null)
             {

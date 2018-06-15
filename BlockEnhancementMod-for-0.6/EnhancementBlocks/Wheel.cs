@@ -267,7 +267,7 @@ namespace BlockEnhancementMod.Blocks
                 WheelCollider = new GameObject("Wheel Collider");
 
                 mFilter = WheelCollider.AddComponent<MeshFilter>();
-                mFilter.mesh = WheelMesh = Block.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel/Wheel.obj");
+                mFilter.mesh = WheelMesh = MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel/Wheel.obj");
 
                 mCollider = WheelCollider.AddComponent<MeshCollider>();
                 mCollider.convex = true;

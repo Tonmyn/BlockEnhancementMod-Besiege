@@ -59,12 +59,12 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            rocket = gameObject.GetComponent<TimedRocket>();
+            rocket = Machine.Active().GetSimBlock(gameObject.GetComponent<TimedRocket>()).GetComponent<TimedRocket>() ;
         }
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (LockTargetKey.IsReleased)
+            if (guidedRocketIsActivated && LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -82,25 +82,34 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (target != null)
                     {
-                        // Calculating the rotating axis
-                        Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
-                        Vector3 positionDiff = target.position - transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
-                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
-                        float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
-                        // if the velocity is more than 90 degree apart from the target direction, use maximum torque
-                        // otherwise use proportional torque.
-                        if (angleDiff > 90)
+                        try
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                            // Calculating the rotating axis
+                            Vector3 velocityNormarlised = GetComponent<Rigidbody>().velocity.normalized;
+                            Vector3 positionDiff = target.position - transform.position;
+                            float angleDiff = Vector3.Angle(positionDiff, velocityNormarlised);
+                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff, velocityNormarlised);
+                            float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
+                            // if the velocity is more than 90 degree apart from the target direction, use maximum torque
+                            // otherwise use proportional torque.
+                            if (angleDiff > 90)
+                            {
+                                transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                            }
+                            else
+                            {
+                                transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
+                            }
+                            //Trying to implement a PID controller
+                            //BesiegeConsoleController.ShowMessage("PID working");
+                            //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                         }
-                        else
+                        catch (Exception)
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
+                            //For some reason the target.position can sometimes be null even the target is not null.
+                            //Just using this try-catch to ignore the exception message
                         }
-                        //Trying to implement a PID controller
-                        //BesiegeConsoleController.ShowMessage("PID working");
-                        //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
+                        
                     }
                 }
             }

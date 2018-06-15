@@ -32,7 +32,7 @@ namespace BlockEnhancementMod.Blocks
                 Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
             }
 
-            
+
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
@@ -48,7 +48,7 @@ namespace BlockEnhancementMod.Blocks
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
-        {       
+        {
             if (BlockData.HasKey("bmt-" + "CameraTarget"))
             {
                 Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, BlockData.ReadInt("bmt-" + "CameraTarget"));
@@ -97,53 +97,54 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void LateUpdate()
+        protected override void OnSimulateFixedUpdate()
         {
-            if (cameraLookAtToggled)
+            if (cameraLookAtToggled && LockTargetKey.IsReleased)
             {
-                if (LockTargetKey.IsReleased)
+                // Aquire the target to look at
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
                 {
-                    // Aquire the target to look at
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit))
+                    target = hit.transform;
+                    long targetIndex = -1;
+                    try
                     {
-                        target = hit.transform;
-                        long targetIndex = -1;
+                        targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                    }
+                    catch (Exception)
+                    {
+                        ConsoleController.ShowMessage("Not a machine block");
+                    }
+                    ////ConsoleController.ShowMessage(targetIndex.ToString());
+                    if (targetIndex != -1)
+                    {
                         try
                         {
-                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(transform.GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
                         }
                         catch (Exception)
                         {
-                            ConsoleController.ShowMessage("Not a machine block");
-                        }
-                        ////ConsoleController.ShowMessage(targetIndex.ToString());
-                        if (targetIndex != -1)
-                        {
-                            try
-                            {
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(transform.GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
-                            }
-                            catch (Exception)
-                            {
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(GetComponent<BlockBehaviour>().BuildIndex
-                                    );
-                                ConsoleController.ShowMessage("Old dic entry removed");
-                                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
-                                ConsoleController.ShowMessage("New dic entry added");
-                            }
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(GetComponent<BlockBehaviour>().BuildIndex
+                                );
+                            ConsoleController.ShowMessage("Old dic entry removed");
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
+                            ConsoleController.ShowMessage("New dic entry added");
                         }
                     }
+                }
 
-                }
-                if (target != null && StatMaster.levelSimulating)
-                {
-                    // Keep the camera focusing on the targetX
-                    Vector3 positionDiff = target.position - realCameraTransform.position;
-                    Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
-                    realCameraTransform.LookAt(target);
-                }
+            }
+        }
+
+        protected override void LateUpdate()
+        {
+            if (cameraLookAtToggled && target != null && StatMaster.levelSimulating)
+            {
+                // Keep the camera focusing on the targetX
+                Vector3 positionDiff = target.position - realCameraTransform.position;
+                Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
+                realCameraTransform.LookAt(target);
             }
         }
     }
