@@ -27,12 +27,12 @@ namespace BlockEnhancementMod.Blocks
 
             if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             {
-                //ConsoleController.ShowMessage(GetComponent<FixedCameraBlock>().CompositeTracker.gameObject.name);
                 Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
             }
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
+            // Add reference to the camera's buildindex
             selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
@@ -42,9 +42,7 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            //base.DisplayInMapper(value);
             CameraLookAtToggle.DisplayInMapper = value;
-            //CameraFollowSmoothSlider.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
@@ -66,18 +64,20 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            
+            // Trying to read previously saved target
             int targetIndex = -1;
             BlockBehaviour targetBlock = new BlockBehaviour();
             BlockBehaviour simBlock = new BlockBehaviour();
+            // Read the target's buildIndex
             try
             {
-                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.TryGetValue(GetComponent<BlockBehaviour>().BuildIndex, out targetIndex);
+                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex);
             }
             catch (Exception)
             {
                 ConsoleController.ShowMessage("Cannot get target index");
             }
+            // Aquire target block from the target's index
             try
             {
                 Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
@@ -87,6 +87,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 ConsoleController.ShowMessage("Cannot get target block");
             }
+            // Aquire target's transform
             try
             {
                 target = simBlock.transform;
@@ -107,7 +108,9 @@ namespace BlockEnhancementMod.Blocks
                 if (Physics.Raycast(ray, out hit))
                 {
                     target = hit.transform;
-                    long targetIndex = -1;
+                    // Trying to save target's buildIndex to the dictionary
+                    // If not a machine block, set targetIndex to -1
+                    int targetIndex = -1;
                     try
                     {
                         targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
@@ -118,16 +121,16 @@ namespace BlockEnhancementMod.Blocks
                     }
                     if (targetIndex != -1)
                     {
+                        // Make sure the dupicated key exception is handled
                         try
                         {
                             Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(selfIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
                         }
                         catch (Exception)
                         {
+                            // Remove the old record, then add the new record
                             Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(selfIndex);
-                            ConsoleController.ShowMessage("Old dic entry removed");
                             Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(selfIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
-                            ConsoleController.ShowMessage("New dic entry added");
                         }
                     }
                 }
@@ -139,7 +142,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (cameraLookAtToggled && target != null && StatMaster.levelSimulating)
             {
-                // Keep the camera focusing on the targetX
+                // Keep the camera focusing on the target
                 Vector3 positionDiff = target.position - realCameraTransform.position;
                 Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
                 realCameraTransform.LookAt(target);
@@ -149,7 +152,6 @@ namespace BlockEnhancementMod.Blocks
 
     class CameraCompositeTrackerScript : MonoBehaviour
     {
-        //public Transform PreviousTarget { get; set; }
         public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
     }
 }

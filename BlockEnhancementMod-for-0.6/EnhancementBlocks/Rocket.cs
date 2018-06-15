@@ -41,6 +41,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
+            //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
 
 #if DEBUG
@@ -56,11 +57,6 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
 
-        protected override void OnSimulateStart()
-        {
-
-        }
-
         protected override void OnSimulateFixedUpdate()
         {
             if (guidedRocketIsActivated && LockTargetKey.IsReleased)
@@ -73,6 +69,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
         }
+
         protected override void LateUpdate()
         {
             if (StatMaster.levelSimulating)
@@ -98,7 +95,6 @@ namespace BlockEnhancementMod.Blocks
                             transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
                         }
                         //Trying to implement a PID controller
-                        //BesiegeConsoleController.ShowMessage("PID working");
                         //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                     }
                 }
