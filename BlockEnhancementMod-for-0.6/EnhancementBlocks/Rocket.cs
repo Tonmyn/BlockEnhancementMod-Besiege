@@ -15,9 +15,7 @@ namespace BlockEnhancementMod.Blocks
 
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        //public bool rocketPodIsActivated = false;
         public bool guidedRocketIsActivated = false;
-        //public int noOfRocketsInPod = 18;
         public bool hasFired = false;
         public float torque = 100f;
         public float previousAngleDiff = 0;
@@ -25,7 +23,6 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public bool exploding = false;
-        //public int explosionType = 0;
 
         protected override void SafeStart()
         {
@@ -44,6 +41,9 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
+            //Add reference to TimedRocket
+            rocket = gameObject.GetComponent<TimedRocket>();
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -57,14 +57,9 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
 
-        protected override void OnSimulateStart()
-        {
-            rocket = gameObject.GetComponent<TimedRocket>();
-        }
-
         protected override void OnSimulateFixedUpdate()
         {
-            if (LockTargetKey.IsReleased)
+            if (guidedRocketIsActivated && LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit hit;
@@ -74,6 +69,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
         }
+
         protected override void LateUpdate()
         {
             if (StatMaster.levelSimulating)
@@ -99,7 +95,6 @@ namespace BlockEnhancementMod.Blocks
                             transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
                         }
                         //Trying to implement a PID controller
-                        //BesiegeConsoleController.ShowMessage("PID working");
                         //transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque * (PIDControl(angleDiff)), 0, torque) * rotatingAxis);
                     }
                 }
