@@ -25,6 +25,8 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public bool exploding = false;
+
+        public int test = -1;
         //public int explosionType = 0;
 
         protected override void SafeStart()
@@ -44,6 +46,8 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
+            rocket = gameObject.GetComponent<TimedRocket>();
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -59,7 +63,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            rocket = Machine.Active().GetSimBlock(gameObject.GetComponent<TimedRocket>()).GetComponent<TimedRocket>() ;
+            
         }
 
         protected override void OnSimulateFixedUpdate()

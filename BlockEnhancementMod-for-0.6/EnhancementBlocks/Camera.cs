@@ -7,13 +7,12 @@ namespace BlockEnhancementMod.Blocks
     class CameraScript : EnhancementBlock
     {
         MToggle CameraLookAtToggle;
-        //MSlider CameraFollowSmoothSlider;
         MKey LockTargetKey;
 
         public bool cameraLookAtToggled = false;
-        //public float cameraFollowSmooth = 0.25f;
+        public int selfIndex;
         public Transform target;
-        Transform realCameraTransform;
+        public Transform realCameraTransform;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         protected override void SafeStart()
@@ -32,7 +31,9 @@ namespace BlockEnhancementMod.Blocks
                 Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
             }
 
-
+            // Get the actual camera's transform, not the joint's transform
+            realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
+            selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
@@ -51,22 +52,21 @@ namespace BlockEnhancementMod.Blocks
         {
             if (BlockData.HasKey("bmt-" + "CameraTarget"))
             {
-                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, BlockData.ReadInt("bmt-" + "CameraTarget"));
+                Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(selfIndex, BlockData.ReadInt("bmt-" + "CameraTarget"));
             }
         }
 
         public override void SaveConfiguration(XDataHolder BlockData)
         {
-            if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(GetComponent<BlockBehaviour>().BuildIndex))
+            if (Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.ContainsKey(selfIndex))
             {
-                BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[GetComponent<BlockBehaviour>().BuildIndex]);
+                BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic[selfIndex]);
             }
         }
 
         protected override void OnSimulateStart()
         {
-            // Get the actual camera's transform, not the joint's transform
-            realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
+            
             int targetIndex = -1;
             BlockBehaviour targetBlock = new BlockBehaviour();
             BlockBehaviour simBlock = new BlockBehaviour();
@@ -116,19 +116,17 @@ namespace BlockEnhancementMod.Blocks
                     {
                         ConsoleController.ShowMessage("Not a machine block");
                     }
-                    ////ConsoleController.ShowMessage(targetIndex.ToString());
                     if (targetIndex != -1)
                     {
                         try
                         {
-                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(transform.GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(selfIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
                         }
                         catch (Exception)
                         {
-                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(GetComponent<BlockBehaviour>().BuildIndex
-                                );
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Remove(selfIndex);
                             ConsoleController.ShowMessage("Old dic entry removed");
-                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(GetComponent<BlockBehaviour>().BuildIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
+                            Machine.Active().GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Add(selfIndex, target.GetComponent<BlockBehaviour>().BuildIndex);
                             ConsoleController.ShowMessage("New dic entry added");
                         }
                     }
