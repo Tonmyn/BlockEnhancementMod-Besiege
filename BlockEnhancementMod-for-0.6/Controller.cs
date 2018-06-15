@@ -74,7 +74,6 @@ namespace BlockEnhancementMod
             {
                 if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
                 {
-                    //ConsoleController.ShowMessage("Update machine, should be just once");
                     AddAllSliders();
                     currentSceneName = SceneManager.GetActiveScene().name;
                 }

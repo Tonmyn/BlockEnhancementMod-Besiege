@@ -411,7 +411,7 @@ namespace BlockEnhancementMod
 
             BlockDataLoadEvent += (XDataHolder value) =>
              {
-                 if (value.HasKey("bmt-" + mKey.Key))
+                 if (value.HasKey(MapperType.XDATA_PREFIX + mKey.Key))
                  {
                      int index = 0; keys.Clear();
                      foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
