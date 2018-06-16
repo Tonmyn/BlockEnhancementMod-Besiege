@@ -66,6 +66,7 @@
     <Compile Include="EnhancementBlocks\Cog.cs" />
     <Compile Include="EnhancementBlocks\Decoupler.cs" />
     <Compile Include="EnhancementBlocks\GripPad.cs" />
+    <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlocks\Piston.cs" />
     <Compile Include="EnhancementBlocks\Propeller.cs" />
     <Compile Include="EnhancementBlocks\Rocket.cs" />
