@@ -17,7 +17,7 @@ namespace BlockEnhancementMod.Blocks
 
         public int Hardness = 1;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             HardnessMenu = AddMenu("Hardness", Hardness, WoodHardness, false);

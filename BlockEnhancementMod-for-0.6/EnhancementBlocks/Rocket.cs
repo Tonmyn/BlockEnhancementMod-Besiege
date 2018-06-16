@@ -24,7 +24,7 @@ namespace BlockEnhancementMod.Blocks
         public TimedRocket rocket;
         public bool exploding = false;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);

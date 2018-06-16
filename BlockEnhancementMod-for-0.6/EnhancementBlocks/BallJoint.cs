@@ -17,7 +17,7 @@ namespace BlockEnhancementMod.Blocks
 
         private float BreakTorque;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
             RotationToggle = AddToggle("万向节", "Rotation", Rotation);
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };

@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
 
         public List<KeyCode> ShrinkKeyCodes = new List<KeyCode> { KeyCode.F };
             
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             HardnessMenu = AddMenu("Hardness", Hardness, new List<string> { "低碳钢", "中碳钢", "高碳钢" }, false);

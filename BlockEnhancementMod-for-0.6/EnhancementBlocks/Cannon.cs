@@ -54,7 +54,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }

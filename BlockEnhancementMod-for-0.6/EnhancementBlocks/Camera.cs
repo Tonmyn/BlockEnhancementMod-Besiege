@@ -15,7 +15,7 @@ namespace BlockEnhancementMod.Blocks
         public Transform realCameraTransform;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
@@ -29,6 +29,8 @@ namespace BlockEnhancementMod.Blocks
             {
                 Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
             }
+
+
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;

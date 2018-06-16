@@ -15,7 +15,7 @@ namespace BlockEnhancementMod.Blocks
 
         public float Speed = 5;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             SpeedSlider = AddSlider("旋转速度", "Speed", Speed, 0f, 5f, false);

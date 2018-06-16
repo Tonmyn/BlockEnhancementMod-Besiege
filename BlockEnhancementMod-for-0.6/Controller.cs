@@ -1,4 +1,5 @@
 ﻿using BlockEnhancementMod.Blocks;
+using BlockEnhancementMod.Tools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,22 +19,20 @@ namespace BlockEnhancementMod
         public override string Name { get; } = "Controller";
 
         /// <summary>存档信息</summary>
-        internal static MachineInfo MI;
-
-        internal static bool Refresh = false;
-
-        public static event OnBlockPlaced OnBlockPlaced;
+        internal MachineInfo MI;
+        
+        public event OnBlockPlaced OnBlockPlaced;
 
         private BlockBehaviour _lastBlock;
 
         private int machineBlockCount = 1;
 
         private bool _keyMapperOpen;
-        string currentSceneName;
+
+        private string currentSceneName;
 
         private void Start()
         {
-
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
 
@@ -60,7 +59,6 @@ namespace BlockEnhancementMod
                 {
                     OnKeymapperOpen();
                     _keyMapperOpen = true;
-                    //ConsoleController.ShowMessage("keyMapperOpen");
                 }
 
                 if (BlockMapper.CurrentInstance.Block != _lastBlock)
@@ -89,9 +87,9 @@ namespace BlockEnhancementMod
                     int currentCount = Machine.Active().BuildingBlocks.Count;
                     if (currentCount > machineBlockCount)
                     {
-                        if (Controller.OnBlockPlaced != null)
+                        if (OnBlockPlaced != null)
                         {
-                            Controller.OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
+                            OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
                         }
 #if DEBUG
                         ConsoleController.ShowMessage("on place");
@@ -103,16 +101,16 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>反射获取菜单私有属性</summary>
-        public static FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
+        public FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>是否有进阶属性</summary>
-        public static bool HasEnhancement(BlockBehaviour block)
+        public bool HasEnhancement(BlockBehaviour block)
         {
             return block.MapperTypes.Exists(match => match.Key == "Enhancement");
         }
 
         /// <summary>对所有没有进阶属性的零件添加进阶属性控件</summary>
-        public static void AddAllSliders()
+        public void AddAllSliders()
         {
             foreach (BlockBehaviour block in Machine.Active().BuildingBlocks.FindAll(block => !HasEnhancement(block)))
             {
@@ -121,7 +119,7 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
-        private static void AddSliders(Transform block)
+        private void AddSliders(Transform block)
         {
             BlockBehaviour blockbehaviour = block.GetComponent<BlockBehaviour>();
             if (!HasEnhancement(blockbehaviour))
@@ -129,7 +127,7 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>添加进阶属性</summary>
-        public static void AddSliders(BlockBehaviour block)
+        public void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
             ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
@@ -147,7 +145,7 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
-        public static Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
+        public Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
         {
             {(int)BlockType.BallJoint,typeof(BallJointScript) },
             {(int)BlockType.Cannon,typeof(CannonScript) },
@@ -174,7 +172,7 @@ namespace BlockEnhancementMod
         };
 
         /// <summary>刷新菜单组件</summary>
-        public static IEnumerator RefreshSliders()
+        public IEnumerator RefreshSliders()
         {
             int i = 0;
             while (i++ < 3)
@@ -185,22 +183,32 @@ namespace BlockEnhancementMod
             {
                 AddSliders(block);
             }
-            //Refresh = false;
+
 #if DEBUG
             ConsoleController.ShowMessage("Refresh");
 #endif
         }
 
+        public delegate void SaveConfigurationEvent(MachineInfo mi);
 
-        /// <summary>载入存档信息</summary>
-        /// 
+        public event SaveConfigurationEvent OnSave;
 
+        /// <summary>储存存档信息</summary>
+        public virtual void SaveConfiguration(MachineInfo mi)
+        {
+            Configuration.Save();
+
+            OnSave(mi);
+        }
+
+        /// <summary>加载存档信息</summary>
         public virtual void LoadConfiguration(MachineInfo mi)
         {
 
 #if DEBUG
             ConsoleController.ShowMessage("载入存档");
 #endif
+
             if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             {
                 Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
@@ -208,23 +216,10 @@ namespace BlockEnhancementMod
 
             MI = mi;
 
-            Refresh = true;
-
-            StartCoroutine(RefreshSliders());
+            StartCoroutine(RefreshSliders());     
 
             //load?.Invoke();
 
-        }
-
-        public delegate void SaveConfigurationHandler(MachineInfo mi);
-
-        public static event SaveConfigurationHandler Save;
-
-        public virtual void SaveConfiguration(MachineInfo mi)
-        {
-            Configuration.Save();
-
-            Save(mi);
         }
 
         public virtual void OnKeymapperOpen()

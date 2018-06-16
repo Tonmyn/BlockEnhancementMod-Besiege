@@ -5,9 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
-using SimpleJSON;
 
-namespace BlockEnhancementMod
+namespace BlockEnhancementMod.Tools
 {
     /// <summary>
     /// Utility class to store configuration values for your mod.

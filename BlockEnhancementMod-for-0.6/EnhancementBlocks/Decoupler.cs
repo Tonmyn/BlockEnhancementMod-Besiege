@@ -17,7 +17,7 @@ namespace BlockEnhancementMod.Blocks
 
         float ExplodeTorque = 2000f;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             ExplodeForceSlider = AddSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);

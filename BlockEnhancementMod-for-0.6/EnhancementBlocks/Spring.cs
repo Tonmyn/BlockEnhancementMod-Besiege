@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
 
         float Drag = 2;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             DragSlider = AddSlider("阻力", "Drag", Drag, 0f, 3f, false);
