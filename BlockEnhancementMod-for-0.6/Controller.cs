@@ -14,6 +14,8 @@ namespace BlockEnhancementMod
 
     public delegate void OnBlockPlaced(Transform block);
 
+    //public delegate void OnKeyMapperOpen();
+
     class Controller : SingleInstance<Controller>
     {
         public override string Name { get; } = "Controller";
@@ -22,6 +24,12 @@ namespace BlockEnhancementMod
         internal MachineInfo MI;
         
         public event OnBlockPlaced OnBlockPlaced;
+
+        public event OnSaveHandler OnSave;
+
+        public event OnLoadHandler OnLoad;
+
+        //public event OnKeyMapperOpen OnKeyMapperOpen;
 
         private BlockBehaviour _lastBlock;
 
@@ -35,9 +43,11 @@ namespace BlockEnhancementMod
         {
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
+            XmlLoader.OnLoad += OnLoad;
 
             //储存配置
             XmlSaver.OnSave += SaveConfiguration;
+            XmlSaver.OnSave += OnSave;
 
             //添加放置零件事件委托
             OnBlockPlaced += AddSliders;
@@ -127,7 +137,7 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>添加进阶属性</summary>
-        public void AddSliders(BlockBehaviour block)
+        private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
             ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
@@ -189,20 +199,16 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        public delegate void SaveConfigurationEvent(MachineInfo mi);
 
-        public event SaveConfigurationEvent OnSave;
 
         /// <summary>储存存档信息</summary>
-        public virtual void SaveConfiguration(MachineInfo mi)
+        private void SaveConfiguration(MachineInfo mi)
         {
             Configuration.Save();
-
-            OnSave(mi);
         }
 
         /// <summary>加载存档信息</summary>
-        public virtual void LoadConfiguration(MachineInfo mi)
+        private void LoadConfiguration(MachineInfo mi)
         {
 
 #if DEBUG
@@ -222,8 +228,9 @@ namespace BlockEnhancementMod
 
         }
 
-        public virtual void OnKeymapperOpen()
+        private void OnKeymapperOpen()
         {
+            //OnKeymapperOpen();
 
             if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
             {

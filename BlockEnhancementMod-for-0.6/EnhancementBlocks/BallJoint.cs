@@ -23,7 +23,7 @@ namespace BlockEnhancementMod.Blocks
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Rotation = RotationToggle.IsActive; };
 #if DEBUG
-            ConsoleController.ShowMessage("球铰添加进阶属性...");
+            ConsoleController.ShowMessage("球铰添加进阶属性");
 #endif
         }
 
