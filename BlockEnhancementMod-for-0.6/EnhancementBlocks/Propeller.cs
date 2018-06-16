@@ -20,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
 
         bool Effect = true;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);

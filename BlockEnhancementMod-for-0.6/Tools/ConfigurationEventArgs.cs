@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BlockEnhancementMod
+namespace BlockEnhancementMod.Tools
 {
     /// <summary>
     /// EventArgs for the OnConfigurationChange event.

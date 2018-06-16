@@ -16,6 +16,7 @@ namespace BlockEnhancementMod
 
             DontDestroyOnLoad(mod = new GameObject("Block Enhancement Mod"));
             Controller.Instance.transform.SetParent(mod.transform);
+            LanguageManager.Instance.transform.SetParent(mod.transform);
             
         }
 

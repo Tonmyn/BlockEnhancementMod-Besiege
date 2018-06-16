@@ -7,7 +7,7 @@
     <ProjectGuid>{6A16F1F7-31C2-4CAE-9FD3-0C56BBD29757}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BlockEnhancementMod_for_0._6</RootNamespace>
+    <RootNamespace>BlockEnhancementMod</RootNamespace>
     <AssemblyName>BlockEnhancementMod-for-0.6</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -66,6 +66,7 @@
     <Compile Include="EnhancementBlocks\Cog.cs" />
     <Compile Include="EnhancementBlocks\Decoupler.cs" />
     <Compile Include="EnhancementBlocks\GripPad.cs" />
+    <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlocks\Piston.cs" />
     <Compile Include="EnhancementBlocks\Propeller.cs" />
     <Compile Include="EnhancementBlocks\Rocket.cs" />
@@ -80,17 +81,18 @@
     <Compile Include="EnhancementBlocks\Wheel.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EnhancementBlock.cs" />
-    <Compile Include="Tool\Configuration.cs" />
-    <Compile Include="Tool\ConfigurationEventArgs.cs" />
+    <Compile Include="Tools\Configuration.cs" />
+    <Compile Include="Tools\ConfigurationEventArgs.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tool\GetListOfKeyCode.cs" />
-    <Compile Include="Tool\SimpleJSON.cs" />
+    <Compile Include="Tools\SimpleMesh.cs" />
+    <Compile Include="Tools\SimpleJSON.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "F:\Game\Besiege\Besiege.v0.67\Plugins\$(TargetName).dll"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "F:\Game\Besiege\Besiege.v0.67\Plugins\$(TargetName).dll"
+copy /Y "$(ProjectDir)Resources\*" "F:\Game\Besiege\Besiege.v0.67\Besiege_Data\Mods\Resources\BlockEnhancementMod\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>

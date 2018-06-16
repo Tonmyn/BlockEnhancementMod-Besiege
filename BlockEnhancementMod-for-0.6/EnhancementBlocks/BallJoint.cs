@@ -17,13 +17,13 @@ namespace BlockEnhancementMod.Blocks
 
         private float BreakTorque;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
             RotationToggle = AddToggle("万向节", "Rotation", Rotation);
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Rotation = RotationToggle.IsActive; };
 #if DEBUG
-            ConsoleController.ShowMessage("球铰添加进阶属性...");
+            ConsoleController.ShowMessage("球铰添加进阶属性");
 #endif
         }
 

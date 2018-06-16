@@ -21,7 +21,7 @@ namespace BlockEnhancementMod.Blocks
 
         float Lerp = 12f;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
                 RotationKey = new MKey("旋转", "Rotation", KeyCode.R);

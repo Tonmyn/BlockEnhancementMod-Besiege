@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
 
         int Hardness = 0;
 
-        protected override void SafeStart()
+        protected override void SafeAwake()
         {
 
             HardnessMenu = AddMenu("Hardness", Hardness, new List<string>() { "低碳钢", "中碳钢", "高碳钢" }, false);
