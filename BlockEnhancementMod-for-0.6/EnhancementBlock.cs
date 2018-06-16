@@ -391,39 +391,41 @@ namespace BlockEnhancementMod
         {
             MKey mKey = new MKey(displayName, key, keys[0]);
 
-            foreach (KeyCode k in keys)
-            {
-                mKey.AddOrReplaceKey(keys.IndexOf(k), k);
-            }
+            //foreach (KeyCode k in keys)
+            //{
+            //    mKey.AddOrReplaceKey(keys.IndexOf(k), k);
+            //}
 
-            mKey.KeysChanged += () => 
-            {
-                keys.Clear();
+            //mKey.KeysChanged += () => 
+            //{
+            //    keys.Clear();
 
-                for (int i = 0; i < mKey.KeysCount; i++)
-                {
-                    keys.Add(mKey.GetKey(i));           
-                }
+            //    for (int i = 0; i < mKey.KeysCount; i++)
+            //    {
+            //        keys.Add(mKey.GetKey(i));           
+            //    }
 
-            };
+            //};
 
             CurrentMapperTypes.Add(mKey);
 
-            BlockDataLoadEvent += (XDataHolder value) =>
-             {
-                 if (value.HasKey(MapperType.XDATA_PREFIX + mKey.Key))
-                 {
-                     int index = 0; keys.Clear();
-                     foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
-                     {
-                         KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), str, true);
-                         mKey.AddOrReplaceKey(index++, kc);
-                         keys.Add(kc);
-                     }
-                 }
-             };
+            //BlockDataLoadEvent += (XDataHolder value) =>
+            // {
+            //     if (value.HasKey(MapperType.XDATA_PREFIX + mKey.Key))
+            //     {
+            //         int index = 0; keys.Clear();
+            //         foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
+            //         {
+            //             KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), str, true);
+            //             mKey.AddOrReplaceKey(index++, kc);
+            //             keys.Add(kc);
+            //         }
+            //     }
+            // };
 
-            BlockDataSaveEvent += (XDataHolder value) => { value.Write("bmt-" + mKey.Key, mKey.Serialize().RawValue); };
+            //BlockDataSaveEvent += (XDataHolder value) => { value.Write("bmt-" + mKey.Key, mKey.Serialize().RawValue); };
+
+            Data_Load_Save_event(mKey);
 
             return mKey;  
 
@@ -435,15 +437,35 @@ namespace BlockEnhancementMod
 
             CurrentMapperTypes.Add(mSlider);
 
-            BlockDataLoadEvent += (XDataHolder data) =>
-              {
-                  if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
-              };
+            //BlockDataLoadEvent += (XDataHolder data) =>
+            //  {
+            //      if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
+            //  };
 
-            BlockDataSaveEvent += (XDataHolder data) =>
-            {
-                if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
-            };
+            //BlockDataLoadEvent += (XDataHolder data) =>
+            // {
+            //     XData xDatum = data.Read(MapperType.XDATA_PREFIX + mSlider.Key);
+            //     if (xDatum != null || !StatMaster.isPaste)
+            //     {
+            //         mSlider.DeSerialize((xDatum == null ? mSlider.defaultData : xDatum));
+            //     }
+            // };
+
+            //BlockDataSaveEvent += (XDataHolder data) =>
+            //{
+            //    if (data.HasKey("bmt-" + mSlider.Key)) { mSlider.Value = data.ReadFloat("bmt-" + mSlider.Key); }
+            //};
+
+            //BlockDataSaveEvent += (XDataHolder data) => 
+            //{
+            //    bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
+            //    if (!flag || !mSlider.isDefaultValue)
+            //    {
+            //        data.Write(mSlider.Serialize());
+            //    }
+            //};
+
+            Data_Load_Save_event(mSlider);
 
             return mSlider;
 
@@ -455,15 +477,17 @@ namespace BlockEnhancementMod
 
             CurrentMapperTypes.Add(mToggle);
 
-            BlockDataLoadEvent += (XDataHolder data) =>
-            {
-                if (data.HasKey("bmt-" + mToggle.Key)) { mToggle.IsActive = data.ReadBool("bmt-" + mToggle.Key); }
-            };
+            //BlockDataLoadEvent += (XDataHolder data) =>
+            //{
+            //    if (data.HasKey("bmt-" + mToggle.Key)) { mToggle.IsActive = data.ReadBool("bmt-" + mToggle.Key); }
+            //};
 
-            BlockDataSaveEvent += (XDataHolder data) =>
-             {
-                 data.Write("bmt-" + mToggle.Key, mToggle.IsActive);
-             };
+            //BlockDataSaveEvent += (XDataHolder data) =>
+            // {
+            //     data.Write("bmt-" + mToggle.Key, mToggle.IsActive);
+            // };
+
+            Data_Load_Save_event(mToggle);
 
             return mToggle;
         }
@@ -474,15 +498,17 @@ namespace BlockEnhancementMod
 
             CurrentMapperTypes.Add(mMenu);
 
-            BlockDataLoadEvent += (XDataHolder data) =>
-             {
-                 if (data.HasKey("bmt-" + mMenu.Key)) { mMenu.Value = data.ReadInt("bmt-" + mMenu.Key); }
-             };
+            //BlockDataLoadEvent += (XDataHolder data) =>
+            // {
+            //     if (data.HasKey("bmt-" + mMenu.Key)) { mMenu.Value = data.ReadInt("bmt-" + mMenu.Key); }
+            // };
 
-            BlockDataSaveEvent += (XDataHolder data) =>
-             {
-                 data.Write("bmt-" + mMenu.Key, mMenu.Value);
-             };
+            //BlockDataSaveEvent += (XDataHolder data) =>
+            // {
+            //     data.Write("bmt-" + mMenu.Key, mMenu.Value);
+            // };
+
+            Data_Load_Save_event(mMenu);
 
             return mMenu;
         }
@@ -493,20 +519,41 @@ namespace BlockEnhancementMod
 
             CurrentMapperTypes.Add(mColorSlider);
 
-            BlockDataLoadEvent += (XDataHolder BlockData) =>
-             {
-                 if (BlockData.HasKey("bmt-" + mColorSlider.Key)) { mColorSlider.Value = BlockData.ReadColor("bmt-" + mColorSlider.Key); }
-             };
+            //BlockDataLoadEvent += (XDataHolder BlockData) =>
+            // {
+            //     if (BlockData.HasKey("bmt-" + mColorSlider.Key)) { mColorSlider.Value = BlockData.ReadColor("bmt-" + mColorSlider.Key); }
+            // };
 
-            BlockDataSaveEvent += (XDataHolder BlockData) =>
-            {
-                BlockData.Write("bmt-" + mColorSlider.Key, mColorSlider.Value);
-            };
+            //BlockDataSaveEvent += (XDataHolder BlockData) =>
+            //{
+            //    BlockData.Write("bmt-" + mColorSlider.Key, mColorSlider.Value);
+            //};
+
+            Data_Load_Save_event(mColorSlider);
 
             return mColorSlider;
         }
 
+        private void Data_Load_Save_event(MapperType mapperType)
+        {
+            BlockDataLoadEvent += (XDataHolder data) =>
+            {
+                XData xDatum = data.Read(MapperType.XDATA_PREFIX + mapperType.Key);
+                if (xDatum != null || !StatMaster.isPaste)
+                {
+                    mapperType.DeSerialize((xDatum == null ? mapperType.defaultData : xDatum));
+                }
+            };
 
+            BlockDataSaveEvent += (XDataHolder data) =>
+            {
+                bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
+                if (!flag || !mapperType.isDefaultValue)
+                {
+                    data.Write(mapperType.Serialize());
+                }
+            };
+        }
     }
 
 }
