@@ -47,6 +47,32 @@ namespace BlockEnhancementMod
 
         private void Awake()
         {
+            BB = GetComponent<BlockBehaviour>();
+            
+            CurrentMapperTypes = BB.MapperTypes;
+
+            Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
+
+            Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
+
+            SafeAwake();
+
+            if (!StatMaster.levelSimulating)
+            {
+                LoadConfiguration();
+
+                ChangedProperties();
+
+                DisplayInMapper(EnhancementEnable);
+
+                Controller.Instance.OnSave += SaveConfiguration;
+            }
+            Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+        }
+
+        private void Start()
+        {
+
             //BB = GetComponent<BlockBehaviour>();
 
             //CurrentMapperTypes = BB.MapperTypes;
@@ -68,32 +94,6 @@ namespace BlockEnhancementMod
             //    Controller.Instance.OnSave += SaveConfiguration;
             //}
             //Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-        }
-
-        private void Start()
-        {
-
-            BB = GetComponent<BlockBehaviour>();
-
-            CurrentMapperTypes = BB.MapperTypes;
-
-            Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
-
-            Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            SafeAwake();
-
-            if (!StatMaster.levelSimulating)
-            {
-                LoadConfiguration();
-
-                ChangedProperties();
-
-                DisplayInMapper(EnhancementEnable);
-
-                Controller.Instance.OnSave += SaveConfiguration;
-            }
-            Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
 
         }
 

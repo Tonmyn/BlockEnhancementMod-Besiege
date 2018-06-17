@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using BlockEnhancementMod;
+using System.Reflection;
+using System;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -134,7 +136,7 @@ namespace BlockEnhancementMod.Blocks
 
         public TrailRenderer myTrailRenderer;
 
-        public GameObject Bullet;
+        public GameObject BulletObject;
 
         public float Drag;
 
@@ -142,73 +144,62 @@ namespace BlockEnhancementMod.Blocks
 
         private float knockBackSpeed;
 
+        private int BulletNumber = 1;
+
+        private GameObject customBulletObject;
+
         protected override void OnSimulateStart()
         {
-            base.OnSimulateStart();
 
             BB = GetComponent<BlockBehaviour>();
             AS = BB.GetComponent<AudioSource>();
             CB = BB.GetComponent<CanonBlock>();
-            Bullet = CB.boltObject.gameObject;
-            BR = Bullet.GetComponent<Rigidbody>();
+            BulletObject = CB.boltObject.gameObject;
+            //BR = BulletObject.GetComponent<Rigidbody>();
 
             //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
             knockBackSpeed = KnockBackSpeed * (8000 + BulletMass * CB.boltSpeed * Strength / Time.fixedTime);
 
-            //CB.enabled = !bBullet;
+            CB.enabled = !cBullet;
             timer = Interval;
 
             //独立自定子弹
-            //if (bBullet)
-            //{
-
-            //    Bullet = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            //    Bullet.SetActive(false);
-            //    Bullet.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-            //    Bullet.name = "CannonBomb";
-            //    Bullet.AddComponent<DestroyIfEditMode>();
-            //    Bullet.GetComponent<Renderer>().material.color = Color.gray;
-            //    BR = Bullet.AddComponent<Rigidbody>();
-            //    BR.mass = BulletMass;
-            //    BR.drag = BR.angularDrag = Drag;
-            //    BR.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            //}
-            //else
-            //{
-            //    CB.randomDelay = RandomDelay;
-            //    CB.knockbackSpeed = knockBackSpeed;
-            //}
-
-            CB.randomDelay = RandomDelay;
-            CB.knockbackSpeed = knockBackSpeed;
-
-            //全局自定子弹
             if (cBullet)
             {
 
+                customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+                customBulletObject.SetActive(false);
+                BR = customBulletObject.GetComponent<Rigidbody>();
                 BR.mass = BulletMass;
-                BR.drag = BR.angularDrag = Drag;
+                BR.drag = BR.angularDrag = Drag;                
 
-                Bullet.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+            }
+            else
+            {
+                CB.randomDelay = RandomDelay;
+                CB.knockbackSpeed = knockBackSpeed;           
             }
 
-            if (Trail)
-            {
+            GameObject bullet = cBullet ? customBulletObject : BulletObject;
 
-                if (Bullet.GetComponent<TrailRenderer>() == null)
+            if (Trail)
+            {                                               
+
+                if (bullet.GetComponent<TrailRenderer>() == null)
                 {
-                    myTrailRenderer = Bullet.AddComponent<TrailRenderer>();
+                    myTrailRenderer = bullet.AddComponent<TrailRenderer>();
                 }
                 else
                 {
-                    myTrailRenderer = Bullet.GetComponent<TrailRenderer>();
+                    myTrailRenderer = bullet.GetComponent<TrailRenderer>();
                     myTrailRenderer.enabled = Trail;
                 }
                 myTrailRenderer.autodestruct = false;
                 myTrailRenderer.receiveShadows = false;
                 myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
-                myTrailRenderer.startWidth = 0.5f;
+                myTrailRenderer.startWidth = 0.5f * bullet.transform.localScale.magnitude;
                 myTrailRenderer.endWidth = 0.1f;
                 myTrailRenderer.time = TrailLength;
 
@@ -217,32 +208,47 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                myTrailRenderer = Bullet.GetComponent<TrailRenderer>();
+                myTrailRenderer = bullet.GetComponent<TrailRenderer>();
                 if (myTrailRenderer)
                 {
                     myTrailRenderer.enabled = Trail;
                 }
             }
 
+            //全局自定子弹
+
+            //CB.randomDelay = RandomDelay;
+            //CB.knockbackSpeed = knockBackSpeed;
+
+            //if (cBullet)
+            //{
+
+            //    BR.mass = BulletMass;
+            //    BR.drag = BR.angularDrag = Drag;
+
+            //    BulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+            //}
+
+
+
         }
 
         protected override void OnSimulateUpdate()
         {
-            base.OnSimulateUpdate();
 
             if (BB.KeyList.Find(match => match.Key == "shoot").IsDown && Interval > 0)
             {
                 if (timer > Interval)
                 {
                     timer = 0;
-                    //if (bBullet)
-                    //{
-                    //    shoot();
-                    //}
-                    //else
-                    //{
-                    CB.Shoot();
-                    //}
+                    if (cBullet)
+                    {                     
+                        StartCoroutine(shoot());
+                    }
+                    else
+                    {
+                        CB.Shoot();
+                    }
                 }
                 else
                 {
@@ -255,9 +261,52 @@ namespace BlockEnhancementMod.Blocks
                 timer = Interval;
             }
 
+            if (cBullet)
+            {
+                Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
+            }
+            
         }
 
+        private IEnumerator shoot()
+        {
+
+
+            if (BulletNumber > 0)
+            {
+
+                float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
+
+                yield return new WaitForSeconds(randomDelay);
+
+                var bullet = (GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                bullet.GetComponent<Rigidbody>().velocity = -transform.up * ((CB.boltSpeed * Strength) / 100f);
+                bullet.SetActive(true);
+
+                gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * transform.up);
+
+                CB.particles[0].Play();
+                AS.Play();
+
+
+            }
+
+            if (!StatMaster.GodTools.InfiniteAmmoMode)
+            {
+                BulletNumber--;
+            }
+            else
+            {
+                BulletNumber = 1;
+            }
+
+        }
+
+        
+
     }
+
+    
 }
 
 

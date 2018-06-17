@@ -39,7 +39,7 @@ namespace BlockEnhancementMod
 
         private string currentSceneName;
 
-        private void Start()
+        private void Awake()
         {
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
