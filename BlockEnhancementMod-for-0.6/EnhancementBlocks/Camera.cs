@@ -106,7 +106,8 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Aquire the target to look at
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
                 {
                     target = hit.transform;
                     // Trying to save target's buildIndex to the dictionary
