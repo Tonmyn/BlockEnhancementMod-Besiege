@@ -166,22 +166,6 @@ namespace BlockEnhancementMod.Blocks
             //独立自定子弹
             if (cBullet)
             {
-                //GameObject customBulletObject = new GameObject("CannonBomb");
-                //customBulletObject.AddComponent<MeshFilter>().mesh = BulletObject.GetComponent<MeshFilter>().mesh;
-                //customBulletObject.AddComponent<MeshRenderer>().material = BulletObject.GetComponent<MeshRenderer>().material;
-
-                //customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-                ////BulletObject.name = "CannonBomb";
-                //customBulletObject.AddComponent<DestroyIfEditMode>();
-                //customBulletObject.AddComponent<CannonBallExplosion>();
-                //customBulletObject.AddComponent<SphereCollider>();
-                ////BulletObject.GetComponent<Renderer>().material.color = Color.gray;
-                //BR = customBulletObject.AddComponent<Rigidbody>();
-                //BR.mass = BulletMass;
-                //BR.drag = BR.angularDrag = Drag;
-                //BR.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                //customBulletObject.SetActive(false);
-                //BulletObject = customBulletObject;
 
                 customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                 customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
