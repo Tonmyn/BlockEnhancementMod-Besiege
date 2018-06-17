@@ -92,8 +92,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Plugins\$(TargetName).dll"
-copy /Y "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\Resources\BlockEnhancementMod\"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "D:\Program Files (x86)\Steam\steamapps\common\Besiege\Plugins\$(TargetName).dll"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
