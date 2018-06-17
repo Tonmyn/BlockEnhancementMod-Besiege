@@ -8,22 +8,29 @@ namespace BlockEnhancementMod.Blocks
     {
         MToggle CameraLookAtToggle;
         MKey LockTargetKey;
+        MKey ResetViewKey;
 
         public bool cameraLookAtToggled = false;
+        public bool resetView = false;
         public int selfIndex;
         public Transform target;
+        public Transform targetCopy;
         public Transform realCameraTransform;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
 
         protected override void SafeAwake()
         {
 
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = value; ChangedProperties(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
             LockTargetKey.KeysChanged += ChangedProperties;
+
+            ResetViewKey = AddKey("暂停/恢复追踪", "resetView", resetKeys);
+            ResetViewKey.KeysChanged += ChangedProperties;
 
             if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             {
@@ -46,6 +53,7 @@ namespace BlockEnhancementMod.Blocks
         {
             CameraLookAtToggle.DisplayInMapper = value;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
+            ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
@@ -102,13 +110,19 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
+            if (cameraLookAtToggled && ResetViewKey.IsReleased)
+            {
+                resetView = !resetView;
+            }
             if (cameraLookAtToggled && LockTargetKey.IsReleased)
             {
                 // Aquire the target to look at
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                resetView = false;
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
-                    target = hit.transform;
+                    target = targetCopy = hit.transform;
+
                     // Trying to save target's buildIndex to the dictionary
                     // If not a machine block, set targetIndex to -1
                     int targetIndex = -1;
@@ -141,11 +155,14 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void LateUpdate()
         {
-            if (cameraLookAtToggled && target != null && StatMaster.levelSimulating)
+            if (resetView)
+            {
+                // If the tracking is temporarily disabled, the camera will look at ifself.
+                realCameraTransform.LookAt(transform);
+            }
+            if (cameraLookAtToggled && target != null && StatMaster.levelSimulating && !resetView)
             {
                 // Keep the camera focusing on the target
-                Vector3 positionDiff = target.position - realCameraTransform.position;
-                Vector3 rotatingAxis = (realCameraTransform.up - Vector3.Dot(positionDiff, realCameraTransform.up) * positionDiff).normalized;
                 realCameraTransform.LookAt(target);
             }
         }
