@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
+    [Obsolete]
     class LanguageManager : SingleInstance<LanguageManager>
     {
         public override string Name { get; } = "Language Manager";
