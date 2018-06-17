@@ -118,7 +118,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Aquire the target to look at
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                resetView = true;
+                resetView = false;
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
                     target = targetCopy = hit.transform;
