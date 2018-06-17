@@ -16,7 +16,6 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public Transform targetCopy;
         public Transform realCameraTransform;
-        public Quaternion defaultRotation;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
 
@@ -42,7 +41,6 @@ namespace BlockEnhancementMod.Blocks
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
-            defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
             selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
 #if DEBUG
