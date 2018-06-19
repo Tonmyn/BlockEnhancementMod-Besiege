@@ -153,7 +153,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void LateUpdate()
+        protected override void OnSimulateLateUpdate()
         {
             if (resetView)
             {
