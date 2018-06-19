@@ -10,19 +10,18 @@ namespace BlockEnhancementMod.Blocks
     {
 
         MToggle GuidedRocketToggle;
-        //MToggle PID;
         MSlider GuidedRocketTorqueSlider;
-        //MSlider PSlider;
-        //MSlider ISlider;
-        //MSlider DSlider;
+        MSlider GuideDelaySlider;
         MKey LockTargetKey;
 
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         public bool guidedRocketIsActivated = false;
         public bool hasFired = false;
-        //public bool pid = false;
+        public float fireTime = 0f;
+        public bool fireTimeRecorded = false;
         public float torque = 100f;
+        public float guideDelay = 0f;
         public float previousAngleDiff = 0;
         public float angleDiffCumulative = 0;
         public Transform target;
@@ -34,18 +33,21 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = value;
+                guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketIsActivated = GuidedRocketToggle.IsActive; };
 
-
-            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
-            LockTargetKey.KeysChanged += ChangedProperties;
-
             GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, false);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
+
+            GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
+            GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
+
+            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            //LockTargetKey.KeysChanged += ChangedProperties;
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
@@ -60,6 +62,7 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketIsActivated;
+            GuideDelaySlider.DisplayInMapper = value && guidedRocketIsActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
 
@@ -68,20 +71,28 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketIsActivated && LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                ConsoleController.ShowMessage("Ray casted");
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
                     target = hit.collider.transform;
+                    //fireTime = Time.time;
                 }
             }
         }
 
-        protected override void LateUpdate()
+        protected override void OnSimulateLateUpdate()
         {
-            if (StatMaster.levelSimulating)
+            try
             {
-                try
+                if (guidedRocketIsActivated && rocket.hasFired && target != null)
                 {
-                    if (guidedRocketIsActivated && rocket.hasFired && target != null)
+                    if (!fireTimeRecorded)
+                    {
+                        ConsoleController.ShowMessage("Fire time recorded");
+                        fireTimeRecorded = true;
+                        fireTime = Time.time;
+                    }
+                    if (Time.time - fireTime > guideDelay)
                     {
                         // Calculating the rotating axis
                         Vector3 velocityNormarlized = GetComponent<Rigidbody>().velocity.normalized;
@@ -99,12 +110,13 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                catch (Exception)
-                {
-                    //Rocket will destroy itself upon explosion hence cause Null Reference Exception
-                }
-
             }
+            catch (Exception)
+            {
+                //Rocket will destroy itself upon explosion hence cause Null Reference Exception
+                //ConsoleController.ShowMessage(e.ToString());
+            }
+
         }
 
         void OnCollisionEnter(Collision collision)

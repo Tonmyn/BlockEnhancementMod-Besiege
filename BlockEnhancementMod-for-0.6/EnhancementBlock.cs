@@ -126,6 +126,14 @@ namespace BlockEnhancementMod
             }
         }
 
+        private void LateUpdate()
+        {
+            if (StatMaster.levelSimulating)
+            {
+                OnSimulateLateUpdate();
+            }
+        }
+
         private void SaveConfiguration(MachineInfo Mi)
         {
 
@@ -211,13 +219,16 @@ namespace BlockEnhancementMod
         /// 在模拟模式下的FixedUpdate
         /// </summary>
         protected virtual void OnSimulateFixedUpdate() { }
-        
+
+        /// <summary>
+        /// 在模拟模式下的LateUpdate
+        /// </summary>
+        protected virtual void OnSimulateLateUpdate() { }
+
         /// <summary>
         /// 建造模式下的Update
         /// </summary>
         protected virtual void OnBuildingUpdate() { }
-
-        protected virtual void LateUpdate() { }
 
         /// <summary>
         /// 设置金属硬度
