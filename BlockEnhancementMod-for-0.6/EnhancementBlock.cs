@@ -19,6 +19,8 @@ namespace BlockEnhancementMod
         /// </summary>
         public List<MapperType> CurrentMapperTypes;
 
+        public List<MapperType> myMapperTypes = new List<MapperType>();
+
         /// <summary>
         /// 进阶属性按钮
         /// </summary>
@@ -51,22 +53,29 @@ namespace BlockEnhancementMod
             
             CurrentMapperTypes = BB.MapperTypes;
 
+            SafeAwake();
+
+            if (BB.isSimulating && !BB.SimPhysics)
+            {
+                return;
+            }
+
             Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
 
             Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
 
-            SafeAwake();
+            CurrentMapperTypes.AddRange(myMapperTypes);
 
-            if (!StatMaster.levelSimulating)
-            {
-                LoadConfiguration();
+            LoadConfiguration();
 
-                ChangedProperties();
+            ChangedProperties();
 
-                DisplayInMapper(EnhancementEnable);
+            DisplayInMapper(EnhancementEnable);
 
-                Controller.Instance.OnSave += SaveConfiguration;
-            }
+            Controller.Instance.OnSave += SaveConfiguration;
+
+            
+
             Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
@@ -152,9 +161,21 @@ namespace BlockEnhancementMod
 
                     SaveConfiguration(bd);
 
+                    bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
+
+                    foreach (MapperType item in myMapperTypes)
+                    {
+                        if (!flag)
+                        {
+                            bd.Write(item.Serialize());
+                        }
+                    }
+
                     break;
                 }
             }
+
+          
         }
 
         private void LoadConfiguration()
@@ -169,10 +190,20 @@ namespace BlockEnhancementMod
                 if (blockinfo.Guid == BB.Guid)
                 {
                     XDataHolder bd = blockinfo.BlockData;
-
+                   
                     BlockDataLoadEvent(bd);
 
                     LoadConfiguration(bd);
+
+                    foreach (MapperType item in myMapperTypes)
+                    {
+                        string str = string.Concat(MapperType.XDATA_PREFIX + item.Key);
+                        XData xDatum = bd.Read(str);
+                        if (xDatum != null || !StatMaster.isPaste)
+                        {
+                            item.DeSerialize((xDatum == null ? item.defaultData : xDatum));
+                        }
+                    }
 
                     break;
                 }
@@ -281,20 +312,34 @@ namespace BlockEnhancementMod
         {
             MKey mKey = new MKey(displayName, key, keys[0]);
 
-            CurrentMapperTypes.Add(mKey);
+            //CurrentMapperTypes.Add(mKey);
 
-            Data_Load_Save_event(mKey);
+            myMapperTypes.Add(mKey);
 
-            return mKey;  
+            //Data_Load_Save_event(mKey);
+
+            BlockDataLoadEvent += (XDataHolder BlockData) => 
+            {
+                keys.Clear();
+
+                for (int i = 0; i < mKey.LoadKeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
+            };
+
+            return mKey;
         }
 
-        protected MSlider AddSlider(string displayName,string key,float value,float min,float max,bool disableLimit)
+        protected MSlider AddSlider(string displayName, string key, float value, float min, float max, bool disableLimit)
         {
-            MSlider mSlider = new MSlider(displayName,key,value,min,max,disableLimit);
+            MSlider mSlider = new MSlider(displayName, key, value, min, max, disableLimit);
 
-            CurrentMapperTypes.Add(mSlider);
+            //CurrentMapperTypes.Add(mSlider);
 
-            Data_Load_Save_event(mSlider);
+            myMapperTypes.Add(mSlider);
+
+            //Data_Load_Save_event(mSlider);
 
             return mSlider;
         }
@@ -303,31 +348,37 @@ namespace BlockEnhancementMod
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
 
-            CurrentMapperTypes.Add(mToggle);
+            //CurrentMapperTypes.Add(mToggle);
 
-            Data_Load_Save_event(mToggle);
+            myMapperTypes.Add(mToggle);
+
+            //Data_Load_Save_event(mToggle);
 
             return mToggle;
         }
 
-        protected MMenu AddMenu(string key,int defaultIndex,List<string> items,bool footerMenu)
+        protected MMenu AddMenu(string key, int defaultIndex, List<string> items, bool footerMenu)
         {
             MMenu mMenu = new MMenu(key, defaultIndex, items, footerMenu);
 
-            CurrentMapperTypes.Add(mMenu);
+            //CurrentMapperTypes.Add(mMenu);
 
-            Data_Load_Save_event(mMenu);
+            myMapperTypes.Add(mMenu);
+
+            //Data_Load_Save_event(mMenu);
 
             return mMenu;
         }
 
-        protected MColourSlider AddColorSlider(string displayName,string key,Color value,bool snapToClosestColor)
+        protected MColourSlider AddColorSlider(string displayName, string key, Color value, bool snapToClosestColor)
         {
             MColourSlider mColorSlider = new MColourSlider(displayName, key, value, snapToClosestColor);
 
-            CurrentMapperTypes.Add(mColorSlider);
+            //CurrentMapperTypes.Add(mColorSlider);
 
-            Data_Load_Save_event(mColorSlider);
+            myMapperTypes.Add(mColorSlider);
+
+            //Data_Load_Save_event(mColorSlider);
 
             return mColorSlider;
         }

@@ -30,27 +30,27 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
-            GuidedRocketToggle.Toggled += (bool value) =>
-            {
-                guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
-                ChangedProperties();
-            };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketIsActivated = GuidedRocketToggle.IsActive; };
+            //GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
+            //GuidedRocketToggle.Toggled += (bool value) =>
+            //{
+            //    guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+            //    ChangedProperties();
+            //};
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketIsActivated = GuidedRocketToggle.IsActive; };
 
-            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, false);
-            GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
+            //GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, false);
+            //GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
-            GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
-            GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
+            //GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
+            //GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
-            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
-            //LockTargetKey.KeysChanged += ChangedProperties;
+            //LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            ////LockTargetKey.KeysChanged += ChangedProperties;
 
-            //Add reference to TimedRocket
-            rocket = gameObject.GetComponent<TimedRocket>();
+            ////Add reference to TimedRocket
+            //rocket = gameObject.GetComponent<TimedRocket>();
 
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");

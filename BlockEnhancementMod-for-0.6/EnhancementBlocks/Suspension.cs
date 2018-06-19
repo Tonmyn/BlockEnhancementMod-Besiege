@@ -45,13 +45,13 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
             ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes);
-            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);
+            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);           
 
             PressureToggle = AddToggle("液压模式", "Pressure", Pressure);
             PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Pressure = PressureToggle.IsActive; };
 
-            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f, false);
+            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f,false);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Feed = FeedSlider.Value; };
 
