@@ -100,10 +100,6 @@ namespace BlockEnhancementMod.Blocks
 
             SwitchMatalHardness(Hardness, CJ);
 
-            foreach (KeyCode k in ExtendKeyCodes)
-            {
-                ConsoleController.ShowMessage(string.Format("Key :{0}", k.ToString()));
-            }
         }
 
         protected override void OnSimulateFixedUpdate()

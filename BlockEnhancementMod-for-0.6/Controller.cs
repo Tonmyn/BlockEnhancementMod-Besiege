@@ -14,7 +14,10 @@ namespace BlockEnhancementMod
 
     public delegate void OnBlockPlaced(Transform block);
 
-    //public delegate void OnKeyMapperOpen();
+    public delegate void SaveConfigurationHandler(MachineInfo mi);
+
+    public delegate void LoadConfigurationHandler(MachineInfo mi);
+
 
     class Controller : SingleInstance<Controller>
     {
@@ -24,12 +27,6 @@ namespace BlockEnhancementMod
         internal MachineInfo MI;
         
         public event OnBlockPlaced OnBlockPlaced;
-
-        public event OnSaveHandler OnSave;
-
-        public event OnLoadHandler OnLoad;
-
-        //public event OnKeyMapperOpen OnKeyMapperOpen;
 
         private BlockBehaviour _lastBlock;
 
@@ -43,11 +40,9 @@ namespace BlockEnhancementMod
         {
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
-            XmlLoader.OnLoad += OnLoad;
 
             //储存配置
             XmlSaver.OnSave += SaveConfiguration;
-            XmlSaver.OnSave += OnSave;
 
             //添加放置零件事件委托
             OnBlockPlaced += AddSliders;
@@ -140,7 +135,7 @@ namespace BlockEnhancementMod
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+            //ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
 
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
@@ -157,28 +152,28 @@ namespace BlockEnhancementMod
         /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
         public Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
         {
-            //{(int)BlockType.BallJoint,typeof(BallJointScript) },
-            //{(int)BlockType.Cannon,typeof(CannonScript) },
-            ////{(int)BlockType.CogLargeUnpowered,typeof(cog) },
-            ////{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
-            ////{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
-            //{(int)BlockType.Decoupler,typeof(DecouplerScript) },
-            //{(int)BlockType.GripPad,typeof(GripPadScript) },
-            //{(int)BlockType.Piston,typeof(PistonScript) },
-            ////{(int)BlockType.Propeller,typeof(PropellerScript) },
-            ////{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
-            //{(int)BlockType.Slider,typeof(SliderScript) },
-            //{(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
-            ////{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
-            //{(int)BlockType.Spring,typeof(SpringScript) },
-            ////{(int)BlockType.SteeringHinge,typeof(ste) },
+            {(int)BlockType.BallJoint,typeof(BallJointScript) },
+            {(int)BlockType.Cannon,typeof(CannonScript) },
+            //{(int)BlockType.CogLargeUnpowered,typeof(cog) },
+            //{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
+            //{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
+            {(int)BlockType.Decoupler,typeof(DecouplerScript) },
+            {(int)BlockType.GripPad,typeof(GripPadScript) },
+            {(int)BlockType.Piston,typeof(PistonScript) },
+            //{(int)BlockType.Propeller,typeof(PropellerScript) },
+            //{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            {(int)BlockType.Slider,typeof(SliderScript) },
+            {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
+            //{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
+            {(int)BlockType.Spring,typeof(SpringScript) },
+            //{(int)BlockType.SteeringHinge,typeof(ste) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
-            ////{(int)BlockType.Wheel,typeof(WheelScript) },
-            ////{(int)BlockType.LargeWheel,typeof(WheelScript) },
-            ////{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
-            ////{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
-            //{(int)BlockType.Rocket,typeof(RocketScript)},
-            //{(int)BlockType.CameraBlock,typeof(CameraScript)}
+            //{(int)BlockType.Wheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheel,typeof(WheelScript) },
+            //{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+            {(int)BlockType.Rocket,typeof(RocketScript)},
+            {(int)BlockType.CameraBlock,typeof(CameraScript)}
         };
 
         /// <summary>刷新菜单组件</summary>
@@ -200,12 +195,21 @@ namespace BlockEnhancementMod
         }
 
 
+        
+
+        public event SaveConfigurationHandler OnSave;
 
         /// <summary>储存存档信息</summary>
         private void SaveConfiguration(MachineInfo mi)
         {
             Configuration.Save();
+
+            OnSave(mi);
         }
+
+        
+
+        public event LoadConfigurationHandler OnLoad;
 
         /// <summary>加载存档信息</summary>
         private void LoadConfiguration(MachineInfo mi)
@@ -215,22 +219,23 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("载入存档");
 #endif
 
-            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
-            {
-                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
-            }
+            //if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+            //{
+            //    Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+            //}
 
             MI = mi;
 
-            StartCoroutine(RefreshSliders());     
-
-            //load?.Invoke();
-
+            try { OnLoad(mi); } catch { }
+            
+            StartCoroutine(RefreshSliders());
+                   
         }
 
         private void OnKeymapperOpen()
         {
             //OnKeymapperOpen();
+
 
             if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
             {
@@ -238,6 +243,7 @@ namespace BlockEnhancementMod
                 BlockMapper.CurrentInstance.Refresh();
             }
             AddAllSliders();
+        
         }
 
     }

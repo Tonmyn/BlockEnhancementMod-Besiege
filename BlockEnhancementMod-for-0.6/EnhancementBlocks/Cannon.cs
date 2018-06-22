@@ -59,48 +59,48 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            //foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }
-            //StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedProperties(); };
+            foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }
+            StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedProperties(); };
 
-            //IntervalSlider = AddSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
-            //IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
+            IntervalSlider = AddSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
+            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
 
-            //RandomDelaySlider = AddSlider("随机延迟", "RandomDelay", RandomDelay, 0f, 0.5f, false);
-            //RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
+            RandomDelaySlider = AddSlider("随机延迟", "RandomDelay", RandomDelay, 0f, 0.5f, false);
+            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
 
-            //KnockBackSpeedSlider = AddSlider("后坐力", "KnockBackSpeed", KnockBackSpeed, 0.2f, 1f, false);
-            //KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeed = KnockBackSpeedSlider.Value; };
+            KnockBackSpeedSlider = AddSlider("后坐力", "KnockBackSpeed", KnockBackSpeed, 0.2f, 1f, false);
+            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeed = KnockBackSpeedSlider.Value; };
 
-            //BulletToggle = AddToggle("自定子弹", "Bullet", cBullet);
-            //BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = BulletToggle.IsActive; };
+            BulletToggle = AddToggle("自定子弹", "Bullet", cBullet);
+            BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = BulletToggle.IsActive; };
 
-            //InheritSizeToggle = AddToggle("尺寸继承", "InheritSize", InheritSize);
-            //InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { InheritSize = InheritSizeToggle.IsActive; };
+            InheritSizeToggle = AddToggle("尺寸继承", "InheritSize", InheritSize);
+            InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { InheritSize = InheritSizeToggle.IsActive; };
 
-            //BulletMassSlider = AddSlider("子弹质量", "BulletMass", BulletMass, 0.1f, 2f, false);
-            //BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { BulletMass = BulletMassSlider.Value; };
+            BulletMassSlider = AddSlider("子弹质量", "BulletMass", BulletMass, 0.1f, 2f, false);
+            BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletMass = BulletMassSlider.Value; };
 
-            //BulletDragSlider = AddSlider("子弹阻力", "BulletDrag", BulletDrag, 0.01f, 0.5f, false);
-            //BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { BulletDrag = BulletDragSlider.Value; };
+            BulletDragSlider = AddSlider("子弹阻力", "BulletDrag", BulletDrag, 0.01f, 0.5f, false);
+            BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletDrag = BulletDragSlider.Value; };
 
-            //TrailToggle = AddToggle("显示尾迹", "Trail", Trail);
-            //TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Trail = TrailToggle.IsActive; };
+            TrailToggle = AddToggle("显示尾迹", "Trail", Trail);
+            TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Trail = TrailToggle.IsActive; };
 
-            //TrailLengthSlider = AddSlider("尾迹长度", "trail length", TrailLength, 0.2f, 2f, false);
-            //TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { TrailLength = TrailLengthSlider.Value; };
+            TrailLengthSlider = AddSlider("尾迹长度", "trail length", TrailLength, 0.2f, 2f, false);
+            TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailLength = TrailLengthSlider.Value; };
 
-            //TrailColorSlider = AddColorSlider("尾迹颜色", "trail color", TrailColor, false);
-            //TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
+            TrailColorSlider = AddColorSlider("尾迹颜色", "trail color", TrailColor, false);
+            TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
 
 
 #if DEBUG

@@ -22,21 +22,24 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            //CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            //CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
+            CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            //LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
-            //LockTargetKey.KeysChanged += ChangedProperties;
+            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            LockTargetKey.KeysChanged += ChangedProperties;
 
-            //ResetViewKey = AddKey("暂停/恢复追踪", "resetView", resetKeys);
-            //ResetViewKey.KeysChanged += ChangedProperties;
+            ResetViewKey = AddKey("暂停/恢复追踪", "resetView", resetKeys);
+            ResetViewKey.KeysChanged += ChangedProperties;
 
-            if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+
+            Controller.Instance.OnLoad += (MachineInfo mi) =>
             {
-                Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
-            }
-
+                if (!Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+                {
+                    Machine.Active().gameObject.AddComponent<CameraCompositeTrackerScript>();
+                }
+            };
 
 
             // Get the actual camera's transform, not the joint's transform

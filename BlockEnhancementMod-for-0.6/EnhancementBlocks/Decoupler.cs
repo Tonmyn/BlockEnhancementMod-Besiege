@@ -20,13 +20,13 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            //ExplodeForceSlider = AddSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);
-            //ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { ExplodeForce = ExplodeForceSlider.Value; };
+            ExplodeForceSlider = AddSlider("爆炸力", "ExplodeForce", ExplodeForce, 0, 3000f, false);
+            ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { ExplodeForce = ExplodeForceSlider.Value; };
 
-            //ExplodeTorqueSlider = AddSlider("爆炸扭矩", "ExplodeTorque", ExplodeTorque, 0, 2500f, false);
-            //ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { ExplodeTorque = ExplodeTorqueSlider.Value; };
+            ExplodeTorqueSlider = AddSlider("爆炸扭矩", "ExplodeTorque", ExplodeTorque, 0, 2500f, false);
+            ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { ExplodeTorque = ExplodeTorqueSlider.Value; };
 
 
 #if DEBUG

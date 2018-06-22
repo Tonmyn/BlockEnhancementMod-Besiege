@@ -7,6 +7,13 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
+
+    public delegate void BlockDataLoadHandle(XDataHolder BlockData);
+
+    public delegate void BlockDataSaveHandle(XDataHolder BlockData);
+
+    public delegate void BlockPropertiseChangedHandler();
+
     public class EnhancementBlock : MonoBehaviour
     {
         /// <summary>
@@ -19,7 +26,7 @@ namespace BlockEnhancementMod
         /// </summary>
         public List<MapperType> CurrentMapperTypes;
 
-        public List<MapperType> myMapperTypes = new List<MapperType>();
+        protected List<MapperType> myMapperTypes = new List<MapperType>();
 
         /// <summary>
         /// 进阶属性按钮
@@ -35,17 +42,15 @@ namespace BlockEnhancementMod
       
         internal static List<string> MetalHardness = new List<string>() { "低碳钢", "中碳钢", "高碳钢" };
 
-        internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };
-
-        public delegate void BlockDataLoadHandle(XDataHolder BlockData);
+        internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };      
 
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
         public event BlockDataLoadHandle BlockDataLoadEvent;
-
-        public delegate void BlockDataSaveHandle(XDataHolder BlockData);
-
+       
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public event BlockDataSaveHandle BlockDataSaveEvent;
+
+        public event BlockPropertiseChangedHandler BlockPropertiseChangedEvent;
 
         private void Awake()
         {
@@ -70,17 +75,19 @@ namespace BlockEnhancementMod
 
             ChangedProperties();
 
+            try { BlockPropertiseChangedEvent(); } catch { }
+
             DisplayInMapper(EnhancementEnable);
 
             Controller.Instance.OnSave += SaveConfiguration;
-
-            
 
             Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
         private void Start()
         {
+
+           
 
             //BB = GetComponent<BlockBehaviour>();
 
@@ -137,7 +144,7 @@ namespace BlockEnhancementMod
 
         private void LateUpdate()
         {
-            if (StatMaster.levelSimulating)
+            if (StatMaster.levelSimulating&& !isFirstFrame)
             {
                 OnSimulateLateUpdate();
             }
@@ -146,6 +153,10 @@ namespace BlockEnhancementMod
         private void SaveConfiguration(MachineInfo Mi)
         {
 
+            BesiegeConsoleController.ShowMessage("On save en");
+
+
+            BesiegeConsoleController.ShowMessage((Mi == null).ToString());
             if (Mi == null)
             {
                 return;
@@ -157,7 +168,7 @@ namespace BlockEnhancementMod
                 {
                     XDataHolder bd = blockinfo.BlockData;
 
-                    BlockDataSaveEvent(bd);
+                    try { BlockDataSaveEvent(bd); } catch { }
 
                     SaveConfiguration(bd);
 
@@ -190,9 +201,9 @@ namespace BlockEnhancementMod
                 if (blockinfo.Guid == BB.Guid)
                 {
                     XDataHolder bd = blockinfo.BlockData;
-                   
-                    BlockDataLoadEvent(bd);
 
+                    try { BlockDataLoadEvent(bd); } catch { };
+                    
                     LoadConfiguration(bd);
 
                     foreach (MapperType item in myMapperTypes)
@@ -318,12 +329,11 @@ namespace BlockEnhancementMod
 
             //Data_Load_Save_event(mKey);
 
-            BlockDataLoadEvent += (XDataHolder BlockData) => 
+            BlockPropertiseChangedEvent += () => 
             {
-                keys.Clear();
-
-                for (int i = 0; i < mKey.LoadKeysCount; i++)
+                for (int i = 0; i < mKey.KeysCount; i++)
                 {
+                    keys.Clear();
                     keys.Add(mKey.GetKey(i));
                 }
             };
