@@ -55,12 +55,12 @@ namespace BlockEnhancementMod
         private void Awake()
         {
             BB = GetComponent<BlockBehaviour>();
-            
+
             CurrentMapperTypes = BB.MapperTypes;
 
             SafeAwake();
 
-            if (BB.isSimulating && !BB.SimPhysics)
+            if (BB.isSimulating)
             {
                 return;
             }
@@ -85,32 +85,7 @@ namespace BlockEnhancementMod
         }
 
         private void Start()
-        {
-
-           
-
-            //BB = GetComponent<BlockBehaviour>();
-
-            //CurrentMapperTypes = BB.MapperTypes;
-
-            //Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
-
-            //Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            //SafeAwake();
-
-            //if (!StatMaster.levelSimulating)
-            //{
-            //    LoadConfiguration();
-
-            //    ChangedProperties();
-
-            //    DisplayInMapper(EnhancementEnable);
-
-            //    Controller.Instance.OnSave += SaveConfiguration;
-            //}
-            //Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-
+        {  
         }
 
         private void Update()
@@ -329,47 +304,17 @@ namespace BlockEnhancementMod
                 mKey.AddOrReplaceKey(keys.IndexOf(k), k);
             }
 
-            //mKey.KeysChanged += () =>
-            //{
-            //    keys.Clear();
-
-            //    for (int i = 0; i < mKey.KeysCount; i++)
-            //    {
-            //        keys.Add(mKey.GetKey(i));
-            //    }
-
-            //};
-
-            //CurrentMapperTypes.Add(mKey);
-
             myMapperTypes.Add(mKey);
 
-            //Data_Load_Save_event(mKey);
+            BlockPropertiseChangedEvent += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
 
-            BlockDataLoadEvent += (XDataHolder value) =>
-             {
-                 if (value.HasKey("bmt-" + mKey.Key))
-                 {
-                     int index = 0; keys.Clear();
-                     foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
-                     {
-                         KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), str, true);
-                         mKey.AddOrReplaceKey(index++, kc);
-                         keys.Add(kc);
-                     }
-                 }
-             };
-
-            //BlockPropertiseChangedEvent += () =>
-            //{
-            //    keys.Clear();
-            //    for (int i = 0; i < mKey.KeysCount; i++)
-            //    {
-            //        mKey.AddOrReplaceKey(i, mKey.GetKey(i));
-            //        keys.Add(mKey.GetKey(i));
-            //    }
-
-            //};
+            };
 
             return mKey;
         }
@@ -378,11 +323,7 @@ namespace BlockEnhancementMod
         {
             MSlider mSlider = new MSlider(displayName, key, value, min, max, disableLimit);
 
-            //CurrentMapperTypes.Add(mSlider);
-
             myMapperTypes.Add(mSlider);
-
-            //Data_Load_Save_event(mSlider);
 
             return mSlider;
         }
@@ -391,11 +332,7 @@ namespace BlockEnhancementMod
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
 
-            //CurrentMapperTypes.Add(mToggle);
-
             myMapperTypes.Add(mToggle);
-
-            //Data_Load_Save_event(mToggle);
 
             return mToggle;
         }
@@ -404,11 +341,7 @@ namespace BlockEnhancementMod
         {
             MMenu mMenu = new MMenu(key, defaultIndex, items, footerMenu);
 
-            //CurrentMapperTypes.Add(mMenu);
-
             myMapperTypes.Add(mMenu);
-
-            //Data_Load_Save_event(mMenu);
 
             return mMenu;
         }
@@ -417,34 +350,9 @@ namespace BlockEnhancementMod
         {
             MColourSlider mColorSlider = new MColourSlider(displayName, key, value, snapToClosestColor);
 
-            //CurrentMapperTypes.Add(mColorSlider);
-
             myMapperTypes.Add(mColorSlider);
 
-            //Data_Load_Save_event(mColorSlider);
-
             return mColorSlider;
-        }
-
-        private void Data_Load_Save_event(MapperType mapperType)
-        {
-            BlockDataLoadEvent += (XDataHolder data) =>
-            {
-                XData xDatum = data.Read(MapperType.XDATA_PREFIX + mapperType.Key);
-                if (xDatum != null || !StatMaster.isPaste)
-                {
-                    mapperType.DeSerialize((xDatum == null ? mapperType.defaultData : xDatum));
-                }
-            };
-
-            BlockDataSaveEvent += (XDataHolder data) =>
-            {
-                bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
-                if (!flag || !mapperType.isDefaultValue)
-                {
-                    data.Write(mapperType.Serialize());
-                }
-            };
         }
     }
 

@@ -108,7 +108,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (Pressure)
             {
-                if (ExtendKey.IsDown && !ExtendKey.ignored)
+                if (ExtendKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
 
                     RB.WakeUp();
@@ -123,7 +123,7 @@ namespace BlockEnhancementMod.Blocks
 
                 }
 
-                if (ShrinkKey.IsDown && !ExtendKey.ignored)
+                if (ShrinkKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
                     RB.WakeUp();
                     if (CJ.targetPosition.x + Feed * 0.005f < ShrinkLimit)
