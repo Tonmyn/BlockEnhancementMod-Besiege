@@ -321,7 +321,24 @@ namespace BlockEnhancementMod
 
         protected MKey AddKey(string displayName, string key, List<KeyCode> keys)
         {
+
             MKey mKey = new MKey(displayName, key, keys[0]);
+
+            foreach (KeyCode k in keys)
+            {
+                mKey.AddOrReplaceKey(keys.IndexOf(k), k);
+            }
+
+            //mKey.KeysChanged += () =>
+            //{
+            //    keys.Clear();
+
+            //    for (int i = 0; i < mKey.KeysCount; i++)
+            //    {
+            //        keys.Add(mKey.GetKey(i));
+            //    }
+
+            //};
 
             //CurrentMapperTypes.Add(mKey);
 
@@ -329,14 +346,30 @@ namespace BlockEnhancementMod
 
             //Data_Load_Save_event(mKey);
 
-            BlockPropertiseChangedEvent += () => 
-            {
-                for (int i = 0; i < mKey.KeysCount; i++)
-                {
-                    keys.Clear();
-                    keys.Add(mKey.GetKey(i));
-                }
-            };
+            BlockDataLoadEvent += (XDataHolder value) =>
+             {
+                 if (value.HasKey("bmt-" + mKey.Key))
+                 {
+                     int index = 0; keys.Clear();
+                     foreach (string str in value.ReadStringArray("bmt-" + mKey.Key))
+                     {
+                         KeyCode kc = (KeyCode)Enum.Parse(typeof(KeyCode), str, true);
+                         mKey.AddOrReplaceKey(index++, kc);
+                         keys.Add(kc);
+                     }
+                 }
+             };
+
+            //BlockPropertiseChangedEvent += () =>
+            //{
+            //    keys.Clear();
+            //    for (int i = 0; i < mKey.KeysCount; i++)
+            //    {
+            //        mKey.AddOrReplaceKey(i, mKey.GetKey(i));
+            //        keys.Add(mKey.GetKey(i));
+            //    }
+
+            //};
 
             return mKey;
         }

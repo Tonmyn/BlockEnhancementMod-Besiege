@@ -81,8 +81,7 @@ namespace BlockEnhancementMod
                     currentSceneName = SceneManager.GetActiveScene().name;
                 }
                 _keyMapperOpen = false;
-            }
-
+            }         
 
             if (!StatMaster.levelSimulating)
             {
