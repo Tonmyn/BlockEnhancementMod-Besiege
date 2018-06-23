@@ -174,7 +174,6 @@ namespace BlockEnhancementMod.Blocks
                         fireTimeRecorded = true;
                         fireTime = Time.time;
                     }
-                    ConsoleController.ShowMessage(target.name.ToString());
                     if (Time.time - fireTime > guideDelay)
                     {
                         // Calculating the rotating axis
