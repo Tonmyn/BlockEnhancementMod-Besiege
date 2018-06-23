@@ -69,7 +69,8 @@ namespace BlockEnhancementMod.Blocks
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
-            selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
+            selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
+            ConsoleController.ShowMessage(selfIndex.ToString());
 
             //Make sure the target list is present
             if (!Machine.Active().gameObject.GetComponent<TargetScript>())
@@ -115,13 +116,10 @@ namespace BlockEnhancementMod.Blocks
             int targetIndex = -1;
             BlockBehaviour targetBlock = new BlockBehaviour();
             // Read the target's buildIndex from the dictionary
-            try
+            if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
             {
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex);
-            }
-            catch (Exception)
-            {
-                ConsoleController.ShowMessage("Cannot get target index");
+                target = null;
+                return;
             }
             // Aquire target block's transform from the target's index
             try
@@ -176,6 +174,7 @@ namespace BlockEnhancementMod.Blocks
                         fireTimeRecorded = true;
                         fireTime = Time.time;
                     }
+                    ConsoleController.ShowMessage(target.name.ToString());
                     if (Time.time - fireTime > guideDelay)
                     {
                         // Calculating the rotating axis
