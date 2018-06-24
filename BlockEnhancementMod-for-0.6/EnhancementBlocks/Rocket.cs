@@ -14,6 +14,7 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidedRocketTorqueSlider;
         MSlider GuideDelaySlider;
         MSlider CloseExploRangeSlider;
+        MSlider CloseExploAngleSlider;
         MKey LockTargetKey;
 
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
@@ -26,6 +27,7 @@ namespace BlockEnhancementMod.Blocks
         public bool fireTimeRecorded = false;
         public float torque = 100f;
         public float closeRange = 0f;
+        public float closeAngle = 0f;
         public float guideDelay = 0f;
         public float previousAngleDiff = 0;
         public float angleDiffCumulative = 0;
@@ -46,7 +48,7 @@ namespace BlockEnhancementMod.Blocks
             CloseRangeExplosionToggle = AddToggle("近炸", "CloseeRangeExplo", closeRangeExploActivated);
             CloseRangeExplosionToggle.Toggled += (bool value) =>
             {
-                closeRangeExploActivated = CloseExploRangeSlider.DisplayInMapper = value;
+                closeRangeExploActivated = CloseExploRangeSlider.DisplayInMapper = CloseExploAngleSlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { closeRangeExploActivated = CloseRangeExplosionToggle.IsActive; };
@@ -54,6 +56,10 @@ namespace BlockEnhancementMod.Blocks
             CloseExploRangeSlider = AddSlider("近炸距离", "closeRange", closeRange, 0, 10, false);
             CloseExploRangeSlider.ValueChanged += (float value) => { closeRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { closeRange = CloseExploRangeSlider.Value; };
+
+            CloseExploAngleSlider = AddSlider("近炸角度", "closeAngle", closeAngle, 0, 90, false);
+            CloseExploAngleSlider.ValueChanged += (float value) => { closeAngle = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { closeAngle = CloseExploAngleSlider.Value; };
 
             GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, false);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
@@ -90,6 +96,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketIsActivated;
             CloseRangeExplosionToggle.DisplayInMapper = value && guidedRocketIsActivated;
             CloseExploRangeSlider.DisplayInMapper = value && closeRangeExploActivated;
+            CloseExploAngleSlider.DisplayInMapper = value && closeRangeExploActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketIsActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
         }
@@ -179,12 +186,12 @@ namespace BlockEnhancementMod.Blocks
                         // Calculating the rotating axis
                         Vector3 velocityNormarlized = GetComponent<Rigidbody>().velocity.normalized;
                         Vector3 positionDiff = target.position - transform.position;
-                        if (closeRangeExploActivated && positionDiff.magnitude <= closeRange)
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, velocityNormarlized);
+                        if (closeRangeExploActivated && positionDiff.magnitude <= closeRange && angleDiff >= closeAngle)
                         {
                             rocket.OnExplode();
                             return;
                         }
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, velocityNormarlized);
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, velocityNormarlized);
                         float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
                         if (angleDiff > 90)
