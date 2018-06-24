@@ -8,60 +8,81 @@ namespace BlockEnhancementMod.Blocks
 {
     class RocketScript : EnhancementBlock
     {
-
+        //General setting
         MToggle GuidedRocketToggle;
-        MToggle CloseRangeExplosionToggle;
-        MSlider GuidedRocketTorqueSlider;
-        MSlider GuideDelaySlider;
-        MSlider CloseExploRangeSlider;
-        MSlider CloseExploAngleSlider;
         MKey LockTargetKey;
-
-        public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        public Transform target;
+        public TimedRocket rocket;
         public int selfIndex;
+        public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        public bool guidedRocketIsActivated = false;
-        public bool closeRangeExploActivated = false;
+        //Firing record related setting
         public bool hasFired = false;
         public float fireTime = 0f;
         public bool fireTimeRecorded = false;
+
+        //Guide related setting
+        MSlider GuidedRocketTorqueSlider;
+        public bool guidedRocketActivated = false;
         public float torque = 100f;
-        public float closeRange = 0f;
-        public float closeAngle = 0f;
+
+        //proximity fuze related setting
+        MToggle ProximityFuzeToggle;
+        MSlider ProximityFuzeRangeSlider;
+        MSlider ProximityFuzeAngleSlider;
+        public bool proximityFuzeActivated = false;
+        public float proximityRange = 0f;
+        public float proximityAngle = 0f;
+
+        //Guide delay related setting
+        MSlider GuideDelaySlider;
         public float guideDelay = 0f;
-        public float previousAngleDiff = 0;
-        public float angleDiffCumulative = 0;
-        public Transform target;
-        public TimedRocket rocket;
+
+        //High power explosion related setting
+        MToggle HighExploToggle;
+        public bool highExploActivated = false;
+        public bool hasExploded = false;
+        public float explosiveCharge = 0f;
+        public float radius = 7f;
+        public float power = 3600f;
+        public float torquePower = 100000f;
+        public float upPower = 0.25f;
 
         protected override void SafeAwake()
         {
-
-            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketIsActivated);
+            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketIsActivated = GuidedRocketTorqueSlider.DisplayInMapper = CloseRangeExplosionToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+                guidedRocketActivated = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketIsActivated = GuidedRocketToggle.IsActive; };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
 
-            CloseRangeExplosionToggle = AddToggle("近炸", "CloseeRangeExplo", closeRangeExploActivated);
-            CloseRangeExplosionToggle.Toggled += (bool value) =>
+            ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
+            ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                closeRangeExploActivated = CloseExploRangeSlider.DisplayInMapper = CloseExploAngleSlider.DisplayInMapper = value;
+                proximityFuzeActivated = ProximityFuzeRangeSlider.DisplayInMapper = ProximityFuzeAngleSlider.DisplayInMapper = value;
                 ChangedProperties();
             };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { closeRangeExploActivated = CloseRangeExplosionToggle.IsActive; };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
 
-            CloseExploRangeSlider = AddSlider("近炸距离", "closeRange", closeRange, 0, 10, false);
-            CloseExploRangeSlider.ValueChanged += (float value) => { closeRange = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { closeRange = CloseExploRangeSlider.Value; };
+            HighExploToggle = AddToggle("高爆", "HighExplo", highExploActivated);
+            HighExploToggle.Toggled += (bool value) =>
+            {
+                highExploActivated = value;
+                ChangedProperties();
+            };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            CloseExploAngleSlider = AddSlider("近炸角度", "closeAngle", closeAngle, 0, 90, false);
-            CloseExploAngleSlider.ValueChanged += (float value) => { closeAngle = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { closeAngle = CloseExploAngleSlider.Value; };
+            ProximityFuzeRangeSlider = AddSlider("近炸距离", "closeRange", proximityRange, 0, 10, false);
+            ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, false);
+            ProximityFuzeAngleSlider = AddSlider("近炸角度", "closeAngle", proximityAngle, 0, 90, false);
+            ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
+
+            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, true);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
@@ -93,12 +114,13 @@ namespace BlockEnhancementMod.Blocks
         public override void DisplayInMapper(bool value)
         {
             GuidedRocketToggle.DisplayInMapper = value;
-            GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketIsActivated;
-            CloseRangeExplosionToggle.DisplayInMapper = value && guidedRocketIsActivated;
-            CloseExploRangeSlider.DisplayInMapper = value && closeRangeExploActivated;
-            CloseExploAngleSlider.DisplayInMapper = value && closeRangeExploActivated;
-            GuideDelaySlider.DisplayInMapper = value && guidedRocketIsActivated;
-            LockTargetKey.DisplayInMapper = value && guidedRocketIsActivated;
+            HighExploToggle.DisplayInMapper = value;
+            GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
+            ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
+            ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
+            ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
+            GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
+            LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
@@ -119,6 +141,21 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            // Set high explo to false
+            hasExploded = false;
+            foreach (var slider in BB.Sliders)
+            {
+                if (slider.Key == "charge")
+                {
+                    explosiveCharge = slider.Value;
+
+                    // Make sure the high explo mode is not too imba
+                    if (highExploActivated)
+                    {
+                        explosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
+                    }
+                }
+            }
             // Trying to read previously saved target
             int targetIndex = -1;
             BlockBehaviour targetBlock = new BlockBehaviour();
@@ -142,7 +179,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (guidedRocketIsActivated && LockTargetKey.IsReleased)
+            if (guidedRocketActivated && LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 ConsoleController.ShowMessage("Ray casted");
@@ -173,7 +210,7 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
-                if (guidedRocketIsActivated && rocket.hasFired && target != null)
+                if (guidedRocketActivated && rocket.hasFired && target != null)
                 {
                     if (!fireTimeRecorded)
                     {
@@ -187,13 +224,12 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 velocityNormarlized = GetComponent<Rigidbody>().velocity.normalized;
                         Vector3 positionDiff = target.position - transform.position;
                         float angleDiff = Vector3.Angle(positionDiff.normalized, velocityNormarlized);
-                        if (closeRangeExploActivated && positionDiff.magnitude <= closeRange && angleDiff >= closeAngle)
+                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                         {
-                            rocket.OnExplode();
+                            RocketExplode();
                             return;
                         }
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, velocityNormarlized);
-                        float angularSpeed = (angleDiff - previousAngleDiff) / Time.fixedDeltaTime;
                         if (angleDiff > 90)
                         {
                             transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
@@ -217,14 +253,14 @@ namespace BlockEnhancementMod.Blocks
         {
             if (rocket.hasFired && collision.impulse.magnitude > 1)
             {
-                rocket.OnExplode();
+                RocketExplode();
             }
         }
         void OnCollisionStay(Collision collision)
         {
             if (rocket.hasFired && collision.impulse.magnitude > 1)
             {
-                rocket.OnExplode();
+                RocketExplode();
             }
         }
 
@@ -233,6 +269,7 @@ namespace BlockEnhancementMod.Blocks
             // Make sure the dupicated key exception is handled
             try
             {
+                // Add target to the dictionary
                 Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
             }
             catch (Exception)
@@ -242,7 +279,24 @@ namespace BlockEnhancementMod.Blocks
                 Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
             }
         }
+
+        private void RocketExplode()
+        {
+            if (highExploActivated && !hasExploded && explosiveCharge != 0)
+            {
+                hasExploded = true;
+                try
+                {
+                    ExplodeOnCollide bomb = rocket.gameObject.AddComponent<ExplodeOnCollide>();
+                    bomb.radius = radius * explosiveCharge;
+                    bomb.power = power * explosiveCharge;
+                    bomb.torquePower = torquePower * explosiveCharge;
+                    bomb.upPower = upPower;
+                    bomb.Explodey();
+                }
+                catch { }
+            }
+            rocket.OnExplode();
+        }
     }
 }
-
-
