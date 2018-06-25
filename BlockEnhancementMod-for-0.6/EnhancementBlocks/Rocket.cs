@@ -92,18 +92,10 @@ namespace BlockEnhancementMod.Blocks
 
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
-            //LockTargetKey.KeysChanged += ChangedProperties;
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
             selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
-            ConsoleController.ShowMessage(selfIndex.ToString());
-
-            //Make sure the target list is present
-            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
-            {
-                Machine.Active().gameObject.AddComponent<TargetScript>();
-            }
 
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");

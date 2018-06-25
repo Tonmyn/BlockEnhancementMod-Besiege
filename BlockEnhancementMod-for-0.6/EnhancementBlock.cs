@@ -60,6 +60,12 @@ namespace BlockEnhancementMod
 
             SafeAwake();
 
+            //Make sure the target list is present
+            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
+            {
+                Machine.Active().gameObject.AddComponent<TargetScript>();
+            }
+
             if (BB.isSimulating)
             {
                 return;
@@ -322,6 +328,15 @@ namespace BlockEnhancementMod
 
             };
 
+            mKey.KeysChanged += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
+            };
+
             return mKey;
         }
 
@@ -362,5 +377,9 @@ namespace BlockEnhancementMod
         }
     }
 
+    class TargetScript : MonoBehaviour
+    {
+        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
+    }
 }
 

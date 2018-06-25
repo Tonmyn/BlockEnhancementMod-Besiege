@@ -28,17 +28,10 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
-            LockTargetKey.KeysChanged += ChangedProperties;
+            LockTargetKey.InvokeKeysChanged();
 
             ResetViewKey = AddKey("暂停/恢复追踪", "resetView", resetKeys);
-            ResetViewKey.KeysChanged += ChangedProperties;
-
-            //Make sure the target list is present
-            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
-            {
-                Machine.Active().gameObject.AddComponent<TargetScript>();
-            }
-
+            ResetViewKey.InvokeKeysChanged();
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
@@ -168,10 +161,5 @@ namespace BlockEnhancementMod.Blocks
                 Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
             }
         }
-    }
-
-    class TargetScript : MonoBehaviour
-    {
-        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
     }
 }
