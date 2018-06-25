@@ -161,18 +161,12 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateLateUpdate()
         {
-            if (cameraLookAtToggled)
+            if (cameraLookAtToggled && resetView && !viewAlreadyReset)
             {
-                if (resetView)
+                realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
+                if (realCameraTransform.rotation == defaultRotation)
                 {
-                    if (!viewAlreadyReset)
-                    {
-                        realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
-                        if (realCameraTransform.rotation == defaultRotation)
-                        {
-                            viewAlreadyReset = true;
-                        }
-                    }
+                    viewAlreadyReset = true;
                 }
             }
         }
