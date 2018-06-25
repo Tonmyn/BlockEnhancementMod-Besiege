@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,11 +10,13 @@ namespace BlockEnhancementMod.Blocks
         MToggle CameraLookAtToggle;
         MKey LockTargetKey;
         MKey ResetViewKey;
+        MSlider RotateSpeedSlider;
 
         public bool cameraLookAtToggled = false;
         public bool resetView = false;
         public bool viewAlreadyReset = false;
         public int selfIndex;
+        public float rotateSpeed = 1f;
         public Transform target;
         public Transform realCameraTransform;
         public Quaternion defaultRotation;
@@ -24,17 +27,22 @@ namespace BlockEnhancementMod.Blocks
         {
 
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = RotateSpeedSlider.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            RotateSpeedSlider = AddSlider("追踪速度", "RotateSpeed", rotateSpeed, 1, 100, false);
+            RotateSpeedSlider.ValueChanged += (float value) => { rotateSpeed = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { rotateSpeed = RotateSpeedSlider.Value; };
+
+            LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
-            ResetViewKey = AddKey("暂停/恢复追踪", "resetView", resetKeys);
+            ResetViewKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
             ResetViewKey.InvokeKeysChanged();
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
+            realCameraTransform.gameObject.AddComponent<SmoothLookAt>();
             defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
             selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
@@ -48,6 +56,7 @@ namespace BlockEnhancementMod.Blocks
         public override void DisplayInMapper(bool value)
         {
             CameraLookAtToggle.DisplayInMapper = value;
+            RotateSpeedSlider.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
         }
@@ -91,6 +100,17 @@ namespace BlockEnhancementMod.Blocks
             {
                 ConsoleController.ShowMessage("Cannot get target block's transform");
             }
+
+            // Load smooth look at config
+            realCameraTransform.GetComponent<SmoothLookAt>().damping = rotateSpeed;
+            if (resetView)
+            {
+                realCameraTransform.GetComponent<SmoothLookAt>().target = null;
+            }
+            else
+            {
+                realCameraTransform.GetComponent<SmoothLookAt>().target = target;
+            }
         }
 
         protected override void OnSimulateUpdate()
@@ -98,6 +118,14 @@ namespace BlockEnhancementMod.Blocks
             if (cameraLookAtToggled && ResetViewKey.IsReleased)
             {
                 resetView = !resetView;
+                if (resetView)
+                {
+                    realCameraTransform.GetComponent<SmoothLookAt>().target = null;
+                }
+                else
+                {
+                    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
+                }
                 if (viewAlreadyReset)
                 {
                     viewAlreadyReset = !viewAlreadyReset;
@@ -128,22 +156,24 @@ namespace BlockEnhancementMod.Blocks
                         SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
                     }
                 }
-
             }
         }
 
         protected override void OnSimulateLateUpdate()
         {
-            if (resetView && !viewAlreadyReset)
+            if (cameraLookAtToggled)
             {
-                // If the tracking is temporarily disabled, the camera will look at ifself.
-                realCameraTransform.rotation = defaultRotation;
-                viewAlreadyReset = true;
-            }
-            if (cameraLookAtToggled && target != null && StatMaster.levelSimulating && !resetView)
-            {
-                // Keep the camera focusing on the target
-                realCameraTransform.LookAt(target);
+                if (resetView)
+                {
+                    if (!viewAlreadyReset)
+                    {
+                        realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
+                        if (realCameraTransform.rotation == defaultRotation)
+                        {
+                            viewAlreadyReset = true;
+                        }
+                    }
+                }
             }
         }
 
