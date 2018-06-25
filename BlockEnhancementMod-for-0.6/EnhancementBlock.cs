@@ -194,6 +194,12 @@ namespace BlockEnhancementMod
                     break;
                 }
             }
+
+            // Make sure keys are correctly loaded
+            foreach (var item in BB.Keys)
+            {
+                item.InvokeKeysChanged();
+            }
         }
 
         /// <summary>

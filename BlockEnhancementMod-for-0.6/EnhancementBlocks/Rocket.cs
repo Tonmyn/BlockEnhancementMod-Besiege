@@ -177,7 +177,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateFixedUpdate()
+        protected override void OnSimulateUpdate()
         {
             if (guidedRocketActivated && LockTargetKey.IsReleased)
             {

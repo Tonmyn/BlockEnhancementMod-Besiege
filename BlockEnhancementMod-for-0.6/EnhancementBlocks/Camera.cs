@@ -12,9 +12,11 @@ namespace BlockEnhancementMod.Blocks
 
         public bool cameraLookAtToggled = false;
         public bool resetView = false;
+        public bool viewAlreadyReset = false;
         public int selfIndex;
         public Transform target;
         public Transform realCameraTransform;
+        public Quaternion defaultRotation;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
 
@@ -40,6 +42,7 @@ namespace BlockEnhancementMod.Blocks
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
+            defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
             selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
 
@@ -78,13 +81,12 @@ namespace BlockEnhancementMod.Blocks
             int targetIndex = -1;
             BlockBehaviour targetBlock = new BlockBehaviour();
             // Read the target's buildIndex from the dictionary
-            try
+            if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
             {
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex);
-            }
-            catch (Exception)
-            {
-                ConsoleController.ShowMessage("Cannot get target index");
+                // No target found in the dictionary
+                // Assign null to target
+                target = null;
+                return;
             }
             // Aquire target block's transform from the target's index
             try
@@ -98,11 +100,15 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateFixedUpdate()
+        protected override void OnSimulateUpdate()
         {
             if (cameraLookAtToggled && ResetViewKey.IsReleased)
             {
                 resetView = !resetView;
+                if (viewAlreadyReset)
+                {
+                    viewAlreadyReset = !viewAlreadyReset;
+                }
             }
             if (cameraLookAtToggled && LockTargetKey.IsReleased)
             {
@@ -135,10 +141,11 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateLateUpdate()
         {
-            if (resetView)
+            if (resetView && !viewAlreadyReset)
             {
                 // If the tracking is temporarily disabled, the camera will look at ifself.
-                realCameraTransform.LookAt(transform);
+                realCameraTransform.rotation = defaultRotation;
+                viewAlreadyReset = true;
             }
             if (cameraLookAtToggled && target != null && StatMaster.levelSimulating && !resetView)
             {
