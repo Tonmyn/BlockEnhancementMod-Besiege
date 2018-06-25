@@ -42,6 +42,7 @@ namespace BlockEnhancementMod.Blocks
         MToggle HighExploToggle;
         public bool highExploActivated = false;
         public bool hasExploded = false;
+        public float e = Mathf.Exp(1);
         public float explosiveCharge = 0f;
         public float radius = 7f;
         public float power = 3600f;
@@ -228,7 +229,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                         else
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * (angleDiff / 90f) * rotatingAxis);
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
                         }
                     }
                 }
