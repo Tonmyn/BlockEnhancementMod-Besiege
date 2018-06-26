@@ -318,39 +318,47 @@ namespace BlockEnhancementMod.Blocks
                             hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
                             hit.attachedRigidbody.AddExplosionForce(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
                             hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * explosiveCharge);
-                            if (hit.attachedRigidbody.gameObject.GetComponent<FireTag>())
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>().Explode();
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>().Die();
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
                             }
-                            if (hit.attachedRigidbody.gameObject.GetComponent<InjuryController>())
+                            catch { }
+                            try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().activeType = InjuryType.Fire;
                                 hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
                             }
+                            catch { }
                         }
                     }
                 }
