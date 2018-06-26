@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,6 +27,14 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
 
+        //Active guide related setting
+        MToggle ActiveGuideRocketToggle;
+        public float searchRadius = 10000f;
+        public bool activeGuideRocket = false;
+        public bool targetAquired = false;
+        public string previousMachine;
+
+
         //Record target related setting
         MToggle RecordTargetToggle;
         public bool recordTarget = false;
@@ -48,6 +57,7 @@ namespace BlockEnhancementMod.Blocks
         public bool hasExploded = false;
         public int levelBombCategory = 4;
         public int levelBombID = 5001;
+        public float bombExplosiveCharge = 0;
         public float e = Mathf.Exp(1);
         public float explosiveCharge = 0f;
         public float radius = 7f;
@@ -60,7 +70,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketToggle.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
@@ -89,6 +99,15 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
+            ActiveGuideRocketToggle = AddToggle("主动搜索", "ActiveSearch", activeGuideRocket);
+            ActiveGuideRocketToggle.Toggled += (bool value) =>
+            {
+                activeGuideRocket = value;
+                LockTargetKey.DisplayInMapper = RecordTargetToggle.DisplayInMapper = !value;
+                ChangedProperties();
+            };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { activeGuideRocket = ActiveGuideRocketToggle.IsActive; };
+
             ProximityFuzeRangeSlider = AddSlider("近炸距离", "closeRange", proximityRange, 0, 10, false);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
@@ -112,6 +131,7 @@ namespace BlockEnhancementMod.Blocks
             rocket = gameObject.GetComponent<TimedRocket>();
             selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
 
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -122,13 +142,13 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
-            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated;
+            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
-            LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
+            LockTargetKey.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
@@ -149,7 +169,10 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            // Initialisation for simulation
             fireTimeRecorded = false;
+            target = null;
+
             // Set high explo to false
             hasExploded = false;
             foreach (var slider in BB.Sliders)
@@ -161,11 +184,11 @@ namespace BlockEnhancementMod.Blocks
                     // Make sure the high explo mode is not too imba
                     if (highExploActivated)
                     {
-                        explosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
+                        bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                     }
                 }
             }
-            if (recordTarget)
+            if (recordTarget && !activeGuideRocket)
             {
                 // Trying to read previously saved target
                 int targetIndex = -1;
@@ -191,10 +214,13 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
-            if (guidedRocketActivated && LockTargetKey.IsReleased)
+            if (guidedRocketActivated && activeGuideRocket && !targetAquired && rocket.hasFired)
+            {
+                RocketRadarSearch();
+            }
+            if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                ConsoleController.ShowMessage("Ray casted");
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
                     target = hit.transform;
@@ -235,18 +261,21 @@ namespace BlockEnhancementMod.Blocks
                     if (Time.time - fireTime >= guideDelay)
                     {
                         // Calculating the rotating axis
-                        Vector3 velocityNormarlized = GetComponent<Rigidbody>().velocity.normalized;
                         Vector3 positionDiff = target.position - transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, velocityNormarlized);
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                        bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                         {
                             RocketExplode();
                             return;
                         }
-                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, velocityNormarlized);
-                        if (angleDiff > 90)
+                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+                        if (!forward)
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                            if (!activeGuideRocket)
+                            {
+                                transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                            }
                         }
                         else
                         {
@@ -303,21 +332,21 @@ namespace BlockEnhancementMod.Blocks
                 {
                     GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, rocket.transform.position, rocket.transform.rotation);
                     ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
-                    bomb.transform.localScale = Vector3.one * explosiveCharge;
-                    bombControl.radius = radius * explosiveCharge;
-                    bombControl.power = power * explosiveCharge;
-                    bombControl.torquePower = torquePower * explosiveCharge;
+                    bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
+                    bombControl.radius = radius * bombExplosiveCharge;
+                    bombControl.power = power * bombExplosiveCharge;
+                    bombControl.torquePower = torquePower * bombExplosiveCharge;
                     bombControl.upPower = upPower;
                     bombControl.Explodey();
-                    Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * explosiveCharge);
+                    Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
                     foreach (var hit in hits)
                     {
                         if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
                         {
                             hit.attachedRigidbody.WakeUp();
                             hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
-                            hit.attachedRigidbody.AddExplosionForce(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
-                            hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * explosiveCharge);
+                            hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                            hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
                             try
                             {
                                 hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
@@ -325,7 +354,7 @@ namespace BlockEnhancementMod.Blocks
                             catch { }
                             try
                             {
-                                hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                                hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
                             }
                             catch { }
                             try
@@ -340,17 +369,17 @@ namespace BlockEnhancementMod.Blocks
                             catch { }
                             try
                             {
-                                hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                                hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
                             }
                             catch { }
                             try
                             {
-                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
                             }
                             catch { }
                             try
                             {
-                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
                             }
                             catch { }
                             try
@@ -365,6 +394,79 @@ namespace BlockEnhancementMod.Blocks
                 catch { }
             }
             rocket.OnExplode();
+        }
+
+        private void RocketRadarSearch()
+        {
+            Collider[] hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
+            Collider[] hitsIn = Physics.OverlapSphere(rocket.transform.position, 1);
+            IEnumerable<Collider> hitList = hitsOut.Except(hitsIn);
+            foreach (var hit in hitList)
+            {
+                try
+                {
+                    GameObject targetObj = hit.attachedRigidbody.gameObject;
+                    BlockBehaviour blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
+
+                    if (StatMaster.SimulationState == SimulationState.GlobalSimulation)
+                    {
+                        if (!(blockBehaviour.ParentMachine.Name == previousMachine))
+                        {
+                            int clusterSize = 0;
+                            int clusterID = 0;
+                            for (int i = 0; i < blockBehaviour.ParentMachine.ClusterCount; i++)
+                            {
+                                int length = blockBehaviour.ParentMachine.simClusters[i].Blocks.Length;
+                                if (length > clusterSize)
+                                {
+                                    clusterSize = length;
+                                    clusterID = i;
+                                }
+                            }
+                            BlockBehaviour targetBlock = blockBehaviour.ParentMachine.simClusters[clusterID].Blocks[Mathf.FloorToInt(clusterSize / 2)];
+                            Transform targetTransform = targetBlock.GetComponent<Transform>();
+
+                            Vector3 positionDiff = targetTransform.position - transform.position;
+                            bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                            float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+
+                            bool targetInSearchRange = angleDiff <= 65 && forward;
+                            bool inMyTeam = targetBlock.Team.ToString().Equals(rocket.Team.ToString()) ||
+                                (targetBlock.Team == MPTeam.None && targetBlock.ParentMachine.Name != rocket.ParentMachine.Name);
+
+                            if (targetInSearchRange && !inMyTeam)
+                            {
+                                target = targetTransform;
+                                previousMachine = targetBlock.ParentMachine.Name;
+                                targetAquired = true;
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Rigidbody targetObjRigidbody = hit.attachedRigidbody;
+                        Transform targetObjTransform = hit.attachedRigidbody.gameObject.transform;
+
+                        Vector3 positionDiff = targetObjTransform.position - transform.position;
+                        bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+
+                        bool targetInSearchRange = angleDiff <= 65 && forward;
+                        bool targetIsHighPriority = blockBehaviour.ParentMachine.simClusters[blockBehaviour.ClusterIndex].Blocks.Length >= 2;
+                        bool inMyTeam = blockBehaviour.Team.ToString().Equals(rocket.Team.ToString());
+
+                        if (targetInSearchRange && targetIsHighPriority && !inMyTeam)
+                        {
+                            ConsoleController.ShowMessage(blockBehaviour.Team.ToString());
+                            target = targetObjTransform;
+                            targetAquired = true;
+                            return;
+                        }
+                    }
+                }
+                catch { }
+            }
         }
     }
 }
