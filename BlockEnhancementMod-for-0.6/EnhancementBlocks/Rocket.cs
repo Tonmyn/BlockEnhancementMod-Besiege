@@ -29,10 +29,17 @@ namespace BlockEnhancementMod.Blocks
 
         //Active guide related setting
         MToggle ActiveGuideRocketToggle;
+        MSlider ActiveGuideRocketSearchAngleSlider;
+        public float searchAngle = 65;
         public float searchRadius = 10000f;
+        public float safetyRadius = 15f;
         public bool activeGuideRocket = false;
         public bool targetAquired = false;
+        public bool searchStarted = false;
         public string previousMachine;
+        public Collider[] hitsIn;
+        public Collider[] hitsOut;
+        IEnumerable<Collider> hitList;
 
 
         //Record target related setting
@@ -102,11 +109,15 @@ namespace BlockEnhancementMod.Blocks
             ActiveGuideRocketToggle = AddToggle("主动搜索", "ActiveSearch", activeGuideRocket);
             ActiveGuideRocketToggle.Toggled += (bool value) =>
             {
-                activeGuideRocket = value;
+                activeGuideRocket = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value;
                 LockTargetKey.DisplayInMapper = RecordTargetToggle.DisplayInMapper = !value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { activeGuideRocket = ActiveGuideRocketToggle.IsActive; };
+
+            ActiveGuideRocketSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
             ProximityFuzeRangeSlider = AddSlider("近炸距离", "closeRange", proximityRange, 0, 10, false);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
@@ -142,6 +153,8 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
+            ActiveGuideRocketToggle.DisplayInMapper = value;
+            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && activeGuideRocket;
             RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
@@ -172,7 +185,8 @@ namespace BlockEnhancementMod.Blocks
             // Initialisation for simulation
             fireTimeRecorded = false;
             target = null;
-
+            hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
+            StopCoroutine(SearchForTarget());
             // Set high explo to false
             hasExploded = false;
             foreach (var slider in BB.Sliders)
@@ -193,6 +207,7 @@ namespace BlockEnhancementMod.Blocks
                 // Trying to read previously saved target
                 int targetIndex = -1;
                 BlockBehaviour targetBlock = new BlockBehaviour();
+                previousMachine = null;
                 // Read the target's buildIndex from the dictionary
                 if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
                 {
@@ -217,6 +232,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated && activeGuideRocket && !targetAquired && rocket.hasFired)
             {
                 RocketRadarSearch();
+                searchStarted = true;
             }
             if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
@@ -270,11 +286,16 @@ namespace BlockEnhancementMod.Blocks
                             return;
                         }
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
-                        if (!forward)
+                        if (!forward && angleDiff >= searchAngle)
                         {
                             if (!activeGuideRocket)
                             {
                                 transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                            }
+                            else
+                            {
+                                searchStarted = targetAquired = false;
+                                RocketRadarSearch();
                             }
                         }
                         else
@@ -398,74 +419,99 @@ namespace BlockEnhancementMod.Blocks
 
         private void RocketRadarSearch()
         {
-            Collider[] hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
-            Collider[] hitsIn = Physics.OverlapSphere(rocket.transform.position, 1);
-            IEnumerable<Collider> hitList = hitsOut.Except(hitsIn);
-            foreach (var hit in hitList)
+            if (!searchStarted)
             {
-                try
-                {
-                    GameObject targetObj = hit.attachedRigidbody.gameObject;
-                    BlockBehaviour blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
+                StartCoroutine(SearchForTarget());
+            }
+        }
 
-                    if (StatMaster.SimulationState == SimulationState.GlobalSimulation)
+        IEnumerator SearchForTarget()
+        {
+            while (!targetAquired)
+            {
+                hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
+                hitList = hitsOut.Except(hitsIn);
+                foreach (var hit in hitList)
+                {
+                    try
                     {
-                        if (!(blockBehaviour.ParentMachine.Name == previousMachine))
+                        GameObject targetObj = hit.attachedRigidbody.gameObject;
+                        BlockBehaviour blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
+
+                        if (StatMaster._customLevelSimulating)
                         {
-                            int clusterSize = 0;
-                            int clusterID = 0;
-                            for (int i = 0; i < blockBehaviour.ParentMachine.ClusterCount; i++)
+                            if (blockBehaviour.ParentMachine.Name != previousMachine)
                             {
-                                int length = blockBehaviour.ParentMachine.simClusters[i].Blocks.Length;
-                                if (length > clusterSize)
+                                int clusterSize = 0;
+                                int clusterID = 0;
+                                for (int i = 0; i < blockBehaviour.ParentMachine.ClusterCount; i++)
                                 {
-                                    clusterSize = length;
-                                    clusterID = i;
+                                    int length = blockBehaviour.ParentMachine.simClusters[i].Blocks.Length;
+                                    if (length > clusterSize)
+                                    {
+                                        clusterSize = length;
+                                        clusterID = i;
+                                    }
+                                }
+                                BlockBehaviour targetBlock = blockBehaviour.ParentMachine.simClusters[clusterID].Blocks[Mathf.FloorToInt(clusterSize / 2)];
+                                Transform targetTransform = targetBlock.GetComponent<Transform>();
+
+                                Vector3 positionDiff = targetTransform.position - transform.position;
+                                bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                                float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+
+                                bool targetInSearchRange = angleDiff <= Mathf.Clamp(searchAngle, 0, 90) && forward;
+                                bool inMyTeam = false;
+                                if (targetBlock.Team != MPTeam.None)
+                                {
+                                    if (targetBlock.Team.ToString().Equals(rocket.Team.ToString()))
+                                    {
+                                        inMyTeam = true;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    if (targetBlock.ParentMachine.Name == rocket.ParentMachine.Name)
+                                    {
+                                        inMyTeam = true;
+                                        break;
+                                    }
+                                }
+                                if (targetInSearchRange && !inMyTeam)
+                                {
+                                    target = targetTransform;
+                                    previousMachine = targetBlock.ParentMachine.Name;
+                                    targetAquired = true;
+                                    StopCoroutine(SearchForTarget());
+                                    break;
                                 }
                             }
-                            BlockBehaviour targetBlock = blockBehaviour.ParentMachine.simClusters[clusterID].Blocks[Mathf.FloorToInt(clusterSize / 2)];
-                            Transform targetTransform = targetBlock.GetComponent<Transform>();
+                        }
+                        else
+                        {
+                            Rigidbody targetObjRigidbody = hit.attachedRigidbody;
+                            Transform targetObjTransform = hit.attachedRigidbody.gameObject.transform;
 
-                            Vector3 positionDiff = targetTransform.position - transform.position;
+                            Vector3 positionDiff = targetObjTransform.position - transform.position;
                             bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                             float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
 
-                            bool targetInSearchRange = angleDiff <= 65 && forward;
-                            bool inMyTeam = targetBlock.Team.ToString().Equals(rocket.Team.ToString()) ||
-                                (targetBlock.Team == MPTeam.None && targetBlock.ParentMachine.Name != rocket.ParentMachine.Name);
+                            bool targetInSearchRange = angleDiff <= searchAngle && forward;
+                            bool targetIsHighPriority = blockBehaviour.ParentMachine.simClusters[blockBehaviour.ClusterIndex].Blocks.Length >= 2;
 
-                            if (targetInSearchRange && !inMyTeam)
+                            if (targetInSearchRange && targetIsHighPriority)
                             {
-                                target = targetTransform;
-                                previousMachine = targetBlock.ParentMachine.Name;
+                                target = targetObjTransform;
                                 targetAquired = true;
-                                return;
+                                StopCoroutine(SearchForTarget());
+                                break;
                             }
                         }
                     }
-                    else
-                    {
-                        Rigidbody targetObjRigidbody = hit.attachedRigidbody;
-                        Transform targetObjTransform = hit.attachedRigidbody.gameObject.transform;
-
-                        Vector3 positionDiff = targetObjTransform.position - transform.position;
-                        bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-
-                        bool targetInSearchRange = angleDiff <= 65 && forward;
-                        bool targetIsHighPriority = blockBehaviour.ParentMachine.simClusters[blockBehaviour.ClusterIndex].Blocks.Length >= 2;
-                        bool inMyTeam = blockBehaviour.Team.ToString().Equals(rocket.Team.ToString());
-
-                        if (targetInSearchRange && targetIsHighPriority && !inMyTeam)
-                        {
-                            ConsoleController.ShowMessage(blockBehaviour.Team.ToString());
-                            target = targetObjTransform;
-                            targetAquired = true;
-                            return;
-                        }
-                    }
+                    catch { }
                 }
-                catch { }
+                yield return new WaitForEndOfFrame();
             }
         }
     }
