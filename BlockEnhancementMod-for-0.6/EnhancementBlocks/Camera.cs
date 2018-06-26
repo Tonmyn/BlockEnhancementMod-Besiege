@@ -7,28 +7,43 @@ namespace BlockEnhancementMod.Blocks
 {
     class CameraScript : EnhancementBlock
     {
+        //General setting
         MToggle CameraLookAtToggle;
-        MKey LockTargetKey;
-        MKey ResetViewKey;
-        MSlider RotateSpeedSlider;
-
         public bool cameraLookAtToggled = false;
-        public bool resetView = false;
-        public bool viewAlreadyReset = false;
         public int selfIndex;
-        public float rotateSpeed = 1f;
-        public Transform target;
         public Transform realCameraTransform;
         public Quaternion defaultRotation;
+
+        //Track target setting
+        MKey LockTargetKey;
+        MSlider RotateSpeedSlider;
+        public Transform target;
+        public float rotateSpeed = 1f;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+
+        //Pause tracking setting
+        MKey ResetViewKey;
+        public bool resetView = false;
+        public bool viewAlreadyReset = false;
         public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
+
+        //Record target related setting
+        MToggle RecordTargetToggle;
+        public bool recordTarget = false;
 
         protected override void SafeAwake()
         {
-
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = LockTargetKey.DisplayInMapper = RotateSpeedSlider.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = RecordTargetToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = RotateSpeedSlider.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
+
+            RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
+            RecordTargetToggle.Toggled += (bool value) =>
+            {
+                recordTarget = value;
+                ChangedProperties();
+            };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
             RotateSpeedSlider = AddSlider("追踪速度", "RotateSpeed", rotateSpeed, 1, 100, false);
             RotateSpeedSlider.ValueChanged += (float value) => { rotateSpeed = value; ChangedProperties(); };
@@ -56,6 +71,7 @@ namespace BlockEnhancementMod.Blocks
         public override void DisplayInMapper(bool value)
         {
             CameraLookAtToggle.DisplayInMapper = value;
+            RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             RotateSpeedSlider.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
@@ -79,26 +95,27 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            // Trying to read previously saved target
-            int targetIndex = -1;
-            BlockBehaviour targetBlock = new BlockBehaviour();
-            // Read the target's buildIndex from the dictionary
-            if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+            if (recordTarget)
             {
-                // No target found in the dictionary
-                // Assign null to target
-                target = null;
-                return;
-            }
-            // Aquire target block's transform from the target's index
-            try
-            {
-                Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                target = Machine.Active().GetSimBlock(targetBlock).transform;
-            }
-            catch (Exception)
-            {
-                ConsoleController.ShowMessage("Cannot get target block's transform");
+                // Trying to read previously saved target
+                int targetIndex = -1;
+                BlockBehaviour targetBlock = new BlockBehaviour();
+                // Read the target's buildIndex from the dictionary
+                if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                {
+                    target = null;
+                    return;
+                }
+                // Aquire target block's transform from the target's index
+                try
+                {
+                    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                    target = Machine.Active().GetSimBlock(targetBlock).transform;
+                }
+                catch (Exception)
+                {
+                    ConsoleController.ShowMessage("Cannot get target block's transform");
+                }
             }
 
             // Load smooth look at config
@@ -140,20 +157,23 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = hit.transform;
 
-                    // Trying to save target's buildIndex to the dictionary
-                    // If not a machine block, set targetIndex to -1
-                    int targetIndex = -1;
-                    try
+                    if (recordTarget)
                     {
-                        targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
-                    }
-                    catch (Exception)
-                    {
-                        ConsoleController.ShowMessage("Not a machine block");
-                    }
-                    if (targetIndex != -1)
-                    {
-                        SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                        // Trying to save target's buildIndex to the dictionary
+                        // If not a machine block, set targetIndex to -1
+                        int targetIndex = -1;
+                        try
+                        {
+                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                        }
+                        catch (Exception)
+                        {
+                            ConsoleController.ShowMessage("Not a machine block");
+                        }
+                        if (targetIndex != -1)
+                        {
+                            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                        }
                     }
                 }
             }

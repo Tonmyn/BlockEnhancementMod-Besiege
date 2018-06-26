@@ -26,6 +26,10 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
 
+        //Record target related setting
+        MToggle RecordTargetToggle;
+        public bool recordTarget = false;
+
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
@@ -42,6 +46,8 @@ namespace BlockEnhancementMod.Blocks
         MToggle HighExploToggle;
         public bool highExploActivated = false;
         public bool hasExploded = false;
+        public int levelBombCategory = 4;
+        public int levelBombID = 5001;
         public float e = Mathf.Exp(1);
         public float explosiveCharge = 0f;
         public float radius = 7f;
@@ -54,10 +60,18 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
+
+            RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
+            RecordTargetToggle.Toggled += (bool value) =>
+            {
+                recordTarget = value;
+                ChangedProperties();
+            };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
             ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
@@ -108,6 +122,7 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
+            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
@@ -134,6 +149,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            fireTimeRecorded = false;
             // Set high explo to false
             hasExploded = false;
             foreach (var slider in BB.Sliders)
@@ -149,24 +165,27 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
-            // Trying to read previously saved target
-            int targetIndex = -1;
-            BlockBehaviour targetBlock = new BlockBehaviour();
-            // Read the target's buildIndex from the dictionary
-            if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+            if (recordTarget)
             {
-                target = null;
-                return;
-            }
-            // Aquire target block's transform from the target's index
-            try
-            {
-                Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                target = Machine.Active().GetSimBlock(targetBlock).transform;
-            }
-            catch (Exception)
-            {
-                ConsoleController.ShowMessage("Cannot get target block's transform");
+                // Trying to read previously saved target
+                int targetIndex = -1;
+                BlockBehaviour targetBlock = new BlockBehaviour();
+                // Read the target's buildIndex from the dictionary
+                if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                {
+                    target = null;
+                    return;
+                }
+                // Aquire target block's transform from the target's index
+                try
+                {
+                    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                    target = Machine.Active().GetSimBlock(targetBlock).transform;
+                }
+                catch (Exception)
+                {
+                    ConsoleController.ShowMessage("Cannot get target block's transform");
+                }
             }
         }
 
@@ -179,21 +198,23 @@ namespace BlockEnhancementMod.Blocks
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
                     target = hit.transform;
-
-                    // Trying to save target's buildIndex to the dictionary
-                    // If not a machine block, set targetIndex to -1
-                    int targetIndex = -1;
-                    try
+                    if (recordTarget)
                     {
-                        targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
-                    }
-                    catch (Exception)
-                    {
-                        ConsoleController.ShowMessage("Not a machine block");
-                    }
-                    if (targetIndex != -1)
-                    {
-                        SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                        // Trying to save target's buildIndex to the dictionary
+                        // If not a machine block, set targetIndex to -1
+                        int targetIndex = -1;
+                        try
+                        {
+                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                        }
+                        catch (Exception)
+                        {
+                            ConsoleController.ShowMessage("Not a machine block");
+                        }
+                        if (targetIndex != -1)
+                        {
+                            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                        }
                     }
                 }
             }
@@ -211,7 +232,7 @@ namespace BlockEnhancementMod.Blocks
                         fireTimeRecorded = true;
                         fireTime = Time.time;
                     }
-                    if (Time.time - fireTime > guideDelay)
+                    if (Time.time - fireTime >= guideDelay)
                     {
                         // Calculating the rotating axis
                         Vector3 velocityNormarlized = GetComponent<Rigidbody>().velocity.normalized;
@@ -244,14 +265,14 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionEnter(Collision collision)
         {
-            if (rocket.hasFired && collision.impulse.magnitude > 1)
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && (Time.time - fireTime >= guideDelay))
             {
                 RocketExplode();
             }
         }
         void OnCollisionStay(Collision collision)
         {
-            if (rocket.hasFired && collision.impulse.magnitude > 1)
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && (Time.time - fireTime >= guideDelay))
             {
                 RocketExplode();
             }
@@ -280,12 +301,58 @@ namespace BlockEnhancementMod.Blocks
                 hasExploded = true;
                 try
                 {
-                    ExplodeOnCollide bomb = rocket.gameObject.AddComponent<ExplodeOnCollide>();
-                    bomb.radius = radius * explosiveCharge;
-                    bomb.power = power * explosiveCharge;
-                    bomb.torquePower = torquePower * explosiveCharge;
-                    bomb.upPower = upPower;
-                    bomb.Explodey();
+                    GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, rocket.transform.position, rocket.transform.rotation);
+                    ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
+                    bomb.transform.localScale = Vector3.one * explosiveCharge;
+                    bombControl.radius = radius * explosiveCharge;
+                    bombControl.power = power * explosiveCharge;
+                    bombControl.torquePower = torquePower * explosiveCharge;
+                    bombControl.upPower = upPower;
+                    bombControl.Explodey();
+                    Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * explosiveCharge);
+                    foreach (var hit in hits)
+                    {
+                        if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
+                        {
+                            hit.attachedRigidbody.WakeUp();
+                            hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
+                            hit.attachedRigidbody.AddExplosionForce(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                            hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * explosiveCharge);
+                            if (hit.attachedRigidbody.gameObject.GetComponent<FireTag>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>().Explode();
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>().Die();
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * explosiveCharge, rocket.transform.position, radius * explosiveCharge, upPower);
+                            }
+                            if (hit.attachedRigidbody.gameObject.GetComponent<InjuryController>())
+                            {
+                                hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().activeType = InjuryType.Fire;
+                                hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
+                            }
+                        }
+                    }
                 }
                 catch { }
             }
