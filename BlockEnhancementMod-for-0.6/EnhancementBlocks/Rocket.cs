@@ -32,14 +32,18 @@ namespace BlockEnhancementMod.Blocks
         MSlider ActiveGuideRocketSearchAngleSlider;
         public float searchAngle = 65;
         public float searchRadius = 10000f;
-        public float safetyRadius = 15f;
+        public float safetyRadius = 5f;
+        public float searchSurroundingBlockRadius = 10f;
         public bool activeGuideRocket = false;
         public bool targetAquired = false;
         public bool searchStarted = false;
+        public bool restartSearch = false;
         public string previousMachine;
-        public Collider[] hitsIn;
-        public Collider[] hitsOut;
-        IEnumerable<Collider> hitList;
+        private Collider[] hitsIn;
+        private Collider[] hitsOut;
+        private List<Collider> hitList;
+        private GameObject targetObj;
+        private BlockBehaviour blockBehaviour;
 
 
         //Record target related setting
@@ -184,6 +188,8 @@ namespace BlockEnhancementMod.Blocks
         {
             // Initialisation for simulation
             fireTimeRecorded = false;
+            targetAquired = false;
+            searchStarted = false;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopCoroutine(SearchForTarget());
@@ -232,7 +238,6 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated && activeGuideRocket && !targetAquired && rocket.hasFired)
             {
                 RocketRadarSearch();
-                searchStarted = true;
             }
             if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
@@ -286,7 +291,11 @@ namespace BlockEnhancementMod.Blocks
                             return;
                         }
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
-                        if (!forward && angleDiff >= searchAngle)
+                        if (forward && angleDiff <= searchAngle)
+                        {
+                            transform.GetComponent<Rigidbody>().AddTorque(torque * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
+                        }
+                        else
                         {
                             if (!activeGuideRocket)
                             {
@@ -294,13 +303,8 @@ namespace BlockEnhancementMod.Blocks
                             }
                             else
                             {
-                                searchStarted = targetAquired = false;
-                                RocketRadarSearch();
+                                targetAquired = false;
                             }
-                        }
-                        else
-                        {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
                         }
                     }
                 }
@@ -346,6 +350,8 @@ namespace BlockEnhancementMod.Blocks
 
         private void RocketExplode()
         {
+            searchStarted = false;
+            StopCoroutine(SearchForTarget());
             if (highExploActivated && !hasExploded && explosiveCharge != 0)
             {
                 hasExploded = true;
@@ -421,6 +427,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (!searchStarted)
             {
+                searchStarted = true;
                 StartCoroutine(SearchForTarget());
             }
         }
@@ -430,89 +437,114 @@ namespace BlockEnhancementMod.Blocks
             while (!targetAquired)
             {
                 hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
-                hitList = hitsOut.Except(hitsIn);
-                foreach (var hit in hitList)
+                hitList = StatMaster._customLevelSimulating ? hitsOut.ToList<Collider>() : hitsOut.Except(hitsIn).ToList<Collider>();
+
+                for (int i = hitList.Count - 1; i > -1; i--)
                 {
+                    Collider hit = hitList[i];
+                    //Make sure the hit is a block
+                    //if not, remove it from the list
                     try
                     {
-                        GameObject targetObj = hit.attachedRigidbody.gameObject;
-                        BlockBehaviour blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
+                        int index = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                    }
+                    catch (Exception)
+                    {
+                        hitList.Remove(hit);
+                        continue;
+                    }
 
-                        if (StatMaster._customLevelSimulating)
+                    targetObj = hit.attachedRigidbody.gameObject;
+                    blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
+
+                    //Make sure the hit block is within the search range
+                    //if not, remove it from the list
+                    Vector3 positionDiff = targetObj.transform.position - transform.position;
+                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+
+                    if (!(forward && angleDiff < searchAngle))
+                    {
+                        hitList.Remove(hit);
+                        continue;
+                    }
+
+                    //Make sure the block is not in my team
+                    //if yes, remove it from the list
+                    if (StatMaster._customLevelSimulating)
+                    {
+                        if (blockBehaviour.Team != MPTeam.None)
                         {
-                            if (blockBehaviour.ParentMachine.Name != previousMachine)
+                            //If the block belongs to a team that is not none
+                            //and is the same as the rocket, remove it from the list
+                            if (blockBehaviour.Team == rocket.Team)
                             {
-                                int clusterSize = 0;
-                                int clusterID = 0;
-                                for (int i = 0; i < blockBehaviour.ParentMachine.ClusterCount; i++)
-                                {
-                                    int length = blockBehaviour.ParentMachine.simClusters[i].Blocks.Length;
-                                    if (length > clusterSize)
-                                    {
-                                        clusterSize = length;
-                                        clusterID = i;
-                                    }
-                                }
-                                BlockBehaviour targetBlock = blockBehaviour.ParentMachine.simClusters[clusterID].Blocks[Mathf.FloorToInt(clusterSize / 2)];
-                                Transform targetTransform = targetBlock.GetComponent<Transform>();
-
-                                Vector3 positionDiff = targetTransform.position - transform.position;
-                                bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                                float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-
-                                bool targetInSearchRange = angleDiff <= Mathf.Clamp(searchAngle, 0, 90) && forward;
-                                bool inMyTeam = false;
-                                if (targetBlock.Team != MPTeam.None)
-                                {
-                                    if (targetBlock.Team.ToString().Equals(rocket.Team.ToString()))
-                                    {
-                                        inMyTeam = true;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    if (targetBlock.ParentMachine.Name == rocket.ParentMachine.Name)
-                                    {
-                                        inMyTeam = true;
-                                        break;
-                                    }
-                                }
-                                if (targetInSearchRange && !inMyTeam)
-                                {
-                                    target = targetTransform;
-                                    previousMachine = targetBlock.ParentMachine.Name;
-                                    targetAquired = true;
-                                    StopCoroutine(SearchForTarget());
-                                    break;
-                                }
+                                hitList.Remove(hit);
+                                ConsoleController.ShowMessage("Not in my team, removed");
+                                continue;
                             }
                         }
                         else
                         {
-                            Rigidbody targetObjRigidbody = hit.attachedRigidbody;
-                            Transform targetObjTransform = hit.attachedRigidbody.gameObject.transform;
-
-                            Vector3 positionDiff = targetObjTransform.position - transform.position;
-                            bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                            float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-
-                            bool targetInSearchRange = angleDiff <= searchAngle && forward;
-                            bool targetIsHighPriority = blockBehaviour.ParentMachine.simClusters[blockBehaviour.ClusterIndex].Blocks.Length >= 2;
-
-                            if (targetInSearchRange && targetIsHighPriority)
+                            //If no team is assigned to a block
+                            //only remove it when in multiverse
+                            //and the parentmachine name is the same as the rocket's parent machine
+                            if (blockBehaviour.ParentMachine.Name == rocket.ParentMachine.Name)
                             {
-                                target = targetObjTransform;
-                                targetAquired = true;
-                                StopCoroutine(SearchForTarget());
-                                break;
+                                hitList.Remove(hit);
+                                ConsoleController.ShowMessage("Not in my team, removed");
+                                continue;
                             }
                         }
                     }
-                    catch { }
                 }
-                yield return new WaitForEndOfFrame();
+
+                //Try to find the most valuable block
+                //i.e. has the most number of blocks around it within a certain radius
+                //when the hitlist is not empty
+                if (hitList.Count > 0)
+                {
+                    //Search for any blocks within the search radius for every block in the hitlist
+                    //Find the block that has the max number of blocks around it
+                    int valueableBlockIndex = GetMostValuableBlock();
+
+                    //Take that block as the target
+                    Collider collider = hitList[valueableBlockIndex];
+                    target = collider.attachedRigidbody.gameObject.GetComponent<Transform>();
+                    previousMachine = collider.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().ParentMachine.Name;
+                    targetAquired = true;
+                    searchStarted = false;
+                    StopCoroutine(SearchForTarget());
+                }
+                yield return new WaitForSeconds(1f);
             }
+        }
+
+        private int GetMostValuableBlock()
+        {
+            //Search for any blocks within the search radius for every block in the hitlist
+            int[] targetCount = new int[hitList.Count];
+            for (int i = 0; i < hitList.Count; i++)
+            {
+                Collider[] hitsAroundBlock = Physics.OverlapSphere(hitList[i].transform.position, searchSurroundingBlockRadius);
+                int count = 0;
+                foreach (var hitBlock in hitsAroundBlock)
+                {
+                    try
+                    {
+                        int index = hitList[i].attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                    count++;
+                }
+                targetCount[i] = count;
+            }
+
+            //Find the block that has the max number of blocks around it
+            return targetCount.ToList().IndexOf(targetCount.Max());
         }
     }
 }
