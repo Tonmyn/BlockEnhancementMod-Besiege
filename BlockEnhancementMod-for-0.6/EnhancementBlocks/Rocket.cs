@@ -131,7 +131,7 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 10000, true);
+            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 100, true);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
@@ -241,26 +241,64 @@ namespace BlockEnhancementMod.Blocks
             }
             if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
+                //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                //if (Physics.Raycast(ray, out RaycastHit hit))
+                //{
+                //    target = hit.transform;
+                //    if (recordTarget)
+                //    {
+                //        // Trying to save target's buildIndex to the dictionary
+                //        // If not a machine block, set targetIndex to -1
+                //        int targetIndex = -1;
+                //        try
+                //        {
+                //            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                //        }
+                //        catch (Exception)
+                //        {
+                //            ConsoleController.ShowMessage("Not a machine block");
+                //        }
+                //        if (targetIndex != -1)
+                //        {
+                //            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                //        }
+                //    }
+                //}
+
+                //try sphercastall
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
+                float manualSearchRadius = 5;
+                RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
+                Physics.Raycast(ray, out RaycastHit rayHit);
+                for (int i = 0; i < hits.Length; i++)
                 {
-                    target = hit.transform;
-                    if (recordTarget)
+                    try
                     {
-                        // Trying to save target's buildIndex to the dictionary
-                        // If not a machine block, set targetIndex to -1
-                        int targetIndex = -1;
+                        int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                        target = hits[i].transform;
+                        if (recordTarget)
+                        {
+                            SaveTargetToDict(index);
+                        }
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    if (i == hits.Length - 1)
+                    {
+                        target = rayHit.transform;
                         try
                         {
-                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                            int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                            if (recordTarget)
+                            {
+                                SaveTargetToDict(index);
+                            }
+                            break;
                         }
                         catch (Exception)
                         {
-                            ConsoleController.ShowMessage("Not a machine block");
-                        }
-                        if (targetIndex != -1)
-                        {
-                            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
                         }
                     }
                 }
@@ -293,13 +331,13 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
                         if (forward && angleDiff <= searchAngle)
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(torque * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
+                            transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 1000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
                         }
                         else
                         {
                             if (!activeGuideRocket)
                             {
-                                transform.GetComponent<Rigidbody>().AddTorque(torque * rotatingAxis);
+                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 1000 * rotatingAxis);
                             }
                             else
                             {
@@ -365,6 +403,10 @@ namespace BlockEnhancementMod.Blocks
                     bombControl.torquePower = torquePower * bombExplosiveCharge;
                     bombControl.upPower = upPower;
                     bombControl.Explodey();
+                }
+                catch { }
+                try
+                {
                     Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
                     foreach (var hit in hits)
                     {
@@ -516,7 +558,7 @@ namespace BlockEnhancementMod.Blocks
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
                 }
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForEndOfFrame();
             }
         }
 
