@@ -241,30 +241,6 @@ namespace BlockEnhancementMod.Blocks
             }
             if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
-                //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                //if (Physics.Raycast(ray, out RaycastHit hit))
-                //{
-                //    target = hit.transform;
-                //    if (recordTarget)
-                //    {
-                //        // Trying to save target's buildIndex to the dictionary
-                //        // If not a machine block, set targetIndex to -1
-                //        int targetIndex = -1;
-                //        try
-                //        {
-                //            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
-                //        }
-                //        catch (Exception)
-                //        {
-                //            ConsoleController.ShowMessage("Not a machine block");
-                //        }
-                //        if (targetIndex != -1)
-                //        {
-                //            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
-                //        }
-                //    }
-                //}
-
                 //try sphercastall
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 float manualSearchRadius = 5;
@@ -282,9 +258,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                         break;
                     }
-                    catch (Exception)
-                    {
-                    }
+                    catch { }
                     if (i == hits.Length - 1)
                     {
                         target = rayHit.transform;
@@ -297,9 +271,7 @@ namespace BlockEnhancementMod.Blocks
                             }
                             break;
                         }
-                        catch (Exception)
-                        {
-                        }
+                        catch { }
                     }
                 }
             }
@@ -331,13 +303,13 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
                         if (forward && angleDiff <= searchAngle)
                         {
-                            transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 1000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
+                            transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
                         }
                         else
                         {
                             if (!activeGuideRocket)
                             {
-                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 1000 * rotatingAxis);
+                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis);
                             }
                             else
                             {
@@ -350,7 +322,6 @@ namespace BlockEnhancementMod.Blocks
             catch (Exception)
             {
                 //Rocket will destroy itself upon explosion hence cause Null Reference Exception
-                //ConsoleController.ShowMessage(e.ToString());
             }
 
         }
@@ -388,11 +359,17 @@ namespace BlockEnhancementMod.Blocks
 
         private void RocketExplode()
         {
+            //Reset some parameter and set the rocket to explode
+            //Stop the search target coroutine
             searchStarted = false;
             StopCoroutine(SearchForTarget());
+            rocket.OnExplode();
+
+            //If high explo is enabled, do it
             if (highExploActivated && !hasExploded && explosiveCharge != 0)
             {
                 hasExploded = true;
+                //Generate a bomb from level editor and let it explode
                 try
                 {
                     GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, rocket.transform.position, rocket.transform.rotation);
@@ -405,6 +382,8 @@ namespace BlockEnhancementMod.Blocks
                     bombControl.Explodey();
                 }
                 catch { }
+
+                //Add explode and ignition effects to the affected objects
                 try
                 {
                     Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
@@ -462,7 +441,6 @@ namespace BlockEnhancementMod.Blocks
                 }
                 catch { }
             }
-            rocket.OnExplode();
         }
 
         private void RocketRadarSearch()
@@ -522,7 +500,6 @@ namespace BlockEnhancementMod.Blocks
                             if (blockBehaviour.Team == rocket.Team)
                             {
                                 hitList.Remove(hit);
-                                ConsoleController.ShowMessage("Not in my team, removed");
                                 continue;
                             }
                         }
@@ -534,7 +511,6 @@ namespace BlockEnhancementMod.Blocks
                             if (blockBehaviour.ParentMachine.Name == rocket.ParentMachine.Name)
                             {
                                 hitList.Remove(hit);
-                                ConsoleController.ShowMessage("Not in my team, removed");
                                 continue;
                             }
                         }
