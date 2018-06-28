@@ -541,7 +541,7 @@ namespace BlockEnhancementMod.Blocks
         private int GetMostValuableBlock()
         {
             //Search for any blocks within the search radius for every block in the hitlist
-            int[] targetCount = new int[hitList.Count];
+            int[] targetValue = new int[hitList.Count];
             for (int i = 0; i < hitList.Count; i++)
             {
                 Collider[] hitsAroundBlock = Physics.OverlapSphere(hitList[i].transform.position, searchSurroundingBlockRadius);
@@ -558,11 +558,48 @@ namespace BlockEnhancementMod.Blocks
                     }
                     count++;
                 }
-                targetCount[i] = count;
+                targetValue[i] = count;
+                //Some blocks weights more than others
+                try
+                {
+                    if (targetObj.GetComponent<ExplodeOnCollideBlock>())
+                    {
+                        targetValue[i] *= 40;
+                        continue;
+                    }
+                }
+                catch { }
+                try
+                {
+                    if (targetObj.GetComponent<TimedRocket>().hasFired)
+                    {
+                        targetValue[i] *= 100;
+                        continue;
+                    }
+                }
+                catch { }
+                try
+                {
+                    if (targetObj.GetComponent<WaterCannonController>().isActive)
+                    {
+                        targetValue[i] *= 50;
+                        continue;
+                    }
+                }
+                catch { }
+                try
+                {
+                    if (targetObj.GetComponent<FlyingController>().canFly)
+                    {
+                        targetValue[i] *= 25;
+                        continue;
+                    }
+                }
+                catch { }
             }
 
             //Find the block that has the max number of blocks around it
-            return targetCount.ToList().IndexOf(targetCount.Max());
+            return targetValue.ToList().IndexOf(targetValue.Max());
         }
     }
 }
