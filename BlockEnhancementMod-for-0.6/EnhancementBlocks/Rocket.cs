@@ -38,10 +38,9 @@ namespace BlockEnhancementMod.Blocks
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
-        public string previousMachine;
         private Collider[] hitsIn;
         private Collider[] hitsOut;
-        private List<Collider> hitList;
+        private List<Collider> hitList = new List<Collider>();
         private GameObject targetObj;
         private BlockBehaviour blockBehaviour;
 
@@ -78,6 +77,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void SafeAwake()
         {
+            //Key mapper setup
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
@@ -213,7 +213,6 @@ namespace BlockEnhancementMod.Blocks
                 // Trying to read previously saved target
                 int targetIndex = -1;
                 BlockBehaviour targetBlock = new BlockBehaviour();
-                previousMachine = null;
                 // Read the target's buildIndex from the dictionary
                 if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
                 {
@@ -277,49 +276,57 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateLateUpdate()
+        protected override void OnSimulateFixedUpdate()
         {
             try
             {
                 if (guidedRocketActivated && rocket.hasFired && target != null)
                 {
+                    //Record the launch time for the guide delay
                     if (!fireTimeRecorded)
                     {
-                        ConsoleController.ShowMessage("Fire time recorded");
                         fireTimeRecorded = true;
                         fireTime = Time.time;
                     }
                     if (Time.time - fireTime >= guideDelay)
                     {
-                        // Calculating the rotating axis
-                        Vector3 positionDiff = target.position - transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                        bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
-                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                        try
                         {
-                            RocketExplode();
-                            return;
-                        }
-                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
-                        if (forward && angleDiff <= searchAngle)
-                        {
-                            transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
-                        }
-                        else
-                        {
-                            if (!activeGuideRocket)
+                            // Calculating the rotating axis
+                            Vector3 positionDiff = target.position - transform.position;
+                            float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                            bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
+                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+
+                            //Add torque to the rocket based on the angle difference
+                            //If in auto guide mode, the rocket will restart searching when target is out of sight
+                            //else, apply maximum torque to the rocket
+                            if (forward && angleDiff <= searchAngle)
                             {
-                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis);
+                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
                             }
                             else
                             {
-                                targetAquired = false;
+                                if (!activeGuideRocket)
+                                {
+                                    transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis);
+                                }
+                                else
+                                {
+                                    targetAquired = false;
+                                }
+                            }
+                            if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                            {
+                                RocketExplode();
+                                return;
                             }
                         }
+                        catch { }
                     }
                 }
             }
-            catch (Exception)
+            catch
             {
                 //Rocket will destroy itself upon explosion hence cause Null Reference Exception
             }
@@ -470,7 +477,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                     catch (Exception)
                     {
-                        hitList.Remove(hit);
+                        hitList.RemoveAt(i);
                         continue;
                     }
 
@@ -485,7 +492,7 @@ namespace BlockEnhancementMod.Blocks
 
                     if (!(forward && angleDiff < searchAngle))
                     {
-                        hitList.Remove(hit);
+                        hitList.RemoveAt(i);
                         continue;
                     }
 
@@ -499,7 +506,7 @@ namespace BlockEnhancementMod.Blocks
                             //and is the same as the rocket, remove it from the list
                             if (blockBehaviour.Team == rocket.Team)
                             {
-                                hitList.Remove(hit);
+                                hitList.RemoveAt(i);
                                 continue;
                             }
                         }
@@ -510,7 +517,7 @@ namespace BlockEnhancementMod.Blocks
                             //and the parentmachine name is the same as the rocket's parent machine
                             if (blockBehaviour.ParentMachine.Name == rocket.ParentMachine.Name)
                             {
-                                hitList.Remove(hit);
+                                hitList.RemoveAt(i);
                                 continue;
                             }
                         }
@@ -529,7 +536,6 @@ namespace BlockEnhancementMod.Blocks
                     //Take that block as the target
                     Collider collider = hitList[valueableBlockIndex];
                     target = collider.attachedRigidbody.gameObject.GetComponent<Transform>();
-                    previousMachine = collider.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().ParentMachine.Name;
                     targetAquired = true;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
