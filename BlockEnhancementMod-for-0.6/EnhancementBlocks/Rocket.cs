@@ -63,7 +63,7 @@ namespace BlockEnhancementMod.Blocks
         //High power explosion related setting
         MToggle HighExploToggle;
         public bool highExploActivated = false;
-        public bool hasExploded = false;
+        public bool bombHasExploded = false;
         public int levelBombCategory = 4;
         public int levelBombID = 5001;
         public float bombExplosiveCharge = 0;
@@ -194,7 +194,7 @@ namespace BlockEnhancementMod.Blocks
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopAllCoroutines();
             // Set high explo to false
-            hasExploded = false;
+            bombHasExploded = false;
             foreach (var slider in BB.Sliders)
             {
                 if (slider.Key == "charge")
@@ -312,7 +312,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     try { transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
                                     catch { }
-                                    
+
                                 }
                                 else
                                 {
@@ -377,17 +377,13 @@ namespace BlockEnhancementMod.Blocks
 
             if (!highExploActivated)
             {
-                try
-                {
-                    rocket.OnExplode();
-                }
-                catch { }
+                if (!rocket.hasExploded) rocket.OnExplode();
             }
             else
             {
-                if (!hasExploded && explosiveCharge != 0)
+                if (!bombHasExploded && explosiveCharge != 0)
                 {
-                    hasExploded = true;
+                    bombHasExploded = true;
                     //Generate a bomb from level editor and let it explode
                     try
                     {
@@ -412,7 +408,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 try
                                 {
-                                    if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().RocketExplode();
+                                    if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) continue;
                                 }
                                 catch { }
                                 try
@@ -463,6 +459,11 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().activeType = InjuryType.Fire;
                                     hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (!rocket.hasExploded) rocket.OnExplode();
                                 }
                                 catch { }
                             }
