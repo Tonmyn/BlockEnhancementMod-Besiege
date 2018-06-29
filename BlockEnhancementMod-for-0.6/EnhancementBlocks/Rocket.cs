@@ -31,18 +31,16 @@ namespace BlockEnhancementMod.Blocks
         MToggle ActiveGuideRocketToggle;
         MSlider ActiveGuideRocketSearchAngleSlider;
         public float searchAngle = 65;
-        public float searchRadius = 10000f;
-        public float safetyRadius = 5f;
-        public float searchSurroundingBlockRadius = 10f;
+        public float searchRadius = Mathf.Infinity;
+        public float safetyRadius = 15f;
+        public float searchSurroundingBlockRadius = 5f;
         public bool activeGuideRocket = false;
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
         private Collider[] hitsIn;
         private Collider[] hitsOut;
-        private List<Collider> hitList = new List<Collider>();
-        private GameObject targetObj;
-        private BlockBehaviour blockBehaviour;
+        private Collider[] hitList;
 
 
         //Record target related setting
@@ -157,7 +155,7 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
-            ActiveGuideRocketToggle.DisplayInMapper = value;
+            ActiveGuideRocketToggle.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && activeGuideRocket;
             RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -464,49 +462,40 @@ namespace BlockEnhancementMod.Blocks
             while (!targetAquired)
             {
                 hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
-                hitList = StatMaster._customLevelSimulating ? hitsOut.ToList<Collider>() : hitsOut.Except(hitsIn).ToList<Collider>();
-
-                for (int i = hitList.Count - 1; i > -1; i--)
+                hitList = StatMaster._customLevelSimulating ? hitsOut : hitsOut.Except(hitsIn).ToArray();
+                HashSet<Transform> transformSet = new HashSet<Transform>();
+                HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
+                foreach (var hit in hitList)
                 {
-                    Collider hit = hitList[i];
-                    //Make sure the hit is a block
-                    //if not, remove it from the list
                     try
                     {
                         int index = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                        transformSet.Add(hit.attachedRigidbody.gameObject.transform);
                     }
-                    catch (Exception)
-                    {
-                        hitList.RemoveAt(i);
-                        continue;
-                    }
-
-                    targetObj = hit.attachedRigidbody.gameObject;
-                    blockBehaviour = targetObj.GetComponent<BlockBehaviour>();
-
-                    //Make sure the hit block is within the search range
-                    //if not, remove it from the list
-                    Vector3 positionDiff = targetObj.transform.position - transform.position;
+                    catch { }
+                }
+                foreach (var targetTransform in transformSet)
+                {
+                    Vector3 positionDiff = targetTransform.position - transform.position;
                     bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
 
                     if (!(forward && angleDiff < searchAngle))
                     {
-                        hitList.RemoveAt(i);
+                        unwantedTransforms.Add(targetTransform);
                         continue;
                     }
 
-                    //Make sure the block is not in my team
-                    //if yes, remove it from the list
+                    BlockBehaviour targetBB = targetTransform.gameObject.GetComponent<BlockBehaviour>();
                     if (StatMaster._customLevelSimulating)
                     {
-                        if (blockBehaviour.Team != MPTeam.None)
+                        if (targetBB.Team != MPTeam.None)
                         {
                             //If the block belongs to a team that is not none
-                            //and is the same as the rocket, remove it from the list
-                            if (blockBehaviour.Team == rocket.Team)
+                            //and is the same as the rocket, remove it from the hashset
+                            if (targetBB.Team == rocket.Team)
                             {
-                                hitList.RemoveAt(i);
+                                unwantedTransforms.Add(targetTransform);
                                 continue;
                             }
                         }
@@ -515,27 +504,25 @@ namespace BlockEnhancementMod.Blocks
                             //If no team is assigned to a block
                             //only remove it when in multiverse
                             //and the parentmachine name is the same as the rocket's parent machine
-                            if (blockBehaviour.ParentMachine.Name == rocket.ParentMachine.Name)
+                            if (targetBB.ParentMachine.Name == rocket.ParentMachine.Name)
                             {
-                                hitList.RemoveAt(i);
+                                unwantedTransforms.Add(targetTransform);
                                 continue;
                             }
                         }
                     }
                 }
+                transformSet.ExceptWith(unwantedTransforms);
 
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
                 //when the hitlist is not empty
-                if (hitList.Count > 0)
+                if (transformSet.Count > 0)
                 {
                     //Search for any blocks within the search radius for every block in the hitlist
-                    //Find the block that has the max number of blocks around it
-                    int valueableBlockIndex = GetMostValuableBlock();
-
+                    //Find the block that has the max number of colliders around it
                     //Take that block as the target
-                    Collider collider = hitList[valueableBlockIndex];
-                    target = collider.attachedRigidbody.gameObject.GetComponent<Transform>();
+                    target = GetMostValuableBlock(transformSet);
                     targetAquired = true;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
@@ -544,68 +531,91 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private int GetMostValuableBlock()
+        private Transform GetMostValuableBlock(HashSet<Transform> transformSet)
         {
             //Search for any blocks within the search radius for every block in the hitlist
-            int[] targetValue = new int[hitList.Count];
-            for (int i = 0; i < hitList.Count; i++)
+            float[] targetValue = new float[transformSet.Count];
+            Transform[] transformArray = new Transform[transformSet.Count];
+            HashSet<Transform> tempTransform = new HashSet<Transform>();
+            List<Transform> maxTransform = new List<Transform>();
+
+            //Start searching
+            int i = 0;
+            foreach (var targetTransform in transformSet)
             {
-                Collider[] hitsAroundBlock = Physics.OverlapSphere(hitList[i].transform.position, searchSurroundingBlockRadius);
+                //Count how many colliders are around this particular collider
+                Collider[] hitsAroundBlock = Physics.OverlapSphere(targetTransform.position, searchSurroundingBlockRadius);
+                tempTransform.Clear();
                 int count = 0;
                 foreach (var hitBlock in hitsAroundBlock)
                 {
                     try
                     {
-                        int index = hitList[i].attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                        int index = hitBlock.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                        if (tempTransform.Add(hitBlock.attachedRigidbody.gameObject.transform))
+                        {
+                            count++;
+                        }
                     }
                     catch (Exception)
                     {
-                        continue;
                     }
-                    count++;
                 }
                 targetValue[i] = count;
+                transformArray[i] = targetTransform;
+
                 //Some blocks weights more than others
-                try
+                GameObject targetObj = targetTransform.gameObject;
+                //A bomb
+                if (targetObj.GetComponent<ExplodeOnCollideBlock>())
                 {
-                    if (targetObj.GetComponent<ExplodeOnCollideBlock>())
-                    {
-                        targetValue[i] *= 40;
-                        continue;
-                    }
+                    targetValue[i] = targetValue[i] * 70;
                 }
-                catch { }
-                try
+                //A fired rocket
+                if (targetObj.GetComponent<TimedRocket>())
                 {
                     if (targetObj.GetComponent<TimedRocket>().hasFired)
                     {
-                        targetValue[i] *= 100;
-                        continue;
+                        targetValue[i] = targetValue[i] * 150;
                     }
+
                 }
-                catch { }
-                try
+                //A fired watercannon
+                if (targetObj.GetComponent<WaterCannonController>())
                 {
                     if (targetObj.GetComponent<WaterCannonController>().isActive)
                     {
-                        targetValue[i] *= 50;
-                        continue;
+                        targetValue[i] = targetValue[i] * 50;
                     }
                 }
-                catch { }
-                try
+                //A flying flying-block
+                if (targetObj.GetComponent<FlyingController>())
                 {
                     if (targetObj.GetComponent<FlyingController>().canFly)
                     {
-                        targetValue[i] *= 25;
-                        continue;
+                        targetValue[i] = targetValue[i] * 20;
                     }
                 }
-                catch { }
+                i++;
             }
-
             //Find the block that has the max number of blocks around it
-            return targetValue.ToList().IndexOf(targetValue.Max());
+            //If there are multiple withh the same highest value, randomly return one of them
+            float max = targetValue[0];
+            for (i = 1; i < targetValue.Length; i++)
+            {
+                if (targetValue[i] > max)
+                {
+                    max = targetValue[i];
+                }
+            }
+            for (int j = 0; j < targetValue.Length; j++)
+            {
+                if (targetValue[j] == max)
+                {
+                    maxTransform.Add(transformArray[j]);
+                }
+            }
+            return maxTransform[Mathf.FloorToInt(UnityEngine.Random.value * (maxTransform.Count - 0.1f))];
         }
     }
 }
