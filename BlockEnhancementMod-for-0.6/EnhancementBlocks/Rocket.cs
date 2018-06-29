@@ -303,13 +303,16 @@ namespace BlockEnhancementMod.Blocks
                             //else, apply maximum torque to the rocket
                             if (forward && angleDiff <= searchAngle)
                             {
-                                transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis);
+                                try { transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis); }
+                                catch { }
                             }
                             else
                             {
                                 if (!activeGuideRocket)
                                 {
-                                    transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis);
+                                    try { transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                                    catch { }
+                                    
                                 }
                                 else
                                 {
@@ -318,7 +321,7 @@ namespace BlockEnhancementMod.Blocks
                             }
                             if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                             {
-                                
+
                                 RocketExplode();
                             }
                         }
@@ -398,7 +401,7 @@ namespace BlockEnhancementMod.Blocks
                         bombControl.Explodey();
                     }
                     catch { }
-                    
+
                     //Add explode and ignition effects to the affected objects
                     try
                     {
@@ -412,10 +415,15 @@ namespace BlockEnhancementMod.Blocks
                                     if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) continue;
                                 }
                                 catch { }
-                                hit.attachedRigidbody.WakeUp();
-                                hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
-                                hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
+                                try
+                                {
+                                    hit.attachedRigidbody.WakeUp();
+                                    hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
+                                    hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                                    hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
+                                }
+                                catch { }
+
                                 try
                                 {
                                     hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
