@@ -192,7 +192,7 @@ namespace BlockEnhancementMod.Blocks
             targetHit = false;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
-            StopCoroutine(SearchForTarget());
+            StopAllCoroutines();
             // Set high explo to false
             hasExploded = false;
             foreach (var slider in BB.Sliders)
