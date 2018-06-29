@@ -242,7 +242,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 //try sphercastall
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                float manualSearchRadius = 5;
+                float manualSearchRadius = 1.5f;
                 RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
                 Physics.Raycast(ray, out RaycastHit rayHit);
                 for (int i = 0; i < hits.Length; i++)
@@ -412,7 +412,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 try
                                 {
-                                    if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) continue;
+                                    if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().RocketExplode();
                                 }
                                 catch { }
                                 try
@@ -465,7 +465,6 @@ namespace BlockEnhancementMod.Blocks
                                     hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
                                 }
                                 catch { }
-                                rocket.OnExplode();
                             }
                         }
                     }
