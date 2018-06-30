@@ -58,6 +58,7 @@ namespace BlockEnhancementMod.Blocks
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
+        public bool canTrigger = false;
         public float guideDelay = 0f;
 
         //High power explosion related setting
@@ -186,10 +187,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
             // Initialisation for simulation
-            fireTimeRecorded = false;
-            targetAquired = false;
-            searchStarted = false;
-            targetHit = false;
+            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = false;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopAllCoroutines();
@@ -290,10 +288,19 @@ namespace BlockEnhancementMod.Blocks
                     }
                     if (Time.time - fireTime >= guideDelay)
                     {
+                        if (!canTrigger)
+                        {
+                            canTrigger = true;
+                        }
                         try
                         {
                             // Calculating the rotating axis
-                            Vector3 positionDiff = target.position - transform.position;
+                            Vector3 velocity = Vector3.zero;
+                            if (target.GetComponent<Rigidbody>())
+                            {
+                                velocity = target.GetComponent<Rigidbody>().velocity;
+                            }
+                            Vector3 positionDiff = target.position + velocity * Time.deltaTime - transform.position;
                             float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                             bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                             Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -338,14 +345,14 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionEnter(Collision collision)
         {
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && (Time.time - fireTime >= guideDelay))
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
             }
         }
         void OnCollisionStay(Collision collision)
         {
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && (Time.time - fireTime >= guideDelay))
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
             }
@@ -489,7 +496,7 @@ namespace BlockEnhancementMod.Blocks
             //Grab every machine block at the start of search
             hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
             HashSet<Transform> transformSet = new HashSet<Transform>();
-            HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
+
             if (StatMaster._customLevelSimulating)
             {
                 hitList = hitsOut;
@@ -512,6 +519,7 @@ namespace BlockEnhancementMod.Blocks
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit)
             {
+                HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
                     Vector3 positionDiff = targetTransform.position - transform.position;
