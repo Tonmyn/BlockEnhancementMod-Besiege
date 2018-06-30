@@ -31,6 +31,7 @@ namespace BlockEnhancementMod.Blocks
         //Active guide related setting
         MToggle ActiveGuideRocketToggle;
         MSlider ActiveGuideRocketSearchAngleSlider;
+        MKey LaunchKey;
         public float searchAngle = 65;
         public float searchRadius = Mathf.Infinity;
         public float safetyRadius = 15f;
@@ -206,6 +207,13 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
+            foreach (var key in BB.Keys)
+            {
+                if (key.Key == "launch")
+                {
+                    LaunchKey = key;
+                }
+            }
             if (recordTarget && !activeGuideRocket)
             {
                 // Trying to read previously saved target
@@ -232,6 +240,10 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
+            if (guidedRocketActivated && activeGuideRocket && rocket.hasFired && LaunchKey.IsPressed)
+            {
+                targetAquired = false;
+            }
             if (guidedRocketActivated && activeGuideRocket && !targetAquired && rocket.hasFired)
             {
                 RocketRadarSearch();
@@ -300,7 +312,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 velocity = target.GetComponent<Rigidbody>().velocity;
                             }
-                            Vector3 positionDiff = target.position + velocity * Time.deltaTime - transform.position;
+                            Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - transform.position;
                             float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                             bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                             Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
