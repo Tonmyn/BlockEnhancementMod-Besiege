@@ -29,9 +29,10 @@ namespace BlockEnhancementMod.Blocks
         public float torque = 100f;
 
         //Active guide related setting
-        MToggle ActiveGuideRocketToggle;
         MSlider ActiveGuideRocketSearchAngleSlider;
+        MKey ActiveGuideRocketKey;
         MKey LaunchKey;
+        public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 65;
         public float searchRadius = Mathf.Infinity;
         public float safetyRadius = 15f;
@@ -82,7 +83,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketToggle.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketKey.DisplayInMapper = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
@@ -111,15 +112,6 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketToggle = AddToggle("主动搜索", "ActiveSearch", activeGuideRocket);
-            ActiveGuideRocketToggle.Toggled += (bool value) =>
-            {
-                activeGuideRocket = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value;
-                LockTargetKey.DisplayInMapper = RecordTargetToggle.DisplayInMapper = !value;
-                ChangedProperties();
-            };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { activeGuideRocket = ActiveGuideRocketToggle.IsActive; };
-
             ActiveGuideRocketSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
@@ -143,6 +135,9 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
+            ActiveGuideRocketKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
+            ActiveGuideRocketKey.InvokeKeysChanged();
+
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
             selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
@@ -158,15 +153,15 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
-            ActiveGuideRocketToggle.DisplayInMapper = value && guidedRocketActivated;
-            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && activeGuideRocket;
-            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
+            ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
+            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
+            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
-            LockTargetKey.DisplayInMapper = value && guidedRocketActivated && !activeGuideRocket;
+            LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
@@ -188,7 +183,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
             // Initialisation for simulation
-            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = false;
+            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = activeGuideRocket = false;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopAllCoroutines();
@@ -240,6 +235,10 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
+            if (guidedRocketActivated && ActiveGuideRocketKey.IsReleased)
+            {
+                activeGuideRocket = !activeGuideRocket;
+            }
             if (guidedRocketActivated && activeGuideRocket && rocket.hasFired && LaunchKey.IsPressed)
             {
                 targetAquired = false;
@@ -308,10 +307,14 @@ namespace BlockEnhancementMod.Blocks
                         {
                             // Calculating the rotating axis
                             Vector3 velocity = Vector3.zero;
-                            if (target.GetComponent<Rigidbody>())
+                            try
                             {
-                                velocity = target.GetComponent<Rigidbody>().velocity;
+                                if (target.GetComponent<Rigidbody>())
+                                {
+                                    velocity = target.GetComponent<Rigidbody>().velocity;
+                                }
                             }
+                            catch { }
                             Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - transform.position;
                             float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                             bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
