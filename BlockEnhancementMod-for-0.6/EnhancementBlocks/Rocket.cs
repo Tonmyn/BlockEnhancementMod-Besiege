@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
         public float searchRadius = Mathf.Infinity;
         public float safetyRadius = 15f;
         public float searchSurroundingBlockRadius = 5f;
-        public bool activeGuideRocket = false;
+        public bool activeGuideRocket = true;
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
@@ -183,7 +183,8 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
             // Initialisation for simulation
-            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = activeGuideRocket = false;
+            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = false;
+            activeGuideRocket = true;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopAllCoroutines();
