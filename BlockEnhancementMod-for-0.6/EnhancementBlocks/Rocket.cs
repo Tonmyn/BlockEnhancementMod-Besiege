@@ -235,11 +235,13 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
+            //When toggle auto aim key is released, change the auto aim status
             if (guidedRocketActivated && ActiveGuideRocketKey.IsReleased)
             {
                 activeGuideRocket = !activeGuideRocket;
             }
-            if (guidedRocketActivated && activeGuideRocket && rocket.hasFired && LaunchKey.IsPressed)
+            //When launch key is released, reset target search
+            if (guidedRocketActivated && activeGuideRocket && rocket.hasFired && LaunchKey.IsReleased)
             {
                 targetAquired = false;
             }
@@ -249,9 +251,9 @@ namespace BlockEnhancementMod.Blocks
             }
             if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
             {
-                //try sphercastall
+                //Find targets in the manual search mode by casting a sphere along the ray
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                float manualSearchRadius = 1.5f;
+                float manualSearchRadius = 2f;
                 RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
                 Physics.Raycast(ray, out RaycastHit rayHit);
                 for (int i = 0; i < hits.Length; i++)
@@ -343,7 +345,6 @@ namespace BlockEnhancementMod.Blocks
                             }
                             if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                             {
-
                                 RocketExplode();
                             }
                         }
@@ -360,6 +361,7 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionEnter(Collision collision)
         {
+            //Rocket will explode upon collision when time delay has elapsed
             if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
