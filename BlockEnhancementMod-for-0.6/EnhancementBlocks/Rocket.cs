@@ -14,6 +14,7 @@ namespace BlockEnhancementMod.Blocks
         MKey LockTargetKey;
         public Transform target;
         public TimedRocket rocket;
+        public Rigidbody rocketRigidbody;
         public int selfIndex;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
@@ -140,6 +141,7 @@ namespace BlockEnhancementMod.Blocks
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
+            rocketRigidbody = gameObject.GetComponent<Rigidbody>();
             selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
 
 
@@ -288,7 +290,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateLateUpdate()
+        protected override void OnSimulateFixedUpdate()
         {
             try
             {
@@ -300,6 +302,10 @@ namespace BlockEnhancementMod.Blocks
                         fireTimeRecorded = true;
                         fireTime = Time.time;
                     }
+                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
+                    {
+                        RocketExplode();
+                    }
                     if (Time.time - fireTime >= guideDelay)
                     {
                         if (!canTrigger)
@@ -308,17 +314,59 @@ namespace BlockEnhancementMod.Blocks
                         }
                         try
                         {
+                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                            {
+                                ConsoleController.ShowMessage("Target rocket exploded");
+                                target = null;
+                                targetAquired = false;
+                                return;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                            {
+                                ConsoleController.ShowMessage("Target bomb exploded");
+                                target = null;
+                                targetAquired = false;
+                                return;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                            {
+                                ConsoleController.ShowMessage("Target level bomb exploded");
+                                target = null;
+                                targetAquired = false;
+                                return;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                            {
+                                ConsoleController.ShowMessage("Target grenade exploded");
+                                target = null;
+                                targetAquired = false;
+                                return;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
                             // Calculating the rotating axis
                             Vector3 velocity = Vector3.zero;
                             try
                             {
-                                if (target.GetComponent<Rigidbody>())
-                                {
-                                    velocity = target.GetComponent<Rigidbody>().velocity;
-                                }
+                                velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
                             }
                             catch { }
-                            Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - transform.position;
+                            //Add position prediction
+                            Vector3 positionDiff = target.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + velocity * Time.fixedDeltaTime * 10 - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
                             float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                             bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                             Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -328,16 +376,15 @@ namespace BlockEnhancementMod.Blocks
                             //else, apply maximum torque to the rocket
                             if (forward && angleDiff <= searchAngle)
                             {
-                                try { transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((Mathf.Exp(angleDiff / 90f) - 1) / e) * rotatingAxis); }
+                                try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((-Mathf.Pow(angleDiff / 90f - 1f, 2) + 1)) * rotatingAxis); }
                                 catch { }
                             }
                             else
                             {
                                 if (!activeGuideRocket)
                                 {
-                                    try { transform.GetComponent<Rigidbody>().AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                                    try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
                                     catch { }
-
                                 }
                                 else
                                 {
@@ -363,6 +410,14 @@ namespace BlockEnhancementMod.Blocks
         void OnCollisionEnter(Collision collision)
         {
             //Rocket will explode upon collision when time delay has elapsed
+            try
+            {
+                if (collision.gameObject.name.Contains("CanonBall"))
+                {
+                    RocketExplode();
+                }
+            }
+            catch { }
             if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
@@ -486,15 +541,14 @@ namespace BlockEnhancementMod.Blocks
                                     hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
                                 }
                                 catch { }
-                                try
-                                {
-                                    if (!rocket.hasExploded) rocket.OnExplode();
-                                }
-                                catch { }
                             }
                         }
                     }
                     catch { }
+                    if (!rocket.hasExploded)
+                    {
+                        rocket.OnExplode();
+                    }
                 }
 
             }
@@ -540,7 +594,7 @@ namespace BlockEnhancementMod.Blocks
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
-                    Vector3 positionDiff = targetTransform.position - transform.position;
+                    Vector3 positionDiff = targetTransform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
                     bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
 
@@ -672,14 +726,23 @@ namespace BlockEnhancementMod.Blocks
                     max = targetValue[i];
                 }
             }
-            for (int j = 0; j < targetValue.Length; j++)
+            for (i = 0; i < targetValue.Length; i++)
             {
-                if (targetValue[j] == max)
+                if (targetValue[i] == max)
                 {
-                    maxTransform.Add(transformArray[j]);
+                    maxTransform.Add(transformArray[i]);
                 }
             }
-            return maxTransform[Mathf.FloorToInt(UnityEngine.Random.value * (maxTransform.Count - 0.1f))];
+            int closestIndex = 0;
+            float distance = (maxTransform[0].position - rocket.transform.position).magnitude;
+            for (i = 1; i < maxTransform.Count; i++)
+            {
+                if ((maxTransform[i].gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 10 - rocket.transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds).magnitude < distance)
+                {
+                    closestIndex = i;
+                }
+            }
+            return maxTransform[closestIndex];
         }
     }
 }
