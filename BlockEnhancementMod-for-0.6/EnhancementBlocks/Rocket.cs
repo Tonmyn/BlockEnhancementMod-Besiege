@@ -15,6 +15,7 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
+        public BlockBehaviour rocketBB;
         public int selfIndex;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
@@ -35,7 +36,7 @@ namespace BlockEnhancementMod.Blocks
         MKey LaunchKey;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 65;
-        public float searchRadius = Mathf.Infinity;
+        public float searchRadius = Camera.main.farClipPlane;
         public float safetyRadius = 15f;
         public float searchSurroundingBlockRadius = 5f;
         public bool activeGuideRocket = true;
@@ -140,9 +141,23 @@ namespace BlockEnhancementMod.Blocks
             ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
-            rocket = gameObject.GetComponent<TimedRocket>();
-            rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-            selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
+            if (StatMaster.isClient)
+            {
+                Machine machine = gameObject.GetComponent<BlockBehaviour>().ParentMachine;
+                ServerMachine serverMachine = machine.GetComponent<ServerMachine>();
+                //futre proof with new modloader
+                serverMachine.GetBlockFromIndex(transform.GetComponent<BlockBehaviour>().BuildIndex, out rocketBB);
+                rocket = rocketBB.gameObject.GetComponent<TimedRocket>();
+                rocketRigidbody = rocketBB.Rigidbody;
+                selfIndex = rocketBB.BuildIndex;
+            }
+            else
+            {
+                rocket = gameObject.GetComponent<TimedRocket>();
+                rocketRigidbody = gameObject.GetComponent<Rigidbody>();
+                selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
+            }
+
 
 
 #if DEBUG
