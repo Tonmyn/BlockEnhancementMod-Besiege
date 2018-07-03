@@ -313,8 +313,11 @@ namespace BlockEnhancementMod.Blocks
             {
                 //if (guidedRocketActivated && rocket.hasFired)
                 //{
-                //    rocketRigidbody.AddRelativeTorque(transform.right * rocketRigidbody.velocity.magnitude * 0.1f);
-                //    rocketRigidbody.AddRelativeTorque(transform.up * rocketRigidbody.velocity.magnitude * 0.1f);
+                //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+                //    Vector3 dir = new Vector3(-1, -1, 0);
+                //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+                //    float currentVelocitySqr = Mathf.Min(velocitySqr, 100f);
+                //    rocketRigidbody.AddRelativeTorque(Vector3.Scale(locVel, dir) * currentVelocitySqr * 0.00001f);
                 //}
                 if (guidedRocketActivated && rocket.hasFired && target != null)
                 {
