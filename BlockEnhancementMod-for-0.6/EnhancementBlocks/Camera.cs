@@ -8,6 +8,7 @@ namespace BlockEnhancementMod.Blocks
     class CameraScript : EnhancementBlock
     {
         //General setting
+        BlockBehaviour cameraBB;
         MToggle CameraLookAtToggle;
         public bool cameraLookAtToggled = false;
         public int selfIndex;
@@ -56,14 +57,12 @@ namespace BlockEnhancementMod.Blocks
             ResetViewKey.InvokeKeysChanged();
 
             // Get the actual camera's transform, not the joint's transform
+            gameObject.AddComponent<SmoothLookAt>();
+            cameraBB = GetComponent<BlockBehaviour>();
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
-            if (!realCameraTransform.gameObject.GetComponent<SmoothLookAt>())
-            {
-                realCameraTransform.gameObject.AddComponent<SmoothLookAt>();
-            }
             defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
-            selfIndex = GetComponent<BlockBehaviour>().BuildIndex;
+            selfIndex = cameraBB.BuildIndex;
 
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
@@ -98,6 +97,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            Machine.Active().GetSimBlock(cameraBB);
             if (recordTarget)
             {
                 // Trying to read previously saved target
@@ -125,7 +125,7 @@ namespace BlockEnhancementMod.Blocks
             realCameraTransform.GetComponent<SmoothLookAt>().damping = rotateSpeed;
             if (resetView)
             {
-                realCameraTransform.GetComponent<SmoothLookAt>().target = null;
+                realCameraTransform.GetComponent<SmoothLookAt>().target = realCameraTransform;
             }
             else
             {
@@ -138,28 +138,16 @@ namespace BlockEnhancementMod.Blocks
             if (cameraLookAtToggled && ResetViewKey.IsReleased)
             {
                 resetView = !resetView;
-                if (resetView)
-                {
-                    realCameraTransform.GetComponent<SmoothLookAt>().target = null;
-                }
-                else
-                {
-                    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
-                }
-                if (viewAlreadyReset)
-                {
-                    viewAlreadyReset = !viewAlreadyReset;
-                }
+
             }
             if (cameraLookAtToggled && LockTargetKey.IsReleased)
             {
                 // Aquire the target to look at
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                resetView = false;
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
                     target = hit.transform;
-
+                    resetView = false;
                     if (recordTarget)
                     {
                         // Trying to save target's buildIndex to the dictionary
@@ -184,13 +172,28 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateLateUpdate()
         {
-            if (cameraLookAtToggled && resetView && !viewAlreadyReset)
+            if (cameraLookAtToggled)
             {
-                realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
-                if (realCameraTransform.rotation == defaultRotation)
-                {
-                    viewAlreadyReset = true;
-                }
+                //if (resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != realCameraTransform)
+                //{
+                //    realCameraTransform.GetComponent<SmoothLookAt>().target = realCameraTransform;
+                //}
+                //if (!resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != target)
+                //{
+                //    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
+                //}
+                //if (resetView && !viewAlreadyReset)
+                //{
+                //    realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
+                //    if (realCameraTransform.rotation == defaultRotation)
+                //    {
+                //        viewAlreadyReset = true;
+                //    }
+                //}
+                //if (!resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != target)
+                //{
+                //    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
+                //}
             }
         }
 
