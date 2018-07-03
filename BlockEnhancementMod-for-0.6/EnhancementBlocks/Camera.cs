@@ -57,7 +57,10 @@ namespace BlockEnhancementMod.Blocks
 
             // Get the actual camera's transform, not the joint's transform
             realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
-            realCameraTransform.gameObject.AddComponent<SmoothLookAt>();
+            if (!realCameraTransform.gameObject.GetComponent<SmoothLookAt>())
+            {
+                realCameraTransform.gameObject.AddComponent<SmoothLookAt>();
+            }
             defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
             selfIndex = GetComponent<BlockBehaviour>().BuildIndex;

@@ -311,6 +311,11 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
+                //if (guidedRocketActivated && rocket.hasFired)
+                //{
+                //    rocketRigidbody.AddRelativeTorque(transform.right * rocketRigidbody.velocity.magnitude * 0.1f);
+                //    rocketRigidbody.AddRelativeTorque(transform.up * rocketRigidbody.velocity.magnitude * 0.1f);
+                //}
                 if (guidedRocketActivated && rocket.hasFired && target != null)
                 {
                     //Record the launch time for the guide delay
