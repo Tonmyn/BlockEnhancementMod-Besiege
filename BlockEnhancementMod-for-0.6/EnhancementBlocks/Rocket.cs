@@ -27,6 +27,8 @@ namespace BlockEnhancementMod.Blocks
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
+        MSlider GuidedRocketStabilitySlider;
+        public float guidedRocketStabilityLevel = 2f;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
 
@@ -85,7 +87,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketKey.DisplayInMapper = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = GuideDelaySlider.DisplayInMapper = value;
+                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketKey.DisplayInMapper = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = GuideDelaySlider.DisplayInMapper = GuidedRocketStabilitySlider.DisplayInMapper = value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
@@ -129,6 +131,10 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 100, true);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
+
+            GuidedRocketStabilitySlider = AddSlider("火箭稳定性", "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
+            GuidedRocketStabilitySlider.ValueChanged += (float value) => { guidedRocketStabilityLevel = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityLevel = GuidedRocketStabilitySlider.Value; };
 
             GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
@@ -174,6 +180,7 @@ namespace BlockEnhancementMod.Blocks
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
+            GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
@@ -769,7 +776,7 @@ namespace BlockEnhancementMod.Blocks
         private void AddResistancePerpendicularToRocketVelocity()
         {
             Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.2f, 0f, 0.2f);
+            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
