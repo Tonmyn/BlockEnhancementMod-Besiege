@@ -36,7 +36,7 @@ namespace BlockEnhancementMod.Blocks
         MKey LaunchKey;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 65;
-        public float searchRadius = Camera.main.farClipPlane;
+        public float searchRadius = 0;
         public float safetyRadius = 15f;
         public float searchSurroundingBlockRadius = 5f;
         public bool activeGuideRocket = true;
@@ -200,13 +200,14 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
             // Initialisation for simulation
-            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = false;
+            searchRadius = Camera.main.farClipPlane;
+            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
             activeGuideRocket = true;
             target = null;
             hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
             StopAllCoroutines();
-            // Set high explo to false
-            bombHasExploded = false;
+
+            // Read the charge from rocket
             foreach (var slider in BB.Sliders)
             {
                 if (slider.Key == "charge")
@@ -220,6 +221,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
+            // Get the launch key from rocket
             foreach (var key in BB.Keys)
             {
                 if (key.Key == "launch")
