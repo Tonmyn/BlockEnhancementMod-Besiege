@@ -311,117 +311,113 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
-                //if (guidedRocketActivated && rocket.hasFired)
-                //{
-                //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-                //    Vector3 dir = new Vector3(-1, -1, 0);
-                //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-                //    float currentVelocitySqr = Mathf.Min(velocitySqr, 100f);
-                //    rocketRigidbody.AddRelativeTorque(Vector3.Scale(locVel, dir) * currentVelocitySqr * 0.00001f);
-                //}
-                if (guidedRocketActivated && rocket.hasFired && target != null)
+                if (guidedRocketActivated && rocket.hasFired)
                 {
-                    //Record the launch time for the guide delay
-                    if (!fireTimeRecorded)
+                    AddResistancePerpendicularToRocketVelocity();
+                    if (target != null)
                     {
-                        fireTimeRecorded = true;
-                        fireTime = Time.time;
-                    }
-                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
-                    {
-                        RocketExplode();
-                    }
-                    if (Time.time - fireTime >= guideDelay)
-                    {
-                        if (!canTrigger)
+                        //Record the launch time for the guide delay
+                        if (!fireTimeRecorded)
                         {
-                            canTrigger = true;
+                            fireTimeRecorded = true;
+                            fireTime = Time.time;
                         }
-                        try
+                        if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
                         {
-                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                            RocketExplode();
+                        }
+                        if (Time.time - fireTime >= guideDelay)
+                        {
+                            if (!canTrigger)
                             {
-                                ConsoleController.ShowMessage("Target rocket exploded");
-                                target = null;
-                                targetAquired = false;
-                                return;
+                                canTrigger = true;
                             }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                            {
-                                ConsoleController.ShowMessage("Target bomb exploded");
-                                target = null;
-                                targetAquired = false;
-                                return;
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
-                            {
-                                ConsoleController.ShowMessage("Target level bomb exploded");
-                                target = null;
-                                targetAquired = false;
-                                return;
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                            {
-                                ConsoleController.ShowMessage("Target grenade exploded");
-                                target = null;
-                                targetAquired = false;
-                                return;
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            // Calculating the rotating axis
-                            Vector3 velocity = Vector3.zero;
                             try
                             {
-                                velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
+                                if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                {
+                                    ConsoleController.ShowMessage("Target rocket exploded");
+                                    target = null;
+                                    targetAquired = false;
+                                    return;
+                                }
                             }
                             catch { }
-                            //Add position prediction
-                            Vector3 positionDiff = target.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + velocity * Time.fixedDeltaTime * 10 - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
-                            float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                            bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
-                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
-
-                            //Add torque to the rocket based on the angle difference
-                            //If in auto guide mode, the rocket will restart searching when target is out of sight
-                            //else, apply maximum torque to the rocket
-                            if (forward && angleDiff <= searchAngle)
+                            try
                             {
-                                try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((-Mathf.Pow(angleDiff / 90f - 1f, 2) + 1)) * rotatingAxis); }
-                                catch { }
-                            }
-                            else
-                            {
-                                if (!activeGuideRocket)
+                                if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                                 {
-                                    try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                                    ConsoleController.ShowMessage("Target bomb exploded");
+                                    target = null;
+                                    targetAquired = false;
+                                    return;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                {
+                                    ConsoleController.ShowMessage("Target level bomb exploded");
+                                    target = null;
+                                    targetAquired = false;
+                                    return;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                {
+                                    ConsoleController.ShowMessage("Target grenade exploded");
+                                    target = null;
+                                    targetAquired = false;
+                                    return;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                // Calculating the rotating axis
+                                Vector3 velocity = Vector3.zero;
+                                try
+                                {
+                                    velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
+                                }
+                                catch { }
+                                //Add position prediction
+                                Vector3 positionDiff = target.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + velocity * Time.fixedDeltaTime * 10 - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
+                                float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                                bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
+                                Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+
+                                //Add torque to the rocket based on the angle difference
+                                //If in auto guide mode, the rocket will restart searching when target is out of sight
+                                //else, apply maximum torque to the rocket
+                                if (forward && angleDiff <= searchAngle)
+                                {
+                                    try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((-Mathf.Pow(angleDiff / 90f - 1f, 2) + 1)) * rotatingAxis); }
                                     catch { }
                                 }
                                 else
                                 {
-                                    targetAquired = false;
+                                    if (!activeGuideRocket)
+                                    {
+                                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                                        catch { }
+                                    }
+                                    else
+                                    {
+                                        targetAquired = false;
+                                    }
+                                }
+                                if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                                {
+                                    RocketExplode();
                                 }
                             }
-                            if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
-                            {
-                                RocketExplode();
-                            }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
             }
@@ -768,6 +764,15 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             return maxTransform[closestIndex];
+        }
+
+        private void AddResistancePerpendicularToRocketVelocity()
+        {
+            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+            Vector3 dir = new Vector3(0.2f, 0f, 0.2f);
+            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
         }
     }
 }
