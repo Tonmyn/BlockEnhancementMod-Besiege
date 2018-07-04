@@ -41,7 +41,7 @@ namespace BlockEnhancementMod.Blocks
         public float searchRadius = 0;
         public float safetyRadius = 15f;
         public float searchSurroundingBlockRadius = 5f;
-        public bool activeGuideRocket = true;
+        public bool activeGuide = true;
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
@@ -206,102 +206,97 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            // Initialisation for simulation
-            searchRadius = Camera.main.farClipPlane;
-            fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
-            activeGuideRocket = true;
-            target = null;
-            hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
-            StopAllCoroutines();
-
-            // Read the charge from rocket
-            foreach (var slider in BB.Sliders)
+            if (guidedRocketActivated)
             {
-                if (slider.Key == "charge")
-                {
-                    explosiveCharge = slider.Value;
+                // Initialisation for simulation
+                searchRadius = Camera.main.farClipPlane;
+                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
+                activeGuide = true;
+                target = null;
+                hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
+                StopAllCoroutines();
 
-                    // Make sure the high explo mode is not too imba
-                    if (highExploActivated)
+                // Read the charge from rocket
+                foreach (var slider in BB.Sliders)
+                {
+                    if (slider.Key == "charge")
                     {
-                        bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
+                        explosiveCharge = slider.Value;
+
+                        // Make sure the high explo mode is not too imba
+                        if (highExploActivated)
+                        {
+                            bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
+                        }
                     }
                 }
-            }
-            // Get the launch key from rocket
-            foreach (var key in BB.Keys)
-            {
-                if (key.Key == "launch")
+                // Get the launch key from rocket
+                foreach (var key in BB.Keys)
                 {
-                    LaunchKey = key;
+                    if (key.Key == "launch")
+                    {
+                        LaunchKey = key;
+                    }
                 }
-            }
-            if (recordTarget && !activeGuideRocket)
-            {
-                // Trying to read previously saved target
-                int targetIndex = -1;
-                BlockBehaviour targetBlock = new BlockBehaviour();
-                // Read the target's buildIndex from the dictionary
-                if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                if (recordTarget && !activeGuide)
                 {
-                    target = null;
-                    return;
-                }
-                // Aquire target block's transform from the target's index
-                try
-                {
-                    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                    target = Machine.Active().GetSimBlock(targetBlock).transform;
-                }
-                catch (Exception)
-                {
-                    ConsoleController.ShowMessage("Cannot get target block's transform");
+                    // Trying to read previously saved target
+                    int targetIndex = -1;
+                    BlockBehaviour targetBlock = new BlockBehaviour();
+                    // Read the target's buildIndex from the dictionary
+                    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                    {
+                        target = null;
+                        return;
+                    }
+                    // Aquire target block's transform from the target's index
+                    try
+                    {
+                        Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                        target = Machine.Active().GetSimBlock(targetBlock).transform;
+                    }
+                    catch (Exception)
+                    {
+                        ConsoleController.ShowMessage("Cannot get target block's transform");
+                    }
                 }
             }
         }
 
         protected override void OnSimulateUpdate()
         {
-            //When toggle auto aim key is released, change the auto aim status
-            if (guidedRocketActivated && ActiveGuideRocketKey.IsReleased)
+            if (guidedRocketActivated)
             {
-                activeGuideRocket = !activeGuideRocket;
-            }
-            //When launch key is released, reset target search
-            if (guidedRocketActivated && activeGuideRocket && rocket.hasFired && LaunchKey.IsReleased)
-            {
-                targetAquired = false;
-            }
-            if (guidedRocketActivated && activeGuideRocket && !targetAquired && rocket.hasFired)
-            {
-                RocketRadarSearch();
-            }
-            if (guidedRocketActivated && !activeGuideRocket && LockTargetKey.IsReleased)
-            {
-                //Find targets in the manual search mode by casting a sphere along the ray
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                float manualSearchRadius = 2f;
-                RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
-                Physics.Raycast(ray, out RaycastHit rayHit);
-                for (int i = 0; i < hits.Length; i++)
+                //When toggle auto aim key is released, change the auto aim status
+                if (ActiveGuideRocketKey.IsReleased)
                 {
-                    try
+                    activeGuide = !activeGuide;
+                }
+                //When launch key is released, reset target search
+                if (activeGuide && rocket.hasFired)
+                {
+                    if (LaunchKey.IsReleased)
                     {
-                        int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                        target = hits[i].transform;
-                        if (recordTarget)
-                        {
-                            SaveTargetToDict(index);
-                        }
-                        break;
+                        targetAquired = false;
                     }
-                    catch { }
-                    if (i == hits.Length - 1)
+                    if (!targetAquired)
                     {
-                        target = rayHit.transform;
+                        RocketRadarSearch();
+                    }
+                }
+                if (!activeGuide && LockTargetKey.IsReleased)
+                {
+                    //Find targets in the manual search mode by casting a sphere along the ray
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    float manualSearchRadius = 2f;
+                    RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
+                    Physics.Raycast(ray, out RaycastHit rayHit);
+                    for (int i = 0; i < hits.Length; i++)
+                    {
                         try
                         {
-                            int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                            int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                            target = hits[i].transform;
                             if (recordTarget)
                             {
                                 SaveTargetToDict(index);
@@ -309,6 +304,20 @@ namespace BlockEnhancementMod.Blocks
                             break;
                         }
                         catch { }
+                        if (i == hits.Length - 1)
+                        {
+                            target = rayHit.transform;
+                            try
+                            {
+                                int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                if (recordTarget)
+                                {
+                                    SaveTargetToDict(index);
+                                }
+                                break;
+                            }
+                            catch { }
+                        }
                     }
                 }
             }
@@ -316,9 +325,9 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            try
+            if (guidedRocketActivated && rocket.hasFired)
             {
-                if (guidedRocketActivated && rocket.hasFired)
+                try
                 {
                     AddResistancePerpendicularToRocketVelocity();
                     if (target != null)
@@ -343,7 +352,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                                 {
-                                    ConsoleController.ShowMessage("Target rocket exploded");
+                                    //ConsoleController.ShowMessage("Target rocket exploded");
                                     target = null;
                                     targetAquired = false;
                                     return;
@@ -354,7 +363,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                                 {
-                                    ConsoleController.ShowMessage("Target bomb exploded");
+                                    //ConsoleController.ShowMessage("Target bomb exploded");
                                     target = null;
                                     targetAquired = false;
                                     return;
@@ -365,7 +374,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                                 {
-                                    ConsoleController.ShowMessage("Target level bomb exploded");
+                                    //ConsoleController.ShowMessage("Target level bomb exploded");
                                     target = null;
                                     targetAquired = false;
                                     return;
@@ -376,7 +385,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                                 {
-                                    ConsoleController.ShowMessage("Target grenade exploded");
+                                    //ConsoleController.ShowMessage("Target grenade exploded");
                                     target = null;
                                     targetAquired = false;
                                     return;
@@ -408,7 +417,7 @@ namespace BlockEnhancementMod.Blocks
                                 }
                                 else
                                 {
-                                    if (!activeGuideRocket)
+                                    if (!activeGuide)
                                     {
                                         try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
                                         catch { }
@@ -427,12 +436,11 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
+                catch
+                {
+                    //Rocket will destroy itself upon explosion hence cause Null Reference Exception
+                }
             }
-            catch
-            {
-                //Rocket will destroy itself upon explosion hence cause Null Reference Exception
-            }
-
         }
 
         void OnCollisionEnter(Collision collision)

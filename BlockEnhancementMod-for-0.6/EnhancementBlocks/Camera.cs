@@ -12,14 +12,16 @@ namespace BlockEnhancementMod.Blocks
         MToggle CameraLookAtToggle;
         public bool cameraLookAtToggled = false;
         public int selfIndex;
-        public Transform realCameraTransform;
-        public Quaternion defaultRotation;
+        public FixedCameraBlock fixedCamera;
+        public SmoothLookAt smoothLook;
+        public FixedCameraController fixedCameraController;
+        public Quaternion defaultLocalRotation;
+        public float smooth;
+        public float smoothLerp;
 
         //Track target setting
         MKey LockTargetKey;
-        MSlider RotateSpeedSlider;
         public Transform target;
-        public float rotateSpeed = 1f;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         //Pause tracking setting
@@ -35,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = RecordTargetToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = RotateSpeedSlider.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
+            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = RecordTargetToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
             RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
@@ -46,22 +48,15 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
-            RotateSpeedSlider = AddSlider("追踪速度", "RotateSpeed", rotateSpeed, 1, 100, false);
-            RotateSpeedSlider.ValueChanged += (float value) => { rotateSpeed = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { rotateSpeed = RotateSpeedSlider.Value; };
-
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
             ResetViewKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
             ResetViewKey.InvokeKeysChanged();
 
-            // Get the actual camera's transform, not the joint's transform
-            gameObject.AddComponent<SmoothLookAt>();
-            cameraBB = GetComponent<BlockBehaviour>();
-            realCameraTransform = GetComponent<FixedCameraBlock>().CompoundTracker;
-            defaultRotation = realCameraTransform.rotation;
             // Add reference to the camera's buildindex
+            fixedCamera = GetComponent<FixedCameraBlock>();
+            cameraBB = GetComponent<BlockBehaviour>();
             selfIndex = cameraBB.BuildIndex;
 
 #if DEBUG
@@ -74,7 +69,6 @@ namespace BlockEnhancementMod.Blocks
         {
             CameraLookAtToggle.DisplayInMapper = value;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
-            RotateSpeedSlider.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
         }
@@ -97,73 +91,103 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
-            Machine.Active().GetSimBlock(cameraBB);
-            if (recordTarget)
+            if (cameraLookAtToggled)
             {
-                // Trying to read previously saved target
-                int targetIndex = -1;
-                BlockBehaviour targetBlock = new BlockBehaviour();
-                // Read the target's buildIndex from the dictionary
-                if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                fixedCameraController = FindObjectOfType<FixedCameraController>();
+                foreach (var camera in fixedCameraController.cameras)
                 {
-                    target = null;
-                    return;
+                    if (camera == fixedCamera)
+                    {
+                        smoothLook = camera.CompoundTracker.gameObject.AddComponent<SmoothLookAt>();
+                        defaultLocalRotation = camera.CompoundTracker.localRotation;
+                        foreach (var slider in fixedCamera.Sliders)
+                        {
+                            if (slider.Key == "smooth")
+                            {
+                                smooth = slider.Value;
+                            }
+                        }
+                        SetSmoothing();
+                    }
+                    else
+                    {
+                        ConsoleController.ShowMessage("Not this camera");
+                    }
                 }
-                // Aquire target block's transform from the target's index
-                try
-                {
-                    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                    target = Machine.Active().GetSimBlock(targetBlock).transform;
-                }
-                catch (Exception)
-                {
-                    ConsoleController.ShowMessage("Cannot get target block's transform");
-                }
-            }
 
-            // Load smooth look at config
-            realCameraTransform.GetComponent<SmoothLookAt>().damping = rotateSpeed;
-            if (resetView)
-            {
-                realCameraTransform.GetComponent<SmoothLookAt>().target = realCameraTransform;
-            }
-            else
-            {
-                realCameraTransform.GetComponent<SmoothLookAt>().target = target;
+
+                if (recordTarget)
+                {
+                    // Trying to read previously saved target
+                    int targetIndex = -1;
+                    BlockBehaviour targetBlock = new BlockBehaviour();
+                    // Read the target's buildIndex from the dictionary
+                    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                    {
+                        target = null;
+                        return;
+                    }
+                    // Aquire target block's transform from the target's index
+                    try
+                    {
+                        Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                        target = Machine.Active().GetSimBlock(targetBlock).transform;
+                        if (!resetView)
+                        {
+                            smoothLook.target = target;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        ConsoleController.ShowMessage("Cannot get target block's transform");
+                    }
+                }
             }
         }
 
         protected override void OnSimulateUpdate()
         {
-            if (cameraLookAtToggled && ResetViewKey.IsReleased)
+            if (cameraLookAtToggled)
             {
-                resetView = !resetView;
-
-            }
-            if (cameraLookAtToggled && LockTargetKey.IsReleased)
-            {
-                // Aquire the target to look at
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
+                if (ResetViewKey.IsReleased)
                 {
-                    target = hit.transform;
-                    resetView = false;
-                    if (recordTarget)
+                    resetView = !resetView;
+                    if (resetView)
                     {
-                        // Trying to save target's buildIndex to the dictionary
-                        // If not a machine block, set targetIndex to -1
-                        int targetIndex = -1;
-                        try
+                        viewAlreadyReset = false;
+                        smoothLook.target = null;
+                    }
+                    else
+                    {
+                        smoothLook.target = target;
+                    }
+
+                }
+                if (LockTargetKey.IsReleased)
+                {
+                    // Aquire the target to look at
+                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    if (Physics.Raycast(ray, out RaycastHit hit))
+                    {
+                        target = hit.transform;
+                        resetView = false;
+                        if (recordTarget)
                         {
-                            targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
-                        }
-                        catch (Exception)
-                        {
-                            ConsoleController.ShowMessage("Not a machine block");
-                        }
-                        if (targetIndex != -1)
-                        {
-                            SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                            // Trying to save target's buildIndex to the dictionary
+                            // If not a machine block, set targetIndex to -1
+                            int targetIndex = -1;
+                            try
+                            {
+                                targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                            }
+                            catch (Exception)
+                            {
+                                ConsoleController.ShowMessage("Not a machine block");
+                            }
+                            if (targetIndex != -1)
+                            {
+                                SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
+                            }
                         }
                     }
                 }
@@ -172,28 +196,20 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateLateUpdate()
         {
-            if (cameraLookAtToggled)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
             {
-                //if (resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != realCameraTransform)
-                //{
-                //    realCameraTransform.GetComponent<SmoothLookAt>().target = realCameraTransform;
-                //}
-                //if (!resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != target)
-                //{
-                //    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
-                //}
-                //if (resetView && !viewAlreadyReset)
-                //{
-                //    realCameraTransform.rotation = Quaternion.Slerp(realCameraTransform.rotation, defaultRotation, rotateSpeed * Time.deltaTime);
-                //    if (realCameraTransform.rotation == defaultRotation)
-                //    {
-                //        viewAlreadyReset = true;
-                //    }
-                //}
-                //if (!resetView && realCameraTransform.GetComponent<SmoothLookAt>().target != target)
-                //{
-                //    realCameraTransform.GetComponent<SmoothLookAt>().target = target;
-                //}
+                if (resetView && !viewAlreadyReset)
+                {
+                    smoothLook.transform.localRotation = Quaternion.Slerp(smoothLook.transform.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                    if (smoothLook.transform.localRotation == defaultLocalRotation)
+                    {
+                        viewAlreadyReset = true;
+                    }
+                }
+                if (!resetView && smoothLook.target != target)
+                {
+                    smoothLook.target = target;
+                }
             }
         }
 
@@ -209,6 +225,19 @@ namespace BlockEnhancementMod.Blocks
                 // Remove the old record, then add the new record
                 Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
                 Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
+            }
+        }
+
+        private void SetSmoothing()
+        {
+            float value = 1f - smooth;
+            if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson)
+            {
+                smoothLook.damping = smoothLerp = 16.126f * value * value - 1.286f * value + 0.287f;
+            }
+            else
+            {
+                smoothLook.damping = smoothLerp = 60f;
             }
         }
     }
