@@ -13,6 +13,7 @@ namespace BlockEnhancementMod.Blocks
         public bool cameraLookAtToggled = false;
         public int selfIndex;
         public FixedCameraBlock fixedCamera;
+        public FixedCameraBlock fixedCameraSim;
         public SmoothLookAt smoothLook;
         public FixedCameraController fixedCameraController;
         public Quaternion defaultLocalRotation;
@@ -36,13 +37,13 @@ namespace BlockEnhancementMod.Blocks
 
         //Auto lookat related setting
         MSlider AutoLookAtSearchAngleSlider;
-        MSlider FirstPersonSmoothSlider;
+        MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
         MKey LaunchKey;
-        public bool firstPersonMode = false;
-        public float firstPersonSmooth = 0.25f;
+        public bool nonCustomMode = false;
+        public float nonCustomSmooth = 0.25f;
         public float timeOfDestruction = 0f;
-        public float targetSwitchDelay = 1f;
+        public float targetSwitchDelay = 1.25f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 90;
         public float searchRadius = 0;
@@ -65,7 +66,7 @@ namespace BlockEnhancementMod.Blocks
                 RecordTargetToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 ResetViewKey.DisplayInMapper =
-                FirstPersonSmoothSlider.DisplayInMapper =
+                NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
                 AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
@@ -85,9 +86,9 @@ namespace BlockEnhancementMod.Blocks
             AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
-            FirstPersonSmoothSlider = AddSlider("第一人称平滑", "firstPersonSmooth", firstPersonSmooth, 0, 1, false);
-            FirstPersonSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = FirstPersonSmoothSlider.Value; };
+            NonCustomModeSmoothSlider = AddSlider("非Custom平滑", "nonCustomSmooth", nonCustomSmooth, 0, 1, false);
+            NonCustomModeSmoothSlider.ValueChanged += (float value) => { nonCustomSmooth = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { nonCustomSmooth = NonCustomModeSmoothSlider.Value; };
 
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
 
@@ -97,7 +98,9 @@ namespace BlockEnhancementMod.Blocks
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
-            selfIndex = BB.BuildIndex;
+            defaultLocalRotation = fixedCamera.PlacedTrans.localRotation;
+            selfIndex = fixedCamera.BuildIndex;
+
 
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
@@ -107,14 +110,14 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+            if (fixedCamera.CamMode != FixedCameraBlock.Mode.Custom)
             {
-                firstPersonMode = true;
+                nonCustomMode = true;
             }
             ConsoleController.ShowMessage(fixedCamera.CamMode.ToString());
             CameraLookAtToggle.DisplayInMapper = value;
             fixedCameraController = FindObjectOfType<FixedCameraController>();
-            FirstPersonSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
+            NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && nonCustomMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
@@ -140,15 +143,15 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnBuildingUpdate()
         {
-            if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
+            if (fixedCamera.CamMode != FixedCameraBlock.Mode.Custom && !nonCustomMode)
             {
-                firstPersonMode = false;
-                FirstPersonSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                nonCustomMode = true;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && nonCustomMode;
             }
-            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
+            if (fixedCamera.CamMode == FixedCameraBlock.Mode.Custom && nonCustomMode)
             {
-                firstPersonMode = true;
-                FirstPersonSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                nonCustomMode = false;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && nonCustomMode;
             }
         }
 
@@ -162,18 +165,16 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (camera == fixedCamera)
                     {
-                        smoothLook = camera.CompoundTracker.gameObject.AddComponent<SmoothLookAt>();
-                        defaultLocalRotation = camera.CompoundTracker.localRotation;
-                        foreach (var slider in camera.Sliders)
+                        fixedCameraSim = camera;
+                        smoothLook = camera.CompositeTracker3.gameObject.AddComponent<SmoothLookAt>();
+                        smoothLook.transform.RotateAround(smoothLook.transform.up, -90f);
+                        if (nonCustomMode)
                         {
-                            if (slider.Key == "smooth" && !firstPersonMode)
-                            {
-                                smooth = Mathf.Clamp01(slider.Value);
-                            }
-                            if (firstPersonMode)
-                            {
-                                smooth = Mathf.Clamp01(FirstPersonSmoothSlider.Value);
-                            }
+                            smooth = Mathf.Clamp01(nonCustomSmooth);
+                        }
+                        else
+                        {
+                            smooth = Mathf.Clamp01(camera.Sliders.First(s => s.Key == "smooth").Value);
                         }
                         SetSmoothing();
                     }
@@ -202,6 +203,7 @@ namespace BlockEnhancementMod.Blocks
                     // Aquire target block's transform from the target's index
                     try
                     {
+
                         Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
                         target = Machine.Active().GetSimBlock(targetBlock).transform;
                         if (!resetView)
@@ -351,6 +353,10 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
+        }
+
+        protected override void OnSimulateLateUpdate()
+        {
         }
 
         private void SaveTargetToDict(int BlockID)
