@@ -15,7 +15,6 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
-        public BlockBehaviour rocketBB;
         public int selfIndex;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
@@ -141,27 +140,25 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
-            LockTargetKey.InvokeKeysChanged();
 
             ActiveGuideRocketKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
-            ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
             if (StatMaster.isClient)
             {
-                Machine machine = gameObject.GetComponent<BlockBehaviour>().ParentMachine;
-                ServerMachine serverMachine = machine.GetComponent<ServerMachine>();
-                //futre proof with new modloader
-                serverMachine.GetBlockFromIndex(transform.GetComponent<BlockBehaviour>().BuildIndex, out rocketBB);
-                rocket = rocketBB.gameObject.GetComponent<TimedRocket>();
-                rocketRigidbody = rocketBB.Rigidbody;
-                selfIndex = rocketBB.BuildIndex;
+                //Machine machine = gameObject.GetComponent<BlockBehaviour>().ParentMachine;
+                //ServerMachine serverMachine = machine.GetComponent<ServerMachine>();
+                ////futre proof with new modloader
+                //serverMachine.GetBlockFromIndex(transform.GetComponent<BlockBehaviour>().BuildIndex, out BB);
+                //rocket = BB.gameObject.GetComponent<TimedRocket>();
+                //rocketRigidbody = BB.Rigidbody;
+                //selfIndex = BB.BuildIndex;
             }
             else
             {
                 rocket = gameObject.GetComponent<TimedRocket>();
                 rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-                selfIndex = transform.GetComponent<BlockBehaviour>().BuildIndex;
+                selfIndex = BB.BuildIndex;
             }
 
 

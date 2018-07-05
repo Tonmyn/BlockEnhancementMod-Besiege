@@ -9,7 +9,6 @@ namespace BlockEnhancementMod.Blocks
     class CameraScript : EnhancementBlock
     {
         //General setting
-        BlockBehaviour cameraBB;
         MToggle CameraLookAtToggle;
         public bool cameraLookAtToggled = false;
         public int selfIndex;
@@ -37,8 +36,13 @@ namespace BlockEnhancementMod.Blocks
 
         //Auto lookat related setting
         MSlider AutoLookAtSearchAngleSlider;
+        MSlider FirstPersonSmoothSlider;
         MKey AutoLookAtKey;
         MKey LaunchKey;
+        public bool firstPersonMode = false;
+        public float firstPersonSmooth = 0.25f;
+        public float timeOfDestruction = 0f;
+        public float targetSwitchDelay = 1f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 90;
         public float searchRadius = 0;
@@ -55,7 +59,18 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
             CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
-            CameraLookAtToggle.Toggled += (bool value) => { cameraLookAtToggled = RecordTargetToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ResetViewKey.DisplayInMapper = AutoLookAtKey.DisplayInMapper = AutoLookAtSearchAngleSlider.DisplayInMapper = value; ChangedProperties(); };
+            CameraLookAtToggle.Toggled += (bool value) =>
+            {
+                cameraLookAtToggled =
+                RecordTargetToggle.DisplayInMapper =
+                LockTargetKey.DisplayInMapper =
+                ResetViewKey.DisplayInMapper =
+                FirstPersonSmoothSlider.DisplayInMapper =
+                AutoLookAtKey.DisplayInMapper =
+                AutoLookAtSearchAngleSlider.DisplayInMapper =
+                value;
+                ChangedProperties();
+            };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
             RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
@@ -70,19 +85,19 @@ namespace BlockEnhancementMod.Blocks
             AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
+            FirstPersonSmoothSlider = AddSlider("第一人称平滑", "firstPersonSmooth", firstPersonSmooth, 0, 1, false);
+            FirstPersonSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = FirstPersonSmoothSlider.Value; };
+
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
-            LockTargetKey.InvokeKeysChanged();
 
             ResetViewKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
-            ResetViewKey.InvokeKeysChanged();
 
             AutoLookAtKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
-            AutoLookAtKey.InvokeKeysChanged();
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
-            cameraBB = GetComponent<BlockBehaviour>();
-            selfIndex = cameraBB.BuildIndex;
+            selfIndex = BB.BuildIndex;
 
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
@@ -92,7 +107,14 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
+            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+            {
+                firstPersonMode = true;
+            }
+            ConsoleController.ShowMessage(fixedCamera.CamMode.ToString());
             CameraLookAtToggle.DisplayInMapper = value;
+            fixedCameraController = FindObjectOfType<FixedCameraController>();
+            FirstPersonSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
@@ -116,6 +138,20 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
+        protected override void OnBuildingUpdate()
+        {
+            if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
+            {
+                firstPersonMode = false;
+                FirstPersonSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+            }
+            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
+            {
+                firstPersonMode = true;
+                FirstPersonSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+            }
+        }
+
         protected override void OnSimulateStart()
         {
             if (cameraLookAtToggled)
@@ -128,11 +164,15 @@ namespace BlockEnhancementMod.Blocks
                     {
                         smoothLook = camera.CompoundTracker.gameObject.AddComponent<SmoothLookAt>();
                         defaultLocalRotation = camera.CompoundTracker.localRotation;
-                        foreach (var slider in fixedCamera.Sliders)
+                        foreach (var slider in camera.Sliders)
                         {
-                            if (slider.Key == "smooth")
+                            if (slider.Key == "smooth" && !firstPersonMode)
                             {
-                                smooth = slider.Value;
+                                smooth = Mathf.Clamp01(slider.Value);
+                            }
+                            if (firstPersonMode)
+                            {
+                                smooth = Mathf.Clamp01(FirstPersonSmoothSlider.Value);
                             }
                         }
                         SetSmoothing();
@@ -140,10 +180,9 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 // Initialise
-                resetView = false;
                 targetAquired = viewAlreadyReset = searchStarted = false;
+                resetView = autoSearch = true;
                 searchRadius = Camera.main.farClipPlane;
-                autoSearch = true;
                 target = null;
                 hitsIn = Physics.OverlapSphere(smoothLook.transform.position, safetyRadius);
                 StopAllCoroutines();
@@ -202,13 +241,12 @@ namespace BlockEnhancementMod.Blocks
                     {
                         smoothLook.target = target;
                     }
-
                 }
                 if (LockTargetKey.IsReleased)
                 {
                     if (autoSearch)
                     {
-                        targetAquired = false;
+                        targetAquired = resetView = viewAlreadyReset = false;
                     }
                     else
                     {
@@ -253,8 +291,9 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target rocket exploded");
-                            target = null;
                             targetAquired = false;
+                            target = null;
+                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -264,8 +303,9 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target bomb exploded");
-                            target = null;
                             targetAquired = false;
+                            target = null;
+                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -275,8 +315,9 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target level bomb exploded");
-                            target = null;
                             targetAquired = false;
+                            target = null;
+                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -286,32 +327,28 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target grenade exploded");
-                            target = null;
                             targetAquired = false;
+                            target = null;
+                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
                     catch { }
                 }
-            }
-        }
-
-        protected override void OnSimulateLateUpdate()
-        {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
-            {
-                if (resetView && !viewAlreadyReset)
+                if (Time.time - timeOfDestruction >= targetSwitchDelay)
                 {
-                    smoothLook.transform.localRotation = Quaternion.Slerp(smoothLook.transform.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                    if (smoothLook.transform.localRotation == defaultLocalRotation)
+                    if (resetView && !viewAlreadyReset)
                     {
-                        viewAlreadyReset = true;
+                        smoothLook.transform.localRotation = Quaternion.Slerp(smoothLook.transform.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                        if (smoothLook.transform.localRotation == defaultLocalRotation)
+                        {
+                            viewAlreadyReset = true;
+                        }
                     }
-                }
-                
-                if (!resetView && smoothLook.target != target)
-                {
-                    smoothLook.target = target;
+                    if (!resetView && smoothLook.target != target)
+                    {
+                        smoothLook.target = target;
+                    }
                 }
             }
         }
@@ -334,14 +371,7 @@ namespace BlockEnhancementMod.Blocks
         private void SetSmoothing()
         {
             float value = 1f - smooth;
-            if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson)
-            {
-                smoothLook.damping = smoothLerp = 16.126f * value * value - 1.286f * value + 0.287f;
-            }
-            else
-            {
-                smoothLook.damping = smoothLerp = 60f;
-            }
+            smoothLook.damping = smoothLerp = 16.126f * value * value - 1.286f * value + 0.287f;
         }
 
         private void CameraRadarSearch()
