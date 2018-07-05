@@ -40,7 +40,7 @@ namespace BlockEnhancementMod.Blocks
         MKey AutoLookAtKey;
         MKey LaunchKey;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 65;
+        public float searchAngle = 90;
         public float searchRadius = 0;
         public float safetyRadius = 15f;
         public float searchSurroundingBlockRadius = 5f;
@@ -137,14 +137,10 @@ namespace BlockEnhancementMod.Blocks
                         }
                         SetSmoothing();
                     }
-                    else
-                    {
-                        ConsoleController.ShowMessage("Not this camera");
-                    }
                 }
 
                 // Initialise
-                resetView = true;
+                resetView = false;
                 targetAquired = viewAlreadyReset = searchStarted = false;
                 searchRadius = Camera.main.farClipPlane;
                 autoSearch = true;
@@ -152,6 +148,7 @@ namespace BlockEnhancementMod.Blocks
                 hitsIn = Physics.OverlapSphere(smoothLook.transform.position, safetyRadius);
                 StopAllCoroutines();
 
+                // If target is recorded, try preset it.
                 if (recordTarget)
                 {
                     // Trying to read previously saved target
@@ -449,6 +446,7 @@ namespace BlockEnhancementMod.Blocks
                     closestIndex = i;
                 }
             }
+            ConsoleController.ShowMessage(maxTransform[closestIndex].name);
             return maxTransform[closestIndex];
         }
 
@@ -484,8 +482,8 @@ namespace BlockEnhancementMod.Blocks
                 foreach (var targetTransform in transformSet)
                 {
                     Vector3 positionDiff = targetTransform.position - smoothLook.transform.position;
-                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                    bool forward = Vector3.Dot(positionDiff, smoothLook.transform.forward) > 0;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.transform.forward);
 
                     if (!(forward && angleDiff < searchAngle))
                     {
