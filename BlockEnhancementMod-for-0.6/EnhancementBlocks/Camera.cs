@@ -47,7 +47,7 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 90;
         public float searchRadius = 0;
-        public float safetyRadius = 15f;
+        public float safetyRadius = 25f;
         public float searchSurroundingBlockRadius = 5f;
         public bool autoSearch = true;
         public bool targetAquired = false;
@@ -519,7 +519,7 @@ namespace BlockEnhancementMod.Blocks
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired)
             {
-                HashSet<Transform> transformSetForSearch = transformSet;
+                HashSet<Transform> transformSetForSearch = new HashSet<Transform>(transformSet);
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
@@ -560,11 +560,10 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
                 transformSetForSearch.ExceptWith(unwantedTransforms);
-
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
                 //when the hitlist is not empty
-                if (transformSet.Count > 0)
+                if (transformSetForSearch.Count > 0)
                 {
                     //Search for any blocks within the search radius for every block in the hitlist
                     //Find the block that has the max number of colliders around it
