@@ -98,7 +98,7 @@ namespace BlockEnhancementMod.Blocks
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
-            defaultLocalRotation = fixedCamera.PlacedTrans.localRotation;
+            defaultLocalRotation = fixedCamera.CompositeTracker3.localRotation;
             selfIndex = fixedCamera.BuildIndex;
 
 
@@ -167,7 +167,6 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fixedCameraSim = camera;
                         smoothLook = camera.CompositeTracker3.gameObject.AddComponent<SmoothLookAt>();
-                        smoothLook.transform.RotateAround(smoothLook.transform.up, -90f);
                         if (nonCustomMode)
                         {
                             smooth = Mathf.Clamp01(nonCustomSmooth);
