@@ -180,11 +180,11 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 // Initialise
-                targetAquired = viewAlreadyReset = searchStarted = false;
-                resetView = autoSearch = true;
+                viewAlreadyReset = searchStarted = false;
+                resetView = autoSearch = targetAquired = true;
                 searchRadius = Camera.main.farClipPlane;
                 target = null;
-                hitsIn = Physics.OverlapSphere(smoothLook.transform.position, safetyRadius);
+                hitsIn = Physics.OverlapSphere(fixedCameraSim.CompositeTracker3.position, safetyRadius);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -247,33 +247,42 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (autoSearch)
                     {
-                        targetAquired = resetView = viewAlreadyReset = false;
+                        target = null;
+                        targetAquired = searchStarted = resetView = viewAlreadyReset = false;
                     }
                     else
                     {
                         // Aquire the target to look at
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        if (Physics.Raycast(ray, out RaycastHit hit))
+                        float manualSearchRadius = 1.5f;
+                        RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
+                        Physics.Raycast(ray, out RaycastHit rayHit);
+                        for (int i = 0; i < hits.Length; i++)
                         {
-                            target = hit.transform;
-                            resetView = false;
-                            if (recordTarget)
+                            try
                             {
-                                // Trying to save target's buildIndex to the dictionary
-                                // If not a machine block, set targetIndex to -1
-                                int targetIndex = -1;
+                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                target = hits[i].transform;
+                                if (recordTarget)
+                                {
+                                    SaveTargetToDict(index);
+                                }
+                                break;
+                            }
+                            catch { }
+                            if (i == hits.Length - 1)
+                            {
+                                target = rayHit.transform;
                                 try
                                 {
-                                    targetIndex = target.GetComponent<BlockBehaviour>().BuildIndex;
+                                    int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                    if (recordTarget)
+                                    {
+                                        SaveTargetToDict(index);
+                                    }
+                                    break;
                                 }
-                                catch (Exception)
-                                {
-                                    ConsoleController.ShowMessage("Not a machine block");
-                                }
-                                if (targetIndex != -1)
-                                {
-                                    SaveTargetToDict(target.GetComponent<BlockBehaviour>().BuildIndex);
-                                }
+                                catch { }
                             }
                         }
                     }
@@ -346,16 +355,12 @@ namespace BlockEnhancementMod.Blocks
                             viewAlreadyReset = true;
                         }
                     }
-                    if (!resetView && smoothLook.target != target)
+                    if (!resetView && smoothLook.target != target && target != null)
                     {
                         smoothLook.target = target;
                     }
                 }
             }
-        }
-
-        protected override void OnSimulateLateUpdate()
-        {
         }
 
         private void SaveTargetToDict(int BlockID)
@@ -384,6 +389,7 @@ namespace BlockEnhancementMod.Blocks
             if (!searchStarted)
             {
                 searchStarted = true;
+                StopCoroutine(SearchForTarget());
                 StartCoroutine(SearchForTarget());
             }
         }
@@ -513,12 +519,13 @@ namespace BlockEnhancementMod.Blocks
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired)
             {
+                HashSet<Transform> transformSetForSearch = transformSet;
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
-                    Vector3 positionDiff = targetTransform.position - smoothLook.transform.position;
-                    bool forward = Vector3.Dot(positionDiff, smoothLook.transform.forward) > 0;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.transform.forward);
+                    Vector3 positionDiff = targetTransform.position - fixedCameraSim.CompositeTracker3.position;
+                    bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, fixedCameraSim.CompositeTracker3.forward);
 
                     if (!(forward && angleDiff < searchAngle))
                     {
@@ -552,7 +559,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                transformSet.ExceptWith(unwantedTransforms);
+                transformSetForSearch.ExceptWith(unwantedTransforms);
 
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
@@ -562,7 +569,7 @@ namespace BlockEnhancementMod.Blocks
                     //Search for any blocks within the search radius for every block in the hitlist
                     //Find the block that has the max number of colliders around it
                     //Take that block as the target
-                    target = GetMostValuableBlock(transformSet);
+                    target = GetMostValuableBlock(transformSetForSearch);
                     targetAquired = true;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());

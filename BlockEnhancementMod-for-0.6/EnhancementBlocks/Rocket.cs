@@ -274,6 +274,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (LaunchKey.IsReleased)
                     {
+                        target = null;
                         targetAquired = false;
                     }
                     if (!targetAquired)
@@ -285,7 +286,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     //Find targets in the manual search mode by casting a sphere along the ray
                     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    float manualSearchRadius = 2f;
+                    float manualSearchRadius = 1.5f;
                     RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
                     Physics.Raycast(ray, out RaycastHit rayHit);
                     for (int i = 0; i < hits.Length; i++)
@@ -592,6 +593,7 @@ namespace BlockEnhancementMod.Blocks
             if (!searchStarted)
             {
                 searchStarted = true;
+                StopCoroutine(SearchForTarget());
                 StartCoroutine(SearchForTarget());
             }
         }
@@ -624,6 +626,7 @@ namespace BlockEnhancementMod.Blocks
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit)
             {
+                HashSet<Transform> transformSetForSearch = transformSet;
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
@@ -663,7 +666,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                transformSet.ExceptWith(unwantedTransforms);
+                transformSetForSearch.ExceptWith(unwantedTransforms);
 
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
@@ -673,7 +676,7 @@ namespace BlockEnhancementMod.Blocks
                     //Search for any blocks within the search radius for every block in the hitlist
                     //Find the block that has the max number of colliders around it
                     //Take that block as the target
-                    target = GetMostValuableBlock(transformSet);
+                    target = GetMostValuableBlock(transformSetForSearch);
                     targetAquired = true;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
