@@ -14,7 +14,7 @@ namespace BlockEnhancementMod.Blocks
         public int selfIndex;
         public FixedCameraBlock fixedCamera;
         public FixedCameraBlock fixedCameraSim;
-        public SmoothLookAt smoothLook;
+        public Transform smoothLook;
         public FixedCameraController fixedCameraController;
         public Quaternion defaultLocalRotation;
         public float smooth;
@@ -166,7 +166,7 @@ namespace BlockEnhancementMod.Blocks
                     if (camera == fixedCamera)
                     {
                         fixedCameraSim = camera;
-                        smoothLook = camera.CompositeTracker3.gameObject.AddComponent<SmoothLookAt>();
+                        smoothLook = camera.CompositeTracker3;
                         if (nonCustomMode)
                         {
                             smooth = Mathf.Clamp01(nonCustomSmooth);
@@ -205,10 +205,6 @@ namespace BlockEnhancementMod.Blocks
 
                         Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
                         target = Machine.Active().GetSimBlock(targetBlock).transform;
-                        if (!resetView)
-                        {
-                            smoothLook.target = target;
-                        }
                     }
                     catch (Exception)
                     {
@@ -236,11 +232,6 @@ namespace BlockEnhancementMod.Blocks
                     if (resetView)
                     {
                         viewAlreadyReset = false;
-                        smoothLook.target = null;
-                    }
-                    else
-                    {
-                        smoothLook.target = target;
                     }
                 }
                 if (LockTargetKey.IsReleased)
@@ -345,19 +336,29 @@ namespace BlockEnhancementMod.Blocks
                     }
                     catch { }
                 }
+
+            }
+        }
+
+        protected override void OnSimulateLateUpdate()
+        {
+            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            {
                 if (Time.time - timeOfDestruction >= targetSwitchDelay)
                 {
                     if (resetView && !viewAlreadyReset)
                     {
-                        smoothLook.transform.localRotation = Quaternion.Slerp(smoothLook.transform.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                        if (smoothLook.transform.localRotation == defaultLocalRotation)
+
+                        smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                        if (smoothLook.localRotation == defaultLocalRotation)
                         {
                             viewAlreadyReset = true;
                         }
                     }
-                    if (!resetView && smoothLook.target != target && target != null)
+                    if (!resetView && target != null)
                     {
-                        smoothLook.target = target;
+                        Quaternion quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                        smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                     }
                 }
             }
@@ -381,7 +382,7 @@ namespace BlockEnhancementMod.Blocks
         private void SetSmoothing()
         {
             float value = 1f - smooth;
-            smoothLook.damping = smoothLerp = 16.126f * value * value - 1.286f * value + 0.287f;
+            smoothLerp = 16.126f * value * value - 1.286f * value + 0.287f;
         }
 
         private void CameraRadarSearch()
@@ -479,10 +480,10 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             int closestIndex = 0;
-            float distance = (maxTransform[0].position - smoothLook.transform.position).magnitude;
+            float distance = (maxTransform[0].position - smoothLook.position).magnitude;
             for (i = 1; i < maxTransform.Count; i++)
             {
-                if ((maxTransform[i].transform.position + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 5 - smoothLook.transform.position).magnitude < distance)
+                if ((maxTransform[i].transform.position + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 5 - smoothLook.position).magnitude < distance)
                 {
                     closestIndex = i;
                 }
@@ -494,7 +495,7 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(smoothLook.transform.position, searchRadius);
+            hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius);
             HashSet<Transform> transformSet = new HashSet<Transform>();
 
             if (StatMaster._customLevelSimulating)
