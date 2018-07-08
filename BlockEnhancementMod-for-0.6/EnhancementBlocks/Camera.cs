@@ -36,6 +36,7 @@ namespace BlockEnhancementMod.Blocks
         public bool recordTarget = false;
 
         //Auto lookat related setting
+        MSlider AutoLookAtSearchAngleSlider;
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
         MKey LaunchKey;
@@ -67,6 +68,7 @@ namespace BlockEnhancementMod.Blocks
                 ResetViewKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
+                AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -79,6 +81,10 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
+
+            AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
             NonCustomModeSmoothSlider = AddSlider("非Custom平滑", "nonCustomSmooth", nonCustomSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { nonCustomSmooth = value; ChangedProperties(); };
@@ -113,6 +119,7 @@ namespace BlockEnhancementMod.Blocks
             fixedCameraController = FindObjectOfType<FixedCameraController>();
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && nonCustomMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
+            AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
@@ -176,11 +183,7 @@ namespace BlockEnhancementMod.Blocks
                 viewAlreadyReset = searchStarted = false;
                 resetView = autoSearch = targetAquired = true;
                 searchRadius = Camera.main.farClipPlane;
-                searchAngle = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCameraSim.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 target = null;
-#if DEBUG
-                ConsoleController.ShowMessage("Search angle is " + searchAngle);
-#endif
                 hitsIn = Physics.OverlapSphere(fixedCameraSim.CompositeTracker3.position, safetyRadius);
                 StopAllCoroutines();
 
@@ -333,6 +336,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                     catch { }
                 }
+
             }
         }
 
@@ -344,6 +348,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (resetView && !viewAlreadyReset)
                     {
+
                         smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
                         if (smoothLook.localRotation == defaultLocalRotation)
                         {
@@ -478,11 +483,12 @@ namespace BlockEnhancementMod.Blocks
             float distance = (maxTransform[0].position - smoothLook.position).magnitude;
             for (i = 1; i < maxTransform.Count; i++)
             {
-                if ((maxTransform[i].transform.position - smoothLook.position).magnitude < distance)
+                if ((maxTransform[i].transform.position + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 5 - smoothLook.position).magnitude < distance)
                 {
                     closestIndex = i;
                 }
             }
+            ConsoleController.ShowMessage(maxTransform[closestIndex].name);
             return maxTransform[closestIndex];
         }
 
