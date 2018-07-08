@@ -40,8 +40,8 @@ namespace BlockEnhancementMod.Blocks
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
         MKey LaunchKey;
-        public bool nonCustomMode = false;
-        public float nonCustomSmooth = 0.25f;
+        public bool firstPersonMode = false;
+        public float firstPersonSmooth = 0.25f;
         public float timeOfDestruction = 0f;
         public float targetSwitchDelay = 1.25f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
@@ -86,9 +86,9 @@ namespace BlockEnhancementMod.Blocks
             AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
-            NonCustomModeSmoothSlider = AddSlider("非Custom平滑", "nonCustomSmooth", nonCustomSmooth, 0, 1, false);
-            NonCustomModeSmoothSlider.ValueChanged += (float value) => { nonCustomSmooth = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { nonCustomSmooth = NonCustomModeSmoothSlider.Value; };
+            NonCustomModeSmoothSlider = AddSlider("第一人称平滑", "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
+            NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
 
@@ -110,14 +110,14 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            if (fixedCamera.CamMode != FixedCameraBlock.Mode.Custom)
+            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
             {
-                nonCustomMode = true;
+                firstPersonMode = true;
             }
             ConsoleController.ShowMessage(fixedCamera.CamMode.ToString());
             CameraLookAtToggle.DisplayInMapper = value;
             fixedCameraController = FindObjectOfType<FixedCameraController>();
-            NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && nonCustomMode;
+            NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
@@ -143,15 +143,15 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnBuildingUpdate()
         {
-            if (fixedCamera.CamMode != FixedCameraBlock.Mode.Custom && !nonCustomMode)
+            if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
-                nonCustomMode = true;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && nonCustomMode;
+                firstPersonMode = false;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
             }
-            if (fixedCamera.CamMode == FixedCameraBlock.Mode.Custom && nonCustomMode)
+            if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
-                nonCustomMode = false;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && nonCustomMode;
+                firstPersonMode = true;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
             }
         }
 
@@ -167,9 +167,9 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fixedCameraSim = camera;
                         smoothLook = camera.CompositeTracker3;
-                        if (nonCustomMode)
+                        if (firstPersonMode)
                         {
-                            smooth = Mathf.Clamp01(nonCustomSmooth);
+                            smooth = Mathf.Clamp01(firstPersonSmooth);
                         }
                         else
                         {
@@ -291,10 +291,11 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target rocket exploded");
+                            timeOfDestruction = Time.time;
                             explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
-                            timeOfDestruction = Time.time;
+
                             return;
                         }
                     }
@@ -304,10 +305,10 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target bomb exploded");
+                            timeOfDestruction = Time.time;
                             explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
-                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -317,10 +318,10 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target level bomb exploded");
+                            timeOfDestruction = Time.time;
                             explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
-                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -330,10 +331,10 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target grenade exploded");
+                            timeOfDestruction = Time.time;
                             explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
-                            timeOfDestruction = Time.time;
                             return;
                         }
                     }
@@ -347,11 +348,10 @@ namespace BlockEnhancementMod.Blocks
         {
             if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
             {
-
 #if DEBUG
                 //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
 #endif
-                if (pauseTracking || target == null)
+                if (pauseTracking)
                 {
                     smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
                 }
@@ -359,16 +359,23 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (Time.time - timeOfDestruction >= targetSwitchDelay)
                     {
-                        Quaternion quaternion;
-                        if (fixedCameraSim.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        if (target == null)
                         {
-                            quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                            smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
                         }
                         else
                         {
-                            quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                            Quaternion quaternion;
+                            if (firstPersonMode)
+                            {
+                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                            }
+                            else
+                            {
+                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                            }
+                            smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                         }
-                        smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                     }
                 }
             }
@@ -486,13 +493,13 @@ namespace BlockEnhancementMod.Blocks
             int closestIndex = 0;
             float angleDiffMin = Vector3.Angle((maxTransform[closestIndex].position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
 #if DEBUG
-            ConsoleController.ShowMessage("Angle min last is " + angleDiffMin + " for " + closestIndex);
+            //ConsoleController.ShowMessage("Angle min last is " + angleDiffMin + " for " + closestIndex);
 #endif
             for (i = 1; i < maxTransform.Count; i++)
             {
                 float angleDiffCurrent = Vector3.Angle((maxTransform[i].position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
 #if DEBUG
-                ConsoleController.ShowMessage("Angle min last is " + angleDiffCurrent + " for " + i);
+                //ConsoleController.ShowMessage("Angle min last is " + angleDiffCurrent + " for " + i);
 #endif
                 if (angleDiffCurrent < angleDiffMin)
                 {
@@ -542,6 +549,9 @@ namespace BlockEnhancementMod.Blocks
                     // Remove anything that's exploded
                     if (explodedTarget.Contains(targetTransform))
                     {
+#if DEBUG
+                        //ConsoleController.ShowMessage("Should have added the exploded thing to the list to remove");
+#endif
                         unwantedTransforms.Add(targetTransform);
                         continue;
                     }
