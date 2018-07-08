@@ -23,12 +23,12 @@ namespace BlockEnhancementMod.Blocks
         //Track target setting
         MKey LockTargetKey;
         public Transform target;
+        public HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         //Pause tracking setting
-        MKey ResetViewKey;
-        public bool resetView = false;
-        public bool viewAlreadyReset = false;
+        MKey PauseTrackingKey;
+        public bool pauseTracking = false;
         public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
 
         //Record target related setting
@@ -65,7 +65,7 @@ namespace BlockEnhancementMod.Blocks
                 cameraLookAtToggled =
                 RecordTargetToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
-                ResetViewKey.DisplayInMapper =
+                PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
                 AutoLookAtSearchAngleSlider.DisplayInMapper =
@@ -92,7 +92,7 @@ namespace BlockEnhancementMod.Blocks
 
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
 
-            ResetViewKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
+            PauseTrackingKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
 
             AutoLookAtKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
 
@@ -103,7 +103,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("摄像机添加进阶属性");
+            //ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
 
         }
@@ -122,7 +122,7 @@ namespace BlockEnhancementMod.Blocks
             AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
-            ResetViewKey.DisplayInMapper = value && cameraLookAtToggled;
+            PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
         public override void LoadConfiguration(XDataHolder BlockData)
@@ -180,10 +180,13 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 // Initialise
-                viewAlreadyReset = searchStarted = false;
-                resetView = autoSearch = targetAquired = true;
+                searchStarted = false;
+                pauseTracking = autoSearch = targetAquired = true;
                 searchRadius = Camera.main.farClipPlane;
+                float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCameraSim.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
+                searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
+                explodedTarget.Clear();
                 hitsIn = Physics.OverlapSphere(fixedCameraSim.CompositeTracker3.position, safetyRadius);
                 StopAllCoroutines();
 
@@ -222,24 +225,16 @@ namespace BlockEnhancementMod.Blocks
                 {
                     autoSearch = !autoSearch;
                 }
-                if (autoSearch && !targetAquired)
+                if (PauseTrackingKey.IsReleased)
                 {
-                    CameraRadarSearch();
-                }
-                if (ResetViewKey.IsReleased)
-                {
-                    resetView = !resetView;
-                    if (resetView)
-                    {
-                        viewAlreadyReset = false;
-                    }
+                    pauseTracking = !pauseTracking;
                 }
                 if (LockTargetKey.IsReleased)
                 {
                     if (autoSearch)
                     {
                         target = null;
-                        targetAquired = searchStarted = resetView = viewAlreadyReset = false;
+                        targetAquired = searchStarted = pauseTracking = false;
                     }
                     else
                     {
@@ -285,6 +280,10 @@ namespace BlockEnhancementMod.Blocks
         {
             if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
             {
+                if (autoSearch && !targetAquired)
+                {
+                    CameraRadarSearch();
+                }
                 if (target != null)
                 {
                     try
@@ -292,6 +291,7 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target rocket exploded");
+                            explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
                             timeOfDestruction = Time.time;
@@ -304,6 +304,7 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target bomb exploded");
+                            explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
                             timeOfDestruction = Time.time;
@@ -316,6 +317,7 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target level bomb exploded");
+                            explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
                             timeOfDestruction = Time.time;
@@ -328,6 +330,7 @@ namespace BlockEnhancementMod.Blocks
                         if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                         {
                             //ConsoleController.ShowMessage("Target grenade exploded");
+                            explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
                             timeOfDestruction = Time.time;
@@ -344,20 +347,27 @@ namespace BlockEnhancementMod.Blocks
         {
             if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
             {
-                if (Time.time - timeOfDestruction >= targetSwitchDelay)
-                {
-                    if (resetView && !viewAlreadyReset)
-                    {
 
-                        smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                        if (smoothLook.localRotation == defaultLocalRotation)
-                        {
-                            viewAlreadyReset = true;
-                        }
-                    }
-                    if (!resetView && target != null)
+#if DEBUG
+                //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
+#endif
+                if (pauseTracking || target == null)
+                {
+                    smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                }
+                else
+                {
+                    if (Time.time - timeOfDestruction >= targetSwitchDelay)
                     {
-                        Quaternion quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                        Quaternion quaternion;
+                        if (fixedCameraSim.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        {
+                            quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                        }
+                        else
+                        {
+                            quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                        }
                         smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                     }
                 }
@@ -463,15 +473,7 @@ namespace BlockEnhancementMod.Blocks
                 i++;
             }
             //Find the block that has the max number of blocks around it
-            //If there are multiple withh the same highest value, randomly return one of them
-            float max = targetValue[0];
-            for (i = 1; i < targetValue.Length; i++)
-            {
-                if (targetValue[i] > max)
-                {
-                    max = targetValue[i];
-                }
-            }
+            float max = targetValue.Max();
             for (i = 0; i < targetValue.Length; i++)
             {
                 if (targetValue[i] == max)
@@ -479,16 +481,29 @@ namespace BlockEnhancementMod.Blocks
                     maxTransform.Add(transformArray[i]);
                 }
             }
+
+            //Find the target that's closest to the centre of the view
             int closestIndex = 0;
-            float distance = (maxTransform[0].position - smoothLook.position).magnitude;
+            float angleDiffMin = Vector3.Angle((maxTransform[closestIndex].position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
+#if DEBUG
+            ConsoleController.ShowMessage("Angle min last is " + angleDiffMin + " for " + closestIndex);
+#endif
             for (i = 1; i < maxTransform.Count; i++)
             {
-                if ((maxTransform[i].transform.position + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 5 - smoothLook.position).magnitude < distance)
+                float angleDiffCurrent = Vector3.Angle((maxTransform[i].position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
+#if DEBUG
+                ConsoleController.ShowMessage("Angle min last is " + angleDiffCurrent + " for " + i);
+#endif
+                if (angleDiffCurrent < angleDiffMin)
                 {
                     closestIndex = i;
+                    angleDiffMin = angleDiffCurrent;
                 }
             }
-            ConsoleController.ShowMessage(maxTransform[closestIndex].name);
+#if DEBUG
+            ////ConsoleController.ShowMessage("There are " + maxTransform.Count() + " in max transform");
+            ////ConsoleController.ShowMessage("Angle min last is " + angleDiffMin);
+#endif
             return maxTransform[closestIndex];
         }
 
@@ -524,6 +539,14 @@ namespace BlockEnhancementMod.Blocks
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
+                    // Remove anything that's exploded
+                    if (explodedTarget.Contains(targetTransform))
+                    {
+                        unwantedTransforms.Add(targetTransform);
+                        continue;
+                    }
+
+                    // Remove anything that's not in the view
                     Vector3 positionDiff = targetTransform.position - fixedCameraSim.CompositeTracker3.position;
                     bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, fixedCameraSim.CompositeTracker3.forward);
@@ -534,6 +557,7 @@ namespace BlockEnhancementMod.Blocks
                         continue;
                     }
 
+                    // Remove anything that's not in the same team
                     BlockBehaviour targetBB = targetTransform.gameObject.GetComponent<BlockBehaviour>();
                     if (StatMaster._customLevelSimulating)
                     {

@@ -164,7 +164,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("火箭添加进阶属性");
+            //ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
 
         }
@@ -770,12 +770,14 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             int closestIndex = 0;
-            float distance = (maxTransform[0].position - rocket.transform.position).magnitude;
+            float distanceMin = (maxTransform[0].position - rocket.transform.position).magnitude;
             for (i = 1; i < maxTransform.Count; i++)
             {
-                if ((maxTransform[i].gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + maxTransform[i].gameObject.GetComponent<Rigidbody>().velocity * Time.fixedDeltaTime * 10 - rocket.transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds).magnitude < distance)
+                float distanceCurrent = (maxTransform[i].position - rocket.transform.position).magnitude;
+                if (distanceCurrent < distanceMin)
                 {
                     closestIndex = i;
+                    distanceMin = distanceCurrent;
                 }
             }
             return maxTransform[closestIndex];
