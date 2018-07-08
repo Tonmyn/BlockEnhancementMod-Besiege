@@ -34,7 +34,6 @@ namespace BlockEnhancementMod.Blocks
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey ActiveGuideRocketKey;
-        MKey LaunchKey;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 65;
         public float searchRadius = 0;
@@ -140,8 +139,10 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
             LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            LockTargetKey.InvokeKeysChanged();
 
             ActiveGuideRocketKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
+            ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
             if (StatMaster.isClient)
@@ -227,14 +228,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                // Get the launch key from rocket
-                foreach (var key in BB.Keys)
-                {
-                    if (key.Key == "launch")
-                    {
-                        LaunchKey = key;
-                    }
-                }
                 if (recordTarget && !activeGuide)
                 {
                     // Trying to read previously saved target
@@ -269,59 +262,73 @@ namespace BlockEnhancementMod.Blocks
                 {
                     activeGuide = !activeGuide;
                 }
-                //When launch key is released, reset target search
-                if (activeGuide && rocket.hasFired)
+                if (LockTargetKey.IsReleased)
                 {
-                    if (LaunchKey.IsReleased)
+                    if (activeGuide)
                     {
-                        target = null;
-                        targetAquired = false;
-                    }
-                    if (!targetAquired)
-                    {
-                        RocketRadarSearch();
-                    }
-                }
-                if (!activeGuide && LockTargetKey.IsReleased)
-                {
-                    //Find targets in the manual search mode by casting a sphere along the ray
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    float manualSearchRadius = 1.5f;
-                    RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
-                    Physics.Raycast(ray, out RaycastHit rayHit);
-                    for (int i = 0; i < hits.Length; i++)
-                    {
-                        try
+                        //When launch key is released, reset target search
+                        if (rocket.hasFired)
                         {
-                            int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                            target = hits[i].transform;
-                            if (recordTarget)
+#if DEBUG
+                            ConsoleController.ShowMessage("this should not appear");
+#endif
+                            target = null;
+                            targetAquired = searchStarted = false;
+                            if (!targetAquired)
                             {
-                                SaveTargetToDict(index);
+                                RocketRadarSearch();
                             }
-                            break;
                         }
-                        catch { }
-                        if (i == hits.Length - 1)
+                    }
+                    else
+                    {
+                        //Find targets in the manual search mode by casting a sphere along the ray
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                        float manualSearchRadius = 1.25f;
+                        RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
+                        Physics.Raycast(ray, out RaycastHit rayHit);
+#if DEBUG
+                        ConsoleController.ShowMessage("No of hits in sphere cast all " + hits.Length);
+#endif
+                        for (int i = 0; i < hits.Length; i++)
                         {
-                            target = rayHit.transform;
                             try
                             {
-                                int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                target = hits[i].transform;
                                 if (recordTarget)
                                 {
                                     SaveTargetToDict(index);
                                 }
+#if DEBUG
+                                ConsoleController.ShowMessage("Target found");
+#endif
                                 break;
                             }
                             catch { }
+                            if (i == hits.Length - 1)
+                            {
+                                target = rayHit.transform;
+#if DEBUG
+                                ConsoleController.ShowMessage("Last Target, using raycast " + target.name);
+#endif
+                                if (recordTarget)
+                                {
+                                    try
+                                    {
+                                        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                        SaveTargetToDict(index);
+                                    }
+                                    catch { }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        protected override void OnSimulateFixedUpdate()
+        protected override void OnSimulateLateUpdate()
         {
             if (guidedRocketActivated && rocket.hasFired)
             {
@@ -400,7 +407,7 @@ namespace BlockEnhancementMod.Blocks
                                 }
                                 catch { }
                                 //Add position prediction
-                                Vector3 positionDiff = target.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds + velocity * Time.fixedDeltaTime * 10 - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
+                                Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime * 10 - BB.CenterOfBounds;
                                 float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                                 bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                                 Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -590,7 +597,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void RocketRadarSearch()
         {
-            if (!searchStarted)
+            if (!searchStarted && activeGuide)
             {
                 searchStarted = true;
                 StopCoroutine(SearchForTarget());
@@ -630,7 +637,7 @@ namespace BlockEnhancementMod.Blocks
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
-                    Vector3 positionDiff = targetTransform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds - transform.gameObject.GetComponent<BlockBehaviour>().CenterOfBounds;
+                    Vector3 positionDiff = targetTransform.position - BB.CenterOfBounds;
                     bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
 

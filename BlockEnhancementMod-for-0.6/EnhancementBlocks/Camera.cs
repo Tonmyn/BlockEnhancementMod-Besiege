@@ -29,7 +29,7 @@ namespace BlockEnhancementMod.Blocks
         //Pause tracking setting
         MKey PauseTrackingKey;
         public bool pauseTracking = false;
-        public List<KeyCode> resetKeys = new List<KeyCode> { KeyCode.X };
+        public List<KeyCode> pauseKeys = new List<KeyCode> { KeyCode.X };
 
         //Record target related setting
         MToggle RecordTargetToggle;
@@ -92,7 +92,7 @@ namespace BlockEnhancementMod.Blocks
 
             LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
 
-            PauseTrackingKey = AddKey("暂停/恢复追踪", "ResetView", resetKeys);
+            PauseTrackingKey = AddKey("暂停/恢复追踪", "ResetView", pauseKeys);
 
             AutoLookAtKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
 
@@ -240,8 +240,8 @@ namespace BlockEnhancementMod.Blocks
                     {
                         // Aquire the target to look at
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        float manualSearchRadius = 1.5f;
-                        RaycastHit[] hits = Physics.SphereCastAll(ray.origin, manualSearchRadius, ray.direction, Mathf.Infinity);
+                        float manualSearchRadius = 1.25f;
+                        RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
                         Physics.Raycast(ray, out RaycastHit rayHit);
                         for (int i = 0; i < hits.Length; i++)
                         {
@@ -249,6 +249,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
                                 target = hits[i].transform;
+                                pauseTracking = false;
                                 if (recordTarget)
                                 {
                                     SaveTargetToDict(index);
@@ -259,6 +260,10 @@ namespace BlockEnhancementMod.Blocks
                             if (i == hits.Length - 1)
                             {
                                 target = rayHit.transform;
+                                pauseTracking = false;
+#if DEBUG
+                                //ConsoleController.ShowMessage("Last Target, using raycast");
+#endif
                                 try
                                 {
                                     int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
@@ -404,7 +409,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void CameraRadarSearch()
         {
-            if (!searchStarted)
+            if (!searchStarted && autoSearch)
             {
                 searchStarted = true;
                 StopCoroutine(SearchForTarget());
