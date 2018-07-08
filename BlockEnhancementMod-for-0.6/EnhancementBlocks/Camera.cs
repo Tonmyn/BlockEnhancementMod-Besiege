@@ -300,7 +300,6 @@ namespace BlockEnhancementMod.Blocks
                             explodedTarget.Add(target);
                             targetAquired = false;
                             target = null;
-
                             return;
                         }
                     }

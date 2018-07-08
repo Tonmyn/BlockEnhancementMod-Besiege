@@ -262,6 +262,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     activeGuide = !activeGuide;
                 }
+                
                 if (LockTargetKey.IsReleased)
                 {
                     if (activeGuide)
@@ -324,6 +325,17 @@ namespace BlockEnhancementMod.Blocks
                             }
                         }
                     }
+                }
+            }
+        }
+
+        protected override void OnSimulateFixedUpdate()
+        {
+            if (guidedRocketActivated)
+            {
+                if (activeGuide && !targetAquired)
+                {
+                    RocketRadarSearch();
                 }
             }
         }
