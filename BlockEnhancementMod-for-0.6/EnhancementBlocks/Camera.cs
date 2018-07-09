@@ -231,9 +231,9 @@ namespace BlockEnhancementMod.Blocks
                 }
                 if (LockTargetKey.IsReleased)
                 {
+                    target = null;
                     if (autoSearch)
                     {
-                        target = null;
                         targetAquired = searchStarted = pauseTracking = false;
                     }
                     else
@@ -271,7 +271,6 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         SaveTargetToDict(index);
                                     }
-                                    break;
                                 }
                                 catch { }
                             }
@@ -550,16 +549,6 @@ namespace BlockEnhancementMod.Blocks
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
-                    // Remove anything that's exploded
-                    if (explodedTarget.Contains(targetTransform))
-                    {
-#if DEBUG
-                        //ConsoleController.ShowMessage("Should have added the exploded thing to the list to remove");
-#endif
-                        unwantedTransforms.Add(targetTransform);
-                        continue;
-                    }
-
                     // Remove anything that's not in the view
                     Vector3 positionDiff = targetTransform.position - fixedCameraSim.CompositeTracker3.position;
                     bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
@@ -599,6 +588,8 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
                 transformSetForSearch.ExceptWith(unwantedTransforms);
+                transformSetForSearch.ExceptWith(explodedTarget);
+
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
                 //when the hitlist is not empty
