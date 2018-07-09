@@ -395,6 +395,19 @@ namespace BlockEnhancementMod.Blocks
                 }
                 if (target != null)
                 {
+#if DEBUG
+                    try
+                    {
+                        if (target.gameObject.GetComponent<FireTag>().burning)
+                        {
+                            //ConsoleController.ShowMessage("Target rocket exploded");
+                            explodedTarget.Add(target);
+                            target = null;
+                            targetAquired = false;
+                        }
+                    }
+#endif
+                    catch { }
                     try
                     {
                         if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
@@ -793,7 +806,7 @@ namespace BlockEnhancementMod.Blocks
                         targetValue[i] = targetValue[i] * 150;
                     }
                 }
-                //A fired watercannon
+                //A watering watercannon
                 if (targetObj.GetComponent<WaterCannonController>())
                 {
                     if (targetObj.GetComponent<WaterCannonController>().isActive)
@@ -805,6 +818,14 @@ namespace BlockEnhancementMod.Blocks
                 if (targetObj.GetComponent<FlyingController>())
                 {
                     if (targetObj.GetComponent<FlyingController>().canFly)
+                    {
+                        targetValue[i] = targetValue[i] * 20;
+                    }
+                }
+                //A flaming flamethrower
+                if (targetObj.GetComponent<FlamethrowerController>())
+                {
+                    if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
                     {
                         targetValue[i] = targetValue[i] * 20;
                     }
