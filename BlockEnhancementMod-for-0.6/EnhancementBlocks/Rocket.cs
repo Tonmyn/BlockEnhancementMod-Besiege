@@ -696,6 +696,16 @@ namespace BlockEnhancementMod.Blocks
                 HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
                 foreach (var targetTransform in transformSet)
                 {
+                    try
+                    {
+                        if (targetTransform.gameObject.GetComponent<FireTag>().burning)
+                        {
+                            unwantedTransforms.Add(targetTransform);
+                            continue;
+                        }
+                    }
+                    catch { }
+
                     Vector3 positionDiff = targetTransform.position - BB.CenterOfBounds;
                     bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
