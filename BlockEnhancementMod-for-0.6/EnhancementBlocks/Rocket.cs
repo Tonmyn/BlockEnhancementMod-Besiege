@@ -18,6 +18,11 @@ namespace BlockEnhancementMod.Blocks
         public int selfIndex;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
+        //No smoke mode related
+        MToggle NoSmokeToggle;
+        public bool noSmoke = false;
+        public bool smokeStopped = false;
+
         //Firing record related setting
         public bool hasFired = false;
         public bool targetHit = false;
@@ -85,7 +90,17 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated = RecordTargetToggle.DisplayInMapper = GuidedRocketTorqueSlider.DisplayInMapper = ProximityFuzeToggle.DisplayInMapper = LockTargetKey.DisplayInMapper = ActiveGuideRocketKey.DisplayInMapper = ActiveGuideRocketSearchAngleSlider.DisplayInMapper = GuideDelaySlider.DisplayInMapper = GuidedRocketStabilitySlider.DisplayInMapper = value;
+                guidedRocketActivated =
+                RecordTargetToggle.DisplayInMapper =
+                GuidedRocketTorqueSlider.DisplayInMapper =
+                ProximityFuzeToggle.DisplayInMapper =
+                LockTargetKey.DisplayInMapper =
+                ActiveGuideRocketKey.DisplayInMapper =
+                ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
+                GuideDelaySlider.DisplayInMapper =
+                GuidedRocketStabilitySlider.DisplayInMapper =
+                NoSmokeToggle.DisplayInMapper =
+                value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
@@ -101,10 +116,21 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                proximityFuzeActivated = ProximityFuzeRangeSlider.DisplayInMapper = ProximityFuzeAngleSlider.DisplayInMapper = value;
+                proximityFuzeActivated =
+                ProximityFuzeRangeSlider.DisplayInMapper =
+                ProximityFuzeAngleSlider.DisplayInMapper =
+                value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
+
+            NoSmokeToggle = AddToggle("无烟", "NoSmoke", noSmoke);
+            NoSmokeToggle.Toggled += (bool value) =>
+            {
+                noSmoke = value;
+                ChangedProperties();
+            };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { noSmoke = NoSmokeToggle.IsActive; };
 
             HighExploToggle = AddToggle("高爆", "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
@@ -174,6 +200,7 @@ namespace BlockEnhancementMod.Blocks
         {
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
+            NoSmokeToggle.DisplayInMapper = value;
             ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
@@ -204,6 +231,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateStart()
         {
+            smokeStopped = false;
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
@@ -283,7 +311,7 @@ namespace BlockEnhancementMod.Blocks
 #if DEBUG
                             //ConsoleController.ShowMessage("this should not appear");
 #endif
-                            
+
                             targetAquired = searchStarted = false;
                             if (!targetAquired)
                             {
@@ -299,7 +327,7 @@ namespace BlockEnhancementMod.Blocks
                         RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
                         Physics.Raycast(ray, out RaycastHit rayHit);
 #if DEBUG
-                        ConsoleController.ShowMessage("No of hits in sphere cast all " + hits.Length);
+                        //ConsoleController.ShowMessage("No of hits in sphere cast all " + hits.Length);
 #endif
                         for (int i = 0; i < hits.Length; i++)
                         {
@@ -312,7 +340,7 @@ namespace BlockEnhancementMod.Blocks
                                     SaveTargetToDict(index);
                                 }
 #if DEBUG
-                                ConsoleController.ShowMessage("Target found");
+                                //ConsoleController.ShowMessage("Target found");
 #endif
                                 break;
                             }
@@ -321,7 +349,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = rayHit.transform;
 #if DEBUG
-                                ConsoleController.ShowMessage("Last Target, using raycast " + target.name);
+                                //ConsoleController.ShowMessage("Last Target, using raycast " + target.name);
 #endif
                                 if (recordTarget)
                                 {
@@ -341,6 +369,14 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
+            if (rocket.hasFired && noSmoke && !smokeStopped)
+            {
+                foreach (var smoke in rocket.trail)
+                {
+                    smoke.Stop();
+                }
+                smokeStopped = true;
+            }
             if (guidedRocketActivated && rocket.hasFired)
             {
                 //Record the launch time for the guide delay
@@ -352,10 +388,6 @@ namespace BlockEnhancementMod.Blocks
                 if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
                 {
                     RocketExplode();
-                }
-                if (activeGuide && !targetAquired)
-                {
-                    RocketRadarSearch();
                 }
                 if (Time.time - fireTime >= guideDelay && !canTrigger)
                 {
@@ -407,6 +439,10 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     catch { }
+                }
+                if (activeGuide && !targetAquired)
+                {
+                    RocketRadarSearch();
                 }
             }
         }
@@ -744,16 +780,18 @@ namespace BlockEnhancementMod.Blocks
                 //A bomb
                 if (targetObj.GetComponent<ExplodeOnCollideBlock>())
                 {
-                    targetValue[i] = targetValue[i] * 70;
+                    if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                    {
+                        targetValue[i] = targetValue[i] * 70;
+                    }
                 }
-                //A fired rocket
+                //A fired and unexploded rocket
                 if (targetObj.GetComponent<TimedRocket>())
                 {
-                    if (targetObj.GetComponent<TimedRocket>().hasFired)
+                    if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
                     {
                         targetValue[i] = targetValue[i] * 150;
                     }
-
                 }
                 //A fired watercannon
                 if (targetObj.GetComponent<WaterCannonController>())

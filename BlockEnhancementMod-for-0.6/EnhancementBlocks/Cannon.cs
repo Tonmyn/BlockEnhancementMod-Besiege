@@ -32,6 +32,10 @@ namespace BlockEnhancementMod.Blocks
 
         public MColourSlider TrailColorSlider;
 
+        public CanonBlock CB;
+
+        public AudioSource AS;
+
         public float Strength = 1f;
 
         public float Interval = 0.25f;
@@ -39,6 +43,8 @@ namespace BlockEnhancementMod.Blocks
         public float RandomDelay = 0.2f;
 
         public float KnockBackSpeed = 1f;
+
+        public float originalKnockBackSpeed = 0;
 
         public bool cBullet = false;
 
@@ -102,9 +108,13 @@ namespace BlockEnhancementMod.Blocks
             TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
 
+            // Initialise some components and default values
+            AS = BB.GetComponent<AudioSource>();
+            CB = BB.GetComponent<CanonBlock>();
+            originalKnockBackSpeed = CB.knockbackSpeed;
 
 #if DEBUG
-            ConsoleController.ShowMessage("加农炮添加进阶属性");
+            //ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
 
         }
@@ -125,9 +135,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public CanonBlock CB;
 
-        public AudioSource AS;
 
         /// <summary>
         /// 子弹刚体组件
@@ -151,14 +159,13 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
 
-            BB = GetComponent<BlockBehaviour>();
-            AS = BB.GetComponent<AudioSource>();
-            CB = BB.GetComponent<CanonBlock>();
+
+
             BulletObject = CB.boltObject.gameObject;
             //BR = BulletObject.GetComponent<Rigidbody>();
 
             //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-            knockBackSpeed = KnockBackSpeed * (8000 + BulletMass * CB.boltSpeed * Strength / Time.fixedTime);
+            knockBackSpeed = KnockBackSpeed * originalKnockBackSpeed;
 
             CB.enabled = !cBullet;
             timer = Interval;
@@ -170,21 +177,25 @@ namespace BlockEnhancementMod.Blocks
                 customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                 customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
                 customBulletObject.SetActive(false);
+                if (InheritSize)
+                {
+                    CB.particles[0].transform.localScale = customBulletObject.transform.localScale;
+                }
                 BR = customBulletObject.GetComponent<Rigidbody>();
-                BR.mass = BulletMass;
-                BR.drag = BR.angularDrag = Drag;                
+                BR.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
+                BR.drag = BR.angularDrag = Drag;
 
             }
             else
             {
                 CB.randomDelay = RandomDelay;
-                CB.knockbackSpeed = knockBackSpeed;           
+                CB.knockbackSpeed = knockBackSpeed;
             }
 
             GameObject bullet = cBullet ? customBulletObject : BulletObject;
 
             if (Trail)
-            {                                               
+            {
 
                 if (bullet.GetComponent<TrailRenderer>() == null)
                 {
@@ -242,7 +253,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     timer = 0;
                     if (cBullet)
-                    {                     
+                    {
                         StartCoroutine(shoot());
                     }
                     else
@@ -265,7 +276,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
             }
-            
+
         }
 
         private IEnumerator shoot()
@@ -280,10 +291,12 @@ namespace BlockEnhancementMod.Blocks
                 yield return new WaitForSeconds(randomDelay);
 
                 var bullet = (GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-                bullet.GetComponent<Rigidbody>().velocity = -transform.up * ((CB.boltSpeed * Strength) / 100f);
-                bullet.SetActive(true);
 
-                gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * transform.up);
+                bullet.SetActive(true);
+                bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength / Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z));
+
+                gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z) * transform.up);
+
 
                 CB.particles[0].Play();
                 AS.Play();
@@ -302,11 +315,11 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        
+
 
     }
 
-    
+
 }
 
 
