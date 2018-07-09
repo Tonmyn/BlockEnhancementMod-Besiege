@@ -103,7 +103,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    ConsoleController.ShowMessage("on simulation start");
+                    //ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
