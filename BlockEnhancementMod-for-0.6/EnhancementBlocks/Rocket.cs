@@ -779,6 +779,14 @@ namespace BlockEnhancementMod.Blocks
                         if (tempTransform.Add(hitBlock.attachedRigidbody.gameObject.transform))
                         {
                             count++;
+                            try
+                            {
+                                if (hitBlock.attachedRigidbody.gameObject.GetComponent<FireTag>().burning)
+                                {
+                                    count--;
+                                }
+                            }
+                            catch { }
                         }
                     }
                     catch (Exception)
