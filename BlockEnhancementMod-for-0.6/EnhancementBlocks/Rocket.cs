@@ -55,8 +55,8 @@ namespace BlockEnhancementMod.Blocks
 
 
         //Record target related setting
-        MToggle RecordTargetToggle;
-        public bool recordTarget = false;
+        //MToggle RecordTargetToggle;
+        //public bool recordTarget = false;
 
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
@@ -91,7 +91,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
-                RecordTargetToggle.DisplayInMapper =
+                //RecordTargetToggle.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
@@ -105,13 +105,13 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
 
-            RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
-            RecordTargetToggle.Toggled += (bool value) =>
-            {
-                recordTarget = value;
-                ChangedProperties();
-            };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
+            //RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
+            //RecordTargetToggle.Toggled += (bool value) =>
+            //{
+            //    recordTarget = value;
+            //    ChangedProperties();
+            //};
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
             ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
@@ -203,7 +203,7 @@ namespace BlockEnhancementMod.Blocks
             NoSmokeToggle.DisplayInMapper = value;
             ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
-            RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
+            //RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
@@ -215,18 +215,18 @@ namespace BlockEnhancementMod.Blocks
 
         public override void LoadConfiguration(XDataHolder BlockData)
         {
-            if (BlockData.HasKey("bmt-" + "RocketTarget"))
-            {
-                SaveTargetToDict(BlockData.ReadInt("bmt-" + "RocketTarget"));
-            }
+            //if (BlockData.HasKey("bmt-" + "RocketTarget"))
+            //{
+            //    SaveTargetToDict(BlockData.ReadInt("bmt-" + "RocketTarget"));
+            //}
         }
 
         public override void SaveConfiguration(XDataHolder BlockData)
         {
-            if (Machine.Active().GetComponent<TargetScript>().previousTargetDic.ContainsKey(selfIndex))
-            {
-                BlockData.Write("bmt-" + "RocketTarget", Machine.Active().GetComponent<TargetScript>().previousTargetDic[selfIndex]);
-            }
+            //if (Machine.Active().GetComponent<TargetScript>().previousTargetDic.ContainsKey(selfIndex))
+            //{
+            //    BlockData.Write("bmt-" + "RocketTarget", Machine.Active().GetComponent<TargetScript>().previousTargetDic[selfIndex]);
+            //}
         }
 
         protected override void OnSimulateStart()
@@ -257,28 +257,32 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                if (recordTarget && !activeGuide)
-                {
-                    // Trying to read previously saved target
-                    int targetIndex = -1;
-                    BlockBehaviour targetBlock = new BlockBehaviour();
-                    // Read the target's buildIndex from the dictionary
-                    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
-                    {
-                        target = null;
-                        return;
-                    }
-                    // Aquire target block's transform from the target's index
-                    try
-                    {
-                        Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                        target = Machine.Active().GetSimBlock(targetBlock).transform;
-                    }
-                    catch (Exception)
-                    {
-                        ConsoleController.ShowMessage("Cannot get target block's transform");
-                    }
-                }
+                //if (recordTarget && !activeGuide)
+                //{
+                //    // Trying to read previously saved target
+                //    int targetIndex = -1;
+                //    BlockBehaviour targetBlock = new BlockBehaviour();
+                //    // Read the target's buildIndex from the dictionary
+                //    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                //    {
+                //        //target = null;
+                //        return;
+                //    }
+                //    else
+                //    {
+                //        target = Machine.Active().GetSimBlock(targetBlock).transform;
+                //    }
+                //    //// Aquire target block's transform from the target's index
+                //    //try
+                //    //{
+                //    //    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                //    //    target = Machine.Active().GetSimBlock(targetBlock).transform;
+                //    //}
+                //    //catch (Exception)
+                //    //{
+                //    //    ConsoleController.ShowMessage("Cannot get target block's transform");
+                //    //}
+                //}
             }
         }
 
@@ -335,10 +339,10 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
                                 target = hits[i].transform;
-                                if (recordTarget)
-                                {
-                                    SaveTargetToDict(index);
-                                }
+                                //if (recordTarget)
+                                //{
+                                //    SaveTargetToDict(index);
+                                //}
 #if DEBUG
                                 //ConsoleController.ShowMessage("Target found");
 #endif
@@ -351,15 +355,15 @@ namespace BlockEnhancementMod.Blocks
 #if DEBUG
                                 //ConsoleController.ShowMessage("Last Target, using raycast " + target.name);
 #endif
-                                if (recordTarget)
-                                {
-                                    try
-                                    {
-                                        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                                        SaveTargetToDict(index);
-                                    }
-                                    catch { }
-                                }
+                                //if (recordTarget)
+                                //{
+                                //    try
+                                //    {
+                                //        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                //        SaveTargetToDict(index);
+                                //    }
+                                //    catch { }
+                                //}
                             }
                         }
                     }
@@ -532,21 +536,21 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private void SaveTargetToDict(int BlockID)
-        {
-            // Make sure the dupicated key exception is handled
-            try
-            {
-                // Add target to the dictionary
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-            }
-            catch (Exception)
-            {
-                // Remove the old record, then add the new record
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-            }
-        }
+        //private void SaveTargetToDict(int BlockID)
+        //{
+        //    // Make sure the dupicated key exception is handled
+        //    try
+        //    {
+        //        // Add target to the dictionary
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Remove the old record, then add the new record
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
+        //    }
+        //}
 
         private void RocketExplode()
         {
