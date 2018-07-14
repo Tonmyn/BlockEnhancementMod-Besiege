@@ -373,97 +373,101 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (rocket.hasFired && noSmoke && !smokeStopped)
+            if (rocket.hasFired && !rocket.hasExploded)
             {
-                foreach (var smoke in rocket.trail)
+                //If no smoke mode is enabled, stop all smoke
+                if (noSmoke && !smokeStopped)
                 {
-                    smoke.Stop();
+                    foreach (var smoke in rocket.trail)
+                    {
+                        smoke.Stop();
+                    }
+                    smokeStopped = true;
                 }
-                smokeStopped = true;
-            }
-            if (guidedRocketActivated && rocket.hasFired)
-            {
-                if (!rocket.hasExploded)
+
+                if (guidedRocketActivated)
                 {
+                    //Add aerodynamic force to rocket
                     AddResistancePerpendicularToRocketVelocity();
-                }
-                //Record the launch time for the guide delay
-                if (!fireTimeRecorded)
-                {
-                    fireTimeRecorded = true;
-                    fireTime = Time.time;
-                }
-                if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
-                {
-                    RocketExplode();
-                }
-                if (Time.time - fireTime >= guideDelay && !canTrigger)
-                {
-                    canTrigger = true;
-                }
-                if (target != null)
-                {
-#if DEBUG
-                    try
+
+                    //Record the launch time for the guide delay
+                    if (!fireTimeRecorded)
                     {
-                        if (target.gameObject.GetComponent<FireTag>().burning)
-                        {
-                            //ConsoleController.ShowMessage("Target rocket exploded");
-                            explodedTarget.Add(target);
-                            target = null;
-                            targetAquired = false;
-                        }
+                        fireTimeRecorded = true;
+                        fireTime = Time.time;
                     }
-#endif
-                    catch { }
-                    try
+
+                    //If rocket is burning, explode it
+                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
                     {
-                        if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
-                        {
-                            //ConsoleController.ShowMessage("Target rocket exploded");
-                            explodedTarget.Add(target);
-                            target = null;
-                            targetAquired = false;
-                        }
+                        RocketExplode();
                     }
-                    catch { }
-                    try
+
+                    //Rocket can be triggered after the time elapsed after firing is greater than guide delay
+                    if (Time.time - fireTime >= guideDelay && !canTrigger)
                     {
-                        if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                        {
-                            //ConsoleController.ShowMessage("Target bomb exploded");
-                            explodedTarget.Add(target);
-                            target = null;
-                            targetAquired = false;
-                        }
+                        canTrigger = true;
                     }
-                    catch { }
-                    try
+
+                    //Check if target is no longer valuable (lazy check)
+                    if (target != null)
                     {
-                        if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target level bomb exploded");
-                            explodedTarget.Add(target);
-                            target = null;
-                            targetAquired = false;
+                            if (target.gameObject.GetComponent<FireTag>().burning)
+                            {
+                                explodedTarget.Add(target);
+                                target = null;
+                                targetAquired = false;
+                            }
                         }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                            {
+                                explodedTarget.Add(target);
+                                target = null;
+                                targetAquired = false;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                            {
+                                explodedTarget.Add(target);
+                                target = null;
+                                targetAquired = false;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                            {
+                                explodedTarget.Add(target);
+                                target = null;
+                                targetAquired = false;
+                            }
+                        }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                            {
+                                explodedTarget.Add(target);
+                                target = null;
+                                targetAquired = false;
+                            }
+                        }
+                        catch { }
                     }
-                    catch { }
-                    try
+                    //If no target when active guide, search for a new target
+                    if (activeGuide && !targetAquired)
                     {
-                        if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                        {
-                            //ConsoleController.ShowMessage("Target grenade exploded");
-                            explodedTarget.Add(target);
-                            target = null;
-                            targetAquired = false;
-                        }
+                        RocketRadarSearch();
                     }
-                    catch { }
-                }
-                if (activeGuide && !targetAquired)
-                {
-                    RocketRadarSearch();
                 }
             }
         }
@@ -472,8 +476,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (guidedRocketActivated && rocket.hasFired && !rocket.hasExploded)
             {
-                
-                if (target != null && Time.time - fireTime >= guideDelay)
+                if (target != null && canTrigger)
                 {
                     // Calculating the rotating axis
                     Vector3 velocity = Vector3.zero;
@@ -508,6 +511,7 @@ namespace BlockEnhancementMod.Blocks
                             targetAquired = false;
                         }
                     }
+                    //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
                     if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                     {
                         RocketExplode();
@@ -523,7 +527,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (collision.gameObject.name.Contains("CanonBall"))
                 {
-                    RocketExplode();
+                    if (!rocket.hasExploded) rocket.OnExplode();
                 }
             }
             catch { }
