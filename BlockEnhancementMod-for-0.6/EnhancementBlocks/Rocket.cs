@@ -383,6 +383,10 @@ namespace BlockEnhancementMod.Blocks
             }
             if (guidedRocketActivated && rocket.hasFired)
             {
+                if (!rocket.hasExploded)
+                {
+                    AddResistancePerpendicularToRocketVelocity();
+                }
                 //Record the launch time for the guide delay
                 if (!fireTimeRecorded)
                 {
@@ -468,7 +472,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (guidedRocketActivated && rocket.hasFired && !rocket.hasExploded)
             {
-                AddResistancePerpendicularToRocketVelocity();
+                
                 if (target != null && Time.time - fireTime >= guideDelay)
                 {
                     // Calculating the rotating axis
@@ -891,7 +895,7 @@ namespace BlockEnhancementMod.Blocks
             Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr * Mathf.Clamp01(Mathf.Min(Mathf.Min(transform.localScale.x, transform.localScale.y), transform.localScale.z)));
+            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
         }
     }
 }
