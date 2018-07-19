@@ -680,7 +680,7 @@ namespace BlockEnhancementMod.Blocks
         {
             //Grab every machine block at the start of search
             hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
-            HashSet<Transform> transformSet = new HashSet<Transform>();
+            HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
             if (StatMaster._customLevelSimulating)
             {
@@ -691,84 +691,134 @@ namespace BlockEnhancementMod.Blocks
                 //hitsIn = hitsIn.Where(hit => hit != null).ToArray();
                 hitList = hitsOut.Except(hitsIn).ToArray();
             }
+
             foreach (var hit in hitList)
             {
                 try
                 {
-                    int index = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                    transformSet.Add(hit.attachedRigidbody.gameObject.transform);
-                }
-                catch { }
-            }
-
-            //Iternating the list to find the target that satisfy the conditions
-            while (!targetAquired && !targetHit)
-            {
-                HashSet<Transform> transformSetForSearch = new HashSet<Transform>(transformSet);
-                HashSet<Transform> unwantedTransforms = new HashSet<Transform>();
-                foreach (var targetTransform in transformSet)
-                {
-                    try
-                    {
-                        if (targetTransform.gameObject.GetComponent<FireTag>().burning)
-                        {
-                            unwantedTransforms.Add(targetTransform);
-                            continue;
-                        }
-                    }
-                    catch { }
-
-                    Vector3 positionDiff = targetTransform.position - BB.CenterOfBounds;
-                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-
-                    if (!(forward && angleDiff < searchAngle))
-                    {
-                        unwantedTransforms.Add(targetTransform);
-                        continue;
-                    }
-
-                    BlockBehaviour targetBB = targetTransform.gameObject.GetComponent<BlockBehaviour>();
+                    BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
+                    int clusterIndex = hitBlockBehaviour.ClusterIndex;
+                    Machine machine = hitBlockBehaviour.ParentMachine;
                     if (StatMaster._customLevelSimulating)
                     {
-                        if (targetBB.Team != MPTeam.None)
+                        if (hitBlockBehaviour.Team != MPTeam.None)
                         {
-                            //If the block belongs to a team that is not none
-                            //and is the same as the rocket, remove it from the hashset
-                            if (targetBB.Team == rocket.Team)
+                            if (hitBlockBehaviour.Team != rocket.Team)
                             {
-                                unwantedTransforms.Add(targetTransform);
-                                continue;
+                                simClusters.Add(machine.simClusters[clusterIndex]);
                             }
                         }
                         else
                         {
-                            //If no team is assigned to a block
-                            //only remove it when in multiverse
-                            //and the parentmachine name is the same as the rocket's parent machine
-                            if (targetBB.ParentMachine.Name == rocket.ParentMachine.Name)
+                            if (machine.Name == rocket.ParentMachine.Name)
                             {
-                                unwantedTransforms.Add(targetTransform);
-                                continue;
+                                simClusters.Add(machine.simClusters[clusterIndex]);
                             }
+
                         }
                     }
+                    else
+                    {
+                        simClusters.Add(machine.simClusters[clusterIndex]);
+                    }
                 }
+                catch { }
+            }
 #if DEBUG
-                //ConsoleController.ShowMessage("No. of exploded targets " + explodedTarget.Count());
+            //ConsoleController.ShowMessage("No. of clusters " + simClusters.Count);
 #endif
-                transformSetForSearch.ExceptWith(unwantedTransforms);
-                transformSetForSearch.ExceptWith(explodedTarget);
+
+            //Iternating the list to find the target that satisfy the conditions
+            while (!targetAquired && !targetHit)
+            {
+                HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
+                HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+
+                foreach (var cluster in simClusters)
+                {
+                    bool skipCluster = false;
+                    Vector3 positionDiff = cluster.BaseTransform.gameObject.transform.position - BB.CenterOfBounds;
+                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                    skipCluster = !(forward && angleDiff < searchAngle);
+
+                    if (!skipCluster)
+                    {
+                        foreach (var block in cluster.Blocks)
+                        {
+                            try
+                            {
+                                if (block.fireTag.burning)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (block.gameObject.GetComponent<FireTag>().burning)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (block.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                            try
+                            {
+                                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                {
+                                    skipCluster = true;
+                                    break;
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                    if (skipCluster)
+                    {
+                        unwantedClusters.Add(cluster);
+                    }
+                }
+
+                simClusterForSearch.ExceptWith(unwantedClusters);
 
                 //Try to find the most valuable block
                 //i.e. has the most number of blocks around it within a certain radius
                 //when the hitlist is not empty
-                if (transformSetForSearch.Count > 0)
+                if (simClusterForSearch.Count > 0)
                 {
                     //Search for any blocks within the search radius for every block in the hitlist
                     //Find the block that has the max number of colliders around it
                     //Take that block as the target
-                    target = GetMostValuableBlock(transformSetForSearch);
+                    target = GetMostValuableBlock(simClusterForSearch);
                     targetAquired = true;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
@@ -777,120 +827,93 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private Transform GetMostValuableBlock(HashSet<Transform> transformSet)
+        private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
         {
             //Search for any blocks within the search radius for every block in the hitlist
-            float[] targetValue = new float[transformSet.Count];
-            Transform[] transformArray = new Transform[transformSet.Count];
-            HashSet<Transform> tempTransform = new HashSet<Transform>();
-            List<Transform> maxTransform = new List<Transform>();
+            int[] targetValue = new int[simClusterForSearch.Count];
+            Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
+            HashSet<Machine.SimCluster> tempClusters = new HashSet<Machine.SimCluster>();
+            List<Machine.SimCluster> maxClusters = new List<Machine.SimCluster>();
 
             //Start searching
             int i = 0;
-            foreach (var targetTransform in transformSet)
+            foreach (var simCluster in simClusterForSearch)
             {
-                //Count how many colliders are around this particular collider
-                Collider[] hitsAroundBlock = Physics.OverlapSphere(targetTransform.position, searchSurroundingBlockRadius);
-                tempTransform.Clear();
-                int count = 0;
-                foreach (var hitBlock in hitsAroundBlock)
+                targetValue[i] = simCluster.Blocks.Length;
+                clusterArray[i] = simCluster;
+
+                foreach (var block in simCluster.Blocks)
                 {
-                    try
+                    //Some blocks weights more than others
+                    GameObject targetObj = block.gameObject;
+                    //A bomb
+                    if (targetObj.GetComponent<ExplodeOnCollideBlock>())
                     {
-                        int index = hitBlock.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                        if (tempTransform.Add(hitBlock.attachedRigidbody.gameObject.transform))
+                        if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                         {
-                            count++;
-                            try
-                            {
-                                if (hitBlock.attachedRigidbody.gameObject.GetComponent<FireTag>().burning)
-                                {
-                                    count--;
-                                }
-                            }
-                            catch { }
+                            targetValue[i] = targetValue[i] * 70;
                         }
                     }
-                    catch (Exception)
+                    //A fired and unexploded rocket
+                    if (targetObj.GetComponent<TimedRocket>())
                     {
+                        if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
+                        {
+                            targetValue[i] = targetValue[i] * 150;
+                        }
                     }
-                }
-                targetValue[i] = count;
-                transformArray[i] = targetTransform;
-
-                //Some blocks weights more than others
-                GameObject targetObj = targetTransform.gameObject;
-                //A bomb
-                if (targetObj.GetComponent<ExplodeOnCollideBlock>())
-                {
-                    if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                    //A watering watercannon
+                    if (targetObj.GetComponent<WaterCannonController>())
                     {
-                        targetValue[i] = targetValue[i] * 70;
+                        if (targetObj.GetComponent<WaterCannonController>().isActive)
+                        {
+                            targetValue[i] = targetValue[i] * 50;
+                        }
                     }
-                }
-                //A fired and unexploded rocket
-                if (targetObj.GetComponent<TimedRocket>())
-                {
-                    if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
+                    //A flying flying-block
+                    if (targetObj.GetComponent<FlyingController>())
                     {
-                        targetValue[i] = targetValue[i] * 150;
+                        if (targetObj.GetComponent<FlyingController>().canFly)
+                        {
+                            targetValue[i] = targetValue[i] * 20;
+                        }
                     }
-                }
-                //A watering watercannon
-                if (targetObj.GetComponent<WaterCannonController>())
-                {
-                    if (targetObj.GetComponent<WaterCannonController>().isActive)
+                    //A flaming flamethrower
+                    if (targetObj.GetComponent<FlamethrowerController>())
                     {
-                        targetValue[i] = targetValue[i] * 50;
-                    }
-                }
-                //A flying flying-block
-                if (targetObj.GetComponent<FlyingController>())
-                {
-                    if (targetObj.GetComponent<FlyingController>().canFly)
-                    {
-                        targetValue[i] = targetValue[i] * 20;
-                    }
-                }
-                //A flaming flamethrower
-                if (targetObj.GetComponent<FlamethrowerController>())
-                {
-                    if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
-                    {
-                        targetValue[i] = targetValue[i] * 20;
+                        if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
+                        {
+                            targetValue[i] = targetValue[i] * 20;
+                        }
                     }
                 }
                 i++;
             }
             //Find the block that has the max number of blocks around it
             //If there are multiple withh the same highest value, randomly return one of them
-            float max = targetValue[0];
-            for (i = 1; i < targetValue.Length; i++)
-            {
-                if (targetValue[i] > max)
-                {
-                    max = targetValue[i];
-                }
-            }
+            int maxValue = targetValue.Max();
             for (i = 0; i < targetValue.Length; i++)
             {
-                if (targetValue[i] == max)
+                if (targetValue[i] == maxValue)
                 {
-                    maxTransform.Add(transformArray[i]);
+                    maxClusters.Add(clusterArray[i]);
                 }
             }
-            int closestIndex = 0;
-            float distanceMin = (maxTransform[0].position - rocket.transform.position).magnitude;
-            for (i = 1; i < maxTransform.Count; i++)
+
+            int closestIndex = 0, clusterSize = 0, sizeOfClosestMaxValueCluster = 0;
+            float distanceMin = Mathf.Infinity;
+            for (i = 0; i < maxClusters.Count; i++)
             {
-                float distanceCurrent = (maxTransform[i].position - rocket.transform.position).magnitude;
+                clusterSize = maxClusters[i].Blocks.Length;
+                float distanceCurrent = (maxClusters[i].Blocks[Mathf.FloorToInt(clusterSize / 2)].gameObject.transform.position - rocket.transform.position).magnitude;
                 if (distanceCurrent < distanceMin)
                 {
                     closestIndex = i;
                     distanceMin = distanceCurrent;
+                    sizeOfClosestMaxValueCluster = clusterSize;
                 }
             }
-            return maxTransform[closestIndex];
+            return maxClusters[closestIndex].Blocks[Mathf.FloorToInt(sizeOfClosestMaxValueCluster / 2)].gameObject.transform;
         }
 
         private void AddResistancePerpendicularToRocketVelocity()
