@@ -15,7 +15,6 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
-        public int selfIndex;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         //No smoke mode related
@@ -185,7 +184,6 @@ namespace BlockEnhancementMod.Blocks
             {
                 rocket = gameObject.GetComponent<TimedRocket>();
                 rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-                selfIndex = BB.BuildIndex;
             }
 
 
@@ -211,22 +209,6 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
-        }
-
-        public override void LoadConfiguration(XDataHolder BlockData)
-        {
-            //if (BlockData.HasKey("bmt-" + "RocketTarget"))
-            //{
-            //    SaveTargetToDict(BlockData.ReadInt("bmt-" + "RocketTarget"));
-            //}
-        }
-
-        public override void SaveConfiguration(XDataHolder BlockData)
-        {
-            //if (Machine.Active().GetComponent<TargetScript>().previousTargetDic.ContainsKey(selfIndex))
-            //{
-            //    BlockData.Write("bmt-" + "RocketTarget", Machine.Active().GetComponent<TargetScript>().previousTargetDic[selfIndex]);
-            //}
         }
 
         protected override void OnSimulateStart()
@@ -257,32 +239,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                //if (recordTarget && !activeGuide)
-                //{
-                //    // Trying to read previously saved target
-                //    int targetIndex = -1;
-                //    BlockBehaviour targetBlock = new BlockBehaviour();
-                //    // Read the target's buildIndex from the dictionary
-                //    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
-                //    {
-                //        //target = null;
-                //        return;
-                //    }
-                //    else
-                //    {
-                //        target = Machine.Active().GetSimBlock(targetBlock).transform;
-                //    }
-                //    //// Aquire target block's transform from the target's index
-                //    //try
-                //    //{
-                //    //    Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                //    //    target = Machine.Active().GetSimBlock(targetBlock).transform;
-                //    //}
-                //    //catch (Exception)
-                //    //{
-                //    //    ConsoleController.ShowMessage("Cannot get target block's transform");
-                //    //}
-                //}
             }
         }
 
@@ -339,31 +295,12 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
                                 target = hits[i].transform;
-                                //if (recordTarget)
-                                //{
-                                //    SaveTargetToDict(index);
-                                //}
-#if DEBUG
-                                //ConsoleController.ShowMessage("Target found");
-#endif
                                 break;
                             }
                             catch { }
                             if (i == hits.Length - 1)
                             {
                                 target = rayHit.transform;
-#if DEBUG
-                                //ConsoleController.ShowMessage("Last Target, using raycast " + target.name);
-#endif
-                                //if (recordTarget)
-                                //{
-                                //    try
-                                //    {
-                                //        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                                //        SaveTargetToDict(index);
-                                //    }
-                                //    catch { }
-                                //}
                             }
                         }
                     }
@@ -544,22 +481,6 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        //private void SaveTargetToDict(int BlockID)
-        //{
-        //    // Make sure the dupicated key exception is handled
-        //    try
-        //    {
-        //        // Add target to the dictionary
-        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        // Remove the old record, then add the new record
-        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
-        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-        //    }
-        //}
-
         private void RocketExplode()
         {
             //Reset some parameter and set the rocket to explode
@@ -699,34 +620,35 @@ namespace BlockEnhancementMod.Blocks
                     BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
                     int clusterIndex = hitBlockBehaviour.ClusterIndex;
                     Machine machine = hitBlockBehaviour.ParentMachine;
-                    if (StatMaster._customLevelSimulating)
+                    if (machine.SimPhysics)
                     {
-                        if (hitBlockBehaviour.Team != MPTeam.None)
+                        if (StatMaster._customLevelSimulating)
                         {
-                            if (hitBlockBehaviour.Team != rocket.Team)
+                            if (hitBlockBehaviour.Team != MPTeam.None)
                             {
-                                simClusters.Add(machine.simClusters[clusterIndex]);
+                                if (hitBlockBehaviour.Team != rocket.Team)
+                                {
+                                    simClusters.Add(machine.simClusters[clusterIndex]);
+                                }
+                            }
+                            else
+                            {
+                                if (machine.Name != rocket.ParentMachine.Name)
+                                {
+                                    simClusters.Add(machine.simClusters[clusterIndex]);
+                                }
+
                             }
                         }
                         else
                         {
-                            if (machine.Name == rocket.ParentMachine.Name)
-                            {
-                                simClusters.Add(machine.simClusters[clusterIndex]);
-                            }
-
+                            simClusters.Add(machine.simClusters[clusterIndex]);
                         }
-                    }
-                    else
-                    {
-                        simClusters.Add(machine.simClusters[clusterIndex]);
                     }
                 }
                 catch { }
             }
-#if DEBUG
-            //ConsoleController.ShowMessage("No. of clusters " + simClusters.Count);
-#endif
+
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit)
@@ -736,70 +658,20 @@ namespace BlockEnhancementMod.Blocks
 
                 foreach (var cluster in simClusters)
                 {
-                    bool skipCluster = false;
-                    Vector3 positionDiff = cluster.BaseTransform.gameObject.transform.position - BB.CenterOfBounds;
-                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.CenterOfBounds;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                    skipCluster = !(forward && angleDiff < searchAngle);
+                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                    bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
 
                     if (!skipCluster)
                     {
                         foreach (var block in cluster.Blocks)
                         {
-                            try
+                            if (skipCluster)
                             {
-                                if (block.fireTag.burning)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
+                                break;
                             }
-                            catch { }
-                            try
-                            {
-                                if (block.gameObject.GetComponent<FireTag>().burning)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (block.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                                {
-                                    skipCluster = true;
-                                    break;
-                                }
-                            }
-                            catch { }
+                            skipCluster = ShouldSkipCluster(block);
                         }
                     }
                     if (skipCluster)
@@ -809,15 +681,11 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 simClusterForSearch.ExceptWith(unwantedClusters);
-
-                //Try to find the most valuable block
-                //i.e. has the most number of blocks around it within a certain radius
-                //when the hitlist is not empty
+#if DEBUG
+                ConsoleController.ShowMessage("No. of Clusters " + simClusterForSearch.Count);
+#endif
                 if (simClusterForSearch.Count > 0)
                 {
-                    //Search for any blocks within the search radius for every block in the hitlist
-                    //Find the block that has the max number of colliders around it
-                    //Take that block as the target
                     target = GetMostValuableBlock(simClusterForSearch);
                     targetAquired = true;
                     searchStarted = false;
@@ -832,61 +700,20 @@ namespace BlockEnhancementMod.Blocks
             //Search for any blocks within the search radius for every block in the hitlist
             int[] targetValue = new int[simClusterForSearch.Count];
             Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
-            HashSet<Machine.SimCluster> tempClusters = new HashSet<Machine.SimCluster>();
             List<Machine.SimCluster> maxClusters = new List<Machine.SimCluster>();
 
             //Start searching
             int i = 0;
             foreach (var simCluster in simClusterForSearch)
             {
-                targetValue[i] = simCluster.Blocks.Length;
-                clusterArray[i] = simCluster;
-
+                int clusterValue = simCluster.Blocks.Length + 1;
+                clusterValue = CalculateClusterValue(simCluster.Base, clusterValue);
                 foreach (var block in simCluster.Blocks)
                 {
-                    //Some blocks weights more than others
-                    GameObject targetObj = block.gameObject;
-                    //A bomb
-                    if (targetObj.GetComponent<ExplodeOnCollideBlock>())
-                    {
-                        if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                        {
-                            targetValue[i] = targetValue[i] * 70;
-                        }
-                    }
-                    //A fired and unexploded rocket
-                    if (targetObj.GetComponent<TimedRocket>())
-                    {
-                        if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
-                        {
-                            targetValue[i] = targetValue[i] * 150;
-                        }
-                    }
-                    //A watering watercannon
-                    if (targetObj.GetComponent<WaterCannonController>())
-                    {
-                        if (targetObj.GetComponent<WaterCannonController>().isActive)
-                        {
-                            targetValue[i] = targetValue[i] * 50;
-                        }
-                    }
-                    //A flying flying-block
-                    if (targetObj.GetComponent<FlyingController>())
-                    {
-                        if (targetObj.GetComponent<FlyingController>().canFly)
-                        {
-                            targetValue[i] = targetValue[i] * 20;
-                        }
-                    }
-                    //A flaming flamethrower
-                    if (targetObj.GetComponent<FlamethrowerController>())
-                    {
-                        if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
-                        {
-                            targetValue[i] = targetValue[i] * 20;
-                        }
-                    }
+                    clusterValue = CalculateClusterValue(block, clusterValue);
                 }
+                targetValue[i] = clusterValue;
+                clusterArray[i] = simCluster;
                 i++;
             }
             //Find the block that has the max number of blocks around it
@@ -902,18 +729,18 @@ namespace BlockEnhancementMod.Blocks
 
             int closestIndex = 0, clusterSize = 0, sizeOfClosestMaxValueCluster = 0;
             float distanceMin = Mathf.Infinity;
+
             for (i = 0; i < maxClusters.Count; i++)
             {
-                clusterSize = maxClusters[i].Blocks.Length;
-                float distanceCurrent = (maxClusters[i].Blocks[Mathf.FloorToInt(clusterSize / 2)].gameObject.transform.position - rocket.transform.position).magnitude;
+                float distanceCurrent = (maxClusters[i].Base.gameObject.transform.position - rocket.transform.position).magnitude;
                 if (distanceCurrent < distanceMin)
                 {
                     closestIndex = i;
                     distanceMin = distanceCurrent;
-                    sizeOfClosestMaxValueCluster = clusterSize;
                 }
             }
-            return maxClusters[closestIndex].Blocks[Mathf.FloorToInt(sizeOfClosestMaxValueCluster / 2)].gameObject.transform;
+
+            return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
         private void AddResistancePerpendicularToRocketVelocity()
@@ -923,6 +750,100 @@ namespace BlockEnhancementMod.Blocks
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+        }
+
+        private int CalculateClusterValue(BlockBehaviour block, int clusterValue)
+        {
+            //Some blocks weights more than others
+            GameObject targetObj = block.gameObject;
+            //A bomb
+            if (targetObj.GetComponent<ExplodeOnCollideBlock>())
+            {
+                if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                {
+                    clusterValue *= 64;
+                }
+            }
+            //A fired and unexploded rocket
+            if (targetObj.GetComponent<TimedRocket>())
+            {
+                if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
+                {
+                    clusterValue *= 128;
+                }
+            }
+            //A watering watercannon
+            if (targetObj.GetComponent<WaterCannonController>())
+            {
+                if (targetObj.GetComponent<WaterCannonController>().isActive)
+                {
+                    clusterValue *= 16;
+                }
+            }
+            //A flying flying-block
+            if (targetObj.GetComponent<FlyingController>())
+            {
+                if (targetObj.GetComponent<FlyingController>().canFly)
+                {
+                    clusterValue *= 2;
+                }
+            }
+            //A flaming flamethrower
+            if (targetObj.GetComponent<FlamethrowerController>())
+            {
+                if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
+                {
+                    clusterValue *= 8;
+                }
+            }
+            //A spinning wheel/cog
+            if (targetObj.GetComponent<CogMotorControllerHinge>())
+            {
+                if (targetObj.GetComponent<CogMotorControllerHinge>().Velocity != 0)
+                {
+                    clusterValue *= 2;
+                }
+            }
+            return clusterValue;
+        }
+
+        private bool ShouldSkipCluster(BlockBehaviour block)
+        {
+            bool skipCluster = false;
+            try
+            {
+                if (block.gameObject.GetComponent<FireTag>().burning)
+                {
+                    skipCluster = true;
+                }
+            }
+            catch { }
+            try
+            {
+                if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
+                {
+                    skipCluster = true;
+                }
+            }
+            catch { }
+            try
+            {
+                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                {
+                    skipCluster = true;
+                }
+            }
+            catch { }
+            try
+            {
+                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                {
+                    skipCluster = true;
+                }
+            }
+            catch { }
+
+            return skipCluster;
         }
     }
 }
