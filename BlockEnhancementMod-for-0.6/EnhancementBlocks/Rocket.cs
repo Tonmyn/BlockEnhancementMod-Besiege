@@ -52,11 +52,6 @@ namespace BlockEnhancementMod.Blocks
         private Collider[] hitsOut;
         private Collider[] hitList;
 
-
-        //Record target related setting
-        //MToggle RecordTargetToggle;
-        //public bool recordTarget = false;
-
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
@@ -90,7 +85,6 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
-                //RecordTargetToggle.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
@@ -103,14 +97,6 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
-
-            //RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
-            //RecordTargetToggle.Toggled += (bool value) =>
-            //{
-            //    recordTarget = value;
-            //    ChangedProperties();
-            //};
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
             ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
@@ -186,8 +172,6 @@ namespace BlockEnhancementMod.Blocks
                 rocketRigidbody = gameObject.GetComponent<Rigidbody>();
             }
 
-
-
 #if DEBUG
             //ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -201,7 +185,6 @@ namespace BlockEnhancementMod.Blocks
             NoSmokeToggle.DisplayInMapper = value;
             ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
-            //RecordTargetToggle.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
@@ -681,9 +664,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 simClusterForSearch.ExceptWith(unwantedClusters);
-#if DEBUG
-                ConsoleController.ShowMessage("No. of Clusters " + simClusterForSearch.Count);
-#endif
+
                 if (simClusterForSearch.Count > 0)
                 {
                     target = GetMostValuableBlock(simClusterForSearch);
