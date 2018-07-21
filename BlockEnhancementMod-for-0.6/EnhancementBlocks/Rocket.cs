@@ -603,7 +603,7 @@ namespace BlockEnhancementMod.Blocks
                     BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
                     int clusterIndex = hitBlockBehaviour.ClusterIndex;
                     Machine machine = hitBlockBehaviour.ParentMachine;
-                    if (machine.SimPhysics)
+                    if (machine.isSimulating)
                     {
                         if (StatMaster._customLevelSimulating)
                         {
@@ -632,9 +632,8 @@ namespace BlockEnhancementMod.Blocks
                 catch { }
             }
 
-
             //Iternating the list to find the target that satisfy the conditions
-            while (!targetAquired && !targetHit)
+            while (!targetAquired && !targetHit && simClusters.Count > 0)
             {
                 HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
                 HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
@@ -674,6 +673,7 @@ namespace BlockEnhancementMod.Blocks
                 }
                 yield return null;
             }
+            yield return new WaitForSeconds(1f);
         }
 
         private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
