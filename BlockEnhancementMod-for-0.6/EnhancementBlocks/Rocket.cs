@@ -442,12 +442,11 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionEnter(Collision collision)
         {
-            //Rocket will explode upon collision when time delay has elapsed
             try
             {
-                if (collision.gameObject.name.Contains("CanonBall"))
+                if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
                 {
-                    if (!rocket.hasExploded) rocket.OnExplode();
+                    rocket.OnExplode();
                 }
             }
             catch { }
@@ -458,6 +457,14 @@ namespace BlockEnhancementMod.Blocks
         }
         void OnCollisionStay(Collision collision)
         {
+            try
+            {
+                if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
+                {
+                    rocket.OnExplode();
+                }
+            }
+            catch { };
             if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
