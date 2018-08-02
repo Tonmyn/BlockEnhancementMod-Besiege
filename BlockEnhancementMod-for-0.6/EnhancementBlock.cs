@@ -57,16 +57,16 @@ namespace BlockEnhancementMod
 
             SafeAwake();
 
-            if (!StatMaster.levelSimulating)
-            {
-                LoadConfiguration();
+            //if (!StatMaster.levelSimulating)
+            //{
+            //    LoadConfiguration();
 
-                ChangedProperties();
+            //    ChangedProperties();
 
-                DisplayInMapper(EnhancementEnable);
+            //    DisplayInMapper(EnhancementEnable);
 
-                Controller.Instance.OnSave += SaveConfiguration;
-            }
+            //    Controller.Instance.OnSave += SaveConfiguration;
+            //}
            // Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
@@ -159,24 +159,24 @@ namespace BlockEnhancementMod
 
         private void LoadConfiguration()
         {
-            if (Controller.Instance.MI == null)
-            {
-                return;
-            }
+            //if (Controller.Instance.MI == null)
+            //{
+            //    return;
+            //}
 
-            foreach (var blockinfo in Controller.Instance.MI.Blocks)
-            {
-                if (blockinfo.Guid == BB.Guid)
-                {
-                    XDataHolder bd = blockinfo.BlockData;
+            //foreach (var blockinfo in Controller.Instance.MI.Blocks)
+            //{
+            //    if (blockinfo.Guid == BB.Guid)
+            //    {
+            //        XDataHolder bd = blockinfo.BlockData;
 
-                    BlockDataLoadEvent(bd);
+            //        BlockDataLoadEvent(bd);
 
-                    LoadConfiguration(bd);
+            //        LoadConfiguration(bd);
 
-                    break;
-                }
-            }
+            //        break;
+            //    }
+            //}
         }
 
         /// <summary>

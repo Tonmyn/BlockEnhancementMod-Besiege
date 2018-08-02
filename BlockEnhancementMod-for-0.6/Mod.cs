@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using Modding;
+using Modding.Mapper;
 
 namespace BlockEnhancementMod
 {
@@ -16,6 +17,8 @@ namespace BlockEnhancementMod
             mod = new GameObject("Block Enhancement Mod");
             Controller.Instance.transform.SetParent(mod.transform);
             //LanguageManager.Instance.transform.SetParent(mod.transform);
+
+            CustomMapperTypes.AddMapperType<int, TTest, TTestSelector>();
             
         }
 

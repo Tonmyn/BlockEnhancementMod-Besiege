@@ -1,117 +1,123 @@
 ﻿using BlockEnhancementMod.Blocks;
-using BlockEnhancementMod.Tools;
+using Modding;
+using Modding.Blocks;
+using Modding.Mapper;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace BlockEnhancementMod
 {
 
-    public delegate void OnBlockPlaced(Transform block);
+    //public delegate void OnBlockPlaced(Transform block);
 
     //public delegate void OnKeyMapperOpen();
+
+    public delegate PlayerMachineInfo OnLoad();
 
     class Controller : SingleInstance<Controller>
     {
         public override string Name { get; } = "Controller";
 
         /// <summary>存档信息</summary>
-        internal MachineInfo MI;
+        //internal PlayerMachineInfo MI;
         
-        public event OnBlockPlaced OnBlockPlaced;
+        //public event OnBlockPlaced OnBlockPlaced;
 
-        public event OnSaveHandler OnSave;
+        //public event OnSaveHandler OnSave;
 
-        public event OnLoadHandler OnLoad;
+        
 
         //public event OnKeyMapperOpen OnKeyMapperOpen;
 
-        private BlockBehaviour _lastBlock;
+        //private BlockBehaviour _lastBlock;
 
-        private int machineBlockCount = 1;
+        //private int machineBlockCount = 1;
 
-        private bool _keyMapperOpen;
+        //private bool _keyMapperOpen;
 
-        private string currentSceneName;
+        //private string currentSceneName;
+
+        List<EnhancementBlock> blocks;
+
+
 
         private void Awake()
         {
             //加载配置
-            XmlLoader.OnLoad += LoadConfiguration;
-            XmlLoader.OnLoad += OnLoad;
+  
+            Events.OnMachineLoaded += LoadConfiguration;
 
             //储存配置
-            XmlSaver.OnSave += SaveConfiguration;
-            XmlSaver.OnSave += OnSave;
+            Events.OnMachineSave += SaveConfiguration;
+
 
             //添加放置零件事件委托
-            OnBlockPlaced += AddSliders;
+            Events.OnBlockPlaced += AddSliders;
 
-            ////添加打开菜单事件委托
-            //Game.OnKeymapperOpen += OnKeymapperOpen;
-            currentSceneName = SceneManager.GetActiveScene().name;
+            //////添加打开菜单事件委托
+            ////Game.OnKeymapperOpen += OnKeymapperOpen;
+            //currentSceneName = SceneManager.GetActiveScene().name;
         }
 
         private void Update()
         {
 
-            if (BlockMapper.CurrentInstance != null && BlockMapper.CurrentInstance.Block != null)
-            {
-                //AddPiece.Instance.
+            //if (BlockMapper.CurrentInstance != null && BlockMapper.CurrentInstance.Block != null)
+            //{
+            //    //AddPiece.Instance.
 
-                // Check for open keymapper
-                if (!_keyMapperOpen)
-                {
-                    OnKeymapperOpen();
-                    _keyMapperOpen = true;
-                }
+            //    // Check for open keymapper
+            //    if (!_keyMapperOpen)
+            //    {
+            //        OnKeymapperOpen();
+            //        _keyMapperOpen = true;
+            //    }
 
-                if (BlockMapper.CurrentInstance.Block != _lastBlock)
-                {
-                    OnKeymapperOpen();
-                    _lastBlock = BlockMapper.CurrentInstance.Block;
-                }
+            //    if (BlockMapper.CurrentInstance.Block != _lastBlock)
+            //    {
+            //        OnKeymapperOpen();
+            //        _lastBlock = BlockMapper.CurrentInstance.Block;
+            //    }
 
-            }
-            else
-            {
-                if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
-                {
-                    AddAllSliders();
-                    currentSceneName = SceneManager.GetActiveScene().name;
-                }
-                _keyMapperOpen = false;
-            }
+            //}
+            //else
+            //{
+            //    if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
+            //    {
+            //        AddAllSliders();
+            //        currentSceneName = SceneManager.GetActiveScene().name;
+            //    }
+            //    _keyMapperOpen = false;
+            //}
 
 
-            if (!StatMaster.levelSimulating)
-            {
+//            if (!StatMaster.levelSimulating)
+//            {
 
-                if (Machine.Active())
-                {
-                    int currentCount = Machine.Active().BuildingBlocks.Count;
-                    if (currentCount > machineBlockCount)
-                    {
-                        if (OnBlockPlaced != null)
-                        {
-                            OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
-                        }
-#if DEBUG
-                        ConsoleController.ShowMessage("on place");
-#endif
-                    }
-                    machineBlockCount = currentCount;
-                }
-            }
+//                if (Machine.Active())
+//                {
+//                    int currentCount = Machine.Active().BuildingBlocks.Count;
+//                    if (currentCount > machineBlockCount)
+//                    {
+//                        if (OnBlockPlaced != null)
+//                        {
+//                            OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
+//                        }
+//#if DEBUG
+//                        ConsoleController.ShowMessage("on place");
+//#endif
+//                    }
+//                    machineBlockCount = currentCount;
+//                }
+//            }
 
             if (Input.GetKeyDown(KeyCode.T))
             {
                 BesiegeConsoleController.ShowMessage("bem");
+
+                
             }
         }
 
@@ -131,6 +137,12 @@ namespace BlockEnhancementMod
             {
                 AddSliders(block);
             }
+        }
+
+        private void AddSliders(Block block)
+        {
+            BesiegeConsoleController.ShowMessage("place bem");
+            block.BuildingBlock.InternalObject.AddToggle("测试按钮","test",false);
         }
 
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
@@ -206,32 +218,67 @@ namespace BlockEnhancementMod
 
 
 
+//        /// <summary>储存存档信息</summary>
+//        private void SaveConfiguration(MachineInfo mi)
+//        {
+//#if DEBUG
+//            ConsoleController.ShowMessage("储存存档");
+//#endif
+//            //Configuration.Save();
+//        }
+
         /// <summary>储存存档信息</summary>
-        private void SaveConfiguration(MachineInfo mi)
+        private void SaveConfiguration(PlayerMachineInfo mi)
         {
+
+#if DEBUG
+            ConsoleController.ShowMessage("储存存档");
+#endif
             //Configuration.Save();
         }
 
+        //        /// <summary>加载存档信息</summary>
+        //        private void LoadConfiguration(MachineInfo mi)
+        //        {
+
+        //#if DEBUG
+        //            ConsoleController.ShowMessage("载入存档");
+        //#endif
+
+        //            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+        //            {
+        //                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+        //            }
+
+        //            MI = mi;
+
+        //            StartCoroutine(RefreshSliders());     
+
+        //            //load?.Invoke();
+
+        //        }
+
         /// <summary>加载存档信息</summary>
-        private void LoadConfiguration(MachineInfo mi)
+        private void LoadConfiguration(PlayerMachineInfo mi)
         {
 
 #if DEBUG
             ConsoleController.ShowMessage("载入存档");
 #endif
 
-            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
-            {
-                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
-            }
+            //if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+            //{
+            //    Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+            //}
 
-            MI = mi;
+            //MI = mi;
 
-            StartCoroutine(RefreshSliders());     
+            //StartCoroutine(RefreshSliders());
 
             //load?.Invoke();
 
         }
+
 
         private void OnKeymapperOpen()
         {
@@ -244,6 +291,42 @@ namespace BlockEnhancementMod
             }
             AddAllSliders();
         }
+
+    }
+
+    public class TTest : MCustom<int>
+    {
+        public TTest(string displayName, string key, int defaultValue) : base(displayName, key, defaultValue)
+        {
+
+        }
+
+        public override XData SerializeValue(int value)
+        {
+            return new XString(SerializationKey, value.ToString());
+        }
+
+        public override int DeSerializeValue(XData data)
+        {
+            return int.Parse((string)(XString)data);
+        }
+
+        public override int Value { get => base.Value; set => base.Value = value; }
+    }
+
+    public class TTestSelector : CustomSelector<int, TTest>
+    {
+
+        protected override void CreateInterface()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void UpdateInterface()
+        {
+            throw new NotImplementedException();
+        }
+
 
     }
 }
