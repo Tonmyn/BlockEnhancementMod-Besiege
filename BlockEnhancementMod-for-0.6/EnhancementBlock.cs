@@ -67,7 +67,7 @@ namespace BlockEnhancementMod
 
                 Controller.Instance.OnSave += SaveConfiguration;
             }
-            Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+           // Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
         private void Start()

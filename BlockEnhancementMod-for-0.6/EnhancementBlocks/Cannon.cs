@@ -263,7 +263,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (cBullet)
             {
-                Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
+                //Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
             }
             
         }

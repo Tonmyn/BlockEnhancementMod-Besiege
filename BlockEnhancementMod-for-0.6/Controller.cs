@@ -108,10 +108,15 @@ namespace BlockEnhancementMod
                     machineBlockCount = currentCount;
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                BesiegeConsoleController.ShowMessage("bem");
+            }
         }
 
         /// <summary>反射获取菜单私有属性</summary>
-        public FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
+        //public FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>是否有进阶属性</summary>
         public bool HasEnhancement(BlockBehaviour block)
@@ -204,7 +209,7 @@ namespace BlockEnhancementMod
         /// <summary>储存存档信息</summary>
         private void SaveConfiguration(MachineInfo mi)
         {
-            Configuration.Save();
+            //Configuration.Save();
         }
 
         /// <summary>加载存档信息</summary>
