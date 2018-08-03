@@ -57,17 +57,17 @@ namespace BlockEnhancementMod
 
             SafeAwake();
 
-            //if (!StatMaster.levelSimulating)
-            //{
-            //    LoadConfiguration();
+            if (!StatMaster.levelSimulating)
+            {
+                LoadConfiguration();
 
-            //    ChangedProperties();
+                ChangedProperties();
 
-            //    DisplayInMapper(EnhancementEnable);
+                DisplayInMapper(EnhancementEnable);
 
-            //    Controller.Instance.OnSave += SaveConfiguration;
-            //}
-           // Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
+                //Controller.Instance.OnSave += SaveConfiguration;
+            }
+            // Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
         private void Start()
@@ -159,24 +159,24 @@ namespace BlockEnhancementMod
 
         private void LoadConfiguration()
         {
-            //if (Controller.Instance.MI == null)
-            //{
-            //    return;
-            //}
+            if (Controller.Instance.PMI == null)
+            {
+                return;
+            }
 
-            //foreach (var blockinfo in Controller.Instance.MI.Blocks)
-            //{
-            //    if (blockinfo.Guid == BB.Guid)
-            //    {
-            //        XDataHolder bd = blockinfo.BlockData;
+            foreach (var blockinfo in Controller.Instance.PMI.Blocks)
+            {
+                if (blockinfo.Guid == BB.Guid)
+                {
+                    XDataHolder bd = blockinfo.Data;
 
-            //        BlockDataLoadEvent(bd);
+                    BlockDataLoadEvent(bd);
 
-            //        LoadConfiguration(bd);
+                    LoadConfiguration(bd);
 
-            //        break;
-            //    }
-            //}
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -303,7 +303,8 @@ namespace BlockEnhancementMod
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
 
-            CurrentMapperTypes.Add(mToggle);
+            //CurrentMapperTypes.Add(mToggle);
+            BB.AddToggle(mToggle);
 
             Data_Load_Save_event(mToggle);
 

@@ -22,6 +22,8 @@ namespace BlockEnhancementMod
 
         /// <summary>存档信息</summary>
         //internal PlayerMachineInfo MI;
+
+        internal PlayerMachineInfo PMI;
         
         //public event OnBlockPlaced OnBlockPlaced;
 
@@ -139,10 +141,14 @@ namespace BlockEnhancementMod
             }
         }
 
+        /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
         {
             BesiegeConsoleController.ShowMessage("place bem");
-            block.BuildingBlock.InternalObject.AddToggle("测试按钮","test",false);
+            
+            BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
+            if (!HasEnhancement(blockbehaviour))
+                AddSliders(blockbehaviour);
         }
 
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
@@ -259,12 +265,16 @@ namespace BlockEnhancementMod
         //        }
 
         /// <summary>加载存档信息</summary>
-        private void LoadConfiguration(PlayerMachineInfo mi)
+        private void LoadConfiguration(PlayerMachineInfo pmi)
         {
 
 #if DEBUG
             ConsoleController.ShowMessage("载入存档");
 #endif
+
+            PMI = pmi;
+
+            AddAllSliders();
 
             //if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
             //{
