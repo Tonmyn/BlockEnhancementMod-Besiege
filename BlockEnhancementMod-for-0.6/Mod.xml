@@ -17,7 +17,7 @@ A newly created mod. <!-- FIX: Insert a short description here. -->
 	
 	<!-- Square icon of the mod. Texture defined in the Resources section.
 		 This is displayed in the mod list and used as thumbnail when uploaded to the Steam workshop. -->
-	<!-- <Icon name="icon" /> -->
+  <Icon name="Mod Icon" />
 	
 	<!-- Enables reloading of various values at runtime. This is normally triggered automatically when a file is changed,
 		 you can also trigger it by pressing Ctrl+H.
@@ -114,6 +114,7 @@ A newly created mod. <!-- FIX: Insert a short description here. -->
 	<Resources>
 		<!-- <Mesh name="some-mesh-name" path="some_mesh_file.obj" /> -->
 		<!-- <Texture name="some-texture-name" path="some_texture_file.png" /> -->
+    <Texture name="Mod Icon" path="icon.png" />
 	</Resources>
 
 

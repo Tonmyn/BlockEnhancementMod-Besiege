@@ -10,11 +10,9 @@ using UnityEngine;
 namespace BlockEnhancementMod
 {
 
-    //public delegate void OnBlockPlaced(Transform block);
+    //public delegate PlayerMachineInfo OnLoad();
 
-    //public delegate void OnKeyMapperOpen();
-
-    public delegate PlayerMachineInfo OnLoad();
+    //public delegate PlayerMachineInfo OnSave();
 
     class Controller : SingleInstance<Controller>
     {
@@ -24,107 +22,20 @@ namespace BlockEnhancementMod
         //internal PlayerMachineInfo MI;
 
         internal PlayerMachineInfo PMI;
-        
-        //public event OnBlockPlaced OnBlockPlaced;
 
-        //public event OnSaveHandler OnSave;
+        public event Action<PlayerMachineInfo> OnLoad;
 
-        
-
-        //public event OnKeyMapperOpen OnKeyMapperOpen;
-
-        //private BlockBehaviour _lastBlock;
-
-        //private int machineBlockCount = 1;
-
-        //private bool _keyMapperOpen;
-
-        //private string currentSceneName;
-
-        List<EnhancementBlock> blocks;
-
-
+        public event Action<PlayerMachineInfo> OnSave;
 
         private void Awake()
         {
             //加载配置
-  
             Events.OnMachineLoaded += LoadConfiguration;
-
             //储存配置
             Events.OnMachineSave += SaveConfiguration;
-
-
             //添加放置零件事件委托
             Events.OnBlockPlaced += AddSliders;
-
-            //////添加打开菜单事件委托
-            ////Game.OnKeymapperOpen += OnKeymapperOpen;
-            //currentSceneName = SceneManager.GetActiveScene().name;
         }
-
-        private void Update()
-        {
-
-            //if (BlockMapper.CurrentInstance != null && BlockMapper.CurrentInstance.Block != null)
-            //{
-            //    //AddPiece.Instance.
-
-            //    // Check for open keymapper
-            //    if (!_keyMapperOpen)
-            //    {
-            //        OnKeymapperOpen();
-            //        _keyMapperOpen = true;
-            //    }
-
-            //    if (BlockMapper.CurrentInstance.Block != _lastBlock)
-            //    {
-            //        OnKeymapperOpen();
-            //        _lastBlock = BlockMapper.CurrentInstance.Block;
-            //    }
-
-            //}
-            //else
-            //{
-            //    if (Machine.Active() != null && currentSceneName != SceneManager.GetActiveScene().name)
-            //    {
-            //        AddAllSliders();
-            //        currentSceneName = SceneManager.GetActiveScene().name;
-            //    }
-            //    _keyMapperOpen = false;
-            //}
-
-
-//            if (!StatMaster.levelSimulating)
-//            {
-
-//                if (Machine.Active())
-//                {
-//                    int currentCount = Machine.Active().BuildingBlocks.Count;
-//                    if (currentCount > machineBlockCount)
-//                    {
-//                        if (OnBlockPlaced != null)
-//                        {
-//                            OnBlockPlaced(Machine.Active().BuildingBlocks[currentCount - 1].transform);
-//                        }
-//#if DEBUG
-//                        ConsoleController.ShowMessage("on place");
-//#endif
-//                    }
-//                    machineBlockCount = currentCount;
-//                }
-//            }
-
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                BesiegeConsoleController.ShowMessage("bem");
-
-                
-            }
-        }
-
-        /// <summary>反射获取菜单私有属性</summary>
-        //public FieldInfo MapperTypesField = typeof(SaveableDataHolder).GetField("mapperTypes", BindingFlags.Instance | BindingFlags.NonPublic);
 
         /// <summary>是否有进阶属性</summary>
         public bool HasEnhancement(BlockBehaviour block)
@@ -143,9 +54,7 @@ namespace BlockEnhancementMod
 
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
-        {
-            BesiegeConsoleController.ShowMessage("place bem");
-            
+        {        
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
@@ -223,46 +132,17 @@ namespace BlockEnhancementMod
         }
 
 
-
-//        /// <summary>储存存档信息</summary>
-//        private void SaveConfiguration(MachineInfo mi)
-//        {
-//#if DEBUG
-//            ConsoleController.ShowMessage("储存存档");
-//#endif
-//            //Configuration.Save();
-//        }
-
         /// <summary>储存存档信息</summary>
-        private void SaveConfiguration(PlayerMachineInfo mi)
+        private void SaveConfiguration(PlayerMachineInfo pmi)
         {
 
 #if DEBUG
             ConsoleController.ShowMessage("储存存档");
 #endif
-            //Configuration.Save();
+            Configuration.Save();
+
+            OnSave(pmi);
         }
-
-        //        /// <summary>加载存档信息</summary>
-        //        private void LoadConfiguration(MachineInfo mi)
-        //        {
-
-        //#if DEBUG
-        //            ConsoleController.ShowMessage("载入存档");
-        //#endif
-
-        //            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
-        //            {
-        //                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
-        //            }
-
-        //            MI = mi;
-
-        //            StartCoroutine(RefreshSliders());     
-
-        //            //load?.Invoke();
-
-        //        }
 
         /// <summary>加载存档信息</summary>
         private void LoadConfiguration(PlayerMachineInfo pmi)
@@ -274,33 +154,26 @@ namespace BlockEnhancementMod
 
             PMI = pmi;
 
+            OnLoad(pmi);
+
             AddAllSliders();
 
-            //if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
-            //{
-            //    Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
-            //}
-
-            //MI = mi;
-
-            //StartCoroutine(RefreshSliders());
-
-            //load?.Invoke();
+            StartCoroutine(RefreshSliders());
 
         }
 
 
-        private void OnKeymapperOpen()
-        {
-            //OnKeymapperOpen();
+        //private void OnKeymapperOpen()
+        //{
+        //    //OnKeymapperOpen();
 
-            if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
-            {
-                AddSliders(BlockMapper.CurrentInstance.Block);
-                BlockMapper.CurrentInstance.Refresh();
-            }
-            AddAllSliders();
-        }
+        //    if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
+        //    {
+        //        AddSliders(BlockMapper.CurrentInstance.Block);
+        //        BlockMapper.CurrentInstance.Refresh();
+        //    }
+        //    AddAllSliders();
+        //}
 
     }
 
