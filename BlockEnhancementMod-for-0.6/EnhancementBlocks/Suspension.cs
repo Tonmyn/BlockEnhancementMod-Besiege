@@ -45,13 +45,13 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
             ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes);
-            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);
+            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);           
 
             PressureToggle = AddToggle("液压模式", "Pressure", Pressure);
             PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Pressure = PressureToggle.IsActive; };
 
-            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f, false);
+            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f,false);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Feed = FeedSlider.Value; };
 
@@ -100,10 +100,6 @@ namespace BlockEnhancementMod.Blocks
 
             SwitchMatalHardness(Hardness, CJ);
 
-            foreach (KeyCode k in ExtendKeyCodes)
-            {
-                ConsoleController.ShowMessage(string.Format("Key :{0}", k.ToString()));
-            }
         }
 
         protected override void OnSimulateFixedUpdate()
@@ -112,7 +108,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (Pressure)
             {
-                if (ExtendKey.IsDown && !ExtendKey.ignored)
+                if (ExtendKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
 
                     RB.WakeUp();
@@ -127,7 +123,7 @@ namespace BlockEnhancementMod.Blocks
 
                 }
 
-                if (ShrinkKey.IsDown && !ExtendKey.ignored)
+                if (ShrinkKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
                     RB.WakeUp();
                     if (CJ.targetPosition.x + Feed * 0.005f < ShrinkLimit)

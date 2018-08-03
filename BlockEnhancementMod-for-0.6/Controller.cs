@@ -14,7 +14,10 @@ namespace BlockEnhancementMod
 
     public delegate void OnBlockPlaced(Transform block);
 
-    //public delegate void OnKeyMapperOpen();
+    public delegate void SaveConfigurationHandler(MachineInfo mi);
+
+    public delegate void LoadConfigurationHandler(MachineInfo mi);
+
 
     class Controller : SingleInstance<Controller>
     {
@@ -24,12 +27,6 @@ namespace BlockEnhancementMod
         internal MachineInfo MI;
         
         public event OnBlockPlaced OnBlockPlaced;
-
-        public event OnSaveHandler OnSave;
-
-        public event OnLoadHandler OnLoad;
-
-        //public event OnKeyMapperOpen OnKeyMapperOpen;
 
         private BlockBehaviour _lastBlock;
 
@@ -43,11 +40,9 @@ namespace BlockEnhancementMod
         {
             //加载配置
             XmlLoader.OnLoad += LoadConfiguration;
-            XmlLoader.OnLoad += OnLoad;
 
             //储存配置
             XmlSaver.OnSave += SaveConfiguration;
-            XmlSaver.OnSave += OnSave;
 
             //添加放置零件事件委托
             OnBlockPlaced += AddSliders;
@@ -86,8 +81,7 @@ namespace BlockEnhancementMod
                     currentSceneName = SceneManager.GetActiveScene().name;
                 }
                 _keyMapperOpen = false;
-            }
-
+            }         
 
             if (!StatMaster.levelSimulating)
             {
@@ -140,7 +134,7 @@ namespace BlockEnhancementMod
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+            //ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
 
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
@@ -200,12 +194,21 @@ namespace BlockEnhancementMod
         }
 
 
+        
+
+        public event SaveConfigurationHandler OnSave;
 
         /// <summary>储存存档信息</summary>
         private void SaveConfiguration(MachineInfo mi)
         {
             Configuration.Save();
+
+            OnSave(mi);
         }
+
+        
+
+        public event LoadConfigurationHandler OnLoad;
 
         /// <summary>加载存档信息</summary>
         private void LoadConfiguration(MachineInfo mi)
@@ -215,22 +218,23 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("载入存档");
 #endif
 
-            if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
-            {
-                Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
-            }
+            //if (Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>())
+            //{
+            //    Machine.Active().gameObject.GetComponent<CameraCompositeTrackerScript>().previousTargetDic.Clear();
+            //}
 
             MI = mi;
 
-            StartCoroutine(RefreshSliders());     
-
-            //load?.Invoke();
-
+            try { OnLoad(mi); } catch { }
+            
+            StartCoroutine(RefreshSliders());
+                   
         }
 
         private void OnKeymapperOpen()
         {
             //OnKeymapperOpen();
+
 
             if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
             {
@@ -238,6 +242,7 @@ namespace BlockEnhancementMod
                 BlockMapper.CurrentInstance.Refresh();
             }
             AddAllSliders();
+        
         }
 
     }

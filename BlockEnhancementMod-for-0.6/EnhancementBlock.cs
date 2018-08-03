@@ -7,6 +7,13 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
+
+    public delegate void BlockDataLoadHandle(XDataHolder BlockData);
+
+    public delegate void BlockDataSaveHandle(XDataHolder BlockData);
+
+    public delegate void BlockPropertiseChangedHandler();
+
     public class EnhancementBlock : MonoBehaviour
     {
         /// <summary>
@@ -18,6 +25,8 @@ namespace BlockEnhancementMod
         /// 当前Mapper类型
         /// </summary>
         public List<MapperType> CurrentMapperTypes;
+
+        protected List<MapperType> myMapperTypes = new List<MapperType>();
 
         /// <summary>
         /// 进阶属性按钮
@@ -33,68 +42,56 @@ namespace BlockEnhancementMod
       
         internal static List<string> MetalHardness = new List<string>() { "低碳钢", "中碳钢", "高碳钢" };
 
-        internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };
-
-        public delegate void BlockDataLoadHandle(XDataHolder BlockData);
+        internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };      
 
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
         public event BlockDataLoadHandle BlockDataLoadEvent;
-
-        public delegate void BlockDataSaveHandle(XDataHolder BlockData);
-
+       
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public event BlockDataSaveHandle BlockDataSaveEvent;
+
+        public event BlockPropertiseChangedHandler BlockPropertiseChangedEvent;
 
         private void Awake()
         {
             BB = GetComponent<BlockBehaviour>();
-            
+
             CurrentMapperTypes = BB.MapperTypes;
+
+            SafeAwake();
+
+            //Make sure the target list is present
+            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
+            {
+                Machine.Active().gameObject.AddComponent<TargetScript>();
+            }
+
+            if (BB.isSimulating)
+            {
+                return;
+            }
 
             Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
 
             Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
 
-            SafeAwake();
+            CurrentMapperTypes.AddRange(myMapperTypes);
 
-            if (!StatMaster.levelSimulating)
-            {
-                LoadConfiguration();
+            LoadConfiguration();
 
-                ChangedProperties();
+            ChangedProperties();
 
-                DisplayInMapper(EnhancementEnable);
+            try { BlockPropertiseChangedEvent(); } catch { }
 
-                Controller.Instance.OnSave += SaveConfiguration;
-            }
+            DisplayInMapper(EnhancementEnable);
+
+            Controller.Instance.OnSave += SaveConfiguration;
+
             Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
         }
 
         private void Start()
-        {
-
-            //BB = GetComponent<BlockBehaviour>();
-
-            //CurrentMapperTypes = BB.MapperTypes;
-
-            //Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
-
-            //Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
-
-            //SafeAwake();
-
-            //if (!StatMaster.levelSimulating)
-            //{
-            //    LoadConfiguration();
-
-            //    ChangedProperties();
-
-            //    DisplayInMapper(EnhancementEnable);
-
-            //    Controller.Instance.OnSave += SaveConfiguration;
-            //}
-            //Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-
+        {  
         }
 
         private void Update()
@@ -106,7 +103,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    ConsoleController.ShowMessage("on simulation start");
+                    //ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
@@ -128,7 +125,7 @@ namespace BlockEnhancementMod
 
         private void LateUpdate()
         {
-            if (StatMaster.levelSimulating)
+            if (StatMaster.levelSimulating&& !isFirstFrame)
             {
                 OnSimulateLateUpdate();
             }
@@ -137,6 +134,10 @@ namespace BlockEnhancementMod
         private void SaveConfiguration(MachineInfo Mi)
         {
 
+            BesiegeConsoleController.ShowMessage("On save en");
+
+
+            BesiegeConsoleController.ShowMessage((Mi == null).ToString());
             if (Mi == null)
             {
                 return;
@@ -148,13 +149,25 @@ namespace BlockEnhancementMod
                 {
                     XDataHolder bd = blockinfo.BlockData;
 
-                    BlockDataSaveEvent(bd);
+                    try { BlockDataSaveEvent(bd); } catch { }
 
                     SaveConfiguration(bd);
+
+                    bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
+
+                    foreach (MapperType item in myMapperTypes)
+                    {
+                        if (!flag)
+                        {
+                            bd.Write(item.Serialize());
+                        }
+                    }
 
                     break;
                 }
             }
+
+          
         }
 
         private void LoadConfiguration()
@@ -170,9 +183,19 @@ namespace BlockEnhancementMod
                 {
                     XDataHolder bd = blockinfo.BlockData;
 
-                    BlockDataLoadEvent(bd);
-
+                    try { BlockDataLoadEvent(bd); } catch { };
+                    
                     LoadConfiguration(bd);
+
+                    foreach (MapperType item in myMapperTypes)
+                    {
+                        string str = string.Concat(MapperType.XDATA_PREFIX + item.Key);
+                        XData xDatum = bd.Read(str);
+                        if (xDatum != null || !StatMaster.isPaste)
+                        {
+                            item.DeSerialize((xDatum == null ? item.defaultData : xDatum));
+                        }
+                    }
 
                     break;
                 }
@@ -279,22 +302,43 @@ namespace BlockEnhancementMod
 
         protected MKey AddKey(string displayName, string key, List<KeyCode> keys)
         {
+
             MKey mKey = new MKey(displayName, key, keys[0]);
 
-            CurrentMapperTypes.Add(mKey);
+            foreach (KeyCode k in keys)
+            {
+                mKey.AddOrReplaceKey(keys.IndexOf(k), k);
+            }
 
-            Data_Load_Save_event(mKey);
+            myMapperTypes.Add(mKey);
 
-            return mKey;  
+            BlockPropertiseChangedEvent += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
+
+            };
+
+            mKey.KeysChanged += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
+            };
+
+            return mKey;
         }
 
-        protected MSlider AddSlider(string displayName,string key,float value,float min,float max,bool disableLimit)
+        protected MSlider AddSlider(string displayName, string key, float value, float min, float max, bool disableLimit)
         {
-            MSlider mSlider = new MSlider(displayName,key,value,min,max,disableLimit);
+            MSlider mSlider = new MSlider(displayName, key, value, min, max, disableLimit);
 
-            CurrentMapperTypes.Add(mSlider);
-
-            Data_Load_Save_event(mSlider);
+            myMapperTypes.Add(mSlider);
 
             return mSlider;
         }
@@ -303,56 +347,33 @@ namespace BlockEnhancementMod
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
 
-            CurrentMapperTypes.Add(mToggle);
-
-            Data_Load_Save_event(mToggle);
+            myMapperTypes.Add(mToggle);
 
             return mToggle;
         }
 
-        protected MMenu AddMenu(string key,int defaultIndex,List<string> items,bool footerMenu)
+        protected MMenu AddMenu(string key, int defaultIndex, List<string> items, bool footerMenu)
         {
             MMenu mMenu = new MMenu(key, defaultIndex, items, footerMenu);
 
-            CurrentMapperTypes.Add(mMenu);
-
-            Data_Load_Save_event(mMenu);
+            myMapperTypes.Add(mMenu);
 
             return mMenu;
         }
 
-        protected MColourSlider AddColorSlider(string displayName,string key,Color value,bool snapToClosestColor)
+        protected MColourSlider AddColorSlider(string displayName, string key, Color value, bool snapToClosestColor)
         {
             MColourSlider mColorSlider = new MColourSlider(displayName, key, value, snapToClosestColor);
 
-            CurrentMapperTypes.Add(mColorSlider);
-
-            Data_Load_Save_event(mColorSlider);
+            myMapperTypes.Add(mColorSlider);
 
             return mColorSlider;
         }
-
-        private void Data_Load_Save_event(MapperType mapperType)
-        {
-            BlockDataLoadEvent += (XDataHolder data) =>
-            {
-                XData xDatum = data.Read(MapperType.XDATA_PREFIX + mapperType.Key);
-                if (xDatum != null || !StatMaster.isPaste)
-                {
-                    mapperType.DeSerialize((xDatum == null ? mapperType.defaultData : xDatum));
-                }
-            };
-
-            BlockDataSaveEvent += (XDataHolder data) =>
-            {
-                bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
-                if (!flag || !mapperType.isDefaultValue)
-                {
-                    data.Write(mapperType.Serialize());
-                }
-            };
-        }
     }
 
+    class TargetScript : MonoBehaviour
+    {
+        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
+    }
 }
 
