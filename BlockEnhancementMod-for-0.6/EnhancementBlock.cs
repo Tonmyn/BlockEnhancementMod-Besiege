@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using Modding;
+using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
@@ -79,19 +81,11 @@ namespace BlockEnhancementMod
 
             LoadConfiguration();
 
-            ChangedProperties();
-
-            try { BlockPropertiseChangedEvent(); } catch { }
+            ChangedProperties(); try { BlockPropertiseChangedEvent(); } catch { }
 
             DisplayInMapper(EnhancementEnable);
 
             Controller.Instance.OnSave += SaveConfiguration;
-
-            Controller.Instance.MapperTypesField.SetValue(BB, CurrentMapperTypes);
-        }
-
-        private void Start()
-        {  
         }
 
         private void Update()
@@ -103,7 +97,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    //ConsoleController.ShowMessage("on simulation start");
+                    ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
@@ -131,57 +125,56 @@ namespace BlockEnhancementMod
             }
         }
 
-        private void SaveConfiguration(MachineInfo Mi)
+        private void SaveConfiguration(PlayerMachineInfo pmi)
         {
-
+#if DEBUG
             BesiegeConsoleController.ShowMessage("On save en");
+#endif
 
-
-            BesiegeConsoleController.ShowMessage((Mi == null).ToString());
-            if (Mi == null)
+            if (pmi == null)
             {
                 return;
             }
 
-            foreach (var blockinfo in Mi.Blocks)
+            foreach (var blockinfo in pmi.Blocks)
             {
                 if (blockinfo.Guid == BB.Guid)
                 {
-                    XDataHolder bd = blockinfo.BlockData;
+                    XDataHolder bd = blockinfo.Data;
 
                     try { BlockDataSaveEvent(bd); } catch { }
 
                     SaveConfiguration(bd);
 
-                    bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
+                    //bool flag = (!StatMaster.SavingXML ? false : OptionsMaster.BesiegeConfig.ExcludeDefaultSaveData);
 
-                    foreach (MapperType item in myMapperTypes)
-                    {
-                        if (!flag)
-                        {
-                            bd.Write(item.Serialize());
-                        }
-                    }
+                    //foreach (MapperType item in myMapperTypes)
+                    //{
+                    //    if (!flag)
+                    //    {
+                    //        bd.Write(item.Serialize());
+                    //    }
+                    //}
 
                     break;
                 }
             }
 
-          
+
         }
 
         private void LoadConfiguration()
         {
-            if (Controller.Instance.MI == null)
+            if (Controller.Instance.PMI == null)
             {
                 return;
             }
 
-            foreach (var blockinfo in Controller.Instance.MI.Blocks)
+            foreach (var blockinfo in Controller.Instance.PMI.Blocks)
             {
                 if (blockinfo.Guid == BB.Guid)
                 {
-                    XDataHolder bd = blockinfo.BlockData;
+                    XDataHolder bd = blockinfo.Data;
 
                     try { BlockDataLoadEvent(bd); } catch { };
                     
@@ -305,31 +298,33 @@ namespace BlockEnhancementMod
 
             MKey mKey = new MKey(displayName, key, keys[0]);
 
-            foreach (KeyCode k in keys)
-            {
-                mKey.AddOrReplaceKey(keys.IndexOf(k), k);
-            }
+            BB.AddKey(mKey);
+
+            //foreach (KeyCode k in keys)
+            //{
+            //    mKey.AddOrReplaceKey(keys.IndexOf(k), k);
+            //}
 
             myMapperTypes.Add(mKey);
 
-            BlockPropertiseChangedEvent += () =>
-            {
-                keys.Clear();
-                for (int i = 0; i < mKey.KeysCount; i++)
-                {
-                    keys.Add(mKey.GetKey(i));
-                }
+            //BlockPropertiseChangedEvent += () =>
+            //{
+            //    keys.Clear();
+            //    for (int i = 0; i < mKey.KeysCount; i++)
+            //    {
+            //        keys.Add(mKey.GetKey(i));
+            //    }
 
-            };
+            //};
 
-            mKey.KeysChanged += () =>
-            {
-                keys.Clear();
-                for (int i = 0; i < mKey.KeysCount; i++)
-                {
-                    keys.Add(mKey.GetKey(i));
-                }
-            };
+            //mKey.KeysChanged += () =>
+            //{
+            //    keys.Clear();
+            //    for (int i = 0; i < mKey.KeysCount; i++)
+            //    {
+            //        keys.Add(mKey.GetKey(i));
+            //    }
+            //};
 
             return mKey;
         }
@@ -337,6 +332,8 @@ namespace BlockEnhancementMod
         protected MSlider AddSlider(string displayName, string key, float value, float min, float max, bool disableLimit)
         {
             MSlider mSlider = new MSlider(displayName, key, value, min, max, disableLimit);
+
+            BB.AddSlider(mSlider);
 
             myMapperTypes.Add(mSlider);
 
@@ -347,6 +344,8 @@ namespace BlockEnhancementMod
         {
             MToggle mToggle = new MToggle(displayName, key, defaltValue);
 
+            BB.AddToggle(mToggle);
+
             myMapperTypes.Add(mToggle);
 
             return mToggle;
@@ -356,6 +355,8 @@ namespace BlockEnhancementMod
         {
             MMenu mMenu = new MMenu(key, defaultIndex, items, footerMenu);
 
+            BB.AddMenu(mMenu);
+
             myMapperTypes.Add(mMenu);
 
             return mMenu;
@@ -364,6 +365,8 @@ namespace BlockEnhancementMod
         protected MColourSlider AddColorSlider(string displayName, string key, Color value, bool snapToClosestColor)
         {
             MColourSlider mColorSlider = new MColourSlider(displayName, key, value, snapToClosestColor);
+
+            BB.AddColourSlider(mColorSlider);
 
             myMapperTypes.Add(mColorSlider);
 

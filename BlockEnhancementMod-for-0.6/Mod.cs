@@ -1,22 +1,24 @@
 ﻿using System;
 using UnityEngine;
-using PluginManager.Plugin;
+using Modding;
+using Modding.Mapper;
 
 namespace BlockEnhancementMod
 {
 
-    [OnGameInit]
-    public class BlockEnhancementMod : MonoBehaviour
+    public class BlockEnhancementMod : ModEntryPoint
     {
 
         public static GameObject mod;
 
-        private void Start()
+        public override void OnLoad()
         {
 
-            DontDestroyOnLoad(mod = new GameObject("Block Enhancement Mod"));
+            mod = new GameObject("Block Enhancement Mod");
             Controller.Instance.transform.SetParent(mod.transform);
             //LanguageManager.Instance.transform.SetParent(mod.transform);
+
+            CustomMapperTypes.AddMapperType<int, TTest, TTestSelector>();
             
         }
 
