@@ -36,10 +36,9 @@ namespace BlockEnhancementMod.Blocks
         public bool recordTarget = false;
 
         //Auto lookat related setting
-        MSlider AutoLookAtSearchAngleSlider;
+        //MSlider AutoLookAtSearchAngleSlider;
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
-        MKey LaunchKey;
         public bool firstPersonMode = false;
         public float firstPersonSmooth = 0.25f;
         public float timeOfDestruction = 0f;
@@ -68,7 +67,7 @@ namespace BlockEnhancementMod.Blocks
                 PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
-                AutoLookAtSearchAngleSlider.DisplayInMapper =
+                //AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -82,9 +81,9 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
-            AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
-            AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
+            //AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            //AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
             NonCustomModeSmoothSlider = AddSlider("第一人称平滑", "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
@@ -119,7 +118,7 @@ namespace BlockEnhancementMod.Blocks
             fixedCameraController = FindObjectOfType<FixedCameraController>();
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
+            //AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;

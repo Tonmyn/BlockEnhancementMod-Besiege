@@ -715,7 +715,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            int closestIndex = 0, clusterSize = 0, sizeOfClosestMaxValueCluster = 0;
+            int closestIndex = 0;
             float distanceMin = Mathf.Infinity;
 
             for (i = 0; i < maxClusters.Count; i++)
