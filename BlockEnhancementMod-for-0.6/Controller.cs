@@ -35,6 +35,8 @@ namespace BlockEnhancementMod
             Events.OnMachineSave += SaveConfiguration;
             //添加放置零件事件委托
             Events.OnBlockPlaced += AddSliders;
+
+            Events.OnBlockPlaced += block => { block.InternalObject.gameObject.AddComponent<print>(); };
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -81,7 +83,7 @@ namespace BlockEnhancementMod
 
                 if (block.GetComponent(EB) == null)
                 {
-                    block.gameObject.AddComponent(EB);
+                    block.gameObject.AddComponent(EB);                  
                 }
             }
         }
@@ -211,5 +213,32 @@ namespace BlockEnhancementMod
         }
 
 
+    }
+
+    class print : MonoBehaviour
+    {
+        public MKey mKey;
+
+        BlockBehaviour bb;
+
+        void Start()
+        {
+            bb = GetComponent<BlockBehaviour>();
+            mKey = new MKey("mKey", "key", KeyCode.T);
+            if (bb.isBuildBlock)
+            {
+               
+                
+                bb.AddKey(mKey);
+            }
+        }
+
+        void Update()
+        {
+            if (mKey.IsPressed)
+            {
+                BesiegeConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
+            }
+        }
     }
 }

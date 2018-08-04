@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
 
         private void Awake()
         {
-            BB = GetComponent<BlockBehaviour>();
+            //BB = 
 
             CurrentMapperTypes = BB.MapperTypes;
 
