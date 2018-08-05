@@ -307,15 +307,15 @@ namespace BlockEnhancementMod
 
             myMapperTypes.Add(mKey);
 
-            //BlockPropertiseChangedEvent += () =>
-            //{
-            //    keys.Clear();
-            //    for (int i = 0; i < mKey.KeysCount; i++)
-            //    {
-            //        keys.Add(mKey.GetKey(i));
-            //    }
+            BlockPropertiseChangedEvent += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
 
-            //};
+            };
 
             //mKey.KeysChanged += () =>
             //{
