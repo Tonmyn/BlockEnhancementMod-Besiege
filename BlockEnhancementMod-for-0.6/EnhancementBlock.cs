@@ -26,7 +26,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 当前Mapper类型
         /// </summary>
-        public List<MapperType> CurrentMapperTypes;
+        //public List<MapperType> CurrentMapperTypes;
 
         protected List<MapperType> myMapperTypes = new List<MapperType>();
 
@@ -56,9 +56,9 @@ namespace BlockEnhancementMod
 
         private void Awake()
         {
-            //BB = 
+            BB = GetComponent<BlockBehaviour>();
 
-            CurrentMapperTypes = BB.MapperTypes;
+            //CurrentMapperTypes = BB.MapperTypes;
 
             SafeAwake();
 
@@ -77,7 +77,7 @@ namespace BlockEnhancementMod
 
             Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
 
-            CurrentMapperTypes.AddRange(myMapperTypes);
+            //CurrentMapperTypes.AddRange(myMapperTypes);
 
             LoadConfiguration();
 

@@ -33,10 +33,10 @@ namespace BlockEnhancementMod
             Events.OnMachineLoaded += LoadConfiguration;
             //储存配置
             Events.OnMachineSave += SaveConfiguration;
-            //添加放置零件事件委托
-            Events.OnBlockPlaced += AddSliders;
+            //添加零件初始化事件委托
+            Events.OnBlockInit += AddSliders;
 
-            Events.OnBlockPlaced += block => { block.InternalObject.gameObject.AddComponent<print>(); };
+            //Events.OnBlockPlaced += block => { block.InternalObject.gameObject.AddComponent<print>(); };
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -56,7 +56,8 @@ namespace BlockEnhancementMod
 
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
-        {        
+        {
+            BesiegeConsoleController.ShowMessage("on block init");
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
