@@ -216,7 +216,7 @@ namespace BlockEnhancementMod
 
     }
 
-    class print : MonoBehaviour
+    class Print : MonoBehaviour
     {
         public MKey mKey;
 

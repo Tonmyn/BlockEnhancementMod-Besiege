@@ -186,7 +186,7 @@ namespace BlockEnhancementMod
                         XData xDatum = bd.Read(str);
                         if (xDatum != null || !StatMaster.isPaste)
                         {
-                            item.DeSerialize((xDatum == null ? item.defaultData : xDatum));
+                            item.DeSerialize((xDatum ?? item.defaultData));
                         }
                     }
 
