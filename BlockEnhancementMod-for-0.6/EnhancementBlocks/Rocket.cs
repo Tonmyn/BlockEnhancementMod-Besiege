@@ -241,15 +241,8 @@ namespace BlockEnhancementMod.Blocks
                         //When launch key is released, reset target search
                         if (rocket.hasFired)
                         {
-#if DEBUG
-                            //ConsoleController.ShowMessage("this should not appear");
-#endif
-
                             targetAquired = searchStarted = false;
-                            if (!targetAquired)
-                            {
-                                RocketRadarSearch();
-                            }
+                            RocketRadarSearch();
                         }
                     }
                     else
@@ -266,7 +259,7 @@ namespace BlockEnhancementMod.Blocks
                         {
                             try
                             {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
                                 target = hits[i].transform;
                                 break;
                             }
@@ -582,8 +575,7 @@ namespace BlockEnhancementMod.Blocks
             //Grab every machine block at the start of search
             hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius, Game.BlockEntityLayerMask);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
-
-            if (StatMaster._customLevelSimulating)
+            if (StatMaster.isMP)
             {
                 hitList = hitsOut;
             }
@@ -602,22 +594,12 @@ namespace BlockEnhancementMod.Blocks
                     Machine machine = hitBlockBehaviour.ParentMachine;
                     if (machine.isSimulating)
                     {
-                        if (StatMaster._customLevelSimulating)
+                        if (StatMaster.isMP && !machine.LocalSim)
                         {
-                            if (hitBlockBehaviour.Team != MPTeam.None)
+                            if ((rocket.ParentMachine.PlayerID != hitBlockBehaviour.ParentMachine.PlayerID && rocket.Team == MPTeam.None)
+                                || (rocket.Team != MPTeam.None && rocket.Team != hitBlockBehaviour.Team))
                             {
-                                if (hitBlockBehaviour.Team != rocket.Team)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-                            }
-                            else
-                            {
-                                if (machine.Name != rocket.ParentMachine.Name)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-
+                                simClusters.Add(machine.simClusters[clusterIndex]);
                             }
                         }
                         else
@@ -626,7 +608,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                catch (Exception e) { ConsoleController.ShowMessage(e.ToString()); }
+                catch { }
             }
 
             //Iternating the list to find the target that satisfy the conditions

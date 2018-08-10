@@ -90,7 +90,7 @@ namespace BlockEnhancementMod
 
         private void Update()
         {
-            if (StatMaster.levelSimulating)
+            if (BB.isSimulating)
             {
                 if (isFirstFrame)
                 {
@@ -111,7 +111,7 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (StatMaster.levelSimulating)
+            if (BB.isSimulating && !isFirstFrame)
             {
                 OnSimulateFixedUpdate();
             }
@@ -119,7 +119,7 @@ namespace BlockEnhancementMod
 
         private void LateUpdate()
         {
-            if (StatMaster.levelSimulating&& !isFirstFrame)
+            if (BB.isSimulating && !isFirstFrame)
             {
                 OnSimulateLateUpdate();
             }

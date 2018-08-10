@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using Modding;
+using Modding.Blocks;
+using Modding.Common;
 using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
@@ -14,7 +16,7 @@ namespace BlockEnhancementMod.Blocks
         public bool cameraLookAtToggled = false;
         public int selfIndex;
         public FixedCameraBlock fixedCamera;
-        public FixedCameraBlock fixedCameraSim;
+        //public FixedCameraBlock fixedCameraSim;
         public Transform smoothLook;
         public FixedCameraController fixedCameraController;
         public Quaternion defaultLocalRotation;
@@ -98,7 +100,8 @@ namespace BlockEnhancementMod.Blocks
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
-            defaultLocalRotation = fixedCamera.CompositeTracker3.localRotation;
+            smoothLook = fixedCamera.CompositeTracker3;
+            defaultLocalRotation = smoothLook.localRotation;
             selfIndex = fixedCamera.BuildIndex;
 
 
@@ -114,9 +117,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 firstPersonMode = true;
             }
-            ConsoleController.ShowMessage(fixedCamera.CamMode.ToString());
             CameraLookAtToggle.DisplayInMapper = value;
-            fixedCameraController = FindObjectOfType<FixedCameraController>();
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             //AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
@@ -161,19 +162,18 @@ namespace BlockEnhancementMod.Blocks
             {
                 //Initialise the SmoothLook component
                 fixedCameraController = FindObjectOfType<FixedCameraController>();
+
                 foreach (var camera in fixedCameraController.cameras)
                 {
-                    if (camera == fixedCamera)
+                    if (camera.BuildIndex == selfIndex)
                     {
-                        fixedCameraSim = camera;
-                        smoothLook = camera.CompositeTracker3;
                         if (firstPersonMode)
                         {
                             smooth = Mathf.Clamp01(firstPersonSmooth);
                         }
                         else
                         {
-                            smooth = Mathf.Clamp01(camera.Sliders.First(s => s.Key == "smooth").Value);
+                            smooth = Mathf.Clamp01(camera.SmoothSlider.Value);
                         }
                         SetSmoothing();
                     }
@@ -183,11 +183,11 @@ namespace BlockEnhancementMod.Blocks
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
                 searchRadius = Camera.main.farClipPlane;
-                float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCameraSim.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
+                float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(fixedCameraSim.CompositeTracker3.position, safetyRadius);
+                hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -234,7 +234,11 @@ namespace BlockEnhancementMod.Blocks
                     target = null;
                     if (autoSearch)
                     {
-                        targetAquired = searchStarted = pauseTracking = false;
+                        targetAquired = searchStarted = false;
+                        if (fixedCameraController.activeCamera == fixedCamera)
+                        {
+                            CameraRadarSearch();
+                        }
                     }
                     else
                     {
@@ -247,7 +251,7 @@ namespace BlockEnhancementMod.Blocks
                         {
                             try
                             {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
                                 target = hits[i].transform;
                                 pauseTracking = false;
                                 if (recordTarget)
@@ -451,9 +455,9 @@ namespace BlockEnhancementMod.Blocks
             int closestIndex = 0;
             float angleDiffMin = 180f;
 
-            for (i = 1; i < maxClusters.Count; i++)
+            for (i = 0; i < maxClusters.Count; i++)
             {
-                float angleDiffCurrent = Vector3.Angle((maxClusters[i].Base.gameObject.transform.position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
+                float angleDiffCurrent = Vector3.Angle((maxClusters[i].Base.gameObject.transform.position - smoothLook.position).normalized, smoothLook.forward);
                 if (angleDiffCurrent < angleDiffMin)
                 {
                     closestIndex = i;
@@ -472,7 +476,7 @@ namespace BlockEnhancementMod.Blocks
             hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius, Game.BlockEntityLayerMask);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
-            if (StatMaster._customLevelSimulating)
+            if (StatMaster.isMP)
             {
                 hitList = hitsOut;
             }
@@ -491,22 +495,12 @@ namespace BlockEnhancementMod.Blocks
                     Machine machine = hitBlockBehaviour.ParentMachine;
                     if (machine.isSimulating)
                     {
-                        if (StatMaster._customLevelSimulating)
+                        if (StatMaster.isMP && !machine.LocalSim)
                         {
-                            if (hitBlockBehaviour.Team != MPTeam.None)
+                            if ((fixedCamera.ParentMachine.PlayerID != hitBlockBehaviour.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
+                                || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != hitBlockBehaviour.Team))
                             {
-                                if (hitBlockBehaviour.Team != fixedCamera.Team)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-                            }
-                            else
-                            {
-                                if (machine.Name != fixedCamera.ParentMachine.Name)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-
+                                simClusters.Add(machine.simClusters[clusterIndex]);
                             }
                         }
                         else
@@ -526,9 +520,9 @@ namespace BlockEnhancementMod.Blocks
 
                 foreach (var cluster in simClusters)
                 {
-                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - fixedCameraSim.CompositeTracker3.position;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, fixedCameraSim.CompositeTracker3.forward);
-                    bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
+                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - smoothLook.position;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.forward);
+                    bool forward = Vector3.Dot(positionDiff, smoothLook.forward) > 0;
                     bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
 
                     if (!skipCluster)
@@ -554,6 +548,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = GetMostValuableBlock(simClusterForSearch);
                     targetAquired = true;
+                    pauseTracking = false;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
                 }
