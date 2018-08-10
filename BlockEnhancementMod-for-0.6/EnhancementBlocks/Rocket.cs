@@ -195,22 +195,16 @@ namespace BlockEnhancementMod.Blocks
                 activeGuide = true;
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
+                hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // Read the charge from rocket
-                foreach (var slider in BB.Sliders)
-                {
-                    if (slider.Key == "charge")
-                    {
-                        explosiveCharge = slider.Value;
+                explosiveCharge = rocket.ChargeSlider.Value;
 
-                        // Make sure the high explo mode is not too imba
-                        if (highExploActivated)
-                        {
-                            bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
-                        }
-                    }
+                // Make sure the high explo mode is not too imba
+                if (highExploActivated)
+                {
+                    bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
             }
         }

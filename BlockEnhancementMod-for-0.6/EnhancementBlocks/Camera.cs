@@ -187,7 +187,7 @@ namespace BlockEnhancementMod.Blocks
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius);
+                hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -219,64 +219,64 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
-                if (AutoLookAtKey.IsReleased)
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
-                    autoSearch = !autoSearch;
-                }
-                if (PauseTrackingKey.IsReleased)
-                {
-                    pauseTracking = !pauseTracking;
-                }
-                if (LockTargetKey.IsReleased)
-                {
-                    target = null;
-                    if (autoSearch)
+                    if (AutoLookAtKey.IsReleased)
                     {
-                        targetAquired = searchStarted = false;
-                        if (fixedCameraController.activeCamera == fixedCamera)
+                        autoSearch = !autoSearch;
+                    }
+                    if (PauseTrackingKey.IsReleased)
+                    {
+                        pauseTracking = !pauseTracking;
+                    }
+                    if (LockTargetKey.IsReleased)
+                    {
+                        target = null;
+                        if (autoSearch)
                         {
+                            targetAquired = searchStarted = false;
                             CameraRadarSearch();
                         }
-                    }
-                    else
-                    {
-                        // Aquire the target to look at
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        float manualSearchRadius = 1.25f;
-                        RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
-                        Physics.Raycast(ray, out RaycastHit rayHit);
-                        for (int i = 0; i < hits.Length; i++)
+                        else
                         {
-                            try
+                            // Aquire the target to look at
+                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                            float manualSearchRadius = 1.25f;
+                            RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
+                            Physics.Raycast(ray, out RaycastHit rayHit);
+                            for (int i = 0; i < hits.Length; i++)
                             {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
-                                target = hits[i].transform;
-                                pauseTracking = false;
-                                if (recordTarget)
-                                {
-                                    SaveTargetToDict(index);
-                                }
-                                break;
-                            }
-                            catch { }
-                            if (i == hits.Length - 1)
-                            {
-                                target = rayHit.transform;
-                                pauseTracking = false;
-#if DEBUG
-                                //ConsoleController.ShowMessage("Last Target, using raycast");
-#endif
                                 try
                                 {
-                                    int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                    int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
+                                    target = hits[i].transform;
+                                    pauseTracking = false;
                                     if (recordTarget)
                                     {
                                         SaveTargetToDict(index);
                                     }
+                                    break;
                                 }
                                 catch { }
+                                if (i == hits.Length - 1)
+                                {
+                                    target = rayHit.transform;
+                                    pauseTracking = false;
+#if DEBUG
+                                    //ConsoleController.ShowMessage("Last Target, using raycast");
+#endif
+                                    try
+                                    {
+                                        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                        if (recordTarget)
+                                        {
+                                            SaveTargetToDict(index);
+                                        }
+                                    }
+                                    catch { }
+                                }
                             }
                         }
                     }
@@ -286,102 +286,108 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
-                if (autoSearch && !targetAquired)
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
-                    CameraRadarSearch();
-                }
-                if (target != null)
-                {
-                    try
+                    if (autoSearch && !targetAquired)
                     {
-                        if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
-                        {
-                            //ConsoleController.ShowMessage("Target rocket exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
-                        }
+                        CameraRadarSearch();
                     }
-                    catch { }
-                    try
+                    if (target != null)
                     {
-                        if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target bomb exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target rocket exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
-                    }
-                    catch { }
-                    try
-                    {
-                        if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                        catch { }
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target level bomb exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target bomb exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
-                    }
-                    catch { }
-                    try
-                    {
-                        if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                        catch { }
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target grenade exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target level bomb exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target grenade exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
+                        }
+                        catch { }
                     }
-                    catch { }
-                }
 
+                }
             }
         }
 
         protected override void OnSimulateLateUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
+                {
 #if DEBUG
-                //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
+                    //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
 #endif
-                if (pauseTracking)
-                {
-                    smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                }
-                else
-                {
-                    if (Time.time - timeOfDestruction >= targetSwitchDelay)
+                    if (pauseTracking)
                     {
-                        if (target == null)
+                        smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                    }
+                    else
+                    {
+                        if (Time.time - timeOfDestruction >= targetSwitchDelay)
                         {
-                            smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                        }
-                        else
-                        {
-                            Quaternion quaternion;
-                            if (firstPersonMode)
+                            if (target == null)
                             {
-                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
                             }
                             else
                             {
-                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                                Quaternion quaternion;
+                                if (firstPersonMode)
+                                {
+                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                }
+                                else
+                                {
+                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                                }
+                                smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                             }
-                            smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                         }
                     }
                 }
