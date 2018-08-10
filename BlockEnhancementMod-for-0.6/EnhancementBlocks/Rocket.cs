@@ -3,6 +3,9 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Modding;
+using Modding.Blocks;
+using Modding.Common;
 using System.Reflection;
 
 namespace BlockEnhancementMod.Blocks
@@ -156,21 +159,8 @@ namespace BlockEnhancementMod.Blocks
             ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
-            if (StatMaster.isClient)
-            {
-                //Machine machine = gameObject.GetComponent<BlockBehaviour>().ParentMachine;
-                //ServerMachine serverMachine = machine.GetComponent<ServerMachine>();
-                ////futre proof with new modloader
-                //serverMachine.GetBlockFromIndex(transform.GetComponent<BlockBehaviour>().BuildIndex, out BB);
-                //rocket = BB.gameObject.GetComponent<TimedRocket>();
-                //rocketRigidbody = BB.Rigidbody;
-                //selfIndex = BB.BuildIndex;
-            }
-            else
-            {
-                rocket = gameObject.GetComponent<TimedRocket>();
-                rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-            }
+            rocket = gameObject.GetComponent<TimedRocket>();
+            rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
 #if DEBUG
             //ConsoleController.ShowMessage("火箭添加进阶属性");
@@ -590,7 +580,7 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
+            hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius, Game.BlockEntityLayerMask);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
             if (StatMaster._customLevelSimulating)
@@ -636,7 +626,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                catch { }
+                catch (Exception e) { ConsoleController.ShowMessage(e.ToString()); }
             }
 
             //Iternating the list to find the target that satisfy the conditions
@@ -680,7 +670,6 @@ namespace BlockEnhancementMod.Blocks
                 }
                 yield return null;
             }
-            yield return new WaitForSeconds(1f);
         }
 
         private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)

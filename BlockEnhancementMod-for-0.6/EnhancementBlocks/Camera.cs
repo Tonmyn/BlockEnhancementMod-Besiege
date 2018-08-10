@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using Modding;
 using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
@@ -459,13 +460,16 @@ namespace BlockEnhancementMod.Blocks
                     angleDiffMin = angleDiffCurrent;
                 }
             }
+#if DEBUG
+            Debug.Log("Closest index is: " + closestIndex);
+#endif
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius);
+            hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius, Game.BlockEntityLayerMask);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
             if (StatMaster._customLevelSimulating)
@@ -477,6 +481,7 @@ namespace BlockEnhancementMod.Blocks
                 //hitsIn = hitsIn.Where(hit => hit != null).ToArray();
                 hitList = hitsOut.Except(hitsIn).ToArray();
             }
+
             foreach (var hit in hitList)
             {
                 try
@@ -518,11 +523,12 @@ namespace BlockEnhancementMod.Blocks
             {
                 HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
                 HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+
                 foreach (var cluster in simClusters)
                 {
                     Vector3 positionDiff = cluster.Base.gameObject.transform.position - fixedCameraSim.CompositeTracker3.position;
-                    bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, fixedCameraSim.CompositeTracker3.forward);
+                    bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
                     bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
 
                     if (!skipCluster)
@@ -553,7 +559,6 @@ namespace BlockEnhancementMod.Blocks
                 }
                 yield return null;
             }
-            yield return new WaitForSeconds(1f);
         }
 
         private int CalculateClusterValue(BlockBehaviour block, int clusterValue)

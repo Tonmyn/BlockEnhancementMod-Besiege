@@ -65,9 +65,6 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            foreach (var s in BB.Sliders) { if (s.Key == "strength") { StrengthSlider = s; break; } }
-            StrengthSlider.ValueChanged += (float value) => { Strength = value; ChangedProperties(); };
-
             IntervalSlider = AddSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
             IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
@@ -113,6 +110,8 @@ namespace BlockEnhancementMod.Blocks
             CB = BB.GetComponent<CanonBlock>();
             originalKnockBackSpeed = CB.knockbackSpeed;
 
+
+
 #if DEBUG
             //ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
@@ -125,7 +124,7 @@ namespace BlockEnhancementMod.Blocks
             IntervalSlider.DisplayInMapper = value;
             RandomDelaySlider.DisplayInMapper = value;
             KnockBackSpeedSlider.DisplayInMapper = value;
-            BulletToggle.DisplayInMapper = value;
+            BulletToggle.DisplayInMapper = value && !StatMaster.isMP;
             InheritSizeToggle.DisplayInMapper = value && cBullet;
             BulletMassSlider.DisplayInMapper = value && cBullet;
             BulletDragSlider.DisplayInMapper = value && cBullet;
@@ -159,7 +158,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void OnSimulateStart()
         {
 
-
+            Strength = CB.StrengthSlider.Value;
 
             BulletObject = CB.boltObject.gameObject;
             //BR = BulletObject.GetComponent<Rigidbody>();
@@ -246,15 +245,14 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
-
-            if (BB.KeyList.Find(match => match.Key == "shoot").IsDown && Interval > 0)
+            if (CB.ShootKey.IsDown && Interval > 0)
             {
                 if (timer > Interval)
                 {
                     timer = 0;
                     if (cBullet)
                     {
-                        StartCoroutine(shoot());
+                        StartCoroutine(Shoot());
                     }
                     else
                     {
@@ -279,7 +277,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        private IEnumerator shoot()
+        private IEnumerator Shoot()
         {
 
 
