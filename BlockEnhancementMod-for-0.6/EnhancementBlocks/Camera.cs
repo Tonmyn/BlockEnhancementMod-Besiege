@@ -28,6 +28,7 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        private List<Collider> colliders = new List<Collider>();
 
         //Pause tracking setting
         MKey PauseTrackingKey;
@@ -55,9 +56,9 @@ namespace BlockEnhancementMod.Blocks
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
-        private Collider[] hitsIn;
-        private Collider[] hitsOut;
-        private Collider[] hitList;
+        //private Collider[] hitsIn;
+        //private Collider[] hitsOut;
+        //private Collider[] hitList;
 
         protected override void SafeAwake()
         {
@@ -187,7 +188,7 @@ namespace BlockEnhancementMod.Blocks
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
+                //hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -241,6 +242,22 @@ namespace BlockEnhancementMod.Blocks
                         }
                         else
                         {
+                            if (StatMaster.isMP && StatMaster.isClient)
+                            {
+                                colliders.Clear();
+                                foreach (var player in Playerlist.Players)
+                                {
+                                    if (!player.isSpectator && player.machine.isSimulating)
+                                    {
+                                        colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                    }
+                                }
+                                foreach (var collider in colliders)
+                                {
+                                    collider.enabled = true;
+                                }
+                            }
+
                             // Aquire the target to look at
                             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                             float manualSearchRadius = 1.25f;
@@ -264,9 +281,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = rayHit.transform;
                                     pauseTracking = false;
-#if DEBUG
-                                    //ConsoleController.ShowMessage("Last Target, using raycast");
-#endif
+
                                     try
                                     {
                                         int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
@@ -276,6 +291,13 @@ namespace BlockEnhancementMod.Blocks
                                         }
                                     }
                                     catch { }
+                                }
+                            }
+                            if (StatMaster.isMP && StatMaster.isClient)
+                            {
+                                foreach (var collider in colliders)
+                                {
+                                    collider.enabled = false;
                                 }
                             }
                         }
@@ -479,44 +501,43 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius, Game.BlockEntityLayerMask);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
             if (StatMaster.isMP)
             {
-                hitList = hitsOut;
-            }
-            else
-            {
-                //hitsIn = hitsIn.Where(hit => hit != null).ToArray();
-                hitList = hitsOut.Except(hitsIn).ToArray();
-            }
-
-            foreach (var hit in hitList)
-            {
-                try
+                foreach (var player in Playerlist.Players)
                 {
-                    BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
-                    int clusterIndex = hitBlockBehaviour.ClusterIndex;
-                    Machine machine = hitBlockBehaviour.ParentMachine;
-                    if (machine.isSimulating)
+                    ConsoleController.ShowMessage("Adding network players");
+                    if (!player.isSpectator)
                     {
-                        if (StatMaster.isMP && !machine.LocalSim)
+                        if (player.machine.isSimulating && !player.machine.LocalSim)
                         {
-                            if ((fixedCamera.ParentMachine.PlayerID != hitBlockBehaviour.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
-                                || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != hitBlockBehaviour.Team))
+                            foreach (var cluster in player.machine.simClusters)
                             {
-                                simClusters.Add(machine.simClusters[clusterIndex]);
+                                ConsoleController.ShowMessage("Adding clusters");
+                                if ((player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
+                                    || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != player.team))
+                                {
+                                    simClusters.Add(cluster);
+                                }
                             }
-                        }
-                        else
-                        {
-                            simClusters.Add(machine.simClusters[clusterIndex]);
                         }
                     }
                 }
-                catch { }
             }
+            else
+            {
+                foreach (var cluster in Machine.Active().simClusters)
+                {
+                    ConsoleController.ShowMessage("Adding local clusters");
+                    if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
+                    {
+                        simClusters.Add(cluster);
+                    }
+                }
+            }
+
+            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)
