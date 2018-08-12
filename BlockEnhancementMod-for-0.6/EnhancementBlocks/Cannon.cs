@@ -265,7 +265,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
             }
-            else if (BB.KeyList.Find(match => match.Key == "shoot").IsReleased)
+            else if (CB.ShootKey.IsReleased)
             {
                 timer = Interval;
             }
