@@ -400,7 +400,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                     catch { }
                     //Add position prediction
-                    Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime * 10 - BB.CenterOfBounds;
+                    Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                     bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                     Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -596,10 +596,7 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (rocket.Team == MPTeam.None || rocket.Team != player.team)
                             {
-                                foreach (var cluster in player.machine.simClusters)
-                                {
-                                    simClusters.Add(cluster);
-                                }
+                                simClusters.UnionWith(player.machine.simClusters);
                             }
                         }
                     }
@@ -633,11 +630,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         foreach (var block in cluster.Blocks)
                         {
+                            skipCluster = ShouldSkipCluster(block);
                             if (skipCluster)
                             {
                                 break;
                             }
-                            skipCluster = ShouldSkipCluster(block);
                         }
                     }
                     if (skipCluster)

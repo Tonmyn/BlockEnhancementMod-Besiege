@@ -16,7 +16,6 @@ namespace BlockEnhancementMod.Blocks
         public bool cameraLookAtToggled = false;
         public int selfIndex;
         public FixedCameraBlock fixedCamera;
-        //public FixedCameraBlock fixedCameraSim;
         public Transform smoothLook;
         public FixedCameraController fixedCameraController;
         public Quaternion defaultLocalRotation;
@@ -56,9 +55,6 @@ namespace BlockEnhancementMod.Blocks
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
-        //private Collider[] hitsIn;
-        //private Collider[] hitsOut;
-        //private Collider[] hitList;
 
         protected override void SafeAwake()
         {
@@ -188,7 +184,6 @@ namespace BlockEnhancementMod.Blocks
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                //hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -511,10 +506,7 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (fixedCamera.Team == MPTeam.None || fixedCamera.Team != player.team)
                             {
-                                foreach (var cluster in player.machine.simClusters)
-                                {
-                                    simClusters.Add(cluster);
-                                }
+                                simClusters.UnionWith(player.machine.simClusters);
                             }
                         }
                     }
@@ -548,11 +540,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         foreach (var block in cluster.Blocks)
                         {
+                            skipCluster = ShouldSkipCluster(block);
                             if (skipCluster)
                             {
                                 break;
                             }
-                            skipCluster = ShouldSkipCluster(block);
                         }
                     }
                     if (skipCluster)
