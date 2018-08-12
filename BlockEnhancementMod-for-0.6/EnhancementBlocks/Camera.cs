@@ -492,9 +492,7 @@ namespace BlockEnhancementMod.Blocks
                     angleDiffMin = angleDiffCurrent;
                 }
             }
-#if DEBUG
-            Debug.Log("Closest index is: " + closestIndex);
-#endif
+
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
@@ -507,16 +505,13 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var player in Playerlist.Players)
                 {
-                    ConsoleController.ShowMessage("Adding network players");
                     if (!player.isSpectator)
                     {
-                        if (player.machine.isSimulating && !player.machine.LocalSim)
+                        if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID)
                         {
-                            foreach (var cluster in player.machine.simClusters)
+                            if (fixedCamera.Team == MPTeam.None || fixedCamera.Team != player.team)
                             {
-                                ConsoleController.ShowMessage("Adding clusters");
-                                if ((player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
-                                    || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != player.team))
+                                foreach (var cluster in player.machine.simClusters)
                                 {
                                     simClusters.Add(cluster);
                                 }
@@ -529,15 +524,12 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var cluster in Machine.Active().simClusters)
                 {
-                    ConsoleController.ShowMessage("Adding local clusters");
                     if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
                     {
                         simClusters.Add(cluster);
                     }
                 }
             }
-
-            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)

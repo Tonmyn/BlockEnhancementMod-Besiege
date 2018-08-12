@@ -590,16 +590,13 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var player in Playerlist.Players)
                 {
-                    ConsoleController.ShowMessage("Adding network players");
                     if (!player.isSpectator)
                     {
-                        if (player.machine.isSimulating && !player.machine.LocalSim)
+                        if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != rocket.ParentMachine.PlayerID)
                         {
-                            foreach (var cluster in player.machine.simClusters)
+                            if (rocket.Team == MPTeam.None || rocket.Team != player.team)
                             {
-                                ConsoleController.ShowMessage("Adding clusters");
-                                if ((player.machine.PlayerID != rocket.ParentMachine.PlayerID && rocket.Team == MPTeam.None)
-                                    || (rocket.Team != MPTeam.None && rocket.Team != player.team))
+                                foreach (var cluster in player.machine.simClusters)
                                 {
                                     simClusters.Add(cluster);
                                 }
@@ -612,15 +609,12 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var cluster in Machine.Active().simClusters)
                 {
-                    ConsoleController.ShowMessage("Adding local clusters");
                     if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
                     {
                         simClusters.Add(cluster);
                     }
                 }
             }
-
-            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit && simClusters.Count > 0)
