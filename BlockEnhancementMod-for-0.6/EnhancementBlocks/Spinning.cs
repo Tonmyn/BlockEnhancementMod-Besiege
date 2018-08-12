@@ -24,17 +24,17 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-                RotationKey = new MKey("旋转", "Rotation", KeyCode.R);
-                RotationKey.KeysChanged += ChangedProperties;
-                CurrentMapperTypes.Add(RotationKey);
+                //RotationKey = new MKey("旋转", "Rotation", KeyCode.R);
+                //RotationKey.KeysChanged += ChangedProperties;
+                //CurrentMapperTypes.Add(RotationKey);
 
-                LockedToggle = new MToggle("锁定旋转", "Locked", Locked);
-                LockedToggle.Toggled += (bool value) => { Locked = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(LockedToggle);
+                //LockedToggle = new MToggle("锁定旋转", "Locked", Locked);
+                //LockedToggle.Toggled += (bool value) => { Locked = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(LockedToggle);
 
-                LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 20f, false);
-                LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(LerpSlider);
+                //LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 20f, false);
+                //LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(LerpSlider);
 
 #if DEBUG
             ConsoleController.ShowMessage("自转块添加进阶属性");

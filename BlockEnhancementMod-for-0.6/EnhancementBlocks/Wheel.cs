@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using BlockEnhancementMod.Tools;
+//using BlockEnhancementMod.Tools;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -35,37 +35,37 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-                BrakeKey = new MKey("刹车", "Brake", KeyCode.None);
-                BrakeKey.KeysChanged += ChangedProperties;
-                CurrentMapperTypes.Add(BrakeKey);
+                //BrakeKey = new MKey("刹车", "Brake", KeyCode.None);
+                //BrakeKey.KeysChanged += ChangedProperties;
+                //CurrentMapperTypes.Add(BrakeKey);
 
-                BrakeForceSlider = new MSlider("刹车力度", "BrakeForce", BrakeForce, 0, 5, false);
-                BrakeForceSlider.ValueChanged += (float value) => { BrakeForce = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(BrakeForceSlider);
+                //BrakeForceSlider = new MSlider("刹车力度", "BrakeForce", BrakeForce, 0, 5, false);
+                //BrakeForceSlider.ValueChanged += (float value) => { BrakeForce = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(BrakeForceSlider);
 
-                ColliderToggle = new MToggle("自定碰撞", "Collider", Collider);
-                ColliderToggle.Toggled += (bool value) => { Collider = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(ColliderToggle);
+                //ColliderToggle = new MToggle("自定碰撞", "Collider", Collider);
+                //ColliderToggle.Toggled += (bool value) => { Collider = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(ColliderToggle);
 
-                FrictionToggle = new MToggle("自定摩擦", "FrictionT", FrictionT);
-                FrictionToggle.Toggled += (bool value) => { FrictionT = FrictionSlider.DisplayInMapper = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(FrictionToggle);
+                //FrictionToggle = new MToggle("自定摩擦", "FrictionT", FrictionT);
+                //FrictionToggle.Toggled += (bool value) => { FrictionT = FrictionSlider.DisplayInMapper = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(FrictionToggle);
 
-                FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1f, false);
-                FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
-                CurrentMapperTypes.Add(FrictionSlider);
+                //FrictionSlider = new MSlider("摩擦力", "Friction", Friction, 0f, 1f, false);
+                //FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
+                //CurrentMapperTypes.Add(FrictionSlider);
 
-                if (BB.BlockID == (int)BlockType.Wheel || BB.BlockID == (int)BlockType.LargeWheel)
-                {
-                    if (BB.BlockID == (int)BlockType.Wheel)
-                    { Lerp = 16; }
-                    else
-                    { Lerp = 8; }
-                    LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 30f, false);
-                    LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
-                    CurrentMapperTypes.Add(LerpSlider);
+                //if (BB.BlockID == (int)BlockType.Wheel || BB.BlockID == (int)BlockType.LargeWheel)
+                //{
+                //    if (BB.BlockID == (int)BlockType.Wheel)
+                //    { Lerp = 16; }
+                //    else
+                //    { Lerp = 8; }
+                //    LerpSlider = new MSlider("插值", "Lerp", Lerp, 0f, 30f, false);
+                //    LerpSlider.ValueChanged += (float value) => { Lerp = value; ChangedProperties(); };
+                //    CurrentMapperTypes.Add(LerpSlider);
 
-                }
+                //}
 
 #if DEBUG
             ConsoleController.ShowMessage("动力组件添加进阶属性");
@@ -268,7 +268,7 @@ namespace BlockEnhancementMod.Blocks
                 WheelCollider = new GameObject("Wheel Collider");
 
                 mFilter = WheelCollider.AddComponent<MeshFilter>();
-                mFilter.mesh = WheelMesh = SimpleMesh.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel.obj");
+                //mFilter.mesh = WheelMesh = SimpleMesh.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel.obj");
 
                 mCollider = WheelCollider.AddComponent<MeshCollider>();
                 mCollider.convex = true;

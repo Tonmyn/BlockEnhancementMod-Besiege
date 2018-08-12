@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BlockEnhancementMod</RootNamespace>
-    <AssemblyName>BlockEnhancementMod-for-0.6</AssemblyName>
+    <AssemblyName>BlockEnhancementMod</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -19,9 +19,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>0</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -83,25 +81,23 @@
     <Compile Include="EnhancementBlocks\Wheel.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="EnhancementBlock.cs" />
-    <Compile Include="Tools\Configuration.cs" />
-    <Compile Include="Tools\ConfigurationEventArgs.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tools\SimpleMesh.cs" />
-    <Compile Include="Tools\SimpleJSON.cs" />
-    <Compile Include="Tools\tool.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\CHN.txt" />
     <Content Include="Resources\ENG.txt" />
+    <Content Include="Resources\icon.png" />
+    <Content Include="Mod.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Wheel.obj" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Plugins\$(TargetName).dll"
-copy /Y "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\Resources\BlockEnhancementMod\"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\$(TargetName).dll"
+copy /Y "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\Resources\"
+copy /Y "$(ProjectDir)Mod.xml" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\Mod.xml"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>
