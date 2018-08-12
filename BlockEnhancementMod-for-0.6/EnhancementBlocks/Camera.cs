@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using Modding;
+using Modding.Blocks;
+using Modding.Common;
 using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
@@ -13,7 +16,7 @@ namespace BlockEnhancementMod.Blocks
         public bool cameraLookAtToggled = false;
         public int selfIndex;
         public FixedCameraBlock fixedCamera;
-        public FixedCameraBlock fixedCameraSim;
+        //public FixedCameraBlock fixedCameraSim;
         public Transform smoothLook;
         public FixedCameraController fixedCameraController;
         public Quaternion defaultLocalRotation;
@@ -25,6 +28,7 @@ namespace BlockEnhancementMod.Blocks
         public Transform target;
         public HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        private List<Collider> colliders = new List<Collider>();
 
         //Pause tracking setting
         MKey PauseTrackingKey;
@@ -36,10 +40,9 @@ namespace BlockEnhancementMod.Blocks
         public bool recordTarget = false;
 
         //Auto lookat related setting
-        MSlider AutoLookAtSearchAngleSlider;
+        //MSlider AutoLookAtSearchAngleSlider;
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
-        MKey LaunchKey;
         public bool firstPersonMode = false;
         public float firstPersonSmooth = 0.25f;
         public float timeOfDestruction = 0f;
@@ -53,9 +56,9 @@ namespace BlockEnhancementMod.Blocks
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
-        private Collider[] hitsIn;
-        private Collider[] hitsOut;
-        private Collider[] hitList;
+        //private Collider[] hitsIn;
+        //private Collider[] hitsOut;
+        //private Collider[] hitList;
 
         protected override void SafeAwake()
         {
@@ -68,7 +71,7 @@ namespace BlockEnhancementMod.Blocks
                 PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
-                AutoLookAtSearchAngleSlider.DisplayInMapper =
+                //AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -82,9 +85,9 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
-            AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
-            AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
+            //AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            //AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
             NonCustomModeSmoothSlider = AddSlider("第一人称平滑", "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
@@ -98,7 +101,8 @@ namespace BlockEnhancementMod.Blocks
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
-            defaultLocalRotation = fixedCamera.CompositeTracker3.localRotation;
+            smoothLook = fixedCamera.CompositeTracker3;
+            defaultLocalRotation = smoothLook.localRotation;
             selfIndex = fixedCamera.BuildIndex;
 
 
@@ -114,12 +118,10 @@ namespace BlockEnhancementMod.Blocks
             {
                 firstPersonMode = true;
             }
-            ConsoleController.ShowMessage(fixedCamera.CamMode.ToString());
             CameraLookAtToggle.DisplayInMapper = value;
-            fixedCameraController = FindObjectOfType<FixedCameraController>();
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
+            //AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
@@ -161,19 +163,18 @@ namespace BlockEnhancementMod.Blocks
             {
                 //Initialise the SmoothLook component
                 fixedCameraController = FindObjectOfType<FixedCameraController>();
+
                 foreach (var camera in fixedCameraController.cameras)
                 {
-                    if (camera == fixedCamera)
+                    if (camera.BuildIndex == selfIndex)
                     {
-                        fixedCameraSim = camera;
-                        smoothLook = camera.CompositeTracker3;
                         if (firstPersonMode)
                         {
                             smooth = Mathf.Clamp01(firstPersonSmooth);
                         }
                         else
                         {
-                            smooth = Mathf.Clamp01(camera.Sliders.First(s => s.Key == "smooth").Value);
+                            smooth = Mathf.Clamp01(camera.SmoothSlider.Value);
                         }
                         SetSmoothing();
                     }
@@ -183,11 +184,11 @@ namespace BlockEnhancementMod.Blocks
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
                 searchRadius = Camera.main.farClipPlane;
-                float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCameraSim.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
+                float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(fixedCameraSim.CompositeTracker3.position, safetyRadius);
+                //hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -219,60 +220,85 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
-                if (AutoLookAtKey.IsReleased)
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
-                    autoSearch = !autoSearch;
-                }
-                if (PauseTrackingKey.IsReleased)
-                {
-                    pauseTracking = !pauseTracking;
-                }
-                if (LockTargetKey.IsReleased)
-                {
-                    target = null;
-                    if (autoSearch)
+                    if (AutoLookAtKey.IsReleased)
                     {
-                        targetAquired = searchStarted = pauseTracking = false;
+                        autoSearch = !autoSearch;
                     }
-                    else
+                    if (PauseTrackingKey.IsReleased)
                     {
-                        // Aquire the target to look at
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        float manualSearchRadius = 1.25f;
-                        RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
-                        Physics.Raycast(ray, out RaycastHit rayHit);
-                        for (int i = 0; i < hits.Length; i++)
+                        pauseTracking = !pauseTracking;
+                    }
+                    if (LockTargetKey.IsReleased)
+                    {
+                        target = null;
+                        if (autoSearch)
                         {
-                            try
+                            targetAquired = searchStarted = false;
+                            CameraRadarSearch();
+                        }
+                        else
+                        {
+                            if (StatMaster.isMP && StatMaster.isClient)
                             {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                                target = hits[i].transform;
-                                pauseTracking = false;
-                                if (recordTarget)
+                                colliders.Clear();
+                                foreach (var player in Playerlist.Players)
                                 {
-                                    SaveTargetToDict(index);
+                                    if (!player.isSpectator && player.machine.isSimulating)
+                                    {
+                                        colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                    }
                                 }
-                                break;
+                                foreach (var collider in colliders)
+                                {
+                                    collider.enabled = true;
+                                }
                             }
-                            catch { }
-                            if (i == hits.Length - 1)
+
+                            // Aquire the target to look at
+                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                            float manualSearchRadius = 1.25f;
+                            RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
+                            Physics.Raycast(ray, out RaycastHit rayHit);
+                            for (int i = 0; i < hits.Length; i++)
                             {
-                                target = rayHit.transform;
-                                pauseTracking = false;
-#if DEBUG
-                                //ConsoleController.ShowMessage("Last Target, using raycast");
-#endif
                                 try
                                 {
-                                    int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                    int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
+                                    target = hits[i].transform;
+                                    pauseTracking = false;
                                     if (recordTarget)
                                     {
                                         SaveTargetToDict(index);
                                     }
+                                    break;
                                 }
                                 catch { }
+                                if (i == hits.Length - 1)
+                                {
+                                    target = rayHit.transform;
+                                    pauseTracking = false;
+
+                                    try
+                                    {
+                                        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                        if (recordTarget)
+                                        {
+                                            SaveTargetToDict(index);
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+                            if (StatMaster.isMP && StatMaster.isClient)
+                            {
+                                foreach (var collider in colliders)
+                                {
+                                    collider.enabled = false;
+                                }
                             }
                         }
                     }
@@ -282,102 +308,108 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateFixedUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
-                if (autoSearch && !targetAquired)
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
-                    CameraRadarSearch();
-                }
-                if (target != null)
-                {
-                    try
+                    if (autoSearch && !targetAquired)
                     {
-                        if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
-                        {
-                            //ConsoleController.ShowMessage("Target rocket exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
-                        }
+                        CameraRadarSearch();
                     }
-                    catch { }
-                    try
+                    if (target != null)
                     {
-                        if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target bomb exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target rocket exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
-                    }
-                    catch { }
-                    try
-                    {
-                        if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                        catch { }
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target level bomb exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target bomb exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
-                    }
-                    catch { }
-                    try
-                    {
-                        if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                        catch { }
+                        try
                         {
-                            //ConsoleController.ShowMessage("Target grenade exploded");
-                            timeOfDestruction = Time.time;
-                            explodedTarget.Add(target);
-                            targetAquired = false;
-                            target = null;
-                            return;
+                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target level bomb exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
                         }
+                        catch { }
+                        try
+                        {
+                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                            {
+                                //ConsoleController.ShowMessage("Target grenade exploded");
+                                timeOfDestruction = Time.time;
+                                explodedTarget.Add(target);
+                                targetAquired = false;
+                                target = null;
+                                return;
+                            }
+                        }
+                        catch { }
                     }
-                    catch { }
-                }
 
+                }
             }
         }
 
         protected override void OnSimulateLateUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera == fixedCamera)
+            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
+                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
+                {
 #if DEBUG
-                //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
+                    //ConsoleController.ShowMessage("there are " + explodedTarget.Count + " targets");
 #endif
-                if (pauseTracking)
-                {
-                    smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                }
-                else
-                {
-                    if (Time.time - timeOfDestruction >= targetSwitchDelay)
+                    if (pauseTracking)
                     {
-                        if (target == null)
+                        smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
+                    }
+                    else
+                    {
+                        if (Time.time - timeOfDestruction >= targetSwitchDelay)
                         {
-                            smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
-                        }
-                        else
-                        {
-                            Quaternion quaternion;
-                            if (firstPersonMode)
+                            if (target == null)
                             {
-                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                smoothLook.localRotation = Quaternion.Slerp(smoothLook.localRotation, defaultLocalRotation, smoothLerp * Time.deltaTime);
                             }
                             else
                             {
-                                quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                                Quaternion quaternion;
+                                if (firstPersonMode)
+                                {
+                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                }
+                                else
+                                {
+                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                                }
+                                smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                             }
-                            smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                         }
                     }
                 }
@@ -451,79 +483,73 @@ namespace BlockEnhancementMod.Blocks
             int closestIndex = 0;
             float angleDiffMin = 180f;
 
-            for (i = 1; i < maxClusters.Count; i++)
+            for (i = 0; i < maxClusters.Count; i++)
             {
-                float angleDiffCurrent = Vector3.Angle((maxClusters[i].Base.gameObject.transform.position - fixedCameraSim.CompositeTracker3.position).normalized, fixedCameraSim.CompositeTracker3.forward);
+                float angleDiffCurrent = Vector3.Angle((maxClusters[i].Base.gameObject.transform.position - smoothLook.position).normalized, smoothLook.forward);
                 if (angleDiffCurrent < angleDiffMin)
                 {
                     closestIndex = i;
                     angleDiffMin = angleDiffCurrent;
                 }
             }
+#if DEBUG
+            Debug.Log("Closest index is: " + closestIndex);
+#endif
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(smoothLook.position, searchRadius);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
-            if (StatMaster._customLevelSimulating)
+            if (StatMaster.isMP)
             {
-                hitList = hitsOut;
-            }
-            else
-            {
-                //hitsIn = hitsIn.Where(hit => hit != null).ToArray();
-                hitList = hitsOut.Except(hitsIn).ToArray();
-            }
-            foreach (var hit in hitList)
-            {
-                try
+                foreach (var player in Playerlist.Players)
                 {
-                    BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
-                    int clusterIndex = hitBlockBehaviour.ClusterIndex;
-                    Machine machine = hitBlockBehaviour.ParentMachine;
-                    if (machine.isSimulating)
+                    ConsoleController.ShowMessage("Adding network players");
+                    if (!player.isSpectator)
                     {
-                        if (StatMaster._customLevelSimulating)
+                        if (player.machine.isSimulating && !player.machine.LocalSim)
                         {
-                            if (hitBlockBehaviour.Team != MPTeam.None)
+                            foreach (var cluster in player.machine.simClusters)
                             {
-                                if (hitBlockBehaviour.Team != fixedCamera.Team)
+                                ConsoleController.ShowMessage("Adding clusters");
+                                if ((player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
+                                    || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != player.team))
                                 {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
+                                    simClusters.Add(cluster);
                                 }
                             }
-                            else
-                            {
-                                if (machine.Name != fixedCamera.ParentMachine.Name)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-
-                            }
-                        }
-                        else
-                        {
-                            simClusters.Add(machine.simClusters[clusterIndex]);
                         }
                     }
                 }
-                catch { }
             }
+            else
+            {
+                foreach (var cluster in Machine.Active().simClusters)
+                {
+                    ConsoleController.ShowMessage("Adding local clusters");
+                    if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
+                    {
+                        simClusters.Add(cluster);
+                    }
+                }
+            }
+
+            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)
             {
                 HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
                 HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+
                 foreach (var cluster in simClusters)
                 {
-                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - fixedCameraSim.CompositeTracker3.position;
-                    bool forward = Vector3.Dot(positionDiff, fixedCameraSim.CompositeTracker3.forward) > 0;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, fixedCameraSim.CompositeTracker3.forward);
+                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - smoothLook.position;
+                    float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.forward);
+                    bool forward = Vector3.Dot(positionDiff, smoothLook.forward) > 0;
                     bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
 
                     if (!skipCluster)
@@ -549,12 +575,12 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = GetMostValuableBlock(simClusterForSearch);
                     targetAquired = true;
+                    pauseTracking = false;
                     searchStarted = false;
                     StopCoroutine(SearchForTarget());
                 }
                 yield return null;
             }
-            yield return new WaitForSeconds(1f);
         }
 
         private int CalculateClusterValue(BlockBehaviour block, int clusterValue)

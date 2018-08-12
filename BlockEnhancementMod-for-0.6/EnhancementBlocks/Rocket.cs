@@ -3,6 +3,9 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Modding;
+using Modding.Blocks;
+using Modding.Common;
 using System.Reflection;
 
 namespace BlockEnhancementMod.Blocks
@@ -35,6 +38,7 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
         public HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -48,9 +52,6 @@ namespace BlockEnhancementMod.Blocks
         public bool targetAquired = false;
         public bool searchStarted = false;
         public bool restartSearch = false;
-        private Collider[] hitsIn;
-        private Collider[] hitsOut;
-        private Collider[] hitList;
 
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
@@ -156,21 +157,8 @@ namespace BlockEnhancementMod.Blocks
             ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
-            if (StatMaster.isClient)
-            {
-                //Machine machine = gameObject.GetComponent<BlockBehaviour>().ParentMachine;
-                //ServerMachine serverMachine = machine.GetComponent<ServerMachine>();
-                ////futre proof with new modloader
-                //serverMachine.GetBlockFromIndex(transform.GetComponent<BlockBehaviour>().BuildIndex, out BB);
-                //rocket = BB.gameObject.GetComponent<TimedRocket>();
-                //rocketRigidbody = BB.Rigidbody;
-                //selfIndex = BB.BuildIndex;
-            }
-            else
-            {
-                rocket = gameObject.GetComponent<TimedRocket>();
-                rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-            }
+            rocket = gameObject.GetComponent<TimedRocket>();
+            rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
 #if DEBUG
             //ConsoleController.ShowMessage("火箭添加进阶属性");
@@ -205,22 +193,15 @@ namespace BlockEnhancementMod.Blocks
                 activeGuide = true;
                 target = null;
                 explodedTarget.Clear();
-                hitsIn = Physics.OverlapSphere(rocket.transform.position, safetyRadius);
                 StopAllCoroutines();
 
                 // Read the charge from rocket
-                foreach (var slider in BB.Sliders)
-                {
-                    if (slider.Key == "charge")
-                    {
-                        explosiveCharge = slider.Value;
+                explosiveCharge = rocket.ChargeSlider.Value;
 
-                        // Make sure the high explo mode is not too imba
-                        if (highExploActivated)
-                        {
-                            bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
-                        }
-                    }
+                // Make sure the high explo mode is not too imba
+                if (highExploActivated)
+                {
+                    bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
             }
         }
@@ -251,32 +232,38 @@ namespace BlockEnhancementMod.Blocks
                         //When launch key is released, reset target search
                         if (rocket.hasFired)
                         {
-#if DEBUG
-                            //ConsoleController.ShowMessage("this should not appear");
-#endif
-
                             targetAquired = searchStarted = false;
-                            if (!targetAquired)
-                            {
-                                RocketRadarSearch();
-                            }
+                            RocketRadarSearch();
                         }
                     }
                     else
                     {
+                        if (StatMaster.isMP && StatMaster.isClient)
+                        {
+                            colliders.Clear();
+                            foreach (var player in Playerlist.Players)
+                            {
+                                if (!player.isSpectator && player.machine.isSimulating)
+                                {
+                                    colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                }
+                            }
+                            foreach (var collider in colliders)
+                            {
+                                collider.enabled = true;
+                            }
+                        }
                         //Find targets in the manual search mode by casting a sphere along the ray
                         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                         float manualSearchRadius = 1.25f;
                         RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
                         Physics.Raycast(ray, out RaycastHit rayHit);
-#if DEBUG
-                        //ConsoleController.ShowMessage("No of hits in sphere cast all " + hits.Length);
-#endif
+
                         for (int i = 0; i < hits.Length; i++)
                         {
                             try
                             {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
                                 target = hits[i].transform;
                                 break;
                             }
@@ -284,6 +271,13 @@ namespace BlockEnhancementMod.Blocks
                             if (i == hits.Length - 1)
                             {
                                 target = rayHit.transform;
+                            }
+                        }
+                        if (StatMaster.isMP && StatMaster.isClient)
+                        {
+                            foreach (var collider in colliders)
+                            {
+                                collider.enabled = false;
                             }
                         }
                     }
@@ -590,54 +584,43 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             //Grab every machine block at the start of search
-            hitsOut = Physics.OverlapSphere(rocket.transform.position, searchRadius);
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
-            if (StatMaster._customLevelSimulating)
+            if (StatMaster.isMP)
             {
-                hitList = hitsOut;
-            }
-            else
-            {
-                //hitsIn = hitsIn.Where(hit => hit != null).ToArray();
-                hitList = hitsOut.Except(hitsIn).ToArray();
-            }
-
-            foreach (var hit in hitList)
-            {
-                try
+                foreach (var player in Playerlist.Players)
                 {
-                    BlockBehaviour hitBlockBehaviour = hit.attachedRigidbody.gameObject.GetComponent<BlockBehaviour>();
-                    int clusterIndex = hitBlockBehaviour.ClusterIndex;
-                    Machine machine = hitBlockBehaviour.ParentMachine;
-                    if (machine.isSimulating)
+                    ConsoleController.ShowMessage("Adding network players");
+                    if (!player.isSpectator)
                     {
-                        if (StatMaster._customLevelSimulating)
+                        if (player.machine.isSimulating && !player.machine.LocalSim)
                         {
-                            if (hitBlockBehaviour.Team != MPTeam.None)
+                            foreach (var cluster in player.machine.simClusters)
                             {
-                                if (hitBlockBehaviour.Team != rocket.Team)
+                                ConsoleController.ShowMessage("Adding clusters");
+                                if ((player.machine.PlayerID != rocket.ParentMachine.PlayerID && rocket.Team == MPTeam.None)
+                                    || (rocket.Team != MPTeam.None && rocket.Team != player.team))
                                 {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
+                                    simClusters.Add(cluster);
                                 }
                             }
-                            else
-                            {
-                                if (machine.Name != rocket.ParentMachine.Name)
-                                {
-                                    simClusters.Add(machine.simClusters[clusterIndex]);
-                                }
-
-                            }
-                        }
-                        else
-                        {
-                            simClusters.Add(machine.simClusters[clusterIndex]);
                         }
                     }
                 }
-                catch { }
             }
+            else
+            {
+                foreach (var cluster in Machine.Active().simClusters)
+                {
+                    ConsoleController.ShowMessage("Adding local clusters");
+                    if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
+                    {
+                        simClusters.Add(cluster);
+                    }
+                }
+            }
+
+            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit && simClusters.Count > 0)
@@ -680,7 +663,6 @@ namespace BlockEnhancementMod.Blocks
                 }
                 yield return null;
             }
-            yield return new WaitForSeconds(1f);
         }
 
         private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
@@ -715,7 +697,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            int closestIndex = 0, clusterSize = 0, sizeOfClosestMaxValueCluster = 0;
+            int closestIndex = 0;
             float distanceMin = Mathf.Infinity;
 
             for (i = 0; i < maxClusters.Count; i++)

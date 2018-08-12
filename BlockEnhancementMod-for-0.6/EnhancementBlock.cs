@@ -90,7 +90,7 @@ namespace BlockEnhancementMod
 
         private void Update()
         {
-            if (StatMaster.levelSimulating)
+            if (BB.isSimulating)
             {
                 if (isFirstFrame)
                 {
@@ -111,7 +111,7 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (StatMaster.levelSimulating)
+            if (BB.isSimulating && !isFirstFrame)
             {
                 OnSimulateFixedUpdate();
             }
@@ -119,7 +119,7 @@ namespace BlockEnhancementMod
 
         private void LateUpdate()
         {
-            if (StatMaster.levelSimulating&& !isFirstFrame)
+            if (BB.isSimulating && !isFirstFrame)
             {
                 OnSimulateLateUpdate();
             }
@@ -186,7 +186,7 @@ namespace BlockEnhancementMod
                         XData xDatum = bd.Read(str);
                         if (xDatum != null || !StatMaster.isPaste)
                         {
-                            item.DeSerialize((xDatum == null ? item.defaultData : xDatum));
+                            item.DeSerialize((xDatum ?? item.defaultData));
                         }
                     }
 
@@ -307,15 +307,15 @@ namespace BlockEnhancementMod
 
             myMapperTypes.Add(mKey);
 
-            //BlockPropertiseChangedEvent += () =>
-            //{
-            //    keys.Clear();
-            //    for (int i = 0; i < mKey.KeysCount; i++)
-            //    {
-            //        keys.Add(mKey.GetKey(i));
-            //    }
+            BlockPropertiseChangedEvent += () =>
+            {
+                keys.Clear();
+                for (int i = 0; i < mKey.KeysCount; i++)
+                {
+                    keys.Add(mKey.GetKey(i));
+                }
 
-            //};
+            };
 
             //mKey.KeysChanged += () =>
             //{
