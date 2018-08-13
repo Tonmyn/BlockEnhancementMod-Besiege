@@ -185,6 +185,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (!no8Workshop && SwitchGuideModeKey.DisplayInMapper)
             {
+                SwitchGuideModeKey.ignored = true;
                 SwitchGuideModeKey.DisplayInMapper = false;
             }
         }
