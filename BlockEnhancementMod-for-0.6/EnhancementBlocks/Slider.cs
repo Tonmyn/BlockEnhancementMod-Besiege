@@ -29,7 +29,7 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { Limit = LimitSlider.Value; };
 
 #if DEBUG
-            ConsoleController.ShowMessage("滑块添加进阶属性");
+            //ConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
 
         }

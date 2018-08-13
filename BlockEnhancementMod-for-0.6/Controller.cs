@@ -57,7 +57,9 @@ namespace BlockEnhancementMod
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
         {
-            BesiegeConsoleController.ShowMessage("on block init");
+#if DEBUG
+            //ConsoleController.ShowMessage("on block init");
+#endif
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
@@ -75,7 +77,7 @@ namespace BlockEnhancementMod
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+            //ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
 
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
@@ -130,7 +132,7 @@ namespace BlockEnhancementMod
             }
 
 #if DEBUG
-            ConsoleController.ShowMessage("Refresh");
+            //ConsoleController.ShowMessage("Refresh");
 #endif
         }
 
@@ -236,7 +238,7 @@ namespace BlockEnhancementMod
         {
             if (mKey.IsPressed)
             {
-                BesiegeConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
+                //ConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
             }
         }
     }

@@ -37,15 +37,17 @@ namespace BlockEnhancementMod.Blocks
         public float guidedRocketStabilityLevel = 2f;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
+        private readonly float maxTorque = no8Workshop ? 10000 : 100;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
-        MKey ActiveGuideRocketKey;
-        public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 65;
-        public float safetyRadius = 15f;
+        MKey SwitchGuideModeKey;
+        public List<KeyCode> switchGuideModeKey = no8Workshop ? new List<KeyCode> { KeyCode.RightShift } : new List<KeyCode> { KeyCode.None };
+        public float searchAngle = no8Workshop ? 65 : 10;
+        private readonly float safetyRadius = 15f;
+        private readonly float maxSearchAngle = no8Workshop ? 90 : 15;
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
@@ -86,7 +88,7 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
-                ActiveGuideRocketKey.DisplayInMapper =
+                SwitchGuideModeKey.DisplayInMapper =
                 ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
                 GuideDelaySlider.DisplayInMapper =
                 GuidedRocketStabilitySlider.DisplayInMapper =
@@ -123,7 +125,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, 90, false);
+            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle, false);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
@@ -143,15 +145,15 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketStabilitySlider.ValueChanged += (float value) => { guidedRocketStabilityLevel = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityLevel = GuidedRocketStabilitySlider.Value; };
 
-            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 100, false);
+            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2, false);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
             LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
-            ActiveGuideRocketKey = AddKey(LanguageManager.activeGuideKeys, "ActiveSearchKey", activeGuideKeys);
-            ActiveGuideRocketKey.InvokeKeysChanged();
+            SwitchGuideModeKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", switchGuideModeKey);
+            SwitchGuideModeKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
@@ -168,7 +170,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
-            ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
+            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
@@ -177,6 +179,14 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
+        }
+
+        protected override void OnBuildingUpdate()
+        {
+            if (!no8Workshop && SwitchGuideModeKey.DisplayInMapper)
+            {
+                SwitchGuideModeKey.DisplayInMapper = false;
+            }
         }
 
         protected override void OnSimulateStart()
@@ -188,7 +198,7 @@ namespace BlockEnhancementMod.Blocks
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
                 activeGuide = true;
                 target = null;
-                searchAngle = Mathf.Clamp(searchAngle, 0, 180);
+                searchAngle = Mathf.Clamp(searchAngle, 0, maxSearchAngle);
                 explodedTarget.Clear();
                 StopAllCoroutines();
 
@@ -208,7 +218,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 //When toggle auto aim key is released, change the auto aim status
-                if (ActiveGuideRocketKey.IsReleased)
+                if (SwitchGuideModeKey.IsReleased)
                 {
                     activeGuide = !activeGuide;
                     if (!activeGuide)
@@ -233,7 +243,7 @@ namespace BlockEnhancementMod.Blocks
                             RocketRadarSearch();
                         }
                     }
-                    else
+                    else if (no8Workshop)
                     {
                         if (StatMaster.isMP && StatMaster.isClient)
                         {
@@ -408,14 +418,14 @@ namespace BlockEnhancementMod.Blocks
                     //else, apply maximum torque to the rocket
                     if (forward && angleDiff <= searchAngle)
                     {
-                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((-Mathf.Pow(angleDiff / 90f - 1f, 2) + 1)) * rotatingAxis); }
+                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngle - 1f, 2) + 1)) * rotatingAxis); }
                         catch { }
                     }
                     else
                     {
                         if (!activeGuide)
                         {
-                            try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                            try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
                             catch { }
                         }
                         else
@@ -704,11 +714,14 @@ namespace BlockEnhancementMod.Blocks
 
         private void AddResistancePerpendicularToRocketVelocity()
         {
-            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
-            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            if (no8Workshop)
+            {
+                Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+                Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
+                float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+                float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+                rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            }
         }
 
         private int CalculateClusterValue(BlockBehaviour block, int clusterValue)

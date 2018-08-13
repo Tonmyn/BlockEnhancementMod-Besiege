@@ -22,7 +22,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("活塞添加进阶属性");
+            //ConsoleController.ShowMessage("活塞添加进阶属性");
 #endif
         }
 

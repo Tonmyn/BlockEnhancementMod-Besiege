@@ -38,7 +38,7 @@ namespace BlockEnhancementMod
 
         public static String lockTarget = ifChinese ? "锁定目标" : "Lock Target";
 
-        public static String activeGuideKeys = ifChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
+        public static String switchGuideMode = ifChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
 
         public static String recordTarget = ifChinese ? "记录目标" : "Save Target";
 

@@ -9,7 +9,9 @@ namespace BlockEnhancementMod.Blocks
 {
     public class CannonScript : EnhancementBlock
     {
-
+        /// <summary>
+        /// mod设置
+        /// </summary>
         public MSlider StrengthSlider;
 
         public MSlider IntervalSlider;
@@ -18,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
 
         public MSlider KnockBackSpeedSlider;
 
-        public MToggle BulletToggle;
+        public MToggle CustomBulletToggle;
 
         public MToggle InheritSizeToggle;
 
@@ -40,9 +42,15 @@ namespace BlockEnhancementMod.Blocks
 
         public float Interval = 0.25f;
 
+        private readonly float intervalMin = no8Workshop ? 0f : 0.1f;
+
         public float RandomDelay = 0.2f;
 
-        public float KnockBackSpeed = 1f;
+        public float KnockBackSpeedZeroOne = 1f;
+
+        private readonly float knockBackSpeedZeroOneMin = no8Workshop ? 0f : 0.25f;
+
+        private readonly float knockBackSpeedZeroOneMax = 1f;
 
         public float originalKnockBackSpeed = 0;
 
@@ -60,12 +68,29 @@ namespace BlockEnhancementMod.Blocks
 
         public Color TrailColor = Color.yellow;
 
+        /// <summary>
+        /// 子弹刚体组件
+        /// </summary>
+        public Rigidbody BR;
 
+        public TrailRenderer myTrailRenderer;
+
+        public GameObject BulletObject;
+
+        public float Drag;
+
+        float timer;
+
+        private float knockBackSpeed;
+
+        private int BulletNumber = 1;
+
+        private GameObject customBulletObject;
 
         protected override void SafeAwake()
         {
 
-            IntervalSlider = AddSlider(LanguageManager.fireInterval, "Interval", Interval, 0f, 0.5f, false);
+            IntervalSlider = AddSlider(LanguageManager.fireInterval, "Interval", Interval, intervalMin, 0.5f, false);
             IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
 
@@ -73,13 +98,13 @@ namespace BlockEnhancementMod.Blocks
             RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
 
-            KnockBackSpeedSlider = AddSlider(LanguageManager.recoil, "KnockBackSpeed", KnockBackSpeed, 0.2f, 1f, false);
-            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeed = KnockBackSpeedSlider.Value; };
+            KnockBackSpeedSlider = AddSlider(LanguageManager.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax, false);
+            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeedZeroOne = KnockBackSpeedSlider.Value; };
 
-            BulletToggle = AddToggle(LanguageManager.customBullet, "Bullet", cBullet);
-            BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = BulletToggle.IsActive; };
+            CustomBulletToggle = AddToggle(LanguageManager.customBullet, "Bullet", cBullet);
+            CustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = CustomBulletToggle.IsActive; };
 
             InheritSizeToggle = AddToggle(LanguageManager.inheritSize, "InheritSize", InheritSize);
             InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
@@ -110,8 +135,6 @@ namespace BlockEnhancementMod.Blocks
             CB = BB.GetComponent<CanonBlock>();
             originalKnockBackSpeed = CB.knockbackSpeed;
 
-
-
 #if DEBUG
             //ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
@@ -120,43 +143,44 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-
             IntervalSlider.DisplayInMapper = value;
             RandomDelaySlider.DisplayInMapper = value;
             KnockBackSpeedSlider.DisplayInMapper = value;
-            BulletToggle.DisplayInMapper = value && !StatMaster.isMP;
-            InheritSizeToggle.DisplayInMapper = value && cBullet;
-            BulletMassSlider.DisplayInMapper = value && cBullet;
-            BulletDragSlider.DisplayInMapper = value && cBullet;
+            CustomBulletToggle.DisplayInMapper = value && !StatMaster.isMP;
+            InheritSizeToggle.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+            BulletMassSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+            BulletDragSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
 
-            TrailColorSlider.DisplayInMapper = Trail;
-            TrailLengthSlider.DisplayInMapper = Trail;
+            TrailColorSlider.DisplayInMapper = Trail && !StatMaster.isMP;
+            TrailLengthSlider.DisplayInMapper = Trail && !StatMaster.isMP;
 
         }
 
-
-
-        /// <summary>
-        /// 子弹刚体组件
-        /// </summary>
-        public Rigidbody BR;
-
-        public TrailRenderer myTrailRenderer;
-
-        public GameObject BulletObject;
-
-        public float Drag;
-
-        float timer;
-
-        private float knockBackSpeed;
-
-        private int BulletNumber = 1;
-
-        private GameObject customBulletObject;
+        protected override void OnBuildingUpdate()
+        {
+            if (StatMaster.isMP)
+            {
+                if (TrailToggle.DisplayInMapper)
+                {
+                    TrailToggle.DisplayInMapper = false;
+                }
+            }
+            if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            {
+                KnockBackSpeedSlider.DisplayInMapper = false;
+            }
+            if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            {
+                KnockBackSpeedSlider.DisplayInMapper = true;
+            }
+        }
 
         protected override void OnSimulateStart()
         {
+            if (StatMaster.isMP)
+            {
+                cBullet = Trail = false;
+            }
 
             Strength = CB.StrengthSlider.Value;
 
@@ -164,15 +188,14 @@ namespace BlockEnhancementMod.Blocks
             //BR = BulletObject.GetComponent<Rigidbody>();
 
             //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-            knockBackSpeed = KnockBackSpeed * originalKnockBackSpeed;
+            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
 
             CB.enabled = !cBullet;
-            timer = Interval;
+            timer = Interval < intervalMin ? intervalMin : Interval;
 
             //独立自定子弹
             if (cBullet)
             {
-
                 customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                 customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
                 customBulletObject.SetActive(false);
@@ -187,8 +210,11 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                CB.randomDelay = RandomDelay;
-                CB.knockbackSpeed = knockBackSpeed;
+                CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
+                if (Strength <= 20 || no8Workshop)
+                {
+                    CB.knockbackSpeed = knockBackSpeed;
+                }
             }
 
             GameObject bullet = cBullet ? customBulletObject : BulletObject;
@@ -224,23 +250,6 @@ namespace BlockEnhancementMod.Blocks
                     myTrailRenderer.enabled = Trail;
                 }
             }
-
-            //全局自定子弹
-
-            //CB.randomDelay = RandomDelay;
-            //CB.knockbackSpeed = knockBackSpeed;
-
-            //if (cBullet)
-            //{
-
-            //    BR.mass = BulletMass;
-            //    BR.drag = BR.angularDrag = Drag;
-
-            //    BulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-            //}
-
-
-
         }
 
         protected override void OnSimulateUpdate()
@@ -287,7 +296,6 @@ namespace BlockEnhancementMod.Blocks
                 bullet.SetActive(true);
                 try { bullet.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; }
                 catch { }
-                //bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength / Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z));
                 bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
 
                 gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z) * transform.up);
@@ -298,7 +306,6 @@ namespace BlockEnhancementMod.Blocks
                 }
                 AS.Play();
                 CB.fuseParticles.Stop();
-
             }
 
             if (!StatMaster.GodTools.InfiniteAmmoMode)

@@ -23,7 +23,7 @@ namespace BlockEnhancementMod.Blocks
             BlockDataLoadEvent += (XDataHolder BlockData) => { Speed = SpeedSlider.Value; };
 
 #if DEBUG
-            ConsoleController.ShowMessage("小轮子添加进阶属性");
+            //ConsoleController.ShowMessage("小轮子添加进阶属性");
 #endif
         }
 

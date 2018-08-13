@@ -84,7 +84,7 @@ namespace BlockEnhancementMod.Blocks
 
             PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", pauseKeys);
 
-            AutoLookAtKey = AddKey(LanguageManager.activeGuideKeys, "ActiveSearchKey", activeGuideKeys);
+            AutoLookAtKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", activeGuideKeys);
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();

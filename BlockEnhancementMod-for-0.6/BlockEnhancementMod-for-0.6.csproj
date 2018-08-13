@@ -85,8 +85,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\CHN.txt" />
-    <Content Include="Resources\ENG.txt" />
     <Content Include="Resources\icon.png" />
     <Content Include="Mod.xml" />
   </ItemGroup>

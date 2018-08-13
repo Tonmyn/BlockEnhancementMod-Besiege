@@ -18,6 +18,8 @@ namespace BlockEnhancementMod
 
     public class EnhancementBlock : MonoBehaviour
     {
+        public static readonly bool no8Workshop = ModIO.ExistsFile("Resources\\no8workshop.txt");
+
         /// <summary>
         /// 模块行为
         /// </summary>
@@ -97,7 +99,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    ConsoleController.ShowMessage("on simulation start");
+                    //ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
@@ -128,7 +130,7 @@ namespace BlockEnhancementMod
         private void SaveConfiguration(PlayerMachineInfo pmi)
         {
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("On save en");
+            ConsoleController.ShowMessage("On save en");
 #endif
 
             if (pmi == null)
