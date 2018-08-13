@@ -14,18 +14,18 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle CameraLookAtToggle;
         public bool cameraLookAtToggled = false;
-        public int selfIndex;
+        private int selfIndex;
         public FixedCameraBlock fixedCamera;
-        public Transform smoothLook;
+        private Transform smoothLook;
         public FixedCameraController fixedCameraController;
-        public Quaternion defaultLocalRotation;
+        private Quaternion defaultLocalRotation;
         public float smooth;
         public float smoothLerp;
 
         //Track target setting
         MKey LockTargetKey;
         public Transform target;
-        public HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> colliders = new List<Collider>();
 
@@ -39,22 +39,18 @@ namespace BlockEnhancementMod.Blocks
         public bool recordTarget = false;
 
         //Auto lookat related setting
-        //MSlider AutoLookAtSearchAngleSlider;
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
-        public bool firstPersonMode = false;
+        private bool firstPersonMode = false;
         public float firstPersonSmooth = 0.25f;
-        public float timeOfDestruction = 0f;
-        public float targetSwitchDelay = 1.25f;
+        private float timeOfDestruction = 0f;
+        private readonly float targetSwitchDelay = 1.25f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 90;
-        public float searchRadius = 0;
-        public float safetyRadius = 25f;
-        public float searchSurroundingBlockRadius = 5f;
-        public bool autoSearch = true;
-        public bool targetAquired = false;
-        public bool searchStarted = false;
-        public bool restartSearch = false;
+        private float searchAngle = 90;
+        private readonly float safetyRadius = 25f;
+        private bool autoSearch = true;
+        private bool targetAquired = false;
+        private bool searchStarted = false;
 
         protected override void SafeAwake()
         {
@@ -67,7 +63,6 @@ namespace BlockEnhancementMod.Blocks
                 PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
-                //AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -80,10 +75,6 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
-
-            //AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
-            //AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
             NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
@@ -117,7 +108,6 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.DisplayInMapper = value;
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            //AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
@@ -179,7 +169,6 @@ namespace BlockEnhancementMod.Blocks
                 // Initialise
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
-                searchRadius = Camera.main.farClipPlane;
                 float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;

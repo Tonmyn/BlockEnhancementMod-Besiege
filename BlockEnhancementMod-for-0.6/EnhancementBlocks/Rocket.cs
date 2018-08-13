@@ -22,14 +22,14 @@ namespace BlockEnhancementMod.Blocks
 
         //No smoke mode related
         MToggle NoSmokeToggle;
-        public bool noSmoke = false;
-        public bool smokeStopped = false;
+        private bool noSmoke = false;
+        private bool smokeStopped = false;
 
         //Firing record related setting
-        public bool hasFired = false;
-        public bool targetHit = false;
-        public float fireTime = 0f;
-        public bool fireTimeRecorded = false;
+        private bool targetHit = false;
+        private float randomDelay = 0;
+        private float fireTime = 0f;
+        private bool fireTimeRecorded = false;
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
         public float guidedRocketStabilityLevel = 2f;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
-        public HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
@@ -45,13 +45,10 @@ namespace BlockEnhancementMod.Blocks
         MKey ActiveGuideRocketKey;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 65;
-        public float searchRadius = 0;
         public float safetyRadius = 15f;
-        public float searchSurroundingBlockRadius = 5f;
-        public bool activeGuide = true;
-        public bool targetAquired = false;
-        public bool searchStarted = false;
-        public bool restartSearch = false;
+        private bool activeGuide = true;
+        private bool targetAquired = false;
+        private bool searchStarted = false;
 
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
@@ -63,21 +60,21 @@ namespace BlockEnhancementMod.Blocks
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
-        public bool canTrigger = false;
         public float guideDelay = 0f;
+        private bool canTrigger = false;
 
         //High power explosion related setting
         MToggle HighExploToggle;
         public bool highExploActivated = false;
-        public bool bombHasExploded = false;
-        public int levelBombCategory = 4;
-        public int levelBombID = 5001;
-        public float bombExplosiveCharge = 0;
-        public float explosiveCharge = 0f;
-        public float radius = 7f;
-        public float power = 3600f;
-        public float torquePower = 100000f;
-        public float upPower = 0.25f;
+        private bool bombHasExploded = false;
+        private readonly int levelBombCategory = 4;
+        private readonly int levelBombID = 5001;
+        private float bombExplosiveCharge = 0;
+        private float explosiveCharge = 0f;
+        private readonly float radius = 7f;
+        private readonly float power = 3600f;
+        private readonly float torquePower = 100000f;
+        private readonly float upPower = 0.25f;
 
         protected override void SafeAwake()
         {
@@ -188,10 +185,10 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                searchRadius = Camera.main.farClipPlane;
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
                 activeGuide = true;
                 target = null;
+                searchAngle = Mathf.Clamp(searchAngle, 0, 180);
                 explodedTarget.Clear();
                 StopAllCoroutines();
 
@@ -309,6 +306,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fireTimeRecorded = true;
                         fireTime = Time.time;
+                        randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                     }
 
                     //If rocket is burning, explode it
@@ -318,7 +316,7 @@ namespace BlockEnhancementMod.Blocks
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay && !canTrigger)
+                    if (Time.time - fireTime >= guideDelay + randomDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }

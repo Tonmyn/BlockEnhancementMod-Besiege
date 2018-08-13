@@ -245,6 +245,10 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
+            if (CB.ShootKey.IsDown && cBullet)
+            {
+                CB.StopAllCoroutines();
+            }
             if (CB.ShootKey.IsDown && Interval > 0)
             {
                 if (timer > Interval)
@@ -263,27 +267,17 @@ namespace BlockEnhancementMod.Blocks
                 {
                     timer += Time.deltaTime;
                 }
-
             }
             else if (CB.ShootKey.IsReleased)
             {
                 timer = Interval;
             }
-
-            if (cBullet)
-            {
-                //Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
-            }
-
         }
 
         private IEnumerator Shoot()
         {
-
-
             if (BulletNumber > 0)
             {
-
                 float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
 
                 yield return new WaitForSeconds(randomDelay);
@@ -291,15 +285,19 @@ namespace BlockEnhancementMod.Blocks
                 var bullet = (GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
 
                 bullet.SetActive(true);
+                try { bullet.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; }
+                catch { }
                 //bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength / Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z));
                 bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
 
                 gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z) * transform.up);
 
-
-                CB.particles[0].Play();
+                foreach (var particle in CB.particles)
+                {
+                    particle.Play();
+                }
                 AS.Play();
-
+                CB.fuseParticles.Stop();
 
             }
 

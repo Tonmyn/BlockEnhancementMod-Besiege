@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
 
         public static String recoil = ifChinese ? "后坐力" : "Recoil";
 
-        public static String customBullet = ifChinese ? "自定子弹" : "Custom CannonBall";
+        public static String customBullet = ifChinese ? "自定子弹" : "Custom Cannonball";
 
         public static String inheritSize = ifChinese ? "继承尺寸" : "Inherit Size";
 
