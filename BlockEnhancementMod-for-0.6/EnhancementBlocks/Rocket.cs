@@ -82,7 +82,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
             //Key mapper setup
-            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
+            GuidedRocketToggle = AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
@@ -99,7 +99,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
 
-            ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
+            ProximityFuzeToggle = AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
                 proximityFuzeActivated =
@@ -110,7 +110,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
 
-            NoSmokeToggle = AddToggle("无烟", "NoSmoke", noSmoke);
+            NoSmokeToggle = AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
             NoSmokeToggle.Toggled += (bool value) =>
             {
                 noSmoke = value;
@@ -118,7 +118,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { noSmoke = NoSmokeToggle.IsActive; };
 
-            HighExploToggle = AddToggle("高爆", "HighExplo", highExploActivated);
+            HighExploToggle = AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
             {
                 highExploActivated = value;
@@ -126,34 +126,34 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, 90, false);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
-            ProximityFuzeRangeSlider = AddSlider("近炸距离", "closeRange", proximityRange, 0, 10, false);
+            ProximityFuzeRangeSlider = AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10, false);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
-            ProximityFuzeAngleSlider = AddSlider("近炸角度", "closeAngle", proximityAngle, 0, 90, false);
+            ProximityFuzeAngleSlider = AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90, false);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 100, true);
+            GuidedRocketTorqueSlider = AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100, true);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
-            GuidedRocketStabilitySlider = AddSlider("火箭稳定性", "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
+            GuidedRocketStabilitySlider = AddSlider(LanguageManager.rocketStability, "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
             GuidedRocketStabilitySlider.ValueChanged += (float value) => { guidedRocketStabilityLevel = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityLevel = GuidedRocketStabilitySlider.Value; };
 
-            GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
+            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 100, false);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
-            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
-            ActiveGuideRocketKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
+            ActiveGuideRocketKey = AddKey(LanguageManager.activeGuideKeys, "ActiveSearchKey", activeGuideKeys);
             ActiveGuideRocketKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket

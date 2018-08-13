@@ -58,7 +58,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void SafeAwake()
         {
-            CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle = AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
@@ -73,7 +73,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
+            RecordTargetToggle = AddToggle(LanguageManager.recordTarget, "RecordTarget", recordTarget);
             RecordTargetToggle.Toggled += (bool value) =>
             {
                 recordTarget = value;
@@ -85,15 +85,15 @@ namespace BlockEnhancementMod.Blocks
             //AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             //BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
 
-            NonCustomModeSmoothSlider = AddSlider("第一人称平滑", "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
+            NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
-            LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "LockTarget", lockKeys);
 
-            PauseTrackingKey = AddKey("暂停/恢复追踪", "ResetView", pauseKeys);
+            PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", pauseKeys);
 
-            AutoLookAtKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
+            AutoLookAtKey = AddKey(LanguageManager.activeGuideKeys, "ActiveSearchKey", activeGuideKeys);
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();

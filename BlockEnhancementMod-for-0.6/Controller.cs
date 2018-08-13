@@ -84,7 +84,7 @@ namespace BlockEnhancementMod
 
                 if (block.GetComponent(EB) == null)
                 {
-                    block.gameObject.AddComponent(EB);                  
+                    block.gameObject.AddComponent(EB);
                 }
             }
         }
@@ -135,35 +135,35 @@ namespace BlockEnhancementMod
         }
 
 
-//        /// <summary>储存存档信息</summary>
-//        private void SaveConfiguration(PlayerMachineInfo pmi)
-//        {
+        //        /// <summary>储存存档信息</summary>
+        //        private void SaveConfiguration(PlayerMachineInfo pmi)
+        //        {
 
-//#if DEBUG
-//            ConsoleController.ShowMessage("储存存档");
-//#endif
-//            Configuration.Save();
+        //#if DEBUG
+        //            ConsoleController.ShowMessage("储存存档");
+        //#endif
+        //            Configuration.Save();
 
-//            OnSave(pmi);
-//        }
+        //            OnSave(pmi);
+        //        }
 
-//        /// <summary>加载存档信息</summary>
-//        private void LoadConfiguration(PlayerMachineInfo pmi)
-//        {
+        //        /// <summary>加载存档信息</summary>
+        //        private void LoadConfiguration(PlayerMachineInfo pmi)
+        //        {
 
-//#if DEBUG
-//            ConsoleController.ShowMessage("载入存档");
-//#endif
+        //#if DEBUG
+        //            ConsoleController.ShowMessage("载入存档");
+        //#endif
 
-//            PMI = pmi;
+        //            PMI = pmi;
 
-//            OnLoad(pmi);
+        //            OnLoad(pmi);
 
-//            AddAllSliders();
+        //            AddAllSliders();
 
-//            StartCoroutine(RefreshSliders());
+        //            StartCoroutine(RefreshSliders());
 
-//        }
+        //        }
 
 
         //private void OnKeymapperOpen()
@@ -228,8 +228,6 @@ namespace BlockEnhancementMod
             mKey = new MKey("mKey", "key", KeyCode.T);
             if (bb.isBuildBlock)
             {
-               
-                
                 bb.AddKey(mKey);
             }
         }

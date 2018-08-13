@@ -16,7 +16,7 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            HardnessMenu = AddMenu("Hardness", Hardness, new List<string>() { "低碳钢", "中碳钢", "高碳钢" }, false);
+            HardnessMenu = AddMenu(LanguageManager.hardness, Hardness, MetalHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 

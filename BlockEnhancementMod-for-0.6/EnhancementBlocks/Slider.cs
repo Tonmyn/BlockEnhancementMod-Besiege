@@ -20,11 +20,11 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            HardnessMenu = AddMenu("Hardness", Hardness, WoodHardness, false);
+            HardnessMenu = AddMenu(LanguageManager.hardness, Hardness, WoodHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
-            LimitSlider = AddSlider("限制", "Limit", Limit, 0f, 2f, false);
+            LimitSlider = AddSlider(LanguageManager.limit, "Limit", Limit, 0f, 2f, false);
             LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Limit = LimitSlider.Value; };
 
