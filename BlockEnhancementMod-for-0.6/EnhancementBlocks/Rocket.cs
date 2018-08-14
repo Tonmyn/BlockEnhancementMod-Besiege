@@ -22,14 +22,14 @@ namespace BlockEnhancementMod.Blocks
 
         //No smoke mode related
         MToggle NoSmokeToggle;
-        public bool noSmoke = false;
-        public bool smokeStopped = false;
+        private bool noSmoke = false;
+        private bool smokeStopped = false;
 
         //Firing record related setting
-        public bool hasFired = false;
-        public bool targetHit = false;
-        public float fireTime = 0f;
-        public bool fireTimeRecorded = false;
+        private bool targetHit = false;
+        private float randomDelay = 0;
+        private float fireTime = 0f;
+        private bool fireTimeRecorded = false;
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
@@ -37,21 +37,20 @@ namespace BlockEnhancementMod.Blocks
         public float guidedRocketStabilityLevel = 2f;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
-        public HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private readonly float maxTorque = no8Workshop ? 10000 : 100;
+        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
-        MKey ActiveGuideRocketKey;
-        public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 65;
-        public float searchRadius = 0;
-        public float safetyRadius = 15f;
-        public float searchSurroundingBlockRadius = 5f;
-        public bool activeGuide = true;
-        public bool targetAquired = false;
-        public bool searchStarted = false;
-        public bool restartSearch = false;
+        MKey SwitchGuideModeKey;
+        public List<KeyCode> switchGuideModeKey = no8Workshop ? new List<KeyCode> { KeyCode.RightShift } : new List<KeyCode> { KeyCode.None };
+        public float searchAngle = no8Workshop ? 65 : 10;
+        private readonly float safetyRadius = 15f;
+        private readonly float maxSearchAngle = no8Workshop ? 90 : 15;
+        private bool activeGuide = true;
+        private bool targetAquired = false;
+        private bool searchStarted = false;
 
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
@@ -63,33 +62,33 @@ namespace BlockEnhancementMod.Blocks
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
-        public bool canTrigger = false;
         public float guideDelay = 0f;
+        private bool canTrigger = false;
 
         //High power explosion related setting
         MToggle HighExploToggle;
         public bool highExploActivated = false;
-        public bool bombHasExploded = false;
-        public int levelBombCategory = 4;
-        public int levelBombID = 5001;
-        public float bombExplosiveCharge = 0;
-        public float explosiveCharge = 0f;
-        public float radius = 7f;
-        public float power = 3600f;
-        public float torquePower = 100000f;
-        public float upPower = 0.25f;
+        private bool bombHasExploded = false;
+        private readonly int levelBombCategory = 4;
+        private readonly int levelBombID = 5001;
+        private float bombExplosiveCharge = 0;
+        private float explosiveCharge = 0f;
+        private readonly float radius = 7f;
+        private readonly float power = 3600f;
+        private readonly float torquePower = 100000f;
+        private readonly float upPower = 0.25f;
 
         protected override void SafeAwake()
         {
             //Key mapper setup
-            GuidedRocketToggle = AddToggle("追踪目标", "TrackingRocket", guidedRocketActivated);
+            GuidedRocketToggle = AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
-                ActiveGuideRocketKey.DisplayInMapper =
+                SwitchGuideModeKey.DisplayInMapper =
                 ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
                 GuideDelaySlider.DisplayInMapper =
                 GuidedRocketStabilitySlider.DisplayInMapper =
@@ -99,7 +98,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
 
-            ProximityFuzeToggle = AddToggle("近炸", "ProximityFuze", proximityFuzeActivated);
+            ProximityFuzeToggle = AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
                 proximityFuzeActivated =
@@ -110,7 +109,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
 
-            NoSmokeToggle = AddToggle("无烟", "NoSmoke", noSmoke);
+            NoSmokeToggle = AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
             NoSmokeToggle.Toggled += (bool value) =>
             {
                 noSmoke = value;
@@ -118,7 +117,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { noSmoke = NoSmokeToggle.IsActive; };
 
-            HighExploToggle = AddToggle("高爆", "HighExplo", highExploActivated);
+            HighExploToggle = AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
             {
                 highExploActivated = value;
@@ -126,35 +125,35 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
+            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle, false);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
-            ProximityFuzeRangeSlider = AddSlider("近炸距离", "closeRange", proximityRange, 0, 10, false);
+            ProximityFuzeRangeSlider = AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10, false);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
-            ProximityFuzeAngleSlider = AddSlider("近炸角度", "closeAngle", proximityAngle, 0, 90, false);
+            ProximityFuzeAngleSlider = AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90, false);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider("火箭扭转力度", "torqueOnRocket", torque, 0, 100, true);
+            GuidedRocketTorqueSlider = AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100, true);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
-            GuidedRocketStabilitySlider = AddSlider("火箭稳定性", "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
+            GuidedRocketStabilitySlider = AddSlider(LanguageManager.rocketStability, "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
             GuidedRocketStabilitySlider.ValueChanged += (float value) => { guidedRocketStabilityLevel = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityLevel = GuidedRocketStabilitySlider.Value; };
 
-            GuideDelaySlider = AddSlider("延迟追踪", "guideDelay", guideDelay, 0, 100, false);
+            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2, false);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
-            LockTargetKey = AddKey("锁定目标", "lockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", lockKeys);
             LockTargetKey.InvokeKeysChanged();
 
-            ActiveGuideRocketKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
-            ActiveGuideRocketKey.InvokeKeysChanged();
+            SwitchGuideModeKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", switchGuideModeKey);
+            SwitchGuideModeKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
@@ -171,7 +170,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
-            ActiveGuideRocketKey.DisplayInMapper = value && guidedRocketActivated;
+            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
@@ -182,16 +181,25 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
         }
 
+        protected override void OnBuildingUpdate()
+        {
+            if (!no8Workshop && SwitchGuideModeKey.DisplayInMapper)
+            {
+                SwitchGuideModeKey.ignored = true;
+                SwitchGuideModeKey.DisplayInMapper = false;
+            }
+        }
+
         protected override void OnSimulateStart()
         {
             smokeStopped = false;
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                searchRadius = Camera.main.farClipPlane;
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
                 activeGuide = true;
                 target = null;
+                searchAngle = Mathf.Clamp(searchAngle, 0, maxSearchAngle);
                 explodedTarget.Clear();
                 StopAllCoroutines();
 
@@ -211,7 +219,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 //When toggle auto aim key is released, change the auto aim status
-                if (ActiveGuideRocketKey.IsReleased)
+                if (SwitchGuideModeKey.IsReleased)
                 {
                     activeGuide = !activeGuide;
                     if (!activeGuide)
@@ -236,7 +244,7 @@ namespace BlockEnhancementMod.Blocks
                             RocketRadarSearch();
                         }
                     }
-                    else
+                    else if (no8Workshop)
                     {
                         if (StatMaster.isMP && StatMaster.isClient)
                         {
@@ -309,6 +317,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fireTimeRecorded = true;
                         fireTime = Time.time;
+                        randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                     }
 
                     //If rocket is burning, explode it
@@ -318,7 +327,7 @@ namespace BlockEnhancementMod.Blocks
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay && !canTrigger)
+                    if (Time.time - fireTime >= guideDelay + randomDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
@@ -400,7 +409,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                     catch { }
                     //Add position prediction
-                    Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime * 10 - BB.CenterOfBounds;
+                    Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
                     float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                     bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                     Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -410,14 +419,14 @@ namespace BlockEnhancementMod.Blocks
                     //else, apply maximum torque to the rocket
                     if (forward && angleDiff <= searchAngle)
                     {
-                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * ((-Mathf.Pow(angleDiff / 90f - 1f, 2) + 1)) * rotatingAxis); }
+                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngle - 1f, 2) + 1)) * rotatingAxis); }
                         catch { }
                     }
                     else
                     {
                         if (!activeGuide)
                         {
-                            try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * 10000 * rotatingAxis); }
+                            try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
                             catch { }
                         }
                         else
@@ -590,19 +599,13 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var player in Playerlist.Players)
                 {
-                    ConsoleController.ShowMessage("Adding network players");
                     if (!player.isSpectator)
                     {
-                        if (player.machine.isSimulating && !player.machine.LocalSim)
+                        if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != rocket.ParentMachine.PlayerID)
                         {
-                            foreach (var cluster in player.machine.simClusters)
+                            if (rocket.Team == MPTeam.None || rocket.Team != player.team)
                             {
-                                ConsoleController.ShowMessage("Adding clusters");
-                                if ((player.machine.PlayerID != rocket.ParentMachine.PlayerID && rocket.Team == MPTeam.None)
-                                    || (rocket.Team != MPTeam.None && rocket.Team != player.team))
-                                {
-                                    simClusters.Add(cluster);
-                                }
+                                simClusters.UnionWith(player.machine.simClusters);
                             }
                         }
                     }
@@ -612,15 +615,12 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var cluster in Machine.Active().simClusters)
                 {
-                    ConsoleController.ShowMessage("Adding local clusters");
                     if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
                     {
                         simClusters.Add(cluster);
                     }
                 }
             }
-
-            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit && simClusters.Count > 0)
@@ -639,11 +639,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         foreach (var block in cluster.Blocks)
                         {
+                            skipCluster = ShouldSkipCluster(block);
                             if (skipCluster)
                             {
                                 break;
                             }
-                            skipCluster = ShouldSkipCluster(block);
                         }
                     }
                     if (skipCluster)
@@ -715,11 +715,14 @@ namespace BlockEnhancementMod.Blocks
 
         private void AddResistancePerpendicularToRocketVelocity()
         {
-            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
-            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            if (no8Workshop)
+            {
+                Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+                Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
+                float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+                float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+                rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            }
         }
 
         private int CalculateClusterValue(BlockBehaviour block, int clusterValue)

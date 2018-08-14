@@ -14,19 +14,18 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle CameraLookAtToggle;
         public bool cameraLookAtToggled = false;
-        public int selfIndex;
+        private int selfIndex;
         public FixedCameraBlock fixedCamera;
-        //public FixedCameraBlock fixedCameraSim;
-        public Transform smoothLook;
+        private Transform smoothLook;
         public FixedCameraController fixedCameraController;
-        public Quaternion defaultLocalRotation;
+        private Quaternion defaultLocalRotation;
         public float smooth;
         public float smoothLerp;
 
         //Track target setting
         MKey LockTargetKey;
         public Transform target;
-        public HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> colliders = new List<Collider>();
 
@@ -40,29 +39,22 @@ namespace BlockEnhancementMod.Blocks
         public bool recordTarget = false;
 
         //Auto lookat related setting
-        //MSlider AutoLookAtSearchAngleSlider;
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
-        public bool firstPersonMode = false;
+        private bool firstPersonMode = false;
         public float firstPersonSmooth = 0.25f;
-        public float timeOfDestruction = 0f;
-        public float targetSwitchDelay = 1.25f;
+        private float timeOfDestruction = 0f;
+        private readonly float targetSwitchDelay = 1.25f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 90;
-        public float searchRadius = 0;
-        public float safetyRadius = 25f;
-        public float searchSurroundingBlockRadius = 5f;
-        public bool autoSearch = true;
-        public bool targetAquired = false;
-        public bool searchStarted = false;
-        public bool restartSearch = false;
-        //private Collider[] hitsIn;
-        //private Collider[] hitsOut;
-        //private Collider[] hitList;
+        private float searchAngle = 90;
+        private readonly float safetyRadius = 25f;
+        private bool autoSearch = true;
+        private bool targetAquired = false;
+        private bool searchStarted = false;
 
         protected override void SafeAwake()
         {
-            CameraLookAtToggle = AddToggle("追踪摄像机", "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle = AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
@@ -71,13 +63,12 @@ namespace BlockEnhancementMod.Blocks
                 PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
-                //AutoLookAtSearchAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            RecordTargetToggle = AddToggle("记录目标", "RecordTarget", recordTarget);
+            RecordTargetToggle = AddToggle(LanguageManager.recordTarget, "RecordTarget", recordTarget);
             RecordTargetToggle.Toggled += (bool value) =>
             {
                 recordTarget = value;
@@ -85,19 +76,15 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
-            //AutoLookAtSearchAngleSlider = AddSlider("搜索角度", "searchAngle", searchAngle, 0, 90, false);
-            //AutoLookAtSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = AutoLookAtSearchAngleSlider.Value; };
-
-            NonCustomModeSmoothSlider = AddSlider("第一人称平滑", "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
+            NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
-            LockTargetKey = AddKey("锁定目标", "LockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "LockTarget", lockKeys);
 
-            PauseTrackingKey = AddKey("暂停/恢复追踪", "ResetView", pauseKeys);
+            PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", pauseKeys);
 
-            AutoLookAtKey = AddKey("主动/手动搜索切换", "ActiveSearchKey", activeGuideKeys);
+            AutoLookAtKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", activeGuideKeys);
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
@@ -121,7 +108,6 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.DisplayInMapper = value;
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            //AutoLookAtSearchAngleSlider.DisplayInMapper = value && cameraLookAtToggled;
             RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
@@ -183,12 +169,10 @@ namespace BlockEnhancementMod.Blocks
                 // Initialise
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
-                searchRadius = Camera.main.farClipPlane;
                 float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
-                //hitsIn = Physics.OverlapSphere(smoothLook.position, safetyRadius, Game.BlockEntityLayerMask);
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
@@ -492,9 +476,7 @@ namespace BlockEnhancementMod.Blocks
                     angleDiffMin = angleDiffCurrent;
                 }
             }
-#if DEBUG
-            Debug.Log("Closest index is: " + closestIndex);
-#endif
+
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
@@ -507,19 +489,13 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var player in Playerlist.Players)
                 {
-                    ConsoleController.ShowMessage("Adding network players");
                     if (!player.isSpectator)
                     {
-                        if (player.machine.isSimulating && !player.machine.LocalSim)
+                        if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID)
                         {
-                            foreach (var cluster in player.machine.simClusters)
+                            if (fixedCamera.Team == MPTeam.None || fixedCamera.Team != player.team)
                             {
-                                ConsoleController.ShowMessage("Adding clusters");
-                                if ((player.machine.PlayerID != fixedCamera.ParentMachine.PlayerID && fixedCamera.Team == MPTeam.None)
-                                    || (fixedCamera.Team != MPTeam.None && fixedCamera.Team != player.team))
-                                {
-                                    simClusters.Add(cluster);
-                                }
+                                simClusters.UnionWith(player.machine.simClusters);
                             }
                         }
                     }
@@ -529,15 +505,12 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var cluster in Machine.Active().simClusters)
                 {
-                    ConsoleController.ShowMessage("Adding local clusters");
                     if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
                     {
                         simClusters.Add(cluster);
                     }
                 }
             }
-
-            ConsoleController.ShowMessage("Simcluster count: " + simClusters.Count);
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)
@@ -556,11 +529,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         foreach (var block in cluster.Blocks)
                         {
+                            skipCluster = ShouldSkipCluster(block);
                             if (skipCluster)
                             {
                                 break;
                             }
-                            skipCluster = ShouldSkipCluster(block);
                         }
                     }
                     if (skipCluster)

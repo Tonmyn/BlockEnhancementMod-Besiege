@@ -15,7 +15,7 @@ namespace BlockEnhancementMod.Blocks
 
         MKey ShrinkKey;
 
-        MToggle PressureToggle;
+        MToggle HydraulicToggle;
 
         MSlider FeedSlider;
 
@@ -25,13 +25,13 @@ namespace BlockEnhancementMod.Blocks
 
         public int Hardness = 1;
 
-        public bool Pressure = false;
+        public bool Hydraulic = false;
 
         public float Feed = 0.5f;
 
         public float ExtendLimit = 1f;
 
-        public float ShrinkLimit = 1f;
+        public float RetractLimit = 1f;
 
         public List<KeyCode> ExtendKeyCodes = new List<KeyCode> { KeyCode.E };
 
@@ -40,33 +40,33 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            HardnessMenu = AddMenu("Hardness", Hardness, new List<string> { "低碳钢", "中碳钢", "高碳钢" }, false);
+            HardnessMenu = AddMenu(LanguageManager.hardness, Hardness, MetalHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
-            ExtendKey = AddKey("伸出", "Extend", ExtendKeyCodes);
-            ShrinkKey = AddKey("收回", "Shrink", ShrinkKeyCodes);           
+            ExtendKey = AddKey(LanguageManager.extend, "Extend", ExtendKeyCodes);
+            ShrinkKey = AddKey(LanguageManager.retract, "Shrink", ShrinkKeyCodes);           
 
-            PressureToggle = AddToggle("液压模式", "Pressure", Pressure);
-            PressureToggle.Toggled += (bool value) => { Pressure = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { Pressure = PressureToggle.IsActive; };
+            HydraulicToggle = AddToggle(LanguageManager.hydraulicMode, "Pressure", Hydraulic);
+            HydraulicToggle.Toggled += (bool value) => { Hydraulic = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Hydraulic = HydraulicToggle.IsActive; };
 
-            FeedSlider = AddSlider("进给速度", "feed", Feed, 0f, 2f,false);
+            FeedSlider = AddSlider(LanguageManager.feedSpeed, "feed", Feed, 0f, 2f,false);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Feed = FeedSlider.Value; };
 
-            ExtendLimitSlider = AddSlider("伸出限制", "ExtendLimit", ExtendLimit, 0f, 3f, false);
+            ExtendLimitSlider = AddSlider(LanguageManager.extendLimit, "ExtendLimit", ExtendLimit, 0f, 3f, false);
             ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { ExtendLimit = ExtendLimitSlider.Value; };
 
-            ShrinkLimitSlider = AddSlider("收缩限制", "ShrinkLimit", ShrinkLimit, 0f, 3f, false);
-            ShrinkLimitSlider.ValueChanged += (float value) => { ShrinkLimit = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { ShrinkLimit = ShrinkLimitSlider.Value; };
+            ShrinkLimitSlider = AddSlider(LanguageManager.retractLimit, "ShrinkLimit", RetractLimit, 0f, 3f, false);
+            ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { RetractLimit = ShrinkLimitSlider.Value; };
 
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("悬挂添加进阶属性");
+            //ConsoleController.ShowMessage("悬挂添加进阶属性");
 #endif
 
         }
@@ -75,10 +75,10 @@ namespace BlockEnhancementMod.Blocks
         {
             base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
-            ExtendKey.DisplayInMapper = value && Pressure;
-            ShrinkKey.DisplayInMapper = value && Pressure;
-            PressureToggle.DisplayInMapper = value;
-            FeedSlider.DisplayInMapper = value && Pressure;
+            ExtendKey.DisplayInMapper = value && Hydraulic;
+            ShrinkKey.DisplayInMapper = value && Hydraulic;
+            HydraulicToggle.DisplayInMapper = value;
+            FeedSlider.DisplayInMapper = value && Hydraulic;
             ExtendLimitSlider.DisplayInMapper = value;
             ShrinkLimitSlider.DisplayInMapper = value;
         }
@@ -95,7 +95,7 @@ namespace BlockEnhancementMod.Blocks
             RB = GetComponent<Rigidbody>();
 
             SoftJointLimit limit = CJ.linearLimit;
-            limit.limit = Mathf.Max(ExtendLimit, ShrinkLimit);
+            limit.limit = Mathf.Max(ExtendLimit, RetractLimit);
             CJ.linearLimit = limit;
 
             SwitchMatalHardness(Hardness, CJ);
@@ -106,7 +106,7 @@ namespace BlockEnhancementMod.Blocks
         {
             base.OnSimulateFixedUpdate();
 
-            if (Pressure)
+            if (Hydraulic)
             {
                 if (ExtendKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
@@ -126,13 +126,13 @@ namespace BlockEnhancementMod.Blocks
                 if (ShrinkKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
                     RB.WakeUp();
-                    if (CJ.targetPosition.x + Feed * 0.005f < ShrinkLimit)
+                    if (CJ.targetPosition.x + Feed * 0.005f < RetractLimit)
                     {
                         CJ.targetPosition += new Vector3(Feed * 0.005f, 0, 0);
                     }
                     else
                     {
-                        CJ.targetPosition = new Vector3(ShrinkLimit, 0, 0);
+                        CJ.targetPosition = new Vector3(RetractLimit, 0, 0);
                     }
                 }
             }

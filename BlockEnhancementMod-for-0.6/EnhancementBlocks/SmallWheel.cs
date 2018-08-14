@@ -18,12 +18,12 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            SpeedSlider = AddSlider("旋转速度", "Speed", Speed, 0f, 5f, false);
+            SpeedSlider = AddSlider(LanguageManager.rotatingSpeed, "Speed", Speed, 0f, 5f, false);
             SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Speed = SpeedSlider.Value; };
 
 #if DEBUG
-            ConsoleController.ShowMessage("小轮子添加进阶属性");
+            //ConsoleController.ShowMessage("小轮子添加进阶属性");
 #endif
         }
 
