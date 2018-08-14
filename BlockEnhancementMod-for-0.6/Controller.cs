@@ -57,7 +57,9 @@ namespace BlockEnhancementMod
         /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
         {
-            BesiegeConsoleController.ShowMessage("on block init");
+#if DEBUG
+            //ConsoleController.ShowMessage("on block init");
+#endif
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
@@ -75,7 +77,7 @@ namespace BlockEnhancementMod
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+            //ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
 
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
@@ -84,7 +86,7 @@ namespace BlockEnhancementMod
 
                 if (block.GetComponent(EB) == null)
                 {
-                    block.gameObject.AddComponent(EB);                  
+                    block.gameObject.AddComponent(EB);
                 }
             }
         }
@@ -130,40 +132,40 @@ namespace BlockEnhancementMod
             }
 
 #if DEBUG
-            ConsoleController.ShowMessage("Refresh");
+            //ConsoleController.ShowMessage("Refresh");
 #endif
         }
 
 
-//        /// <summary>储存存档信息</summary>
-//        private void SaveConfiguration(PlayerMachineInfo pmi)
-//        {
+        //        /// <summary>储存存档信息</summary>
+        //        private void SaveConfiguration(PlayerMachineInfo pmi)
+        //        {
 
-//#if DEBUG
-//            ConsoleController.ShowMessage("储存存档");
-//#endif
-//            Configuration.Save();
+        //#if DEBUG
+        //            ConsoleController.ShowMessage("储存存档");
+        //#endif
+        //            Configuration.Save();
 
-//            OnSave(pmi);
-//        }
+        //            OnSave(pmi);
+        //        }
 
-//        /// <summary>加载存档信息</summary>
-//        private void LoadConfiguration(PlayerMachineInfo pmi)
-//        {
+        //        /// <summary>加载存档信息</summary>
+        //        private void LoadConfiguration(PlayerMachineInfo pmi)
+        //        {
 
-//#if DEBUG
-//            ConsoleController.ShowMessage("载入存档");
-//#endif
+        //#if DEBUG
+        //            ConsoleController.ShowMessage("载入存档");
+        //#endif
 
-//            PMI = pmi;
+        //            PMI = pmi;
 
-//            OnLoad(pmi);
+        //            OnLoad(pmi);
 
-//            AddAllSliders();
+        //            AddAllSliders();
 
-//            StartCoroutine(RefreshSliders());
+        //            StartCoroutine(RefreshSliders());
 
-//        }
+        //        }
 
 
         //private void OnKeymapperOpen()
@@ -228,8 +230,6 @@ namespace BlockEnhancementMod
             mKey = new MKey("mKey", "key", KeyCode.T);
             if (bb.isBuildBlock)
             {
-               
-                
                 bb.AddKey(mKey);
             }
         }
@@ -238,7 +238,7 @@ namespace BlockEnhancementMod
         {
             if (mKey.IsPressed)
             {
-                BesiegeConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
+                //ConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
             }
         }
     }

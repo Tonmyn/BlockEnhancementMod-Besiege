@@ -18,6 +18,8 @@ namespace BlockEnhancementMod
 
     public class EnhancementBlock : MonoBehaviour
     {
+        public static readonly bool no8Workshop = ModIO.ExistsFile("Resources\\no8workshop.txt");
+
         /// <summary>
         /// 模块行为
         /// </summary>
@@ -41,14 +43,14 @@ namespace BlockEnhancementMod
         public bool EnhancementEnable = false;
 
         private bool isFirstFrame = true;
-      
-        internal static List<string> MetalHardness = new List<string>() { "低碳钢", "中碳钢", "高碳钢" };
 
-        internal static List<string> WoodHardness = new List<string>() { "朽木", "桦木", "梨木", "檀木" };      
+        internal static List<string> MetalHardness = new List<string>() { LanguageManager.lowCarbonSteel, LanguageManager.midCarbonSteel, LanguageManager.highCarbonSteel };
+
+        internal static List<string> WoodHardness = new List<string>() { LanguageManager.softWood, LanguageManager.midSoftWood, LanguageManager.hardWood, LanguageManager.veryHardWood };
 
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
         public event BlockDataLoadHandle BlockDataLoadEvent;
-       
+
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public event BlockDataSaveHandle BlockDataSaveEvent;
 
@@ -73,7 +75,7 @@ namespace BlockEnhancementMod
                 return;
             }
 
-            Enhancement = AddToggle("进阶属性", "Enhancement", EnhancementEnable);
+            Enhancement = AddToggle(LanguageManager.enhancement, "Enhancement", EnhancementEnable);
 
             Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
 
@@ -97,7 +99,7 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     OnSimulateStart();
 #if DEBUG
-                    ConsoleController.ShowMessage("on simulation start");
+                    //ConsoleController.ShowMessage("on simulation start");
 #endif
                 }
                 OnSimulateUpdate();
@@ -128,7 +130,7 @@ namespace BlockEnhancementMod
         private void SaveConfiguration(PlayerMachineInfo pmi)
         {
 #if DEBUG
-            BesiegeConsoleController.ShowMessage("On save en");
+            ConsoleController.ShowMessage("On save en");
 #endif
 
             if (pmi == null)
@@ -177,7 +179,7 @@ namespace BlockEnhancementMod
                     XDataHolder bd = blockinfo.Data;
 
                     try { BlockDataLoadEvent(bd); } catch { };
-                    
+
                     LoadConfiguration(bd);
 
                     foreach (MapperType item in myMapperTypes)
@@ -230,7 +232,7 @@ namespace BlockEnhancementMod
         /// 在模拟模式下的Update
         /// </summary>
         protected virtual void OnSimulateUpdate() { }
-        
+
         /// <summary>
         /// 在模拟模式下的FixedUpdate
         /// </summary>

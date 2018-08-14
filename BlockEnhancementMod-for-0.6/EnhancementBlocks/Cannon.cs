@@ -9,7 +9,9 @@ namespace BlockEnhancementMod.Blocks
 {
     public class CannonScript : EnhancementBlock
     {
-
+        /// <summary>
+        /// mod设置
+        /// </summary>
         public MSlider StrengthSlider;
 
         public MSlider IntervalSlider;
@@ -18,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
 
         public MSlider KnockBackSpeedSlider;
 
-        public MToggle BulletToggle;
+        public MToggle CustomBulletToggle;
 
         public MToggle InheritSizeToggle;
 
@@ -40,9 +42,15 @@ namespace BlockEnhancementMod.Blocks
 
         public float Interval = 0.25f;
 
+        private readonly float intervalMin = no8Workshop ? 0f : 0.1f;
+
         public float RandomDelay = 0.2f;
 
-        public float KnockBackSpeed = 1f;
+        public float KnockBackSpeedZeroOne = 1f;
+
+        private readonly float knockBackSpeedZeroOneMin = no8Workshop ? 0f : 0.25f;
+
+        private readonly float knockBackSpeedZeroOneMax = 1f;
 
         public float originalKnockBackSpeed = 0;
 
@@ -59,82 +67,6 @@ namespace BlockEnhancementMod.Blocks
         public float TrailLength = 1f;
 
         public Color TrailColor = Color.yellow;
-
-
-
-        protected override void SafeAwake()
-        {
-
-            IntervalSlider = AddSlider("发射间隔", "Interval", Interval, 0f, 0.5f, false);
-            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
-
-            RandomDelaySlider = AddSlider("随机延迟", "RandomDelay", RandomDelay, 0f, 0.5f, false);
-            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
-
-            KnockBackSpeedSlider = AddSlider("后坐力", "KnockBackSpeed", KnockBackSpeed, 0.2f, 1f, false);
-            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeed = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeed = KnockBackSpeedSlider.Value; };
-
-            BulletToggle = AddToggle("自定子弹", "Bullet", cBullet);
-            BulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = BulletToggle.IsActive; };
-
-            InheritSizeToggle = AddToggle("尺寸继承", "InheritSize", InheritSize);
-            InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { InheritSize = InheritSizeToggle.IsActive; };
-
-            BulletMassSlider = AddSlider("子弹质量", "BulletMass", BulletMass, 0.1f, 2f, false);
-            BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletMass = BulletMassSlider.Value; };
-
-            BulletDragSlider = AddSlider("子弹阻力", "BulletDrag", BulletDrag, 0.01f, 0.5f, false);
-            BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletDrag = BulletDragSlider.Value; };
-
-            TrailToggle = AddToggle("显示尾迹", "Trail", Trail);
-            TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { Trail = TrailToggle.IsActive; };
-
-            TrailLengthSlider = AddSlider("尾迹长度", "trail length", TrailLength, 0.2f, 2f, false);
-            TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailLength = TrailLengthSlider.Value; };
-
-            TrailColorSlider = AddColorSlider("尾迹颜色", "trail color", TrailColor, false);
-            TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
-
-            // Initialise some components and default values
-            AS = BB.GetComponent<AudioSource>();
-            CB = BB.GetComponent<CanonBlock>();
-            originalKnockBackSpeed = CB.knockbackSpeed;
-
-
-
-#if DEBUG
-            //ConsoleController.ShowMessage("加农炮添加进阶属性");
-#endif
-
-        }
-
-        public override void DisplayInMapper(bool value)
-        {
-
-            IntervalSlider.DisplayInMapper = value;
-            RandomDelaySlider.DisplayInMapper = value;
-            KnockBackSpeedSlider.DisplayInMapper = value;
-            BulletToggle.DisplayInMapper = value && !StatMaster.isMP;
-            InheritSizeToggle.DisplayInMapper = value && cBullet;
-            BulletMassSlider.DisplayInMapper = value && cBullet;
-            BulletDragSlider.DisplayInMapper = value && cBullet;
-
-            TrailColorSlider.DisplayInMapper = Trail;
-            TrailLengthSlider.DisplayInMapper = Trail;
-
-        }
-
-
 
         /// <summary>
         /// 子弹刚体组件
@@ -155,8 +87,100 @@ namespace BlockEnhancementMod.Blocks
 
         private GameObject customBulletObject;
 
+        protected override void SafeAwake()
+        {
+
+            IntervalSlider = AddSlider(LanguageManager.fireInterval, "Interval", Interval, intervalMin, 0.5f, false);
+            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
+
+            RandomDelaySlider = AddSlider(LanguageManager.randomDelay, "RandomDelay", RandomDelay, 0f, 0.5f, false);
+            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
+
+            KnockBackSpeedSlider = AddSlider(LanguageManager.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax, false);
+            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeedZeroOne = KnockBackSpeedSlider.Value; };
+
+            CustomBulletToggle = AddToggle(LanguageManager.customBullet, "Bullet", cBullet);
+            CustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = CustomBulletToggle.IsActive; };
+
+            InheritSizeToggle = AddToggle(LanguageManager.inheritSize, "InheritSize", InheritSize);
+            InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { InheritSize = InheritSizeToggle.IsActive; };
+
+            BulletMassSlider = AddSlider(LanguageManager.bulletMass, "BulletMass", BulletMass, 0.1f, 2f, false);
+            BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletMass = BulletMassSlider.Value; };
+
+            BulletDragSlider = AddSlider(LanguageManager.bulletDrag, "BulletDrag", BulletDrag, 0.01f, 0.5f, false);
+            BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { BulletDrag = BulletDragSlider.Value; };
+
+            TrailToggle = AddToggle(LanguageManager.trail, "Trail", Trail);
+            TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { Trail = TrailToggle.IsActive; };
+
+            TrailLengthSlider = AddSlider(LanguageManager.trailLength, "trail length", TrailLength, 0.2f, 2f, false);
+            TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailLength = TrailLengthSlider.Value; };
+
+            TrailColorSlider = AddColorSlider(LanguageManager.trailColor, "trail color", TrailColor, false);
+            TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
+
+            // Initialise some components and default values
+            AS = BB.GetComponent<AudioSource>();
+            CB = BB.GetComponent<CanonBlock>();
+            originalKnockBackSpeed = CB.knockbackSpeed;
+
+#if DEBUG
+            //ConsoleController.ShowMessage("加农炮添加进阶属性");
+#endif
+
+        }
+
+        public override void DisplayInMapper(bool value)
+        {
+            IntervalSlider.DisplayInMapper = value;
+            RandomDelaySlider.DisplayInMapper = value;
+            KnockBackSpeedSlider.DisplayInMapper = value;
+            CustomBulletToggle.DisplayInMapper = value && !StatMaster.isMP;
+            InheritSizeToggle.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+            BulletMassSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+            BulletDragSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+
+            TrailColorSlider.DisplayInMapper = Trail && !StatMaster.isMP;
+            TrailLengthSlider.DisplayInMapper = Trail && !StatMaster.isMP;
+
+        }
+
+        protected override void OnBuildingUpdate()
+        {
+            if (StatMaster.isMP)
+            {
+                if (TrailToggle.DisplayInMapper)
+                {
+                    TrailToggle.DisplayInMapper = false;
+                }
+            }
+            if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            {
+                KnockBackSpeedSlider.DisplayInMapper = false;
+            }
+            if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            {
+                KnockBackSpeedSlider.DisplayInMapper = true;
+            }
+        }
+
         protected override void OnSimulateStart()
         {
+            if (StatMaster.isMP)
+            {
+                cBullet = Trail = false;
+            }
 
             Strength = CB.StrengthSlider.Value;
 
@@ -164,15 +188,14 @@ namespace BlockEnhancementMod.Blocks
             //BR = BulletObject.GetComponent<Rigidbody>();
 
             //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-            knockBackSpeed = KnockBackSpeed * originalKnockBackSpeed;
+            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
 
             CB.enabled = !cBullet;
-            timer = Interval;
+            timer = Interval < intervalMin ? intervalMin : Interval;
 
             //独立自定子弹
             if (cBullet)
             {
-
                 customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                 customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
                 customBulletObject.SetActive(false);
@@ -187,8 +210,11 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                CB.randomDelay = RandomDelay;
-                CB.knockbackSpeed = knockBackSpeed;
+                CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
+                if (Strength <= 20 || no8Workshop)
+                {
+                    CB.knockbackSpeed = knockBackSpeed;
+                }
             }
 
             GameObject bullet = cBullet ? customBulletObject : BulletObject;
@@ -224,23 +250,14 @@ namespace BlockEnhancementMod.Blocks
                     myTrailRenderer.enabled = Trail;
                 }
             }
+        }
 
-            //全局自定子弹
-
-            //CB.randomDelay = RandomDelay;
-            //CB.knockbackSpeed = knockBackSpeed;
-
-            //if (cBullet)
-            //{
-
-            //    BR.mass = BulletMass;
-            //    BR.drag = BR.angularDrag = Drag;
-
-            //    BulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-            //}
-
-
-
+        protected override void OnSimulateFixedUpdate()
+        {
+            if (CB.ShootKey.IsDown && cBullet)
+            {
+                CB.StopAllCoroutines();
+            }
         }
 
         protected override void OnSimulateUpdate()
@@ -263,27 +280,17 @@ namespace BlockEnhancementMod.Blocks
                 {
                     timer += Time.deltaTime;
                 }
-
             }
             else if (CB.ShootKey.IsReleased)
             {
                 timer = Interval;
             }
-
-            if (cBullet)
-            {
-                //Tools.PrivateTools.SetPrivateField(CB, "isShooting", true);
-            }
-
         }
 
         private IEnumerator Shoot()
         {
-
-
             if (BulletNumber > 0)
             {
-
                 float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
 
                 yield return new WaitForSeconds(randomDelay);
@@ -291,16 +298,18 @@ namespace BlockEnhancementMod.Blocks
                 var bullet = (GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
 
                 bullet.SetActive(true);
-                //bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength / Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z));
+                try { bullet.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; }
+                catch { }
                 bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
 
                 gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z) * transform.up);
 
-
-                CB.particles[0].Play();
+                foreach (var particle in CB.particles)
+                {
+                    particle.Play();
+                }
                 AS.Play();
-
-
+                CB.fuseParticles.Stop();
             }
 
             if (!StatMaster.GodTools.InfiniteAmmoMode)

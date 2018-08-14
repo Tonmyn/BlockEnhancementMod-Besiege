@@ -16,13 +16,13 @@ namespace BlockEnhancementMod.Blocks
         protected override void SafeAwake()
         {
 
-            DragSlider = AddSlider("阻力", "Drag", Drag, 0f, 3f, false);
+            DragSlider = AddSlider(LanguageManager.drag, "Drag", Drag, 0f, 3f, false);
             DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { Drag = DragSlider.Value; };
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("皮筋添加进阶属性");
+            //ConsoleController.ShowMessage("皮筋添加进阶属性");
 #endif
         }
 
