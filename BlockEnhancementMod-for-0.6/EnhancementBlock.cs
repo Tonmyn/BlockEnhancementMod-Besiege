@@ -9,16 +9,9 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-
-    public delegate void BlockDataLoadHandle(XDataHolder BlockData);
-
-    public delegate void BlockDataSaveHandle(XDataHolder BlockData);
-
-    public delegate void BlockPropertiseChangedHandler();
-
     public class EnhancementBlock : MonoBehaviour
     {
-        public static readonly bool no8Workshop = ModIO.ExistsFile("Resources\\no8workshop.txt");
+        public static bool no8Workshop { get; internal set; } = false;
 
         /// <summary>
         /// 模块行为
@@ -49,12 +42,12 @@ namespace BlockEnhancementMod
         internal static List<string> WoodHardness = new List<string>() { LanguageManager.softWood, LanguageManager.midSoftWood, LanguageManager.hardWood, LanguageManager.veryHardWood };
 
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
-        public event BlockDataLoadHandle BlockDataLoadEvent;
+        public Action<XDataHolder> BlockDataLoadEvent;
 
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
-        public event BlockDataSaveHandle BlockDataSaveEvent;
+        public Action<XDataHolder> BlockDataSaveEvent;
 
-        public event BlockPropertiseChangedHandler BlockPropertiseChangedEvent;
+        public Action BlockPropertiseChangedEvent;
 
         private void Awake()
         {

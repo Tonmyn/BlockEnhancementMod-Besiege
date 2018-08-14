@@ -10,17 +10,11 @@ using UnityEngine;
 namespace BlockEnhancementMod
 {
 
-    //public delegate PlayerMachineInfo OnLoad();
-
-    //public delegate PlayerMachineInfo OnSave();
-
     class Controller : SingleInstance<Controller>
     {
         public override string Name { get; } = "Controller";
 
         /// <summary>存档信息</summary>
-        //internal PlayerMachineInfo MI;
-
         internal PlayerMachineInfo PMI;
 
         public event Action<PlayerMachineInfo> OnLoad;
@@ -36,7 +30,25 @@ namespace BlockEnhancementMod
             //添加零件初始化事件委托
             Events.OnBlockInit += AddSliders;
 
-            //Events.OnBlockPlaced += block => { block.InternalObject.gameObject.AddComponent<print>(); };
+            ModConsole.RegisterCommand("CompleteFunctionMode", args => {
+                try
+                {
+                    if (args[0].ToLower() == "no8workshop")
+                    {
+                        EnhancementBlock.no8Workshop = true;
+                    }
+                    else
+                    {
+                        EnhancementBlock.no8Workshop = false;
+                    }
+                }
+                catch
+                {
+                    EnhancementBlock.no8Workshop = false;
+                }
+
+
+            }, "help: ");
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -135,111 +147,6 @@ namespace BlockEnhancementMod
             //ConsoleController.ShowMessage("Refresh");
 #endif
         }
-
-
-        //        /// <summary>储存存档信息</summary>
-        //        private void SaveConfiguration(PlayerMachineInfo pmi)
-        //        {
-
-        //#if DEBUG
-        //            ConsoleController.ShowMessage("储存存档");
-        //#endif
-        //            Configuration.Save();
-
-        //            OnSave(pmi);
-        //        }
-
-        //        /// <summary>加载存档信息</summary>
-        //        private void LoadConfiguration(PlayerMachineInfo pmi)
-        //        {
-
-        //#if DEBUG
-        //            ConsoleController.ShowMessage("载入存档");
-        //#endif
-
-        //            PMI = pmi;
-
-        //            OnLoad(pmi);
-
-        //            AddAllSliders();
-
-        //            StartCoroutine(RefreshSliders());
-
-        //        }
-
-
-        //private void OnKeymapperOpen()
-        //{
-        //    //OnKeymapperOpen();
-
-        //    if (!HasEnhancement(BlockMapper.CurrentInstance.Block))
-        //    {
-        //        AddSliders(BlockMapper.CurrentInstance.Block);
-        //        BlockMapper.CurrentInstance.Refresh();
-        //    }
-        //    AddAllSliders();
-        //}
-
     }
-
-    public class TTest : MCustom<int>
-    {
-        public TTest(string displayName, string key, int defaultValue) : base(displayName, key, defaultValue)
-        {
-
-        }
-
-        public override XData SerializeValue(int value)
-        {
-            return new XString(SerializationKey, value.ToString());
-        }
-
-        public override int DeSerializeValue(XData data)
-        {
-            return int.Parse((string)(XString)data);
-        }
-
-        public override int Value { get => base.Value; set => base.Value = value; }
-    }
-
-    public class TTestSelector : CustomSelector<int, TTest>
-    {
-
-        protected override void CreateInterface()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void UpdateInterface()
-        {
-            throw new NotImplementedException();
-        }
-
-
-    }
-
-    class Print : MonoBehaviour
-    {
-        public MKey mKey;
-
-        BlockBehaviour bb;
-
-        void Start()
-        {
-            bb = GetComponent<BlockBehaviour>();
-            mKey = new MKey("mKey", "key", KeyCode.T);
-            if (bb.isBuildBlock)
-            {
-                bb.AddKey(mKey);
-            }
-        }
-
-        void Update()
-        {
-            if (mKey.IsPressed)
-            {
-                //ConsoleController.ShowMessage("print " + mKey.GetKey(0).ToString());
-            }
-        }
-    }
+   
 }
