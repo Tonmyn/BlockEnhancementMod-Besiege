@@ -252,12 +252,16 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateUpdate()
+        protected override void OnSimulateFixedUpdate()
         {
             if (CB.ShootKey.IsDown && cBullet)
             {
                 CB.StopAllCoroutines();
             }
+        }
+
+        protected override void OnSimulateUpdate()
+        {
             if (CB.ShootKey.IsDown && Interval > 0)
             {
                 if (timer > Interval)
