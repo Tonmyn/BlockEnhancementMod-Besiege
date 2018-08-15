@@ -12,10 +12,9 @@ namespace BlockEnhancementMod
 
         public override void OnLoad()
         {
-
             mod = new GameObject("Block Enhancement Mod");
             Controller.Instance.transform.SetParent(mod.transform);
-            CustomMapperTypes.AddMapperType<int, TTest, TTestSelector>();
+
         }
     }
 
