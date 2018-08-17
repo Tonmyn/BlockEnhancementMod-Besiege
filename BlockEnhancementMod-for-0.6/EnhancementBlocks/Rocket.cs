@@ -188,6 +188,19 @@ namespace BlockEnhancementMod.Blocks
                 SwitchGuideModeKey.ignored = true;
                 SwitchGuideModeKey.DisplayInMapper = false;
             }
+            if (no8Workshop && !SwitchGuideModeKey.DisplayInMapper)
+            {
+                SwitchGuideModeKey.ignored = false;
+                SwitchGuideModeKey.DisplayInMapper = true;
+            }
+            if (!no8Workshop && GuidedRocketStabilitySlider.DisplayInMapper)
+            {
+                GuidedRocketStabilitySlider.DisplayInMapper = false;
+            }
+            if (no8Workshop && !GuidedRocketStabilitySlider.DisplayInMapper)
+            {
+                GuidedRocketStabilitySlider.DisplayInMapper = true;
+            }
         }
 
         protected override void OnSimulateStart()
@@ -234,6 +247,7 @@ namespace BlockEnhancementMod.Blocks
 
                 if (LockTargetKey.IsReleased)
                 {
+                    ConsoleController.ShowMessage("No8Workshop is enabled " + no8Workshop);
                     target = null;
                     if (activeGuide)
                     {
