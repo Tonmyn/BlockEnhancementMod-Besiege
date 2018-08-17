@@ -247,7 +247,6 @@ namespace BlockEnhancementMod.Blocks
 
                 if (LockTargetKey.IsReleased)
                 {
-                    ConsoleController.ShowMessage("No8Workshop is enabled " + no8Workshop);
                     target = null;
                     if (activeGuide)
                     {
