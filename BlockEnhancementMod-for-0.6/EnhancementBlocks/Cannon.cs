@@ -165,14 +165,25 @@ namespace BlockEnhancementMod.Blocks
                     TrailToggle.DisplayInMapper = false;
                 }
             }
-            if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            if (!no8Workshop)
             {
-                KnockBackSpeedSlider.DisplayInMapper = false;
+                if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = false;
+                }
+                if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
+                }
             }
-            if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper && !no8Workshop)
+            else
             {
-                KnockBackSpeedSlider.DisplayInMapper = true;
+                if (!KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
+                }
             }
+            
         }
 
         protected override void OnSimulateStart()
