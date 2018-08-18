@@ -83,7 +83,7 @@ namespace BlockEnhancementMod
 
         public static String softWood = ifChinese ? "朽木" : "Soft Wood";
 
-        public static String midSoftWood = ifChinese ? "桦木" : "Midian-Soft Wood";
+        public static String midSoftWood = ifChinese ? "桦木" : "Median-Soft Wood";
 
         public static String hardWood = ifChinese ? "梨木" : "Hard Wood";
 
