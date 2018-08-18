@@ -211,6 +211,7 @@ namespace BlockEnhancementMod.Blocks
                     if (AutoLookAtKey.IsReleased)
                     {
                         autoSearch = !autoSearch;
+                        DisplayCamMode();
                     }
                     if (PauseTrackingKey.IsReleased)
                     {
@@ -648,6 +649,42 @@ namespace BlockEnhancementMod.Blocks
             catch { }
 
             return skipCluster;
+        }
+
+        private void DisplayCamMode()
+        {
+            if (autoSearch)
+            {
+                StopCoroutine(DisplayManualMode());
+                StartCoroutine(DisplayAutoMode());
+            }
+            else
+            {
+                StopCoroutine(DisplayAutoMode());
+                StartCoroutine(DisplayManualMode());
+            }
+        }
+
+        private IEnumerator DisplayAutoMode()
+        {
+            TextMesh text = new TextMesh
+            {
+                anchor = TextAnchor.LowerCenter,
+                fontSize = 40,
+                text = "AUTO AIM MODE"
+            };
+            return null;
+        }
+
+        private IEnumerator DisplayManualMode()
+        {
+            TextMesh text = new TextMesh
+            {
+                anchor = TextAnchor.LowerCenter,
+                fontSize = 40,
+                text = "MANUAL AIM MODE"
+            };
+            return null;
         }
     }
 }
