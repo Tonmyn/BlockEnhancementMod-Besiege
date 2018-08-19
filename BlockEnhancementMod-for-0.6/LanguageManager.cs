@@ -117,7 +117,12 @@ namespace BlockEnhancementMod
         //Spring 
         public static String drag = ifChinese ? "阻力" : "Drag";
 
+        //Steering
+        public static String returnToCenter = ifChinese ? "自动回中" : "ReturnToCenter";
 
+        //FlameThrower
+        public static String thrustForce = ifChinese ? "推力" : "Thrust Force";
+        public static String flameColor = ifChinese ? "火焰颜色" : "Flame Color";
 
     }
 }

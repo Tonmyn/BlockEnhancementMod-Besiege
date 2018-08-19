@@ -94,7 +94,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            //ConsoleController.ShowMessage("摄像机添加进阶属性");
+            ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
 
         }
