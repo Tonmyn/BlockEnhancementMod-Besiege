@@ -818,7 +818,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void OnGUI()
         {
-            if (target != null)
+            if (target != null && !rocket.hasExploded)
             {
                 int squareWidth = 16;
                 Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
