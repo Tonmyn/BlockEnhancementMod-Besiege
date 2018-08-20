@@ -92,6 +92,7 @@
   <ItemGroup>
     <Content Include="Resources\icon.png" />
     <Content Include="Mod.xml" />
+    <Content Include="Resources\Square-Red.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Wheel.obj" />

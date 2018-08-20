@@ -15,6 +15,8 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
+        private Texture2D rocketAim;
+
         public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
@@ -33,21 +35,21 @@ namespace BlockEnhancementMod.Blocks
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
-        MSlider GuidedRocketStabilitySlider;
-        public float guidedRocketStabilityLevel = 2f;
+        MToggle GuidedRocketStabilityToggle;
+        public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
-        private readonly float maxTorque = no8Workshop ? 10000 : 100;
+        private readonly float maxTorque = 10000;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey SwitchGuideModeKey;
-        public List<KeyCode> switchGuideModeKey = no8Workshop ? new List<KeyCode> { KeyCode.RightShift } : new List<KeyCode> { KeyCode.None };
-        public float searchAngle = no8Workshop ? 65 : 10;
+        public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
+        public float searchAngle = 10;
         private readonly float safetyRadius = 15f;
-        private readonly float maxSearchAngle = no8Workshop ? 90 : 15;
+        private readonly float maxSearchAngle = 15;
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
@@ -80,6 +82,8 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void SafeAwake()
         {
+            rocketAim = new Texture2D(256, 256);
+            rocketAim.LoadImage(ModIO.ReadAllBytes("Resources\\Square-Red.png"));
             //Key mapper setup
             GuidedRocketToggle = AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
@@ -91,7 +95,7 @@ namespace BlockEnhancementMod.Blocks
                 SwitchGuideModeKey.DisplayInMapper =
                 ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
                 GuideDelaySlider.DisplayInMapper =
-                GuidedRocketStabilitySlider.DisplayInMapper =
+                GuidedRocketStabilityToggle.DisplayInMapper =
                 NoSmokeToggle.DisplayInMapper =
                 value;
                 ChangedProperties();
@@ -141,9 +145,9 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
-            GuidedRocketStabilitySlider = AddSlider(LanguageManager.rocketStability, "RocketStability", guidedRocketStabilityLevel, 0, 10, true);
-            GuidedRocketStabilitySlider.ValueChanged += (float value) => { guidedRocketStabilityLevel = value; ChangedProperties(); };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityLevel = GuidedRocketStabilitySlider.Value; };
+            GuidedRocketStabilityToggle = AddToggle(LanguageManager.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
+            GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityOn = GuidedRocketStabilityToggle.IsActive; };
 
             GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2, false);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
@@ -173,7 +177,7 @@ namespace BlockEnhancementMod.Blocks
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
-            GuidedRocketStabilitySlider.DisplayInMapper = value && guidedRocketActivated;
+            GuidedRocketStabilityToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
@@ -183,24 +187,7 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnBuildingUpdate()
         {
-            if (!no8Workshop && SwitchGuideModeKey.DisplayInMapper)
-            {
-                SwitchGuideModeKey.ignored = true;
-                SwitchGuideModeKey.DisplayInMapper = false;
-            }
-            if (no8Workshop && !SwitchGuideModeKey.DisplayInMapper)
-            {
-                SwitchGuideModeKey.ignored = false;
-                SwitchGuideModeKey.DisplayInMapper = true;
-            }
-            if (!no8Workshop && GuidedRocketStabilitySlider.DisplayInMapper)
-            {
-                GuidedRocketStabilitySlider.DisplayInMapper = false;
-            }
-            if (no8Workshop && !GuidedRocketStabilitySlider.DisplayInMapper)
-            {
-                GuidedRocketStabilitySlider.DisplayInMapper = true;
-            }
+
         }
 
         protected override void OnSimulateStart()
@@ -220,7 +207,7 @@ namespace BlockEnhancementMod.Blocks
                 explosiveCharge = rocket.ChargeSlider.Value;
 
                 // Make sure the high explo mode is not too imba
-                if (highExploActivated)
+                if (highExploActivated && !no8Workshop)
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
@@ -257,7 +244,7 @@ namespace BlockEnhancementMod.Blocks
                             RocketRadarSearch();
                         }
                     }
-                    else if (no8Workshop)
+                    else
                     {
                         if (StatMaster.isMP && StatMaster.isClient)
                         {
@@ -728,14 +715,11 @@ namespace BlockEnhancementMod.Blocks
 
         private void AddResistancePerpendicularToRocketVelocity()
         {
-            if (no8Workshop)
-            {
-                Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-                Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * Mathf.Clamp(guidedRocketStabilityLevel, 0, 10);
-                float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-                float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-                rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
-            }
+            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 2f;
+            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
         }
 
         private int CalculateClusterValue(BlockBehaviour block, int clusterValue)
@@ -830,6 +814,16 @@ namespace BlockEnhancementMod.Blocks
             catch { }
 
             return skipCluster;
+        }
+
+        private void OnGUI()
+        {
+            if (target != null)
+            {
+                int squareWidth = 16;
+                Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
+                GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+            }
         }
     }
 }

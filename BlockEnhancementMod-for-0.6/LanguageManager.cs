@@ -32,7 +32,7 @@ namespace BlockEnhancementMod
 
         public static String torqueOnRocket = ifChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
-        public static String rocketStability = ifChinese ? "气动大小" : "Aerodynamic" + Environment.NewLine + "Strength";
+        public static String rocketStability = ifChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Fired";
 
         public static String guideDelay = ifChinese ? "追踪延迟" : "Guide Delay";
 

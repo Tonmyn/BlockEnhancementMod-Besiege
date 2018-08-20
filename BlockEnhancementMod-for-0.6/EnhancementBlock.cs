@@ -58,10 +58,10 @@ namespace BlockEnhancementMod
             SafeAwake();
 
             //Make sure the target list is present
-            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
-            {
-                Machine.Active().gameObject.AddComponent<TargetScript>();
-            }
+            //if (!Machine.Active().gameObject.GetComponent<TargetScript>())
+            //{
+            //    Machine.Active().gameObject.AddComponent<TargetScript>();
+            //}
 
             if (BB.isSimulating)
             {
@@ -369,9 +369,9 @@ namespace BlockEnhancementMod
         }
     }
 
-    class TargetScript : MonoBehaviour
-    {
-        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
-    }
+    //class TargetScript : MonoBehaviour
+    //{
+    //    public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
+    //}
 }
 
