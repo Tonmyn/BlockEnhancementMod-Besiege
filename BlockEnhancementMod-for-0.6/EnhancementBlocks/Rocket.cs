@@ -49,7 +49,7 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
         private readonly float safetyRadius = 15f;
-        private readonly float maxSearchAngle = 15;
+        private readonly float maxSearchAngle = 15f;
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
@@ -716,7 +716,7 @@ namespace BlockEnhancementMod.Blocks
         private void AddResistancePerpendicularToRocketVelocity()
         {
             Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 2f;
+            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 0.1f;
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
