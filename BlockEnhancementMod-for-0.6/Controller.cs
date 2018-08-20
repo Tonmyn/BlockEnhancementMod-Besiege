@@ -124,14 +124,21 @@ namespace BlockEnhancementMod
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
             //{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
-            //{(int)BlockType.SteeringHinge,typeof(ste) },
+            {(int)BlockType.SteeringHinge,typeof(SteeringHinge) },
+            {(int)BlockType.SteeringBlock,typeof(SteeringHinge) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
+            { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},
             //{(int)BlockType.Wheel,typeof(WheelScript) },
             //{(int)BlockType.LargeWheel,typeof(WheelScript) },
             //{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
             //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.Rocket,typeof(RocketScript)},
-            {(int)BlockType.CameraBlock,typeof(CameraScript)}
+            {(int)BlockType.CameraBlock,typeof(CameraScript)},
+            { (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
+            { (int)BlockType.DoubleWoodenBlock,typeof(WoodenScript)},
+            { (int)BlockType.Log,typeof(WoodenScript)},
+            { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
+            { (int)BlockType.WoodenPole,typeof(WoodenScript)},
         };
 
         /// <summary>刷新菜单组件</summary>

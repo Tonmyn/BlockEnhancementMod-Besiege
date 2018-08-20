@@ -6,120 +6,61 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
-//    [Obsolete]
-//    class SteeringHinge : EnhancementBlock
-//    {
-//        SteeringHingeScript SHS;
 
-//        MToggle FreezeToggle;
+    class SteeringHinge : EnhancementBlock
+    {
 
-//        bool Freeze = false;
+        SteeringWheel steeringWheel;
 
-//        public SteeringHinge(BlockBehaviour block) : base(block)
-//        {
+        public MToggle r2cToggle;
 
-//            if (BB.GetComponent<SteeringHingeScript>() == null)
-//            {
-//                SHS = BB.gameObject.AddComponent<SteeringHingeScript>();
+        public bool ReturnToCenter = false;
 
-//                FreezeToggle = new MToggle("关节僵化", "Freeze", Freeze);
-//                FreezeToggle.Toggled += (bool value) => { Freeze = value; ChangedPropertise(); };
-//                CurrentMapperTypes.Add(FreezeToggle);
-//            }
-//            LoadConfiguration();
+        public float angleSpeed;
 
-//            ChangedPropertise();
-//            DisplayInMapper(EnhancementEnable);
+        MSlider rotationSpeedSlider;
 
-//            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
+        Rigidbody rigidbody;
 
-//#if DEBUG
-//            Debug.Log("转向铰链添加进阶属性");
-//#endif
+        MKey leftKey;
 
-//        }
+        MKey rightKey;
+    
+        protected override void SafeAwake()
+        {
+            steeringWheel = GetComponent<SteeringWheel>();
+            rigidbody = GetComponent<Rigidbody>();
 
-//        public override void LoadConfiguration()
-//        {
-//            base.LoadConfiguration();
+            r2cToggle = AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
+            r2cToggle.Toggled += (bool value) => { ReturnToCenter = value; ChangedProperties(); };
+            BlockDataLoadEvent += (XDataHolder BlockData) => { ReturnToCenter = r2cToggle.IsActive; };
 
-//            if (Controller.MI == null)
-//            {
-//                return;
-//            }
+            leftKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "left");
+            rightKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "right");
+            rotationSpeedSlider = steeringWheel.Sliders.ToList().Find(match => match.Key == "rotation-speed");
 
-//            foreach (var blockinfo in Controller.MI.Blocks)
-//            {
-//                if (blockinfo.Guid == BB.Guid)
-//                {
-//                    XDataHolder bd = blockinfo.BlockData;
+#if DEBUG
+            ConsoleController.ShowMessage("转向关节添加进阶属性");
+#endif
+        }
 
-//                    if (bd.HasKey("bmt-" + FreezeToggle.Key)) { FreezeToggle.IsActive = Freeze = bd.ReadBool("bmt-" + FreezeToggle.Key); }
+        public override void DisplayInMapper(bool value)
+        {
+            r2cToggle.DisplayInMapper = value;
+        }
 
-//                    break;
-//                }
+        protected override void OnSimulateUpdate()
+        {
+            if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
+            {
+                rigidbody.WakeUp();
 
-//            }
-//        }
+                angleSpeed = Time.deltaTime * 100f * steeringWheel.targetAngleSpeed * rotationSpeedSlider.Value;
 
-//        public override void ChangedPropertise()
-//        {
-//            base.ChangedPropertise();
-//            SHS.Freeze = Freeze;
-//        }
-
-//        public override void DisplayInMapper(bool value)
-//        {
-//            base.DisplayInMapper(value);
-//            FreezeToggle.DisplayInMapper = value;
-//        }
-
-//        class SteeringHingeScript : EnhancementBlock
-//        {
-//            ConfigurableJoint CJ;
-
-//            MKey Key;
-
-//            List<KeyCode> KeyCode = new List<KeyCode>();
-
-//            public bool Freeze;
-
-//            //private void Start()
-//            //{
-//            //    KeyCode.AddRange(GetComponent<BlockBehaviour>().Keys.Find(match => match.Key == "left").KeyCode);
-//            //    KeyCode.AddRange(GetComponent<BlockBehaviour>().Keys.Find(match => match.Key == "right").KeyCode);
-
-//            //    Key = GetKey(KeyCode);
-
-//            //    CJ = GetComponent<ConfigurableJoint>();
-//            //    CJ.projectionAngle = 180;
-//            //    CJ.projectionMode = Freeze ? JointProjectionMode.PositionAndRotation : JointProjectionMode.None;
-
-
-//            //}
-//            //private void Update()
-//            //{
-//            //    if (StatMaster.isSimulating && Freeze)
-//            //    {
-//            //        //if (Key.IsDown)
-//            //        //{
-//            //        //    CJ.angularYMotion = ConfigurableJointMotion.Free;
-//            //        //   // CJ.projectionMode = JointProjectionMode.None;
-//            //        //}
-//            //        //else
-//            //        //{
-//            //        //    //CJ.angularYMotion = ConfigurableJointMotion.Locked;
-
-//            //        //    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-//            //        //    CJ.targetRotation =  Quaternion.Euler(GetComponent<SteeringWheel>().axis * 40);
-//            //        //}
-//            //        CJ.angularYZDrive = new JointDrive() { positionSpring = 10000, maximumForce = 10000 };
-//            //    }
-
-
-//            //}
-//        }
-    //}
+                steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
+            }
+        }
+    }
 
 
 }
