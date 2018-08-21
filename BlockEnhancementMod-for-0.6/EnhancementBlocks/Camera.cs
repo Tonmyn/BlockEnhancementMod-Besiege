@@ -21,6 +21,7 @@ namespace BlockEnhancementMod.Blocks
         private Quaternion defaultLocalRotation;
         public float smooth;
         public float smoothLerp;
+        private float newCamFOV, orgCamFOV;
 
         //Track target setting
         MKey LockTargetKey;
@@ -165,7 +166,7 @@ namespace BlockEnhancementMod.Blocks
                         SetSmoothing();
                     }
                 }
-
+                newCamFOV = orgCamFOV = fixedCamera.fovSlider.Value;
                 // Initialise
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
@@ -208,6 +209,21 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
+                    if (fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.Custom)
+                    {
+                        Camera activeCam = FindObjectOfType<MouseOrbit>().cam;
+                        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
+                        {
+                            //FindObjectOfType<MouseOrbit>().cam.fieldOfView = Mathf.Clamp(fixedCameraController.activeCamera.fovSlider.Value + Input.GetAxis("Mouse ScrollWheel"), 1, 90);
+
+                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Input.GetAxis("Mouse ScrollWheel") * 50, 1, orgCamFOV);
+                        }
+                        if (activeCam.fieldOfView != newCamFOV)
+                        {
+                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, smooth * 0.5f);
+                        }
+                    }
+
                     if (AutoLookAtKey.IsReleased)
                     {
                         autoSearch = !autoSearch;
