@@ -50,6 +50,7 @@ namespace BlockEnhancementMod.Blocks
         public float searchAngle = 10;
         private readonly float safetyRadius = 15f;
         private readonly float maxSearchAngle = 15f;
+        private readonly float maxSearchAngleNo8 = 90f;
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
@@ -199,7 +200,7 @@ namespace BlockEnhancementMod.Blocks
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
                 activeGuide = true;
                 target = null;
-                searchAngle = Mathf.Clamp(searchAngle, 0, maxSearchAngle);
+                searchAngle = Mathf.Clamp(searchAngle, 0, no8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 explodedTarget.Clear();
                 StopAllCoroutines();
 
@@ -419,7 +420,7 @@ namespace BlockEnhancementMod.Blocks
                     //else, apply maximum torque to the rocket
                     if (forward && angleDiff <= searchAngle)
                     {
-                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngle - 1f, 2) + 1)) * rotatingAxis); }
+                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis); }
                         catch { }
                     }
                     else
@@ -716,7 +717,7 @@ namespace BlockEnhancementMod.Blocks
         private void AddResistancePerpendicularToRocketVelocity()
         {
             Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 0.1f;
+            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 0.5f;
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);

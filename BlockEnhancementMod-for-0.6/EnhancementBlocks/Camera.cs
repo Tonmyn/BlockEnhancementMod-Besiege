@@ -134,12 +134,12 @@ namespace BlockEnhancementMod.Blocks
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
                 firstPersonMode = false;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.enhancementEnabled && cameraLookAtToggled && firstPersonMode;
             }
             if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
                 firstPersonMode = true;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.enhancementEnabled && cameraLookAtToggled && firstPersonMode;
             }
         }
 
