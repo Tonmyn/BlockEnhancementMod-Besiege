@@ -220,7 +220,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                         if (activeCam.fieldOfView != newCamFOV)
                         {
-                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, smooth * 0.5f);
+                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, Mathf.Exp(smooth) / 2);
                         }
                     }
 
