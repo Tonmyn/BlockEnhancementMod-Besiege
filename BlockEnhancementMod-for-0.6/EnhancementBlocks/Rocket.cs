@@ -205,7 +205,7 @@ namespace BlockEnhancementMod.Blocks
                 StopAllCoroutines();
 
                 // Read the charge from rocket
-                explosiveCharge = rocket.ChargeSlider.Value;
+                explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
 
                 // Make sure the high explo mode is not too imba
                 if (highExploActivated && !no8Workshop)
@@ -593,6 +593,7 @@ namespace BlockEnhancementMod.Blocks
 
         IEnumerator SearchForTarget()
         {
+            yield return new WaitForSeconds(UnityEngine.Random.Range(0, 0.1f));
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
