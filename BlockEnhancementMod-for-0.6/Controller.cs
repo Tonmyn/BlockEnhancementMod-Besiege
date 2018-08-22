@@ -14,6 +14,8 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
+        public Transform target;
+
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;
 
@@ -29,26 +31,30 @@ namespace BlockEnhancementMod
             //Events.OnMachineSave += SaveConfiguration;
             //添加零件初始化事件委托
             Events.OnBlockInit += AddSliders;
-
-            ModConsole.RegisterCommand("CompleteFunctionMode", args => {
-                try
+            try
+            {
+                ModConsole.RegisterCommand("CompleteFunctionMode", args =>
                 {
-                    if (args[0].ToLower() == "no8workshop")
+                    try
                     {
-                        EnhancementBlock.no8Workshop = true;
+                        if (args[0].ToLower() == "no8workshop")
+                        {
+                            EnhancementBlock.no8Workshop = true;
+                        }
+                        else
+                        {
+                            EnhancementBlock.no8Workshop = false;
+                        }
                     }
-                    else
+                    catch
                     {
                         EnhancementBlock.no8Workshop = false;
                     }
-                }
-                catch
-                {
-                    EnhancementBlock.no8Workshop = false;
-                }
 
 
-            }, "help: ");
+                }, "help: ");
+            }
+            catch { }
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -155,5 +161,5 @@ namespace BlockEnhancementMod
 #endif
         }
     }
-   
+
 }

@@ -33,7 +33,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 进阶属性激活
         /// </summary>
-        public bool EnhancementEnable = false;
+        public bool enhancementEnabled = false;
 
         private bool isFirstFrame = true;
 
@@ -58,19 +58,19 @@ namespace BlockEnhancementMod
             SafeAwake();
 
             //Make sure the target list is present
-            if (!Machine.Active().gameObject.GetComponent<TargetScript>())
-            {
-                Machine.Active().gameObject.AddComponent<TargetScript>();
-            }
+            //if (!Machine.Active().gameObject.GetComponent<TargetScript>())
+            //{
+            //    Machine.Active().gameObject.AddComponent<TargetScript>();
+            //}
 
             if (BB.isSimulating)
             {
                 return;
             }
 
-            Enhancement = AddToggle(LanguageManager.enhancement, "Enhancement", EnhancementEnable);
+            Enhancement = AddToggle(LanguageManager.enhancement, "Enhancement", enhancementEnabled);
 
-            Enhancement.Toggled += (bool value) => { EnhancementEnable = value; DisplayInMapper(value); };
+            Enhancement.Toggled += (bool value) => { enhancementEnabled = value; DisplayInMapper(value); };
 
             //CurrentMapperTypes.AddRange(myMapperTypes);
 
@@ -78,45 +78,54 @@ namespace BlockEnhancementMod
 
             ChangedProperties(); try { BlockPropertiseChangedEvent(); } catch { }
 
-            DisplayInMapper(EnhancementEnable);
+            DisplayInMapper(enhancementEnabled);
 
             Controller.Instance.OnSave += SaveConfiguration;
         }
 
         private void Update()
         {
-            if (BB.isSimulating)
+            if (enhancementEnabled)
             {
-                if (isFirstFrame)
+                if (BB.isSimulating)
                 {
-                    isFirstFrame = false;
-                    OnSimulateStart();
+                    if (isFirstFrame)
+                    {
+                        isFirstFrame = false;
+                        OnSimulateStart();
 #if DEBUG
-                    //ConsoleController.ShowMessage("on simulation start");
+                        //ConsoleController.ShowMessage("on simulation start");
 #endif
+                    }
+                    OnSimulateUpdate();
                 }
-                OnSimulateUpdate();
-            }
-            else
-            {
-                OnBuildingUpdate();
-                isFirstFrame = true;
+                else
+                {
+                    OnBuildingUpdate();
+                    isFirstFrame = true;
+                }
             }
         }
 
         private void FixedUpdate()
         {
-            if (BB.isSimulating && !isFirstFrame)
+            if (enhancementEnabled)
             {
-                OnSimulateFixedUpdate();
+                if (BB.isSimulating && !isFirstFrame)
+                {
+                    OnSimulateFixedUpdate();
+                }
             }
         }
 
         private void LateUpdate()
         {
-            if (BB.isSimulating && !isFirstFrame)
+            if (enhancementEnabled)
             {
-                OnSimulateLateUpdate();
+                if (BB.isSimulating && !isFirstFrame)
+                {
+                    OnSimulateLateUpdate();
+                }
             }
         }
 
@@ -369,9 +378,9 @@ namespace BlockEnhancementMod
         }
     }
 
-    class TargetScript : MonoBehaviour
-    {
-        public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
-    }
+    //class TargetScript : MonoBehaviour
+    //{
+    //    public Dictionary<int, int> previousTargetDic = new Dictionary<int, int>();
+    //}
 }
 

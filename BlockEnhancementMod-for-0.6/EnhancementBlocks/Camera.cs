@@ -21,6 +21,7 @@ namespace BlockEnhancementMod.Blocks
         private Quaternion defaultLocalRotation;
         public float smooth;
         public float smoothLerp;
+        private float newCamFOV, orgCamFOV, camFOVSmooth;
 
         //Track target setting
         MKey LockTargetKey;
@@ -35,8 +36,8 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> pauseKeys = new List<KeyCode> { KeyCode.X };
 
         //Record target related setting
-        MToggle RecordTargetToggle;
-        public bool recordTarget = false;
+        //MToggle RecordTargetToggle;
+        //public bool recordTarget = false;
 
         //Auto lookat related setting
         MSlider NonCustomModeSmoothSlider;
@@ -58,7 +59,7 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
-                RecordTargetToggle.DisplayInMapper =
+                //RecordTargetToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 PauseTrackingKey.DisplayInMapper =
                 NonCustomModeSmoothSlider.DisplayInMapper =
@@ -68,13 +69,13 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            RecordTargetToggle = AddToggle(LanguageManager.recordTarget, "RecordTarget", recordTarget);
-            RecordTargetToggle.Toggled += (bool value) =>
-            {
-                recordTarget = value;
-                ChangedProperties();
-            };
-            BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
+            //RecordTargetToggle = AddToggle(LanguageManager.recordTarget, "RecordTarget", recordTarget);
+            //RecordTargetToggle.Toggled += (bool value) =>
+            //{
+            //    recordTarget = value;
+            //    ChangedProperties();
+            //};
+            //BlockDataLoadEvent += (XDataHolder BlockData) => { recordTarget = RecordTargetToggle.IsActive; };
 
             NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
@@ -108,38 +109,38 @@ namespace BlockEnhancementMod.Blocks
             CameraLookAtToggle.DisplayInMapper = value;
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
+            //RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
-        public override void LoadConfiguration(XDataHolder BlockData)
-        {
-            if (BlockData.HasKey("bmt-" + "CameraTarget"))
-            {
-                SaveTargetToDict(BlockData.ReadInt("bmt-" + "CameraTarget"));
-            }
-        }
+        //public override void LoadConfiguration(XDataHolder BlockData)
+        //{
+        //    if (BlockData.HasKey("bmt-" + "CameraTarget"))
+        //    {
+        //        SaveTargetToDict(BlockData.ReadInt("bmt-" + "CameraTarget"));
+        //    }
+        //}
 
-        public override void SaveConfiguration(XDataHolder BlockData)
-        {
-            if (Machine.Active().GetComponent<TargetScript>().previousTargetDic.ContainsKey(selfIndex))
-            {
-                BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<TargetScript>().previousTargetDic[selfIndex]);
-            }
-        }
+        //public override void SaveConfiguration(XDataHolder BlockData)
+        //{
+        //    if (Machine.Active().GetComponent<TargetScript>().previousTargetDic.ContainsKey(selfIndex))
+        //    {
+        //        BlockData.Write("bmt-" + "CameraTarget", Machine.Active().GetComponent<TargetScript>().previousTargetDic[selfIndex]);
+        //    }
+        //}
 
         protected override void OnBuildingUpdate()
         {
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
                 firstPersonMode = false;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.enhancementEnabled && cameraLookAtToggled && firstPersonMode;
             }
             if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
                 firstPersonMode = true;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnable && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = base.enhancementEnabled && cameraLookAtToggled && firstPersonMode;
             }
         }
 
@@ -165,7 +166,8 @@ namespace BlockEnhancementMod.Blocks
                         SetSmoothing();
                     }
                 }
-
+                newCamFOV = orgCamFOV = fixedCamera.fovSlider.Value;
+                camFOVSmooth = Mathf.Exp(smooth) / Mathf.Exp(1) / 2f;
                 // Initialise
                 searchStarted = false;
                 pauseTracking = autoSearch = targetAquired = true;
@@ -176,29 +178,29 @@ namespace BlockEnhancementMod.Blocks
                 StopAllCoroutines();
 
                 // If target is recorded, try preset it.
-                if (recordTarget)
-                {
-                    // Trying to read previously saved target
-                    int targetIndex = -1;
-                    BlockBehaviour targetBlock = new BlockBehaviour();
-                    // Read the target's buildIndex from the dictionary
-                    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
-                    {
-                        target = null;
-                        return;
-                    }
-                    // Aquire target block's transform from the target's index
-                    try
-                    {
+                //if (recordTarget)
+                //{
+                //    // Trying to read previously saved target
+                //    int targetIndex = -1;
+                //    BlockBehaviour targetBlock = new BlockBehaviour();
+                //    // Read the target's buildIndex from the dictionary
+                //    if (!Machine.Active().GetComponent<TargetScript>().previousTargetDic.TryGetValue(selfIndex, out targetIndex))
+                //    {
+                //        target = null;
+                //        return;
+                //    }
+                //    // Aquire target block's transform from the target's index
+                //    try
+                //    {
 
-                        Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
-                        target = Machine.Active().GetSimBlock(targetBlock).transform;
-                    }
-                    catch (Exception)
-                    {
-                        ConsoleController.ShowMessage("Cannot get target block's transform");
-                    }
-                }
+                //        Machine.Active().GetBlockFromIndex(targetIndex, out targetBlock);
+                //        target = Machine.Active().GetSimBlock(targetBlock).transform;
+                //    }
+                //    catch (Exception)
+                //    {
+                //        ConsoleController.ShowMessage("Cannot get target block's transform");
+                //    }
+                //}
             }
         }
 
@@ -208,9 +210,23 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                 {
+                    if (fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.Custom)
+                    {
+                        Camera activeCam = FindObjectOfType<MouseOrbit>().cam;
+                        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
+                        {
+                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Mathf.Sign(Input.GetAxis("Mouse ScrollWheel")) * 2.5f, 1, orgCamFOV);
+                        }
+                        if (activeCam.fieldOfView != newCamFOV)
+                        {
+                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
+                        }
+                    }
+
                     if (AutoLookAtKey.IsReleased)
                     {
                         autoSearch = !autoSearch;
+                        DisplayCamMode();
                     }
                     if (PauseTrackingKey.IsReleased)
                     {
@@ -254,10 +270,10 @@ namespace BlockEnhancementMod.Blocks
                                     int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
                                     target = hits[i].transform;
                                     pauseTracking = false;
-                                    if (recordTarget)
-                                    {
-                                        SaveTargetToDict(index);
-                                    }
+                                    //if (recordTarget)
+                                    //{
+                                    //    SaveTargetToDict(index);
+                                    //}
                                     break;
                                 }
                                 catch { }
@@ -269,14 +285,15 @@ namespace BlockEnhancementMod.Blocks
                                     try
                                     {
                                         int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
-                                        if (recordTarget)
-                                        {
-                                            SaveTargetToDict(index);
-                                        }
+                                        //if (recordTarget)
+                                        //{
+                                        //    SaveTargetToDict(index);
+                                        //}
                                     }
                                     catch { }
                                 }
                             }
+                            SaveTargetToController();
                             if (StatMaster.isMP && StatMaster.isClient)
                             {
                                 foreach (var collider in colliders)
@@ -400,20 +417,20 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private void SaveTargetToDict(int BlockID)
-        {
-            // Make sure the dupicated key exception is handled
-            try
-            {
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-            }
-            catch (Exception)
-            {
-                // Remove the old record, then add the new record
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
-                Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
-            }
-        }
+        //private void SaveTargetToDict(int BlockID)
+        //{
+        //    // Make sure the dupicated key exception is handled
+        //    try
+        //    {
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Remove the old record, then add the new record
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Remove(selfIndex);
+        //        Machine.Active().GetComponent<TargetScript>().previousTargetDic.Add(selfIndex, BlockID);
+        //    }
+        //}
 
         private void SetSmoothing()
         {
@@ -547,6 +564,7 @@ namespace BlockEnhancementMod.Blocks
                 if (simClusterForSearch.Count > 0)
                 {
                     target = GetMostValuableBlock(simClusterForSearch);
+                    SaveTargetToController();
                     targetAquired = true;
                     pauseTracking = false;
                     searchStarted = false;
@@ -648,6 +666,53 @@ namespace BlockEnhancementMod.Blocks
             catch { }
 
             return skipCluster;
+        }
+
+        private void DisplayCamMode()
+        {
+            if (autoSearch)
+            {
+                StopCoroutine(DisplayManualMode());
+                StartCoroutine(DisplayAutoMode());
+            }
+            else
+            {
+                StopCoroutine(DisplayAutoMode());
+                StartCoroutine(DisplayManualMode());
+            }
+        }
+
+        private IEnumerator DisplayAutoMode()
+        {
+            TextMesh text = new TextMesh
+            {
+                anchor = TextAnchor.LowerCenter,
+                fontSize = 40,
+                text = "AUTO AIM MODE"
+            };
+            return null;
+        }
+
+        private IEnumerator DisplayManualMode()
+        {
+            TextMesh text = new TextMesh
+            {
+                anchor = TextAnchor.LowerCenter,
+                fontSize = 40,
+                text = "MANUAL AIM MODE"
+            };
+            return null;
+        }
+
+        private void SaveTargetToController()
+        {
+            if (target != null)
+            {
+                FindObjectOfType<Controller>().target = target;
+#if DEBUG
+                Debug.Log("Target saved to controller");
+#endif
+            }
         }
     }
 }
