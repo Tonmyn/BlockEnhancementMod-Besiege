@@ -52,6 +52,8 @@ namespace BlockEnhancementMod.Blocks
         private bool autoSearch = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
+        private readonly float displayTime = 1f;
+        private float switchTime = Mathf.NegativeInfinity;
 
         protected override void SafeAwake()
         {
@@ -226,7 +228,7 @@ namespace BlockEnhancementMod.Blocks
                     if (AutoLookAtKey.IsReleased)
                     {
                         autoSearch = !autoSearch;
-                        DisplayCamMode();
+                        switchTime = Time.time;
                     }
                     if (PauseTrackingKey.IsReleased)
                     {
@@ -668,42 +670,6 @@ namespace BlockEnhancementMod.Blocks
             return skipCluster;
         }
 
-        private void DisplayCamMode()
-        {
-            if (autoSearch)
-            {
-                StopCoroutine(DisplayManualMode());
-                StartCoroutine(DisplayAutoMode());
-            }
-            else
-            {
-                StopCoroutine(DisplayAutoMode());
-                StartCoroutine(DisplayManualMode());
-            }
-        }
-
-        private IEnumerator DisplayAutoMode()
-        {
-            TextMesh text = new TextMesh
-            {
-                anchor = TextAnchor.LowerCenter,
-                fontSize = 40,
-                text = "AUTO AIM MODE"
-            };
-            return null;
-        }
-
-        private IEnumerator DisplayManualMode()
-        {
-            TextMesh text = new TextMesh
-            {
-                anchor = TextAnchor.LowerCenter,
-                fontSize = 40,
-                text = "MANUAL AIM MODE"
-            };
-            return null;
-        }
-
         private void SaveTargetToController()
         {
             if (target != null)
@@ -714,5 +680,30 @@ namespace BlockEnhancementMod.Blocks
 #endif
             }
         }
+
+        private void OnGUI()
+        {
+            if (fixedCameraController != null)
+            {
+                if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
+                {
+                    if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
+                    {
+                        if ((Time.time - switchTime) / Time.timeScale <= displayTime)
+                        {
+                            GUI.TextArea(new Rect(0, 1, 20, 150), "CAM MODE: " + (autoSearch ? "AUTO" : "MANUAL"), camModeStyle);
+                        }
+                    }
+                }
+            }
+        }
+
+        readonly GUIStyle camModeStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Bold,
+            fontSize = 20,
+            normal = { textColor = Color.white },
+            alignment = TextAnchor.UpperLeft,
+        };
     }
 }
