@@ -54,6 +54,7 @@ namespace BlockEnhancementMod.Blocks
         private bool searchStarted = false;
         private readonly float displayTime = 1f;
         private float switchTime = Mathf.NegativeInfinity;
+        private bool activateTimeRecorded = false;
 
         protected override void SafeAwake()
         {
@@ -224,7 +225,11 @@ namespace BlockEnhancementMod.Blocks
                             activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
                         }
                     }
-
+                    if (!activateTimeRecorded)
+                    {
+                        switchTime = Time.time;
+                        activateTimeRecorded = true;
+                    }
                     if (AutoLookAtKey.IsReleased)
                     {
                         autoSearch = !autoSearch;
@@ -304,6 +309,13 @@ namespace BlockEnhancementMod.Blocks
                                 }
                             }
                         }
+                    }
+                }
+                else
+                {
+                    if (activateTimeRecorded)
+                    {
+                        activateTimeRecorded = false;
                     }
                 }
             }
@@ -691,7 +703,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         if ((Time.time - switchTime) / Time.timeScale <= displayTime)
                         {
-                            GUI.TextArea(new Rect(0, 1, 20, 150), "CAM MODE: " + (autoSearch ? "AUTO" : "MANUAL"), camModeStyle);
+                            GUI.TextArea(new Rect(1, 1, 20, 150), "CAM TRACKING: " + (autoSearch ? "AUTO" : "MANUAL"), camModeStyle);
                         }
                     }
                 }
@@ -701,7 +713,7 @@ namespace BlockEnhancementMod.Blocks
         readonly GUIStyle camModeStyle = new GUIStyle()
         {
             fontStyle = FontStyle.Bold,
-            fontSize = 20,
+            fontSize = 16,
             normal = { textColor = Color.white },
             alignment = TextAnchor.UpperLeft,
         };
