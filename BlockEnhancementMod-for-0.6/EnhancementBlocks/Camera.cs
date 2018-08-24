@@ -209,109 +209,112 @@ namespace BlockEnhancementMod.Blocks
 
         protected override void OnSimulateUpdate()
         {
-            if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
+            if (cameraLookAtToggled)
             {
-                if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
+                if (fixedCameraController.activeCamera != null)
                 {
-                    if (fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.Custom)
+                    if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
                     {
-                        Camera activeCam = FindObjectOfType<MouseOrbit>().cam;
-                        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
+                        if (fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCameraController.activeCamera.CamMode == FixedCameraBlock.Mode.Custom)
                         {
-                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Mathf.Sign(Input.GetAxis("Mouse ScrollWheel")) * 2.5f, 1, orgCamFOV);
-                        }
-                        if (activeCam.fieldOfView != newCamFOV)
-                        {
-                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
-                        }
-                    }
-                    if (!activateTimeRecorded)
-                    {
-                        switchTime = Time.time;
-                        activateTimeRecorded = true;
-                    }
-                    if (AutoLookAtKey.IsReleased)
-                    {
-                        autoSearch = !autoSearch;
-                        switchTime = Time.time;
-                    }
-                    if (PauseTrackingKey.IsReleased)
-                    {
-                        pauseTracking = !pauseTracking;
-                    }
-                    if (LockTargetKey.IsReleased)
-                    {
-                        target = null;
-                        if (autoSearch)
-                        {
-                            targetAquired = searchStarted = false;
-                            CameraRadarSearch();
-                        }
-                        else
-                        {
-                            if (StatMaster.isMP && StatMaster.isClient)
+                            Camera activeCam = FindObjectOfType<MouseOrbit>().cam;
+                            if (Input.GetAxis("Mouse ScrollWheel") != 0f)
                             {
-                                colliders.Clear();
-                                foreach (var player in Playerlist.Players)
+                                newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Mathf.Sign(Input.GetAxis("Mouse ScrollWheel")) * 2.5f, 1, orgCamFOV);
+                            }
+                            if (activeCam.fieldOfView != newCamFOV)
+                            {
+                                activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
+                            }
+                        }
+                        if (!activateTimeRecorded)
+                        {
+                            switchTime = Time.time;
+                            activateTimeRecorded = true;
+                        }
+                        if (AutoLookAtKey.IsReleased)
+                        {
+                            autoSearch = !autoSearch;
+                            switchTime = Time.time;
+                        }
+                        if (PauseTrackingKey.IsReleased)
+                        {
+                            pauseTracking = !pauseTracking;
+                        }
+                        if (LockTargetKey.IsReleased)
+                        {
+                            target = null;
+                            if (autoSearch)
+                            {
+                                targetAquired = searchStarted = false;
+                                CameraRadarSearch();
+                            }
+                            else
+                            {
+                                if (StatMaster.isMP && StatMaster.isClient)
                                 {
-                                    if (!player.isSpectator && player.machine.isSimulating)
+                                    colliders.Clear();
+                                    foreach (var player in Playerlist.Players)
                                     {
-                                        colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                        if (!player.isSpectator && player.machine.isSimulating)
+                                        {
+                                            colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                        }
+                                    }
+                                    foreach (var collider in colliders)
+                                    {
+                                        collider.enabled = true;
                                     }
                                 }
-                                foreach (var collider in colliders)
-                                {
-                                    collider.enabled = true;
-                                }
-                            }
 
-                            // Aquire the target to look at
-                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                            float manualSearchRadius = 1.25f;
-                            RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
-                            Physics.Raycast(ray, out RaycastHit rayHit);
-                            for (int i = 0; i < hits.Length; i++)
-                            {
-                                try
+                                // Aquire the target to look at
+                                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                                float manualSearchRadius = 1.25f;
+                                RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
+                                Physics.Raycast(ray, out RaycastHit rayHit);
+                                for (int i = 0; i < hits.Length; i++)
                                 {
-                                    int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
-                                    target = hits[i].transform;
-                                    pauseTracking = false;
-                                    //if (recordTarget)
-                                    //{
-                                    //    SaveTargetToDict(index);
-                                    //}
-                                    break;
-                                }
-                                catch { }
-                                if (i == hits.Length - 1)
-                                {
-                                    target = rayHit.transform;
-                                    pauseTracking = false;
-
                                     try
                                     {
-                                        int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                        int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
+                                        target = hits[i].transform;
+                                        pauseTracking = false;
                                         //if (recordTarget)
                                         //{
                                         //    SaveTargetToDict(index);
                                         //}
+                                        break;
                                     }
                                     catch { }
+                                    if (i == hits.Length - 1)
+                                    {
+                                        target = rayHit.transform;
+                                        pauseTracking = false;
+
+                                        try
+                                        {
+                                            int index = rayHit.transform.gameObject.GetComponent<BlockBehaviour>().BuildIndex;
+                                            //if (recordTarget)
+                                            //{
+                                            //    SaveTargetToDict(index);
+                                            //}
+                                        }
+                                        catch { }
+                                    }
                                 }
-                            }
-                            SaveTargetToController();
-                            if (StatMaster.isMP && StatMaster.isClient)
-                            {
-                                foreach (var collider in colliders)
+                                SaveTargetToController();
+                                if (StatMaster.isMP && StatMaster.isClient)
                                 {
-                                    collider.enabled = false;
+                                    foreach (var collider in colliders)
+                                    {
+                                        collider.enabled = false;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                else
+                if (fixedCameraController.activeCamera != fixedCamera)
                 {
                     if (activateTimeRecorded)
                     {
