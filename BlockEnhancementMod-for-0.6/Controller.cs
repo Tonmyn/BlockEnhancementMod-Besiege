@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
-        public Transform target;
+        public Transform targetSavedInController;
 
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;

@@ -6,7 +6,7 @@ using UnityEngine;
 using Modding;
 using Modding.Blocks;
 using Modding.Common;
-using System.Reflection;
+using Modding.Levels;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -16,11 +16,14 @@ namespace BlockEnhancementMod.Blocks
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
         private Texture2D rocketAim;
-
         public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+
+        //Networking setting
+        private bool receivedRayFromClient = false;
+        private Ray rayFromClient;
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -41,7 +44,6 @@ namespace BlockEnhancementMod.Blocks
         public float torque = 100f;
         private readonly float maxTorque = 10000;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
-        private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -81,8 +83,27 @@ namespace BlockEnhancementMod.Blocks
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
+        private void MessageInitialisation()
+        {
+            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
+            {
+                target = ((Block)msg.GetData(0)).GameObject.transform;
+            };
+            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
+            {
+                target = ((Entity)msg.GetData(0)).GameObject.transform;
+            };
+            ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
+            {
+                rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
+                receivedRayFromClient = true;
+            };
+        }
+
+
         protected override void SafeAwake()
         {
+            //Load aim pic
             rocketAim = new Texture2D(256, 256);
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources\\Square-Red.png"));
             //Key mapper setup
@@ -164,6 +185,9 @@ namespace BlockEnhancementMod.Blocks
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
+            //Initialise messages
+            MessageInitialisation();
+
 #if DEBUG
             //ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -184,11 +208,6 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
-        }
-
-        protected override void OnBuildingUpdate()
-        {
-
         }
 
         protected override void OnSimulateStart()
@@ -233,7 +252,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
 
-                if (LockTargetKey.IsReleased)
+                if (LockTargetKey.IsReleased || receivedRayFromClient)
                 {
                     target = null;
                     if (activeGuide)
@@ -247,46 +266,44 @@ namespace BlockEnhancementMod.Blocks
                     }
                     else
                     {
-                        if (StatMaster.isMP && StatMaster.isClient)
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                        if (StatMaster.isClient)
                         {
-                            colliders.Clear();
-                            foreach (var player in Playerlist.Players)
+                            SendRayToHost(ray);
+                        }
+                        else
+                        {
+                            //Find targets in the manual search mode by casting a sphere along the ray
+                            float manualSearchRadius = 1.25f;
+                            RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
+                            Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
+                            receivedRayFromClient = false;
+                            for (int i = 0; i < hits.Length; i++)
                             {
-                                if (!player.isSpectator && player.machine.isSimulating)
+                                if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    colliders.AddRange(player.machine.SimulationMachine.GetComponentsInChildren<Collider>(true));
+                                    target = hits[i].transform;
+                                    break;
                                 }
                             }
-                            foreach (var collider in colliders)
+                            if (target == null)
                             {
-                                collider.enabled = true;
+                                for (int i = 0; i < hits.Length; i++)
+                                {
+                                    if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                    {
+                                        target = hits[i].transform;
+                                        break;
+                                    }
+                                }
                             }
-                        }
-                        //Find targets in the manual search mode by casting a sphere along the ray
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        float manualSearchRadius = 1.25f;
-                        RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
-                        Physics.Raycast(ray, out RaycastHit rayHit);
-
-                        for (int i = 0; i < hits.Length; i++)
-                        {
-                            try
-                            {
-                                int index = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
-                                target = hits[i].transform;
-                                break;
-                            }
-                            catch { }
-                            if (i == hits.Length - 1)
+                            if (target == null && !StatMaster.isMP)
                             {
                                 target = rayHit.transform;
                             }
-                        }
-                        if (StatMaster.isMP && StatMaster.isClient)
-                        {
-                            foreach (var collider in colliders)
+                            if (StatMaster.isHosting)
                             {
-                                collider.enabled = false;
+                                SendTargetToClient();
                             }
                         }
                     }
@@ -661,6 +678,7 @@ namespace BlockEnhancementMod.Blocks
                     target = GetMostValuableBlock(simClusterForSearch);
                     targetAquired = true;
                     searchStarted = false;
+                    SendTargetToClient();
                     StopCoroutine(SearchForTarget());
                 }
                 yield return null;
@@ -820,12 +838,47 @@ namespace BlockEnhancementMod.Blocks
 
         private void OnGUI()
         {
-            if (target != null && !rocket.hasExploded)
+            if (StatMaster.isMP && StatMaster.isHosting)
+            {
+                if (rocket.ParentMachine.PlayerID != Playerlist.Players[0].machine.PlayerID)
+                {
+                    return;
+                }
+            }
+            DrawTargetRedSquare();
+        }
+
+        private void DrawTargetRedSquare()
+        {
+            if (target != null && !rocket.hasExploded && rocket.isSimulating)
             {
                 int squareWidth = 16;
                 Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
                 GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
             }
+        }
+
+        private void SendTargetToClient()
+        {
+            if (target != null && rocket.ParentMachine.PlayerID != 0)
+            {
+                if (target.gameObject.GetComponent<BlockBehaviour>())
+                {
+                    Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(target.gameObject.GetComponent<BlockBehaviour>());
+                    ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetBlockBehaviourMsg);
+                }
+                if (target.gameObject.GetComponent<LevelEntity>())
+                {
+                    Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>());
+                    ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetEntityMsg);
+                }
+            }
+        }
+
+        private void SendRayToHost(Ray ray)
+        {
+            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction);
+            ModNetworking.SendToHost(rayToHostMsg);
         }
     }
 }
