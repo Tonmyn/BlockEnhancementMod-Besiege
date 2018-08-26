@@ -52,7 +52,7 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
         private readonly float safetyRadius = 15f;
-        private readonly float maxSearchAngle = 15f;
+        private readonly float maxSearchAngle = 25f;
         private readonly float maxSearchAngleNo8 = 90f;
         private bool activeGuide = true;
         private bool targetAquired = false;
@@ -88,15 +88,18 @@ namespace BlockEnhancementMod.Blocks
         {
             ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
             {
+                Debug.Log("Receive block target");
                 target = ((Block)msg.GetData(0)).GameObject.transform;
             };
             ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
             {
+                Debug.Log("Receive entity target");
                 target = ((Entity)msg.GetData(0)).GameObject.transform;
             };
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
             {
                 rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
+                activeGuide = false;
                 receivedRayFromClient = true;
             };
         }
@@ -217,7 +220,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = false;
+                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
                 activeGuide = true;
                 target = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, no8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
@@ -253,7 +256,37 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
 
-                if (LockTargetKey.IsReleased || receivedRayFromClient)
+                //if (StatMaster.isHosting && receivedRayFromClient)
+                //{
+                //    Debug.Log("Should not see this message in client");
+                //    receivedRayFromClient = false;
+                //    //Find targets in the manual search mode by casting a sphere along the ray
+                //    float manualSearchRadius = 1.25f;
+                //    RaycastHit[] hits = Physics.SphereCastAll(rayFromClient, manualSearchRadius, Mathf.Infinity);
+
+                //    for (int i = 0; i < hits.Length; i++)
+                //    {
+                //        if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
+                //        {
+                //            target = hits[i].transform;
+                //            break;
+                //        }
+                //    }
+                //    if (target == null)
+                //    {
+                //        for (int i = 0; i < hits.Length; i++)
+                //        {
+                //            if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                //            {
+                //                target = hits[i].transform;
+                //                break;
+                //            }
+                //        }
+                //    }
+                //    SendTargetToClient();
+                //}
+
+                if (LockTargetKey.IsReleased)
                 {
                     target = null;
                     if (activeGuide)
@@ -278,7 +311,7 @@ namespace BlockEnhancementMod.Blocks
                             float manualSearchRadius = 1.25f;
                             RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
                             Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-                            receivedRayFromClient = false;
+                            
                             for (int i = 0; i < hits.Length; i++)
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
@@ -302,10 +335,11 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = rayHit.transform;
                             }
-                            if (StatMaster.isHosting)
+                            if (receivedRayFromClient)
                             {
                                 SendTargetToClient();
                             }
+                            receivedRayFromClient = false;
                         }
                     }
                 }
@@ -851,7 +885,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void DrawTargetRedSquare()
         {
-            if (target != null && !rocket.hasExploded && rocket.isSimulating)
+            if (target != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
             {
                 int squareWidth = 16;
                 Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);

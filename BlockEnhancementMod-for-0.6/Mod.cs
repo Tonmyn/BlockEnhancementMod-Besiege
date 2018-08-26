@@ -8,10 +8,12 @@ namespace BlockEnhancementMod
 {
     public static class Messages
     {
+        //For rockets
         public static MessageType rocketTargetBlockBehaviourMsg;
         public static MessageType rocketTargetEntityMsg;
         public static MessageType rocketRayToHostMsg;
 
+        //For cameras
         public static MessageType cameraTargetBlockBehaviourMsg;
         public static MessageType cameraTargetEntityMsg;
         public static MessageType cameraRayToHostMsg;
@@ -26,10 +28,10 @@ namespace BlockEnhancementMod
         {
             mod = new GameObject("Block Enhancement Mod");
             Controller.Instance.transform.SetParent(mod.transform);
-            RocketMessageInit();
+            MessageInit();
         }
 
-        private void RocketMessageInit()
+        private void MessageInit()
         {
             //Create message received callbacks
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block);
