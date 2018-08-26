@@ -311,7 +311,7 @@ namespace BlockEnhancementMod.Blocks
                             float manualSearchRadius = 1.25f;
                             RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
                             Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-                            
+
                             for (int i = 0; i < hits.Length; i++)
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
@@ -542,6 +542,10 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (!bombHasExploded && explosiveCharge != 0)
                 {
+                    if (StatMaster.isHosting)
+                    {
+                        SendExplosionPositionToAll();
+                    }
                     bombHasExploded = true;
                     //Generate a bomb from level editor and let it explode
                     try
@@ -914,6 +918,12 @@ namespace BlockEnhancementMod.Blocks
         {
             Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction);
             ModNetworking.SendToHost(rayToHostMsg);
+        }
+
+        private void SendExplosionPositionToAll()
+        {
+            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(rocket.transform.position, bombExplosiveCharge);
+            ModNetworking.SendToAll(explosionPositionMsg);
         }
     }
 }
