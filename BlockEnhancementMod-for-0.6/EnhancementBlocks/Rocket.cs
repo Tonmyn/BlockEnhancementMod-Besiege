@@ -44,6 +44,7 @@ namespace BlockEnhancementMod.Blocks
         public float torque = 100f;
         private readonly float maxTorque = 10000;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
