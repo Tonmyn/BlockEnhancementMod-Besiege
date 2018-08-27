@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
-        public Transform target;
+        public Transform targetSavedInController;
 
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;
@@ -136,11 +136,11 @@ namespace BlockEnhancementMod
             //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.Rocket,typeof(RocketScript)},
             {(int)BlockType.CameraBlock,typeof(CameraScript)},
-            { (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
-            { (int)BlockType.DoubleWoodenBlock,typeof(WoodenScript)},
-            { (int)BlockType.Log,typeof(WoodenScript)},
-            { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
-            { (int)BlockType.WoodenPole,typeof(WoodenScript)},
+            //{ (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
+            //{ (int)BlockType.DoubleWoodenBlock,typeof(WoodenScript)},
+            //{ (int)BlockType.Log,typeof(WoodenScript)},
+            //{ (int)BlockType.WoodenPanel,typeof(WoodenScript)},
+            //{ (int)BlockType.WoodenPole,typeof(WoodenScript)},
         };
 
         /// <summary>刷新菜单组件</summary>

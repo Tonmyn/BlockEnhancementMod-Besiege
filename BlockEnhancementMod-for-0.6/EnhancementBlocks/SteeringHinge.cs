@@ -40,7 +40,7 @@ namespace BlockEnhancementMod.Blocks
             rotationSpeedSlider = steeringWheel.Sliders.ToList().Find(match => match.Key == "rotation-speed");
 
 #if DEBUG
-            ConsoleController.ShowMessage("转向关节添加进阶属性");
+            //ConsoleController.ShowMessage("转向关节添加进阶属性");
 #endif
         }
 

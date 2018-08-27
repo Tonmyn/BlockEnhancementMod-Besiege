@@ -132,7 +132,7 @@ namespace BlockEnhancementMod
         private void SaveConfiguration(PlayerMachineInfo pmi)
         {
 #if DEBUG
-            ConsoleController.ShowMessage("On save en");
+            //ConsoleController.ShowMessage("On save en");
 #endif
 
             if (pmi == null)
