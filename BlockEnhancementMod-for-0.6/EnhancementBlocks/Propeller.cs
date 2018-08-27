@@ -37,7 +37,7 @@ namespace BlockEnhancementMod.Blocks
 
 
 #if DEBUG
-            ConsoleController.ShowMessage("桨叶添加进阶属性");
+            //ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
         }
 

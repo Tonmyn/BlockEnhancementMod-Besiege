@@ -34,7 +34,7 @@ namespace BlockEnhancementMod
             flameColorSlider.ValueChanged += (Color value) => { FlameColor = particleSystem.startColor = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { ThrustForce = thrustForceSlider.Value; FlameColor = flameColorSlider.Value; };
 #if DEBUG
-            ConsoleController.ShowMessage("转向关节添加进阶属性");
+            //ConsoleController.ShowMessage("喷火器添加进阶属性");
 #endif
         }
 

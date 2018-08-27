@@ -136,7 +136,7 @@ namespace BlockEnhancementMod.Blocks
             originalKnockBackSpeed = CB.knockbackSpeed;
 
 #if DEBUG
-            ConsoleController.ShowMessage("加农炮添加进阶属性");
+            //ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
 
         }
