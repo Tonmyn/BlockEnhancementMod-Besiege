@@ -8,7 +8,7 @@ using Modding.Levels;
 using Modding.Common;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
     class CameraScript : EnhancementBlock
     {
@@ -82,7 +82,7 @@ namespace BlockEnhancementMod.Blocks
             };
         }
 
-        protected override void SafeAwake()
+        public override void SafeAwake()
         {
             CameraLookAtToggle = AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
@@ -97,15 +97,15 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1, false);
+            NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
-            LockTargetKey = AddKey(LanguageManager.lockTarget, "LockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
 
-            PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", pauseKeys);
+            PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", KeyCode.X);
 
-            AutoLookAtKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", activeGuideKeys);
+            AutoLookAtKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
@@ -116,7 +116,7 @@ namespace BlockEnhancementMod.Blocks
             //Initialise Messages
             MessageInitialisation();
 #if DEBUG
-            //ConsoleController.ShowMessage("摄像机添加进阶属性");
+            ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
 
         }
@@ -135,7 +135,7 @@ namespace BlockEnhancementMod.Blocks
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
-        protected override void OnBuildingUpdate()
+        public override void BuildingUpdate()
         {
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
@@ -149,7 +149,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateStart()
+        public override void OnSimulateStart()
         {
             if (cameraLookAtToggled)
             {
@@ -184,7 +184,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateUpdate()
+        public override void SimulateUpdateAlways()
         {
             //if (StatMaster.isHosting)
             //{
@@ -359,7 +359,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateFixedUpdate()
+        public override void SimulateFixedUpdateAlways()
         {
             if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
@@ -425,7 +425,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateLateUpdate()
+        public override void SimulateLateUpdateAlways()
         {
             if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
             {
@@ -550,7 +550,7 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                foreach (var cluster in Machine.Active().simClusters)
+                foreach (var cluster in global::Machine.Active().simClusters)
                 {
                     if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
                     {
@@ -697,7 +697,7 @@ namespace BlockEnhancementMod.Blocks
 
             return skipCluster;
         }
-
+   
         private void SaveTargetToController()
         {
             if (target != null)

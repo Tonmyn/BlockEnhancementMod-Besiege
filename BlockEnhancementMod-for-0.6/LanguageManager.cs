@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public class LanguageManager : MonoBehaviour
+    public class LanguageManager
     {
         static readonly bool ifChinese = (Application.systemLanguage == SystemLanguage.Chinese);
 
@@ -42,7 +42,7 @@ namespace BlockEnhancementMod
 
         public static string recordTarget = ifChinese ? "记录目标" : "Save Target";
 
-        public static string firstPersonSmooth = ifChinese ? "第一人称平滑" : "FP Smooth";
+        public static string firstPersonSmooth = ifChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
 
         public static string pauseTracking = ifChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 
