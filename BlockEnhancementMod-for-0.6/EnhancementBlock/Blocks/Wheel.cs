@@ -32,7 +32,7 @@ namespace BlockEnhancementMod.Blocks
 
         float Lerp;
 
-        protected override void SafeAwake()
+        public override void SafeAwake()
         {
 
                 //BrakeKey = new MKey("刹车", "Brake", KeyCode.None);
@@ -236,7 +236,7 @@ namespace BlockEnhancementMod.Blocks
 
         private float angleDrag;
 
-        protected override void OnSimulateStart()
+        public override void OnSimulateStart()
         {
 
             //BrakeKey = GetKey(Brake);
@@ -336,7 +336,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        protected override void OnSimulateFixedUpdate()
+        public override void SimulateFixedUpdateAlways()
         {
             if (StatMaster.levelSimulating)
             {

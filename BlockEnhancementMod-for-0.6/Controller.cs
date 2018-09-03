@@ -12,16 +12,16 @@ namespace BlockEnhancementMod
 
     class Controller : SingleInstance<Controller>
     {
-        public override string Name { get; } = "Controller";
+        public override string Name { get; } = "Controller"; 
 
         public Transform targetSavedInController;
 
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;
 
-        public event Action<PlayerMachineInfo> OnLoad;
+        //public event Action<PlayerMachineInfo> OnLoad;
 
-        public event Action<PlayerMachineInfo> OnSave;
+        //public event Action<PlayerMachineInfo> OnSave;
 
         private void Awake()
         {
@@ -55,6 +55,9 @@ namespace BlockEnhancementMod
                 }, "help: ");
             }
             catch { }
+
+
+
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -76,7 +79,7 @@ namespace BlockEnhancementMod
         private void AddSliders(Block block)
         {
 #if DEBUG
-            //ConsoleController.ShowMessage("on block init");
+            ConsoleController.ShowMessage("on block init");
 #endif
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
@@ -95,7 +98,7 @@ namespace BlockEnhancementMod
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG
-            //ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
+            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
 #endif
 
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
@@ -114,33 +117,33 @@ namespace BlockEnhancementMod
         {
             {(int)BlockType.BallJoint,typeof(BallJointScript) },
             {(int)BlockType.Cannon,typeof(CannonScript) },
-            //{(int)BlockType.CogLargeUnpowered,typeof(cog) },
-            //{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
-            //{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
+            ////{(int)BlockType.CogLargeUnpowered,typeof(cog) },
+            ////{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
+            ////{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
             {(int)BlockType.Decoupler,typeof(DecouplerScript) },
             {(int)BlockType.GripPad,typeof(GripPadScript) },
             {(int)BlockType.Piston,typeof(PistonScript) },
-            //{(int)BlockType.Propeller,typeof(PropellerScript) },
-            //{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            ////{(int)BlockType.Propeller,typeof(PropellerScript) },
+            ////{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
             {(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
-            //{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
+            ////{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
             {(int)BlockType.SteeringHinge,typeof(SteeringHinge) },
             {(int)BlockType.SteeringBlock,typeof(SteeringHinge) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
             { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},
-            //{(int)BlockType.Wheel,typeof(WheelScript) },
-            //{(int)BlockType.LargeWheel,typeof(WheelScript) },
-            //{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
-            //{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+            ////{(int)BlockType.Wheel,typeof(WheelScript) },
+            ////{(int)BlockType.LargeWheel,typeof(WheelScript) },
+            ////{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            ////{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.Rocket,typeof(RocketScript)},
             {(int)BlockType.CameraBlock,typeof(CameraScript)},
-            //{ (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
-            //{ (int)BlockType.DoubleWoodenBlock,typeof(WoodenScript)},
-            //{ (int)BlockType.Log,typeof(WoodenScript)},
-            //{ (int)BlockType.WoodenPanel,typeof(WoodenScript)},
-            //{ (int)BlockType.WoodenPole,typeof(WoodenScript)},
+            { (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
+            { (int)BlockType.DoubleWoodenBlock,typeof(WoodenScript)},
+            { (int)BlockType.Log,typeof(WoodenScript)},
+            { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
+            { (int)BlockType.WoodenPole,typeof(WoodenScript)},
         };
 
         /// <summary>刷新菜单组件</summary>
@@ -157,9 +160,11 @@ namespace BlockEnhancementMod
             }
 
 #if DEBUG
-            //ConsoleController.ShowMessage("Refresh");
+            ConsoleController.ShowMessage("Refresh");
 #endif
         }
+
+
     }
 
 }

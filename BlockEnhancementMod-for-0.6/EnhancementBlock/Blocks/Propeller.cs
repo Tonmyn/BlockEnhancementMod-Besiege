@@ -20,7 +20,7 @@ namespace BlockEnhancementMod.Blocks
 
         bool Effect = true;
 
-        protected override void SafeAwake()
+        public override void SafeAwake()
         {
 
             SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
@@ -161,7 +161,7 @@ namespace BlockEnhancementMod.Blocks
 
         private int MyId,i=0;
 
-        protected override void OnSimulateStart()
+        public override void OnSimulateStart()
         {
             MyId = GetComponent<BlockVisualController>().ID;
 
@@ -204,7 +204,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        protected override void OnSimulateUpdate()
+        public override void SimulateUpdateAlways()
         {
 
             if (SwitchKey.IsPressed)

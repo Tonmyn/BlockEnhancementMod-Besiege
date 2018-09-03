@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {   [Obsolete]
     class SpinningScript : EnhancementBlock
     {
@@ -21,7 +21,7 @@ namespace BlockEnhancementMod.Blocks
 
         float Lerp = 12f;
 
-        protected override void SafeAwake()
+        public override void SafeAwake()
         {
 
                 //RotationKey = new MKey("旋转", "Rotation", KeyCode.R);
@@ -126,7 +126,7 @@ namespace BlockEnhancementMod.Blocks
 
         //public float Lerp;
 
-        protected override void OnSimulateStart()
+        public override void OnSimulateStart()
         {
 
             //RotationKey = GetKey(Rotation);
@@ -147,7 +147,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        protected override void OnSimulateUpdate()
+        public override void SimulateUpdateAlways()
         {
             MotorFreezeRotation(RotationKey.IsDown);
         }
