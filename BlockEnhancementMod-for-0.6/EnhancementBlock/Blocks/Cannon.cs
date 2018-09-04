@@ -319,7 +319,7 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-                if (Strength <= 20 || no8Workshop)
+                if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
