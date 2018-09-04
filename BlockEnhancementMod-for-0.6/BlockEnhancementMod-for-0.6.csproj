@@ -65,27 +65,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnhancementBlocks\Camera.cs" />
-    <Compile Include="EnhancementBlocks\Cog.cs" />
-    <Compile Include="EnhancementBlocks\Decoupler.cs" />
-    <Compile Include="EnhancementBlocks\FlamethrowerScript.cs" />
-    <Compile Include="EnhancementBlocks\GripPad.cs" />
-    <Compile Include="EnhancementBlocks\WoodenScript.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Camera.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Decoupler.cs" />
+    <Compile Include="EnhancementBlock\Blocks\FlamethrowerScript.cs" />
+    <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
+    <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
     <Compile Include="LanguageManager.cs" />
-    <Compile Include="EnhancementBlocks\Piston.cs" />
-    <Compile Include="EnhancementBlocks\Propeller.cs" />
-    <Compile Include="EnhancementBlocks\Rocket.cs" />
-    <Compile Include="EnhancementBlocks\Slider.cs" />
-    <Compile Include="EnhancementBlocks\SmallWheel.cs" />
-    <Compile Include="EnhancementBlocks\Spinning.cs" />
-    <Compile Include="EnhancementBlocks\Spring.cs" />
-    <Compile Include="EnhancementBlocks\SteeringHinge.cs" />
-    <Compile Include="EnhancementBlocks\Suspension.cs" />
-    <Compile Include="EnhancementBlocks\BallJoint.cs" />
-    <Compile Include="EnhancementBlocks\Cannon.cs" />
-    <Compile Include="EnhancementBlocks\Wheel.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Rocket.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Slider.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SmallWheel.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Spinning.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Spring.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Suspension.cs" />
+    <Compile Include="EnhancementBlock\Blocks\BallJoint.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Cannon.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Wheel.cs" />
     <Compile Include="Controller.cs" />
-    <Compile Include="EnhancementBlock.cs" />
+    <Compile Include="EnhancementBlock\EnhancementBlock.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

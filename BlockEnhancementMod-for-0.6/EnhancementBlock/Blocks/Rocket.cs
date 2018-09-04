@@ -105,7 +105,7 @@ namespace BlockEnhancementMod.Blocks
         }
 
 
-        protected override void SafeAwake()
+        public override void SafeAwake()
         {
             //Load aim pic
             rocketAim = new Texture2D(256, 256);
@@ -155,19 +155,19 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle, false);
+            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
-            ProximityFuzeRangeSlider = AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10, false);
+            ProximityFuzeRangeSlider = AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
-            ProximityFuzeAngleSlider = AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90, false);
+            ProximityFuzeAngleSlider = AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100, true);
+            GuidedRocketTorqueSlider = AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
@@ -175,14 +175,14 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityOn = GuidedRocketStabilityToggle.IsActive; };
 
-            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2, false);
+            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
-            LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", lockKeys);
+            LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
-            SwitchGuideModeKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", switchGuideModeKey);
+            SwitchGuideModeKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket
@@ -214,7 +214,7 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
         }
 
-        protected override void OnSimulateStart()
+        public override void OnSimulateStart()
         {
             smokeStopped = false;
             if (guidedRocketActivated)
@@ -238,7 +238,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateUpdate()
+        public override void SimulateUpdateAlways()
         {
             if (guidedRocketActivated)
             {
@@ -346,7 +346,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateFixedUpdate()
+        public override void SimulateFixedUpdateAlways()
         {
             if (rocket.hasFired && !rocket.hasExploded)
             {
@@ -448,7 +448,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        protected override void OnSimulateLateUpdate()
+        public override void SimulateLateUpdateAlways()
         {
             if (guidedRocketActivated && rocket.hasFired && !rocket.hasExploded)
             {
@@ -671,7 +671,7 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                foreach (var cluster in Machine.Active().simClusters)
+                foreach (var cluster in global::Machine.Active().simClusters)
                 {
                     if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
                     {
