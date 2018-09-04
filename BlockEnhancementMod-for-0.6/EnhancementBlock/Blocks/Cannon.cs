@@ -211,7 +211,7 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 CB.randomDelay = randomDelay < 0 ? 0 : randomDelay;
-                if (Strength <= 20 || no8Workshop)
+                if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
@@ -262,7 +262,7 @@ namespace BlockEnhancementMod.Blocks
                     TrailToggle.DisplayInMapper = false;
                 }
             }
-            if (!no8Workshop)
+            if (!no8Workshop && StatMaster.isMP)
             {
                 if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
                 {
