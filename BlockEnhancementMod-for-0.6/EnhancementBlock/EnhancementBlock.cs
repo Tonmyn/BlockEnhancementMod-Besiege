@@ -99,12 +99,9 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (enhancementEnabled)
+            if (BB.isSimulating && !isFirstFrame)
             {
-                if (BB.isSimulating && !isFirstFrame)
-                {
-                    SimulateFixedUpdateAlways();
-                }
+                SimulateFixedUpdateAlways();
             }
         }
 
