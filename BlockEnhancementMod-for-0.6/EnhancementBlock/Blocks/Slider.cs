@@ -19,7 +19,7 @@ namespace BlockEnhancementMod
 
         float Limit = 1;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Single }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -47,19 +47,19 @@ namespace BlockEnhancementMod
 
         ConfigurableJoint CJ;
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Limit }));
-            }
-            else
-            {
-                ChangeParameter(Hardness, Limit);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Limit }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Hardness, Limit);
+        //    }
+        //}
 
-        public void ChangeParameter(int hardness,float Limit)
+        public override void ChangeParameter()
         {
 
             CJ = GetComponent<ConfigurableJoint>();
@@ -68,22 +68,22 @@ namespace BlockEnhancementMod
             limit.limit = this.Limit = Mathf.Abs(Limit);
             CJ.linearLimit = limit;
 
-            SwitchWoodHardness(hardness, CJ);
+            SwitchWoodHardness(Hardness, CJ);
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<SliderScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<SliderScript>();
 
-                script.Hardness = (int)message.GetData(1);
-                script.Limit = (float)message.GetData(2);
-                script.ChangeParameter(script.Hardness, script.Limit);
-            }
-        }
+        //        script.Hardness = (int)message.GetData(1);
+        //        script.Limit = (float)message.GetData(2);
+        //        script.ChangeParameter(script.Hardness, script.Limit);
+        //    }
+        //}
 
     }
 }

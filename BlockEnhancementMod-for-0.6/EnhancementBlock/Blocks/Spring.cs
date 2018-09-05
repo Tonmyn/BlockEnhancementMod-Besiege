@@ -16,7 +16,7 @@ namespace BlockEnhancementMod.Blocks
 
         float Drag = 2;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -37,41 +37,41 @@ namespace BlockEnhancementMod.Blocks
             DragSlider.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Drag }));
-            }
-            else
-            {
-                ChangeParameter(Drag);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Drag }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Drag);
+        //    }
+        //}
 
         Rigidbody A, B;
 
-        public void ChangeParameter(float drag)
+        public override void ChangeParameter()
         {
 
             A = GameObject.Find("A").GetComponent<Rigidbody>();
             B = GameObject.Find("B").GetComponent<Rigidbody>();
 
-            A.drag = B.drag = drag;
+            A.drag = B.drag = Drag;
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<SpringScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<SpringScript>();
 
-                script.Drag = (float)message.GetData(1);
-                script.ChangeParameter(script.Drag);
-            }
-        }
+        //        script.Drag = (float)message.GetData(1);
+        //        script.ChangeParameter(script.Drag);
+        //    }
+        //}
 
 
     }

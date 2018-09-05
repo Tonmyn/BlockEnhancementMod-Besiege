@@ -16,6 +16,7 @@ namespace BlockEnhancementMod
 
         public Transform targetSavedInController;
 
+        [Obsolete]
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;
 

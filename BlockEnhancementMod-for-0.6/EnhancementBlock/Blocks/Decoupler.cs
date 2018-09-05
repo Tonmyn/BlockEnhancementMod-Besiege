@@ -19,7 +19,7 @@ namespace BlockEnhancementMod.Blocks
 
         float ExplodeTorque = 2000f;
 
-        public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single,DataType.Single }), OnCallBack);
+        //public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single,DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -48,40 +48,40 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ExplodeForce, ExplodeTorque }));
-            }
-            else
-            {
-                ChangeParameter(ExplodeForce, ExplodeTorque);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ExplodeForce, ExplodeTorque }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(ExplodeForce, ExplodeTorque);
+        //    }
+        //}
 
         private ExplosiveBolt EB;
 
-        public void ChangeParameter(float force ,float torque)
+        public override void ChangeParameter()
         {
             EB = GetComponent<ExplosiveBolt>();
-            EB.explodePower = force;
-            EB.explodeTorquePower = torque;
+            EB.explodePower = ExplodeForce;
+            EB.explodeTorquePower = ExplodeTorque;
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<DecouplerScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<DecouplerScript>();
 
-                script.ExplodeForce = (float)message.GetData(1);
-                script.ExplodeTorque = (float)message.GetData(2);
-                script.ChangeParameter(script.ExplodeForce, script.ExplodeTorque);
-            }
-        }
+        //        script.ExplodeForce = (float)message.GetData(1);
+        //        script.ExplodeTorque = (float)message.GetData(2);
+        //        script.ChangeParameter(script.ExplodeForce, script.ExplodeTorque);
+        //    }
+        //}
     }
 
 

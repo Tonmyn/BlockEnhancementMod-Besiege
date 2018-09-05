@@ -19,7 +19,7 @@ namespace BlockEnhancementMod
 
         private float BreakTorque;
 
-        public static BlockMessage BlockMessage { get; } = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
+        //public static BlockMessage BlockMessage { get; } = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -38,25 +38,33 @@ namespace BlockEnhancementMod
             RotationToggle.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Rotation }));
-                Debug.Log("send");
-            }
-            else
-            {
-                ChangeParameter(Rotation);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Rotation }));
+        //        Debug.Log("send");
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Rotation);
+        //    }
+        //}
 
-        public void ChangeParameter(bool value)
+        //public override void OnSimulateStart()
+        //{
+        //    if (!StatMaster.isClient)
+        //    {
+        //        ChangeParameter();
+        //    }
+        //}
+
+        public override void ChangeParameter()
         {
             CJ = GetComponent<ConfigurableJoint>();
             BreakTorque = CJ.breakTorque;
 
-            if (value)
+            if (Rotation)
             {
                 CJ.angularYMotion = ConfigurableJointMotion.Locked;
                 CJ.breakTorque = Mathf.Infinity;
@@ -68,18 +76,18 @@ namespace BlockEnhancementMod
             }
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<BallJointScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<BallJointScript>();
                 
-                script.Rotation = (bool)message.GetData(1);
-                script.ChangeParameter(script.Rotation);
-            }
-        }
+        //        script.Rotation = (bool)message.GetData(1);
+        //        script.ChangeParameter(script.Rotation);
+        //    }
+        //}
 
     }
 

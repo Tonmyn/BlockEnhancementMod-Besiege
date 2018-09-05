@@ -40,7 +40,7 @@ namespace BlockEnhancementMod
 
         public List<KeyCode> ShrinkKeyCodes = new List<KeyCode> { KeyCode.F };
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Boolean, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Boolean, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -87,23 +87,23 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Hydraulic, Feed, ExtendLimit, RetractLimit }));
-            }
-            else
-            {
-                ChangeParameter();
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Hydraulic, Feed, ExtendLimit, RetractLimit }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter();
+        //    }
+        //}
 
         ConfigurableJoint CJ;
 
         Rigidbody RB;
 
-        public void ChangeParameter()
+        public override void ChangeParameter()
         {
 
             CJ = GetComponent<ConfigurableJoint>();
@@ -117,9 +117,11 @@ namespace BlockEnhancementMod
 
         }
 
-        void Update()
+        public override void SimulateUpdateAlways()
         {
-            if (Hydraulic && BB.isSimulating/* && (StatMaster.isHosting || StatMaster.isLocalSim)*/)
+            if (StatMaster.isClient) return;
+
+            if (Hydraulic/* && BB.isSimulating*//* && (StatMaster.isHosting || StatMaster.isLocalSim)*/)
             {
                 if (ExtendKey.IsDown /*&& !ExtendKey.ignored*/)
                 {
@@ -151,23 +153,23 @@ namespace BlockEnhancementMod
             }
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<SuspensionScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<SuspensionScript>();
 
-                script.Hardness = (int)message.GetData(1);
-                script.Hydraulic = (bool)message.GetData(2);
-                script.Feed = (float)message.GetData(3);
-                script.ExtendLimit = (float)message.GetData(4);
-                script.RetractLimit = (float)message.GetData(5);
-                //script.ChangeParameter(script.Hardness, script.Hydraulic, script.Feed, script.ExtendLimit, script.RetractLimit);
-                script.ChangeParameter();
-            }
-        }
+        //        script.Hardness = (int)message.GetData(1);
+        //        script.Hydraulic = (bool)message.GetData(2);
+        //        script.Feed = (float)message.GetData(3);
+        //        script.ExtendLimit = (float)message.GetData(4);
+        //        script.RetractLimit = (float)message.GetData(5);
+        //        //script.ChangeParameter(script.Hardness, script.Hydraulic, script.Feed, script.ExtendLimit, script.RetractLimit);
+        //        script.ChangeParameter();
+        //    }
+        //}
        
     }
 
