@@ -90,7 +90,7 @@ namespace BlockEnhancementMod.Blocks
 
         private GameObject customBulletObject;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -161,129 +161,21 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Interval, RandomDelay, knockBackSpeed }));
-            }
-            else
-            {
-                ChangeParameter(Interval, RandomDelay, KnockBackSpeedZeroOne);
-            }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Interval, RandomDelay, knockBackSpeed }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Interval, RandomDelay, KnockBackSpeedZeroOne);
+        //    }
 
 
-        }
+        //}
 
-        public void ChangeParameter(float interval,float randomDelay,float knockBackSpeed)
-        {
-            if (StatMaster.isMP)
-            {
-                cBullet = Trail = false;
-            }
-
-            Strength = CB.StrengthSlider.Value;
-
-            BulletObject = CB.boltObject.gameObject;
-            //BR = BulletObject.GetComponent<Rigidbody>();
-
-            //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-            knockBackSpeed = Mathf.Clamp(knockBackSpeed, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-
-            CB.enabled = !cBullet;
-            timer = interval < intervalMin ? intervalMin : interval;
-
-            //独立自定子弹
-            if (cBullet)
-            {
-                customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-                customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-                customBulletObject.SetActive(false);
-                if (InheritSize)
-                {
-                    CB.particles[0].transform.localScale = customBulletObject.transform.localScale;
-                }
-                BR = customBulletObject.GetComponent<Rigidbody>();
-                BR.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
-                BR.drag = BR.angularDrag = Drag;
-
-            }
-            else
-            {
-                CB.randomDelay = randomDelay < 0 ? 0 : randomDelay;
-                if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
-                {
-                    CB.knockbackSpeed = knockBackSpeed;
-                }
-            }
-
-            GameObject bullet = cBullet ? customBulletObject : BulletObject;
-
-            if (Trail)
-            {
-
-                if (bullet.GetComponent<TrailRenderer>() == null)
-                {
-                    myTrailRenderer = bullet.AddComponent<TrailRenderer>();
-                }
-                else
-                {
-                    myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-                    myTrailRenderer.enabled = Trail;
-                }
-                myTrailRenderer.autodestruct = false;
-                myTrailRenderer.receiveShadows = false;
-                myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-                myTrailRenderer.startWidth = 0.5f * bullet.transform.localScale.magnitude;
-                myTrailRenderer.endWidth = 0.1f;
-                myTrailRenderer.time = TrailLength;
-
-                myTrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
-                myTrailRenderer.material.SetColor("_TintColor", TrailColor);
-            }
-            else
-            {
-                myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-                if (myTrailRenderer)
-                {
-                    myTrailRenderer.enabled = Trail;
-                }
-            }
-
-        }
-
-        public override void BuildingUpdate()
-        {
-            if (StatMaster.isMP)
-            {
-                if (TrailToggle.DisplayInMapper)
-                {
-                    TrailToggle.DisplayInMapper = false;
-                }
-            }
-            if (!no8Workshop && StatMaster.isMP)
-            {
-                if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
-                {
-                    KnockBackSpeedSlider.DisplayInMapper = false;
-                }
-                if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper)
-                {
-                    KnockBackSpeedSlider.DisplayInMapper = true;
-                }
-            }
-            else
-            {
-                if (!KnockBackSpeedSlider.DisplayInMapper)
-                {
-                    KnockBackSpeedSlider.DisplayInMapper = true;
-                }
-            }
-            
-        }
-
-        public override void OnSimulateStart()
+        public override void ChangeParameter()
         {
             if (StatMaster.isMP)
             {
@@ -358,58 +250,154 @@ namespace BlockEnhancementMod.Blocks
                     myTrailRenderer.enabled = Trail;
                 }
             }
+
         }
 
-
-        void Update()
+        public override void BuildingUpdate()
         {
-            if (BB.isSimulating)
+            if (StatMaster.isMP)
             {
-                if (CB.ShootKey.IsDown && Interval > 0)
+                if (TrailToggle.DisplayInMapper)
                 {
-                    if (timer > Interval)
-                    {
-                        timer = 0;
-                        if (cBullet)
-                        {
-                            StartCoroutine(Shoot());
-                        }
-                        else
-                        {
-                            CB.Shoot();
-                        }
-                    }
-                    else
-                    {
-                        timer += Time.deltaTime;
-                    }
-                }
-                else if (CB.ShootKey.IsReleased)
-                {
-                    timer = Interval;
+                    TrailToggle.DisplayInMapper = false;
                 }
             }
-        }
-
-        void FixedUpdate()
-        {
-            if (BB.isSimulating)
+            if (!no8Workshop && StatMaster.isMP)
             {
-                if (CB.ShootKey.IsDown && cBullet)
+                if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
                 {
-                    CB.StopAllCoroutines();
+                    KnockBackSpeedSlider.DisplayInMapper = false;
+                }
+                if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
                 }
             }
+            else
+            {
+                if (!KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
+                }
+            }
+            
         }
+
+        //public override void OnSimulateStart()
+        //{
+        //    if (StatMaster.isMP)
+        //    {
+        //        cBullet = Trail = false;
+        //    }
+
+        //    Strength = CB.StrengthSlider.Value;
+
+        //    BulletObject = CB.boltObject.gameObject;
+        //    //BR = BulletObject.GetComponent<Rigidbody>();
+
+        //    //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
+        //    knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
+
+        //    CB.enabled = !cBullet;
+        //    timer = Interval < intervalMin ? intervalMin : Interval;
+
+        //    //独立自定子弹
+        //    if (cBullet)
+        //    {
+        //        customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+        //        customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+        //        customBulletObject.SetActive(false);
+        //        if (InheritSize)
+        //        {
+        //            CB.particles[0].transform.localScale = customBulletObject.transform.localScale;
+        //        }
+        //        BR = customBulletObject.GetComponent<Rigidbody>();
+        //        BR.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
+        //        BR.drag = BR.angularDrag = Drag;
+
+        //    }
+        //    else
+        //    {
+        //        CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
+        //        if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
+        //        {
+        //            CB.knockbackSpeed = knockBackSpeed;
+        //        }
+        //    }
+
+        //    GameObject bullet = cBullet ? customBulletObject : BulletObject;
+
+        //    if (Trail)
+        //    {
+
+        //        if (bullet.GetComponent<TrailRenderer>() == null)
+        //        {
+        //            myTrailRenderer = bullet.AddComponent<TrailRenderer>();
+        //        }
+        //        else
+        //        {
+        //            myTrailRenderer = bullet.GetComponent<TrailRenderer>();
+        //            myTrailRenderer.enabled = Trail;
+        //        }
+        //        myTrailRenderer.autodestruct = false;
+        //        myTrailRenderer.receiveShadows = false;
+        //        myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        //        myTrailRenderer.startWidth = 0.5f * bullet.transform.localScale.magnitude;
+        //        myTrailRenderer.endWidth = 0.1f;
+        //        myTrailRenderer.time = TrailLength;
+
+        //        myTrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
+        //        myTrailRenderer.material.SetColor("_TintColor", TrailColor);
+        //    }
+        //    else
+        //    {
+        //        myTrailRenderer = bullet.GetComponent<TrailRenderer>();
+        //        if (myTrailRenderer)
+        //        {
+        //            myTrailRenderer.enabled = Trail;
+        //        }
+        //    }
+        //}
 
         public override void SimulateFixedUpdateAlways()
         {
+            if (!StatMaster.isClient) return;
 
+            if (CB.ShootKey.IsDown && cBullet)
+            {
+                CB.StopAllCoroutines();
+            }
         }
 
         public override void SimulateUpdateAlways()
         {
-           
+            if (StatMaster.isClient) return;
+
+            if (CB.ShootKey.IsDown && Interval > 0)
+            {
+                if (timer > Interval)
+                {
+                    timer = 0;
+                    if (cBullet)
+                    {
+                        StartCoroutine(Shoot());
+                    }
+                    else
+                    {
+                        CB.Shoot();
+                    }
+                }
+                else
+                {
+                    timer += Time.deltaTime;
+                }
+            }
+            else if (CB.ShootKey.IsReleased)
+            {
+                timer = Interval;
+            }
+
         }
 
         private IEnumerator Shoot()
@@ -448,20 +436,20 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<CannonScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<CannonScript>();
 
-                script.Interval = (float)message.GetData(1);
-                script.RandomDelay = (float)message.GetData(2);
-                script.KnockBackSpeedZeroOne = (float)message.GetData(3);
-                script.ChangeParameter(script.Interval,script.RandomDelay,script.KnockBackSpeedZeroOne);
-            }
-        }
+        //        script.Interval = (float)message.GetData(1);
+        //        script.RandomDelay = (float)message.GetData(2);
+        //        script.KnockBackSpeedZeroOne = (float)message.GetData(3);
+        //        script.ChangeParameter(script.Interval,script.RandomDelay,script.KnockBackSpeedZeroOne);
+        //    }
+        //}
 
     }
 

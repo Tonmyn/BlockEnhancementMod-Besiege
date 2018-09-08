@@ -19,7 +19,7 @@ namespace BlockEnhancementMod.Blocks
 
         public int Hardness = 1;
 
-        public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Single }), OnCallBack);
+        //public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -45,23 +45,23 @@ namespace BlockEnhancementMod.Blocks
             FrictionSlider.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Friction }));
-            }
-            else
-            {
-                ChangeParameter(Hardness, Friction);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Friction }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Hardness, Friction);
+        //    }
+        //}
 
         private ConfigurableJoint CJ;
 
         private Collider[] colliders;
 
-        public void ChangeParameter(float hardness,float friction)
+        public override void ChangeParameter()
         {
             colliders = GetComponentsInChildren<Collider>();
             CJ = GetComponent<ConfigurableJoint>();
@@ -80,19 +80,19 @@ namespace BlockEnhancementMod.Blocks
             SwitchWoodHardness(Hardness, CJ);
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<GripPadScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<GripPadScript>();
 
-                script.Hardness = (int)message.GetData(1);
-                script.Friction = (float)message.GetData(2);
-                script.ChangeParameter(script.Hardness, script.Friction);
-            }
-        }
+        //        script.Hardness = (int)message.GetData(1);
+        //        script.Friction = (float)message.GetData(2);
+        //        script.ChangeParameter(script.Hardness, script.Friction);
+        //    }
+        //}
     }
 
     

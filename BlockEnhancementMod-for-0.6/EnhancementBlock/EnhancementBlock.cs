@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using UnityEngine;
-using Modding;
+﻿using Modding;
 using Modding.Blocks;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public  class EnhancementBlock : BlockScript
+    public  class EnhancementBlock : MonoBehaviour
     {
         public static bool no8Workshop { get; internal set; } = false;
 
@@ -22,6 +19,8 @@ namespace BlockEnhancementMod
         /// 进阶属性按钮
         /// </summary>
         public MToggle Enhancement;
+
+        private bool isFirstFrame = true;
 
         /// <summary>
         /// 进阶属性激活
@@ -63,6 +62,61 @@ namespace BlockEnhancementMod
             DisplayInMapper(enhancementEnabled);
 
             //Controller.Instance.OnSave += SaveConfiguration;
+        }
+
+        void Update()
+        {
+            //if (enhancementEnabled)
+            //{
+                if (BB.isSimulating)
+                {
+                    if (isFirstFrame)
+                    {
+                        isFirstFrame = false;
+                    OnSimulateStart();
+#if DEBUG
+                        //ConsoleController.ShowMessage("on simulation start");
+#endif
+                    }
+
+                    if (StatMaster.isHosting)
+                    {
+                        SimulateUpdateHost();
+                    }
+                    if (StatMaster.isClient)
+                    {
+                        SimulateUpdateClient();
+                    }
+                    SimulateUpdateAlways();
+                }
+                else
+                {
+                    BuildingUpdate();
+                    isFirstFrame = true;
+                }
+            //}
+        }
+
+        private void FixedUpdate()
+        {
+            if (enhancementEnabled)
+            {
+                if (BB.isSimulating && !isFirstFrame)
+                {
+                    SimulateFixedUpdateAlways();
+                }
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (enhancementEnabled)
+            {
+                if (BB.isSimulating && !isFirstFrame)
+                {
+                    SimulateLateUpdateAlways();
+                }
+            }
         }
 
         [Obsolete]
@@ -152,6 +206,53 @@ namespace BlockEnhancementMod
         public virtual void LoadConfiguration(XDataHolder BlockData) { }
 
         /// <summary>
+        /// 安全唤醒 模块只需要关心自己要添加什么控件就行了
+        /// </summary>
+        public virtual void SafeAwake() { }
+
+        /// <summary>
+        /// 在模拟开始的第一帧 要做的事
+        /// </summary>
+        public virtual void OnSimulateStart()
+        {
+            if (!StatMaster.isClient)
+            {
+                ChangeParameter();
+            }
+        }
+
+        /// <summary>
+        /// 在模拟模式下的Update
+        /// </summary>
+        public virtual void SimulateUpdateHost() { }
+
+        /// <summary>
+        /// 在模拟模式下的Update
+        /// </summary>
+        public virtual void SimulateUpdateClient() { }
+
+        /// <summary>
+        /// 在模拟模式下的Update
+        /// </summary>
+        public virtual void SimulateUpdateAlways() { }
+
+        /// <summary>
+        /// 在模拟模式下的FixedUpdate
+        /// </summary>
+        public virtual void SimulateFixedUpdateAlways() { }
+
+        /// <summary>
+        /// 在模拟模式下的LateUpdate
+        /// </summary>
+        public virtual void SimulateLateUpdateAlways() { }
+
+        /// <summary>
+        /// 建造模式下的Update
+        /// </summary>
+        public virtual void BuildingUpdate() { }
+
+
+        /// <summary>
         /// 显示在Mapper里面
         /// </summary>
         public virtual void DisplayInMapper(bool value) { }
@@ -160,6 +261,8 @@ namespace BlockEnhancementMod
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
         public virtual void ChangedProperties() { }
+
+        public virtual void ChangeParameter() { }
 
         /// <summary>
         /// 设置金属硬度
@@ -193,16 +296,20 @@ namespace BlockEnhancementMod
             {
                 case 0:
                     CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 10f; break;
+                    CJ.projectionAngle = 10f;
+                    CJ.projectionDistance = 5; break;
                 case 2:
                     CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 5f; break;
-
+                    CJ.projectionAngle = 5f;
+                    CJ.projectionDistance = 2.5f; break;
                 case 3:
                     CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 0.5f; break;
+                    CJ.projectionAngle = 0f;
+                    CJ.projectionDistance = 0; break;
                 default:
-                    CJ.projectionMode = JointProjectionMode.None; break;
+                    CJ.projectionMode = JointProjectionMode.None;
+                    CJ.projectionDistance = 0;
+                    CJ.projectionAngle = 0; break;
 
             }
 
@@ -210,22 +317,22 @@ namespace BlockEnhancementMod
       
     }
 
-    public class BlockMessage
-    {
-        public MessageType messageType;
+    //public class BlockMessage
+    //{
+    //    public MessageType messageType;
 
-        public Action<Message> CallBackEvent;
+    //    public Action<Message> CallBackEvent;
 
-        public BlockMessage(MessageType messageType,Action<Message> action)
-        {
-            this.messageType = messageType;
-            CallBackEvent = action;
+    //    public BlockMessage(MessageType messageType,Action<Message> action)
+    //    {
+    //        this.messageType = messageType;
+    //        CallBackEvent = action;
 
-            ModNetworking.Callbacks[messageType] += action;
+    //        ModNetworking.Callbacks[messageType] += action;
 
-        }
+    //    }
 
-    }
+    //}
 
 }
 

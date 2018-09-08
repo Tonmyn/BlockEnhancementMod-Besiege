@@ -84,7 +84,7 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            CameraLookAtToggle = AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
@@ -97,15 +97,15 @@ namespace BlockEnhancementMod
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
 
-            NonCustomModeSmoothSlider = AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
+            NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
-            LockTargetKey = AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
+            LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
 
-            PauseTrackingKey = AddKey(LanguageManager.pauseTracking, "ResetView", KeyCode.X);
+            PauseTrackingKey = BB.AddKey(LanguageManager.pauseTracking, "ResetView", KeyCode.X);
 
-            AutoLookAtKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            AutoLookAtKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();

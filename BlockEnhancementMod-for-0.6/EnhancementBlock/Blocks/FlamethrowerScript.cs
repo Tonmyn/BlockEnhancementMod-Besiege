@@ -24,7 +24,7 @@ namespace BlockEnhancementMod
 
         ParticleSystem particleSystem;
 
-        public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single, DataType.Color }), OnCallBack);
+        //public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single, DataType.Color }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -45,36 +45,30 @@ namespace BlockEnhancementMod
             flameColorSlider.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ThrustForce, FlameColor }));
-            }
-            else
-            {
-                ChangeParameter(ThrustForce, FlameColor);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ThrustForce, FlameColor }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(ThrustForce, FlameColor);
+        //    }
+        //}
 
-        public void ChangeParameter(float force,Color color)
+        public override  void ChangeParameter()
         {
             flamethrowerController = GetComponent<FlamethrowerController>();
             particleSystem = flamethrowerController.fireParticles;
             rigidbody = GetComponent<Rigidbody>();
 
-            particleSystem.startColor = color;
-            ThrustForce = force;
+            particleSystem.startColor = FlameColor;
         }
 
-        void Update()
+        public override void SimulateFixedUpdateAlways()
         {
-   
-        }
-
-        public void SimulateFixedUpdateHost()
-        {
-            Debug.Log("??");
+            if (StatMaster.isClient) return;
 
             if (ThrustForce != 0 && flamethrowerController.isFlaming)
             {
@@ -82,18 +76,18 @@ namespace BlockEnhancementMod
             }
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<FlamethrowerScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<FlamethrowerScript>();
 
-                script.ThrustForce = (float)message.GetData(1);
-                script.FlameColor = (Color)message.GetData(2);
-                script.ChangeParameter(script.ThrustForce, script.FlameColor);
-            }
-        }
+        //        script.ThrustForce = (float)message.GetData(1);
+        //        script.FlameColor = (Color)message.GetData(2);
+        //        script.ChangeParameter(script.ThrustForce, script.FlameColor);
+        //    }
+        //}
     }
 }

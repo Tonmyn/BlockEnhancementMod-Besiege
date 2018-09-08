@@ -15,7 +15,7 @@ namespace BlockEnhancementMod
 
         int Hardness = 0;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer }),OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer }),OnCallBack);
 
         public override void SafeAwake()
         {
@@ -38,38 +38,38 @@ namespace BlockEnhancementMod
 
         ConfigurableJoint CJ;
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness }));
-            }
-            else
-            {
-                ChangeParameter(Hardness);
-            }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Hardness);
+        //    }
 
-        }
+        //}
 
-        public void ChangeParameter(int hardness)
+        public override void ChangeParameter()
         {
             CJ = GetComponent<ConfigurableJoint>();
 
-            SwitchMatalHardness(hardness, CJ);
+            SwitchMatalHardness(Hardness, CJ);
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<PistonScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<PistonScript>();
 
-                script.Hardness = (int)message.GetData(1);
-                script.ChangeParameter(script.Hardness);
-            }
-        }
+        //        script.Hardness = (int)message.GetData(1);
+        //        script.ChangeParameter(script.Hardness);
+        //    }
+        //}
 
     }
 }

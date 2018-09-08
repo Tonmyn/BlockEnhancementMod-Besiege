@@ -111,7 +111,7 @@ namespace BlockEnhancementMod.Blocks
             rocketAim = new Texture2D(256, 256);
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources\\Square-Red.png"));
             //Key mapper setup
-            GuidedRocketToggle = AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
+            GuidedRocketToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
@@ -128,7 +128,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
 
-            ProximityFuzeToggle = AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
+            ProximityFuzeToggle = BB.AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
                 proximityFuzeActivated =
@@ -139,7 +139,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
 
-            NoSmokeToggle = AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
+            NoSmokeToggle = BB.AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
             NoSmokeToggle.Toggled += (bool value) =>
             {
                 noSmoke = value;
@@ -147,7 +147,7 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { noSmoke = NoSmokeToggle.IsActive; };
 
-            HighExploToggle = AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
+            HighExploToggle = BB.AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
             {
                 highExploActivated = value;
@@ -155,34 +155,34 @@ namespace BlockEnhancementMod.Blocks
             };
             BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
-            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
+            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
-            ProximityFuzeRangeSlider = AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
+            ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
-            ProximityFuzeAngleSlider = AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90);
+            ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
-            GuidedRocketTorqueSlider = AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
+            GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
-            GuidedRocketStabilityToggle = AddToggle(LanguageManager.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
+            GuidedRocketStabilityToggle = BB.AddToggle(LanguageManager.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
             GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityOn = GuidedRocketStabilityToggle.IsActive; };
 
-            GuideDelaySlider = AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2);
+            GuideDelaySlider = BB.AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
             BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
-            LockTargetKey = AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
+            LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
-            SwitchGuideModeKey = AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket

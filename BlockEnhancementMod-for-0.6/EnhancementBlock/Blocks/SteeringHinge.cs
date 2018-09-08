@@ -28,7 +28,7 @@ namespace BlockEnhancementMod
 
         MKey rightKey;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -52,53 +52,49 @@ namespace BlockEnhancementMod
             r2cToggle.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ReturnToCenter}));
-            }
-            else
-            {
-                ChangeParameter(ReturnToCenter);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ReturnToCenter}));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(ReturnToCenter);
+        //    }
+        //}
 
-        public void ChangeParameter(bool value)
+        public override void ChangeParameter()
         {
-
             rigidbody = GetComponent<Rigidbody>();
-
-            ReturnToCenter = value;
         }
 
-        void Update()
+        public override void SimulateUpdateAlways()
         {
-            if (BB.isSimulating/* && (StatMaster.isHosting || StatMaster.isLocalSim)*/)
+            if (StatMaster.isClient) return;
+
+            if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
             {
-                if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
-                {
-                    rigidbody.WakeUp();
+                rigidbody.WakeUp();
 
-                    angleSpeed = Time.deltaTime * 100f * steeringWheel.targetAngleSpeed * rotationSpeedSlider.Value;
+                angleSpeed = Time.deltaTime * 100f * steeringWheel.targetAngleSpeed * rotationSpeedSlider.Value;
 
-                    steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
-                }
+                steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
             }
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<SteeringHinge>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<SteeringHinge>();
 
-                script.ReturnToCenter = (bool)message.GetData(1);
-                script.ChangeParameter(script.ReturnToCenter);
-            }
-        }
+        //        script.ReturnToCenter = (bool)message.GetData(1);
+        //        script.ChangeParameter(script.ReturnToCenter);
+        //    }
+        //}
     }
 
 

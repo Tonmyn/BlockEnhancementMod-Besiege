@@ -15,7 +15,7 @@ namespace BlockEnhancementMod
 
         public float Speed = 5;
 
-        public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single }), OnCallBack);
+        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -35,35 +35,35 @@ namespace BlockEnhancementMod
             SpeedSlider.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Speed }));
+        //    }
+        //    else
+        //    {
+        //        ChangeParameter(Speed);
+        //    }
+        //}
+
+        public override void ChangeParameter()
         {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Speed }));
-            }
-            else
-            {
-                ChangeParameter(Speed);
-            }
+            GetComponent<SmallWheel>().speed = Speed;
         }
 
-        public void ChangeParameter(float speed)
-        {
-            GetComponent<SmallWheel>().speed = speed;
-        }
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<SmallwheelScript>();
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<SmallwheelScript>();
-
-                script.Speed = (float)message.GetData(1);
-                script.ChangeParameter(script.Speed);
-            }
-        }
+        //        script.Speed = (float)message.GetData(1);
+        //        script.ChangeParameter(script.Speed);
+        //    }
+        //}
 
 
 

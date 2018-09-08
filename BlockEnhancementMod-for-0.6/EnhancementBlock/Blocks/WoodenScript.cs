@@ -18,7 +18,7 @@ namespace BlockEnhancementMod
 
         public int Hardness = 1;
 
-        public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer }), OnCallBack);
+        //public static BlockMessage BlockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer }), OnCallBack);
 
         public override void SafeAwake()
         {        
@@ -38,37 +38,37 @@ namespace BlockEnhancementMod
             HardnessMenu.DisplayInMapper = value;
         }
 
-        public override void ChangedProperties()
-        {
-            if (StatMaster.isClient)
-            {
-                ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness }));
-            }
-            else
-            {
-                ChangeHardness(Hardness);
-            }
-        }
+        //public override void ChangedProperties()
+        //{
+        //    if (StatMaster.isClient)
+        //    {
+        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness }));
+        //    }
+        //    else
+        //    {
+        //        ChangeHardness(Hardness);
+        //    }
+        //}
 
-        public void ChangeHardness(int value)
+        public override void ChangeParameter()
         {
             CJ = GetComponent<ConfigurableJoint>();
 
             SwitchWoodHardness(Hardness, CJ);
         }
 
-        public static void OnCallBack(Message message)
-        {
-            Block block = (Block)message.GetData(0);
+        //public static void OnCallBack(Message message)
+        //{
+        //    Block block = (Block)message.GetData(0);
 
-            if ((block == null ? false : block.InternalObject != null))
-            {
-                var script = block.InternalObject.GetComponent<WoodenScript>();
+        //    if ((block == null ? false : block.InternalObject != null))
+        //    {
+        //        var script = block.InternalObject.GetComponent<WoodenScript>();
 
-                script.Hardness = (int)message.GetData(1);
-                script.ChangeHardness(script.Hardness);
-            }
-        }
+        //        script.Hardness = (int)message.GetData(1);
+        //        script.ChangeHardness(script.Hardness);
+        //    }
+        //}
 
        
     }
