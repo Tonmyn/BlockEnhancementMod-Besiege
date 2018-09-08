@@ -8,7 +8,7 @@ namespace BlockEnhancementMod
 {
     public  class EnhancementBlock : MonoBehaviour
     {
-        public static bool no8Workshop { get; internal set; } = false;
+        public static bool No8Workshop { get; internal set; } = false;
 
         /// <summary>
         /// 模块行为
@@ -25,7 +25,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 进阶属性激活
         /// </summary>
-        public bool enhancementEnabled { get; set; } = false;
+        public bool EnhancementEnabled { get; set; } = false;
 
         //public static BlockMessage BlockMessage { get; }
 
@@ -49,17 +49,17 @@ namespace BlockEnhancementMod
             
             SafeAwake();
 
-            if (BB.isSimulating ) { return; }        
+            //if (BB.isSimulating ) { return; }        
 
-            Enhancement = BB.AddToggle(LanguageManager.enhancement, "Enhancement", enhancementEnabled);
+            Enhancement = BB.AddToggle(LanguageManager.enhancement, "Enhancement", EnhancementEnabled);
 
-            Enhancement.Toggled += (bool value) => { enhancementEnabled = value; DisplayInMapper(value); };
+            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; DisplayInMapper(value); };
 
             //LoadConfiguration();    
 
             ChangedProperties(); try { BlockPropertiseChangedEvent(); } catch { }
 
-            DisplayInMapper(enhancementEnabled);
+            DisplayInMapper(EnhancementEnabled);
 
             //Controller.Instance.OnSave += SaveConfiguration;
         }
@@ -99,7 +99,7 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (enhancementEnabled)
+            if (EnhancementEnabled)
             {
                 if (BB.isSimulating && !isFirstFrame)
                 {
@@ -110,7 +110,7 @@ namespace BlockEnhancementMod
 
         private void LateUpdate()
         {
-            if (enhancementEnabled)
+            if (EnhancementEnabled)
             {
                 if (BB.isSimulating && !isFirstFrame)
                 {

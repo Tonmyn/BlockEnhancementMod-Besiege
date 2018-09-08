@@ -45,13 +45,13 @@ namespace BlockEnhancementMod.Blocks
 
         public float Interval = 0.25f;
 
-        private readonly float intervalMin = no8Workshop ? 0f : 0.1f;
+        private readonly float intervalMin = No8Workshop ? 0f : 0.1f;
 
         public float RandomDelay = 0.2f;
 
         public float KnockBackSpeedZeroOne = 1f;
 
-        private readonly float knockBackSpeedZeroOneMin = no8Workshop ? 0f : 0.25f;
+        private readonly float knockBackSpeedZeroOneMin = No8Workshop ? 0f : 0.25f;
 
         private readonly float knockBackSpeedZeroOneMax = 1f;
 
@@ -211,7 +211,7 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-                if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
+                if (Strength <= 20 || No8Workshop || !StatMaster.isMP)
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
@@ -262,7 +262,7 @@ namespace BlockEnhancementMod.Blocks
                     TrailToggle.DisplayInMapper = false;
                 }
             }
-            if (!no8Workshop && StatMaster.isMP)
+            if (!No8Workshop && StatMaster.isMP)
             {
                 if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
                 {
@@ -362,7 +362,7 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateFixedUpdateAlways()
         {
-            if (!StatMaster.isClient) return;
+            if (StatMaster.isClient) return;
 
             if (CB.ShootKey.IsDown && cBullet)
             {
