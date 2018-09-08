@@ -223,7 +223,7 @@ namespace BlockEnhancementMod.Blocks
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
                 activeGuide = true;
                 target = null;
-                searchAngle = Mathf.Clamp(searchAngle, 0, no8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
+                searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 explodedTarget.Clear();
                 StopAllCoroutines();
 
@@ -231,7 +231,7 @@ namespace BlockEnhancementMod.Blocks
                 explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
 
                 // Make sure the high explo mode is not too imba
-                if (highExploActivated && !no8Workshop)
+                if (highExploActivated && !No8Workshop)
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
@@ -472,7 +472,8 @@ namespace BlockEnhancementMod.Blocks
                     //else, apply maximum torque to the rocket
                     if (forward && angleDiff <= searchAngle)
                     {
-                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis); }
+                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                        }
                         catch { }
                     }
                     else
@@ -671,7 +672,7 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                foreach (var cluster in global::Machine.Active().simClusters)
+                foreach (var cluster in Machine.Active().simClusters)
                 {
                     if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
                     {
