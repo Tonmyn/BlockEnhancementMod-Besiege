@@ -738,16 +738,22 @@ namespace BlockEnhancementMod
         {
             if (clientTarget != null)
             {
+#if DEBUG
                 Debug.Log("Sending target to client");
+#endif
                 if (clientTarget.gameObject.GetComponent<BlockBehaviour>())
                 {
+#if DEBUG
                     Debug.Log("Target is a block");
+#endif
                     Message targetBlockBehaviourMsg = Messages.cameraTargetBlockBehaviourMsg.CreateMessage(clientTarget.gameObject.GetComponent<BlockBehaviour>());
                     ModNetworking.SendTo(Player.GetAllPlayers()[clientPlayerID], targetBlockBehaviourMsg);
                 }
                 if (clientTarget.gameObject.GetComponent<LevelEntity>())
                 {
+#if DEBUG
                     Debug.Log("Target is a level entity");
+#endif
                     Message targetEntityMsg = Messages.cameraTargetEntityMsg.CreateMessage(clientTarget.gameObject.GetComponent<LevelEntity>());
                     ModNetworking.SendTo(Player.GetAllPlayers()[clientPlayerID], targetEntityMsg);
                 }
@@ -758,7 +764,9 @@ namespace BlockEnhancementMod
         {
             Message cameraRayToHostMsg = Messages.cameraRayToHostMsg.CreateMessage(ray.origin, ray.direction);
             ModNetworking.SendToHost(cameraRayToHostMsg);
+#if DEBUG
             ConsoleController.ShowMessage("Message Sent to Host");
+#endif
         }
     }
 }

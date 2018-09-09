@@ -88,12 +88,16 @@ namespace BlockEnhancementMod.Blocks
         {
             ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
             {
+#if DEBUG
                 Debug.Log("Receive block target");
+#endif
                 target = ((Block)msg.GetData(0)).GameObject.transform;
             };
             ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
             {
+#if DEBUG
                 Debug.Log("Receive entity target");
+#endif
                 target = ((Entity)msg.GetData(0)).GameObject.transform;
             };
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
