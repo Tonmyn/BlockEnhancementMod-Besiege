@@ -10,37 +10,29 @@ namespace BlockEnhancementMod
     {
         public static bool No8Workshop { get; internal set; } = false;
 
-        /// <summary>
-        /// 模块行为
-        /// </summary>
+        /// <summary>模块行为</summary>
         public BlockBehaviour BB { get; internal set; } 
 
-        /// <summary>
-        /// 进阶属性按钮
-        /// </summary>
+        /// <summary>进阶属性按钮</summary>
         public MToggle Enhancement;
 
-        private bool isFirstFrame = true;
-
-        /// <summary>
-        /// 进阶属性激活
-        /// </summary>
+        /// <summary>进阶属性激活</summary>
         public bool EnhancementEnabled { get; set; } = false;
-
-        //public static BlockMessage BlockMessage { get; }
 
         internal static List<string> MetalHardness = new List<string>() { LanguageManager.lowCarbonSteel, LanguageManager.midCarbonSteel, LanguageManager.highCarbonSteel };
 
         internal static List<string> WoodHardness = new List<string>() { LanguageManager.softWood, LanguageManager.midSoftWood, LanguageManager.hardWood, LanguageManager.veryHardWood };
 
+        [Obsolete]
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataLoadEvent;
-
+        [Obsolete]
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataSaveEvent;
 
         public Action BlockPropertiseChangedEvent;
 
+        private bool isFirstFrame = true;
 
         private void Awake()
         {
@@ -66,56 +58,49 @@ namespace BlockEnhancementMod
 
         void Update()
         {
-            //if (enhancementEnabled)
-            //{
-                if (BB.isSimulating)
+            if (BB.isSimulating)
+            {
+                if (isFirstFrame)
                 {
-                    if (isFirstFrame)
-                    {
-                        isFirstFrame = false;
+                    isFirstFrame = false;
                     OnSimulateStart();
-#if DEBUG
-                        //ConsoleController.ShowMessage("on simulation start");
-#endif
-                    }
 
-                    if (StatMaster.isHosting)
+                    if (!StatMaster.isClient)
                     {
-                        SimulateUpdateHost();
+                        ChangeParameter();
                     }
-                    if (StatMaster.isClient)
-                    {
-                        SimulateUpdateClient();
-                    }
-                    SimulateUpdateAlways();
                 }
-                else
+
+                if (StatMaster.isHosting)
                 {
-                    BuildingUpdate();
-                    isFirstFrame = true;
+                    SimulateUpdateHost();
                 }
-            //}
+                if (StatMaster.isClient)
+                {
+                    SimulateUpdateClient();
+                }
+                SimulateUpdateAlways();
+            }
+            else
+            {
+                BuildingUpdate();
+                isFirstFrame = true;
+            }
         }
 
         private void FixedUpdate()
         {
-            if (EnhancementEnabled)
+            if (BB.isSimulating && !isFirstFrame)
             {
-                if (BB.isSimulating && !isFirstFrame)
-                {
-                    SimulateFixedUpdateAlways();
-                }
+                SimulateFixedUpdateAlways();
             }
         }
 
         private void LateUpdate()
         {
-            if (EnhancementEnabled)
+            if (BB.isSimulating && !isFirstFrame)
             {
-                if (BB.isSimulating && !isFirstFrame)
-                {
-                    SimulateLateUpdateAlways();
-                }
+                SimulateLateUpdateAlways();
             }
         }
 
@@ -193,59 +178,45 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
+        [Obsolete]
         /// <summary>
         /// 储存配置
         /// </summary>
         /// <param name="mi">当前存档信息</param>
         public virtual void SaveConfiguration(XDataHolder BlockData) { }
-
+        [Obsolete]
         /// <summary>
         /// 加载配置
         /// </summary>
         public virtual void LoadConfiguration(XDataHolder BlockData) { }
-
         /// <summary>
         /// 安全唤醒 模块只需要关心自己要添加什么控件就行了
         /// </summary>
         public virtual void SafeAwake() { }
-
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>
-        public virtual void OnSimulateStart()
-        {
-            if (!StatMaster.isClient)
-            {
-                ChangeParameter();
-            }
-        }
-
+        public virtual void OnSimulateStart() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateHost() { }
-
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateClient() { }
-
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateAlways() { }
-
         /// <summary>
         /// 在模拟模式下的FixedUpdate
         /// </summary>
         public virtual void SimulateFixedUpdateAlways() { }
-
         /// <summary>
         /// 在模拟模式下的LateUpdate
         /// </summary>
         public virtual void SimulateLateUpdateAlways() { }
-
         /// <summary>
         /// 建造模式下的Update
         /// </summary>
@@ -256,13 +227,15 @@ namespace BlockEnhancementMod
         /// 显示在Mapper里面
         /// </summary>
         public virtual void DisplayInMapper(bool value) { }
-
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
         public virtual void ChangedProperties() { }
-
+        /// <summary>
+        /// 参数改变（联机模拟时主机对模块的一些参数初始化）
+        /// </summary>
         public virtual void ChangeParameter() { }
+
 
         /// <summary>
         /// 设置金属硬度
@@ -284,7 +257,6 @@ namespace BlockEnhancementMod
 
             }
         }
-
         /// <summary>
         /// 设置木头硬度
         /// </summary>
@@ -316,23 +288,6 @@ namespace BlockEnhancementMod
         }
       
     }
-
-    //public class BlockMessage
-    //{
-    //    public MessageType messageType;
-
-    //    public Action<Message> CallBackEvent;
-
-    //    public BlockMessage(MessageType messageType,Action<Message> action)
-    //    {
-    //        this.messageType = messageType;
-    //        CallBackEvent = action;
-
-    //        ModNetworking.Callbacks[messageType] += action;
-
-    //    }
-
-    //}
 
 }
 

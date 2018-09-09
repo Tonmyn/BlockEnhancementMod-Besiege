@@ -57,13 +57,13 @@ namespace BlockEnhancementMod
         //    }
         //}
 
-        public override  void ChangeParameter()
+        public override void ChangedProperties()
         {
             flamethrowerController = GetComponent<FlamethrowerController>();
             particleSystem = flamethrowerController.fireParticles;
-            rigidbody = GetComponent<Rigidbody>();
-
             particleSystem.startColor = FlameColor;
+
+            rigidbody = GetComponent<Rigidbody>();
         }
 
         public override void SimulateFixedUpdateAlways()

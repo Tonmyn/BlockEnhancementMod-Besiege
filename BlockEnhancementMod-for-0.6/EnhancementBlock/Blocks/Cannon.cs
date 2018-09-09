@@ -12,9 +12,7 @@ namespace BlockEnhancementMod.Blocks
 {
     public class CannonScript : EnhancementBlock
     {
-        /// <summary>
-        /// mod设置
-        /// </summary>
+
         public MSlider StrengthSlider;
 
         public MSlider IntervalSlider;
@@ -57,7 +55,7 @@ namespace BlockEnhancementMod.Blocks
 
         public float originalKnockBackSpeed = 0;
 
-        public bool cBullet = false;
+        public bool customBullet = false;
 
         public bool InheritSize = false;
 
@@ -71,26 +69,17 @@ namespace BlockEnhancementMod.Blocks
 
         public Color TrailColor = Color.yellow;
 
-        /// <summary>
-        /// 子弹刚体组件
-        /// </summary>
-        public Rigidbody BR;
-
         public TrailRenderer myTrailRenderer;
 
         public GameObject BulletObject;
 
-        public float Drag;
-
-        float timer;
+        private float timer;
 
         private float knockBackSpeed;
 
         private int BulletNumber = 1;
 
         private GameObject customBulletObject;
-
-        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
 
         public override void SafeAwake()
         {
@@ -107,8 +96,8 @@ namespace BlockEnhancementMod.Blocks
             KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
             //BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeedZeroOne = KnockBackSpeedSlider.Value; };
 
-            CustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", cBullet);
-            CustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = cBullet = value; ChangedProperties(); };
+            CustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", customBullet);
+            CustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = customBullet = value; ChangedProperties(); };
             //BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = CustomBulletToggle.IsActive; };
 
             InheritSizeToggle = BB.AddToggle(LanguageManager.inheritSize, "InheritSize", InheritSize);
@@ -152,61 +141,35 @@ namespace BlockEnhancementMod.Blocks
             RandomDelaySlider.DisplayInMapper = value;
             KnockBackSpeedSlider.DisplayInMapper = value;
             CustomBulletToggle.DisplayInMapper = value && !StatMaster.isMP;
-            InheritSizeToggle.DisplayInMapper = value && cBullet && !StatMaster.isMP;
-            BulletMassSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
-            BulletDragSlider.DisplayInMapper = value && cBullet && !StatMaster.isMP;
+            InheritSizeToggle.DisplayInMapper = value && customBullet && !StatMaster.isMP;
+            BulletMassSlider.DisplayInMapper = value && customBullet && !StatMaster.isMP;
+            BulletDragSlider.DisplayInMapper = value && customBullet && !StatMaster.isMP;
 
             TrailColorSlider.DisplayInMapper = Trail && !StatMaster.isMP;
             TrailLengthSlider.DisplayInMapper = Trail && !StatMaster.isMP;
 
         }
 
-        //public override void ChangedProperties()
-        //{
-        //    if (StatMaster.isClient)
-        //    {
-        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Interval, RandomDelay, knockBackSpeed }));
-        //    }
-        //    else
-        //    {
-        //        ChangeParameter(Interval, RandomDelay, KnockBackSpeedZeroOne);
-        //    }
-
-
-        //}
-
         public override void ChangeParameter()
         {
-            if (StatMaster.isMP)
-            {
-                cBullet = Trail = false;
-            }
+            if (StatMaster.isMP) { customBullet = Trail = false; }
 
+            CB.enabled = !customBullet;
             Strength = CB.StrengthSlider.Value;
-
             BulletObject = CB.boltObject.gameObject;
-            //BR = BulletObject.GetComponent<Rigidbody>();
-
-            //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-
-            CB.enabled = !cBullet;
             timer = Interval < intervalMin ? intervalMin : Interval;
+            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;               
 
             //独立自定子弹
-            if (cBullet)
+            if (customBullet)
             {
                 customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                 customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
                 customBulletObject.SetActive(false);
-                if (InheritSize)
-                {
-                    CB.particles[0].transform.localScale = customBulletObject.transform.localScale;
-                }
-                BR = customBulletObject.GetComponent<Rigidbody>();
-                BR.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
-                BR.drag = BR.angularDrag = Drag;
-
+                if (InheritSize) { CB.particles[0].transform.localScale = customBulletObject.transform.localScale; }
+                Rigidbody bulletRigibody = customBulletObject.GetComponent<Rigidbody>();
+                bulletRigibody.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
+                bulletRigibody.drag = bulletRigibody.angularDrag = BulletDrag;
             }
             else
             {
@@ -217,7 +180,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            GameObject bullet = cBullet ? customBulletObject : BulletObject;
+            GameObject bullet = customBullet ? customBulletObject : BulletObject;
 
             if (Trail)
             {
@@ -283,103 +246,19 @@ namespace BlockEnhancementMod.Blocks
             
         }
 
-        //public override void OnSimulateStart()
-        //{
-        //    if (StatMaster.isMP)
-        //    {
-        //        cBullet = Trail = false;
-        //    }
-
-        //    Strength = CB.StrengthSlider.Value;
-
-        //    BulletObject = CB.boltObject.gameObject;
-        //    //BR = BulletObject.GetComponent<Rigidbody>();
-
-        //    //BulletSpeed = (CB.boltSpeed * Strength) / 15f;
-        //    knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-
-        //    CB.enabled = !cBullet;
-        //    timer = Interval < intervalMin ? intervalMin : Interval;
-
-        //    //独立自定子弹
-        //    if (cBullet)
-        //    {
-        //        customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-        //        customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-        //        customBulletObject.SetActive(false);
-        //        if (InheritSize)
-        //        {
-        //            CB.particles[0].transform.localScale = customBulletObject.transform.localScale;
-        //        }
-        //        BR = customBulletObject.GetComponent<Rigidbody>();
-        //        BR.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
-        //        BR.drag = BR.angularDrag = Drag;
-
-        //    }
-        //    else
-        //    {
-        //        CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-        //        if (Strength <= 20 || no8Workshop || !StatMaster.isMP)
-        //        {
-        //            CB.knockbackSpeed = knockBackSpeed;
-        //        }
-        //    }
-
-        //    GameObject bullet = cBullet ? customBulletObject : BulletObject;
-
-        //    if (Trail)
-        //    {
-
-        //        if (bullet.GetComponent<TrailRenderer>() == null)
-        //        {
-        //            myTrailRenderer = bullet.AddComponent<TrailRenderer>();
-        //        }
-        //        else
-        //        {
-        //            myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-        //            myTrailRenderer.enabled = Trail;
-        //        }
-        //        myTrailRenderer.autodestruct = false;
-        //        myTrailRenderer.receiveShadows = false;
-        //        myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-        //        myTrailRenderer.startWidth = 0.5f * bullet.transform.localScale.magnitude;
-        //        myTrailRenderer.endWidth = 0.1f;
-        //        myTrailRenderer.time = TrailLength;
-
-        //        myTrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
-        //        myTrailRenderer.material.SetColor("_TintColor", TrailColor);
-        //    }
-        //    else
-        //    {
-        //        myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-        //        if (myTrailRenderer)
-        //        {
-        //            myTrailRenderer.enabled = Trail;
-        //        }
-        //    }
-        //}
-
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateUpdateHost()
         {
-            if (StatMaster.isClient) return;
-
-            if (CB.ShootKey.IsDown && cBullet)
+            if (CB.ShootKey.IsDown && customBullet)
             {
                 CB.StopAllCoroutines();
             }
-        }
-
-        public override void SimulateUpdateAlways()
-        {
-            if (StatMaster.isClient) return;
 
             if (CB.ShootKey.IsDown && Interval > 0)
             {
                 if (timer > Interval)
                 {
                     timer = 0;
-                    if (cBullet)
+                    if (customBullet)
                     {
                         StartCoroutine(Shoot());
                     }
@@ -397,7 +276,6 @@ namespace BlockEnhancementMod.Blocks
             {
                 timer = Interval;
             }
-
         }
 
         private IEnumerator Shoot()
@@ -435,21 +313,6 @@ namespace BlockEnhancementMod.Blocks
             }
 
         }
-
-        //public static void OnCallBack(Message message)
-        //{
-        //    Block block = (Block)message.GetData(0);
-
-        //    if ((block == null ? false : block.InternalObject != null))
-        //    {
-        //        var script = block.InternalObject.GetComponent<CannonScript>();
-
-        //        script.Interval = (float)message.GetData(1);
-        //        script.RandomDelay = (float)message.GetData(2);
-        //        script.KnockBackSpeedZeroOne = (float)message.GetData(3);
-        //        script.ChangeParameter(script.Interval,script.RandomDelay,script.KnockBackSpeedZeroOne);
-        //    }
-        //}
 
     }
 

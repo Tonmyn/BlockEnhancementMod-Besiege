@@ -97,6 +97,9 @@
   <ItemGroup>
     <None Include="Resources\Wheel.obj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="EnhancementBlock\GenericScript\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\$(TargetName).dll"
