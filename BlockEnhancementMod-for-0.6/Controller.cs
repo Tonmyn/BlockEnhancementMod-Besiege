@@ -40,16 +40,16 @@ namespace BlockEnhancementMod
                     {
                         if (args[0].ToLower() == "no8workshop")
                         {
-                            EnhancementBlock.no8Workshop = true;
+                            EnhancementBlock.No8Workshop = true;
                         }
                         else
                         {
-                            EnhancementBlock.no8Workshop = false;
+                            EnhancementBlock.No8Workshop = false;
                         }
                     }
                     catch
                     {
-                        EnhancementBlock.no8Workshop = false;
+                        EnhancementBlock.No8Workshop = false;
                     }
 
 
