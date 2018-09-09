@@ -178,53 +178,45 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
+        [Obsolete]
         /// <summary>
         /// 储存配置
         /// </summary>
         /// <param name="mi">当前存档信息</param>
         public virtual void SaveConfiguration(XDataHolder BlockData) { }
-
+        [Obsolete]
         /// <summary>
         /// 加载配置
         /// </summary>
         public virtual void LoadConfiguration(XDataHolder BlockData) { }
-
         /// <summary>
         /// 安全唤醒 模块只需要关心自己要添加什么控件就行了
         /// </summary>
         public virtual void SafeAwake() { }
-
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>
         public virtual void OnSimulateStart() { }
-
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateHost() { }
-
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateClient() { }
-
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
         public virtual void SimulateUpdateAlways() { }
-
         /// <summary>
         /// 在模拟模式下的FixedUpdate
         /// </summary>
         public virtual void SimulateFixedUpdateAlways() { }
-
         /// <summary>
         /// 在模拟模式下的LateUpdate
         /// </summary>
         public virtual void SimulateLateUpdateAlways() { }
-
         /// <summary>
         /// 建造模式下的Update
         /// </summary>
@@ -235,7 +227,6 @@ namespace BlockEnhancementMod
         /// 显示在Mapper里面
         /// </summary>
         public virtual void DisplayInMapper(bool value) { }
-
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
@@ -244,6 +235,7 @@ namespace BlockEnhancementMod
         /// 参数改变（联机模拟时主机对模块的一些参数初始化）
         /// </summary>
         public virtual void ChangeParameter() { }
+
 
         /// <summary>
         /// 设置金属硬度
@@ -265,7 +257,6 @@ namespace BlockEnhancementMod
 
             }
         }
-
         /// <summary>
         /// 设置木头硬度
         /// </summary>
