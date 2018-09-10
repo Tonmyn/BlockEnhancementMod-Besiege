@@ -246,12 +246,9 @@ namespace BlockEnhancementMod.Blocks
             
         }
 
-        public override void SimulateUpdateHost()
+        public override void SimulateUpdateAlways()
         {
-            if (CB.ShootKey.IsDown && customBullet)
-            {
-                CB.StopAllCoroutines();
-            }
+            if (StatMaster.isClient) return;
 
             if (CB.ShootKey.IsDown && Interval > 0)
             {
@@ -275,6 +272,11 @@ namespace BlockEnhancementMod.Blocks
             else if (CB.ShootKey.IsReleased)
             {
                 timer = Interval;
+            }
+
+            if (CB.ShootKey.IsDown && customBullet)
+            {
+                CB.StopAllCoroutines();
             }
         }
 
