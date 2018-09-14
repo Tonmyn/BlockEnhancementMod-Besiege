@@ -53,7 +53,7 @@ namespace BlockEnhancementMod.Blocks
 
         private readonly float knockBackSpeedZeroOneMax = 1f;
 
-        public float originalKnockBackSpeed = 0;
+        public float originalKnockBackSpeed = 8000;
 
         public bool customBullet = false;
 
@@ -127,7 +127,6 @@ namespace BlockEnhancementMod.Blocks
             // Initialise some components and default values
             AS = BB.GetComponent<AudioSource>();
             CB = BB.GetComponent<CanonBlock>();
-            originalKnockBackSpeed = CB.knockbackSpeed;
 
 #if DEBUG
             ConsoleController.ShowMessage("加农炮添加进阶属性");
@@ -145,6 +144,7 @@ namespace BlockEnhancementMod.Blocks
             BulletMassSlider.DisplayInMapper = value && customBullet && !StatMaster.isMP;
             BulletDragSlider.DisplayInMapper = value && customBullet && !StatMaster.isMP;
 
+            TrailToggle.DisplayInMapper = value;
             TrailColorSlider.DisplayInMapper = Trail && !StatMaster.isMP;
             TrailLengthSlider.DisplayInMapper = Trail && !StatMaster.isMP;
 
@@ -153,6 +153,13 @@ namespace BlockEnhancementMod.Blocks
         public override void ChangeParameter()
         {
             if (StatMaster.isMP) { customBullet = Trail = false; }
+
+            if (!EnhancementEnabled)
+            {
+                CB.knockbackSpeed = originalKnockBackSpeed;
+
+                customBullet = Trail = false;
+            }
 
             CB.enabled = !customBullet;
             Strength = CB.StrengthSlider.Value;
@@ -184,16 +191,8 @@ namespace BlockEnhancementMod.Blocks
 
             if (Trail)
             {
-
-                if (bullet.GetComponent<TrailRenderer>() == null)
-                {
-                    myTrailRenderer = bullet.AddComponent<TrailRenderer>();
-                }
-                else
-                {
-                    myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-                    myTrailRenderer.enabled = Trail;
-                }
+                myTrailRenderer = GetComponent<TrailRenderer>() ?? bullet.AddComponent<TrailRenderer>();
+                myTrailRenderer.enabled = Trail;
                 myTrailRenderer.autodestruct = false;
                 myTrailRenderer.receiveShadows = false;
                 myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

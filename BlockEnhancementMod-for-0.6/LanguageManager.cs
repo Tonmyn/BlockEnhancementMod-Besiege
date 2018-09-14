@@ -11,7 +11,7 @@ namespace BlockEnhancementMod
 {
     public class LanguageManager
     {
-        public static readonly bool isChinese = LocalisationManager.Instance.currLangName == "简体中文";
+        public static readonly bool isChinese = LocalisationManager.Instance.currLangName.Contains("中文");
 
         //Enhancement Block
         public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
