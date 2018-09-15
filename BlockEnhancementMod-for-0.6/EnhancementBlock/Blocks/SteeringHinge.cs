@@ -28,15 +28,13 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            ChangeParameter();
+            steeringWheel = GetComponent<SteeringWheel>();
 
             r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
             r2cToggle.Toggled += (bool value) => { ReturnToCenter = value; ChangedProperties(); };
 
             leftKey = steeringWheel.Keys.First(match => match.Key == "left");
             rightKey = steeringWheel.Keys.First(match => match.Key == "right");
-            //leftKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "left");
-            //rightKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "right");
             rotationSpeedSlider = steeringWheel.Sliders.First(match => match.Key == "rotation-speed");
 
 #if DEBUG
@@ -51,7 +49,7 @@ namespace BlockEnhancementMod
 
         public override void ChangeParameter()
         {
-            steeringWheel = GetComponent<SteeringWheel>();
+            
             rigidbody = GetComponent<Rigidbody>();
 
             if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }

@@ -21,7 +21,6 @@ namespace BlockEnhancementMod
         internal PlayerMachineInfo PMI;
 
         //public event Action<PlayerMachineInfo> OnLoad;
-
         //public event Action<PlayerMachineInfo> OnSave;
 
         private void Awake()
@@ -60,6 +59,15 @@ namespace BlockEnhancementMod
 
 
 
+        }
+
+        void Update()
+        {
+            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                AddPiece.Instance.SetBlockType(BlockType.Unused3);
+                AddPiece.Instance.clickSound.Play();
+            }             
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -145,7 +153,8 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
         };
-
+        
+        [Obsolete]
         /// <summary>刷新菜单组件</summary>
         public IEnumerator RefreshSliders()
         {
@@ -163,8 +172,6 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("Refresh");
 #endif
         }
-
-
     }
 
 }

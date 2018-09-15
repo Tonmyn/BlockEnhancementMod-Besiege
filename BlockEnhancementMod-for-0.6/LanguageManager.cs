@@ -109,8 +109,6 @@ namespace BlockEnhancementMod
 
         public static string retractLimit = isChinese ? "收缩限制" : "Retraction" + Environment.NewLine + "Limit";
 
-
-
         //Small Wheel
         public static string rotatingSpeed = isChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
 
