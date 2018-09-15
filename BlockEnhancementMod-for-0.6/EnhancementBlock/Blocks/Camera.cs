@@ -140,12 +140,12 @@ namespace BlockEnhancementMod
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
                 firstPersonMode = false;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnabled && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
             }
             if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
                 firstPersonMode = true;
-                NonCustomModeSmoothSlider.DisplayInMapper = base.EnhancementEnabled && cameraLookAtToggled && firstPersonMode;
+                NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
             }
         }
 

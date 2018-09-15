@@ -1,15 +1,14 @@
-﻿using Localisation;
 using System;
+using Localisation;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
+using Modding.Common;
+using Modding;
 using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public class LanguageManager
+    public class LanguageManager : MonoBehaviour
     {
         public static readonly bool isChinese = LocalisationManager.Instance.currLangName.Contains("中文");
 
@@ -33,8 +32,8 @@ namespace BlockEnhancementMod
 
         public static string torqueOnRocket = isChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
-        public static string rocketStability = isChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Fired";
-
+        public static string rocketStability = ifChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
+        
         public static string guideDelay = isChinese ? "追踪延迟" : "Guide Delay";
 
         public static string lockTarget = isChinese ? "锁定目标" : "Lock Target";
@@ -119,7 +118,7 @@ namespace BlockEnhancementMod
         public static string drag = isChinese ? "阻力" : "Drag";
 
         //Steering
-        public static string returnToCenter = isChinese ? "自动回中" : "ReturnToCenter";
+        public static string returnToCenter = ifChinese ? "自动回正" : "ReturnToCenter";
 
         //FlameThrower
         public static string thrustForce = isChinese ? "推力" : "Thrust Force";
