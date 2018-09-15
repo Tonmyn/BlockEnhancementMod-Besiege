@@ -32,7 +32,7 @@ namespace BlockEnhancementMod
 
         public static string torqueOnRocket = isChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
-        public static string rocketStability = ifChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
+        public static string rocketStability = isChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
         
         public static string guideDelay = isChinese ? "追踪延迟" : "Guide Delay";
 
@@ -118,7 +118,7 @@ namespace BlockEnhancementMod
         public static string drag = isChinese ? "阻力" : "Drag";
 
         //Steering
-        public static string returnToCenter = ifChinese ? "自动回正" : "ReturnToCenter";
+        public static string returnToCenter = isChinese ? "自动回正" : "ReturnToCenter";
 
         //FlameThrower
         public static string thrustForce = isChinese ? "推力" : "Thrust Force";

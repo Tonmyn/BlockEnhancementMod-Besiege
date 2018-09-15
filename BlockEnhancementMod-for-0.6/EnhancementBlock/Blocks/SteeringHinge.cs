@@ -28,14 +28,16 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-           
+            ChangeParameter();
 
             r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
             r2cToggle.Toggled += (bool value) => { ReturnToCenter = value; ChangedProperties(); };
 
-            leftKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "left");
-            rightKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "right");
-            rotationSpeedSlider = steeringWheel.Sliders.ToList().Find(match => match.Key == "rotation-speed");
+            leftKey = steeringWheel.Keys.First(match => match.Key == "left");
+            rightKey = steeringWheel.Keys.First(match => match.Key == "right");
+            //leftKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "left");
+            //rightKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "right");
+            rotationSpeedSlider = steeringWheel.Sliders.First(match => match.Key == "rotation-speed");
 
 #if DEBUG
             ConsoleController.ShowMessage("转向关节添加进阶属性");
@@ -67,7 +69,7 @@ namespace BlockEnhancementMod
 
                 steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
             }
-        }   
+        }
     }
 
 
