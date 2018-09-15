@@ -32,6 +32,7 @@ namespace BlockEnhancementMod
             //Events.OnMachineSave += SaveConfiguration;
             //添加零件初始化事件委托
             Events.OnBlockInit += AddSliders;
+
             try
             {
                 ModConsole.RegisterCommand("CompleteFunctionMode", args =>
@@ -67,7 +68,7 @@ namespace BlockEnhancementMod
             return block.MapperTypes.Exists(match => match.Key == "Enhancement");
         }
 
-        /// <summary>对所有没有进阶属性的零件添加进阶属性控件</summary>
+        /// <summary>所有零件添加进阶属性控件</summary>
         public void AddAllSliders()
         {
             foreach (BlockBehaviour block in Machine.Active().BuildingBlocks.FindAll(block => !HasEnhancement(block)))
@@ -76,7 +77,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
+        /// <summary>零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
         {
 #if DEBUG
@@ -86,16 +87,14 @@ namespace BlockEnhancementMod
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
         }
-
-        /// <summary>对没有进阶属性的零件添加进阶属性控件 </summary>
+        /// <summary>零件添加进阶属性控件 </summary>
         private void AddSliders(Transform block)
         {
             BlockBehaviour blockbehaviour = block.GetComponent<BlockBehaviour>();
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
         }
-
-        /// <summary>添加进阶属性</summary>
+        /// <summary>零件添加进阶属性控件 </summary>
         private void AddSliders(BlockBehaviour block)
         {
 #if DEBUG

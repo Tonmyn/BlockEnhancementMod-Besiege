@@ -13,60 +13,45 @@ namespace BlockEnhancementMod
     {
 
         MMenu HardnessMenu;
-
         MKey ExtendKey;
-
         MKey ShrinkKey;
-
         MToggle HydraulicToggle;
-
         MSlider FeedSlider;
-
         MSlider ExtendLimitSlider;
-
         MSlider ShrinkLimitSlider;
 
-        public int Hardness = 1;
-
+        public int Hardness = 0;
         public bool Hydraulic = false;
-
         public float Feed = 0.5f;
-
         public float ExtendLimit = 1f;
-
         public float RetractLimit = 1f;
 
-        public List<KeyCode> ExtendKeyCodes = new List<KeyCode> { KeyCode.E };
+        private int orginHardness = 0;
+        private float orginLimit = 1;
 
-        public List<KeyCode> ShrinkKeyCodes = new List<KeyCode> { KeyCode.F };
-
-        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Integer, DataType.Boolean, DataType.Single, DataType.Single, DataType.Single }), OnCallBack);
+        ConfigurableJoint CJ;
+        Rigidbody RB;
 
         public override void SafeAwake()
         {
 
             HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, MetalHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Hardness = HardnessMenu.Value; };
 
             ExtendKey = BB.AddKey(LanguageManager.extend, "Extend", KeyCode.E);
             ShrinkKey = BB.AddKey(LanguageManager.retract, "Shrink", KeyCode.F);           
 
             HydraulicToggle = BB.AddToggle(LanguageManager.hydraulicMode, "Pressure", Hydraulic);
             HydraulicToggle.Toggled += (bool value) => { Hydraulic = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Hydraulic = HydraulicToggle.IsActive; };
 
             FeedSlider = BB.AddSlider(LanguageManager.feedSpeed, "feed", Feed, 0f, 2f);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Feed = FeedSlider.Value; };
 
             ExtendLimitSlider = BB.AddSlider(LanguageManager.extendLimit, "ExtendLimit", ExtendLimit, 0f, 3f);
             ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { ExtendLimit = ExtendLimitSlider.Value; };
 
             ShrinkLimitSlider = BB.AddSlider(LanguageManager.retractLimit, "ShrinkLimit", RetractLimit, 0f, 3f);
             ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { RetractLimit = ShrinkLimitSlider.Value; };
 
 
 
@@ -87,31 +72,24 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
         }
 
-        //public override void ChangedProperties()
-        //{
-        //    if (StatMaster.isClient)
-        //    {
-        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Hardness, Hydraulic, Feed, ExtendLimit, RetractLimit }));
-        //    }
-        //    else
-        //    {
-        //        ChangeParameter();
-        //    }
-        //}
-
-        ConfigurableJoint CJ;
-
-        Rigidbody RB;
-
         public override void ChangeParameter()
         {
 
             CJ = GetComponent<ConfigurableJoint>();
             RB = GetComponent<Rigidbody>();
 
-            SoftJointLimit limit = CJ.linearLimit;
-            limit.limit = Mathf.Max(ExtendLimit, RetractLimit);
-            CJ.linearLimit = limit;
+            float limit = Mathf.Max(ExtendLimit, RetractLimit);
+
+            if (!EnhancementEnabled)
+            {
+                Hardness = orginHardness;
+
+                limit = orginLimit;
+            }
+
+            SoftJointLimit SJlimit = CJ.linearLimit;
+            SJlimit.limit = limit;
+            CJ.linearLimit = SJlimit;
 
             SwitchMatalHardness(Hardness, CJ);
 
@@ -152,25 +130,6 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
-        //public static void OnCallBack(Message message)
-        //{
-        //    Block block = (Block)message.GetData(0);
-
-        //    if ((block == null ? false : block.InternalObject != null))
-        //    {
-        //        var script = block.InternalObject.GetComponent<SuspensionScript>();
-
-        //        script.Hardness = (int)message.GetData(1);
-        //        script.Hydraulic = (bool)message.GetData(2);
-        //        script.Feed = (float)message.GetData(3);
-        //        script.ExtendLimit = (float)message.GetData(4);
-        //        script.RetractLimit = (float)message.GetData(5);
-        //        //script.ChangeParameter(script.Hardness, script.Hydraulic, script.Feed, script.ExtendLimit, script.RetractLimit);
-        //        script.ChangeParameter();
-        //    }
-        //}
-       
     }
 
   

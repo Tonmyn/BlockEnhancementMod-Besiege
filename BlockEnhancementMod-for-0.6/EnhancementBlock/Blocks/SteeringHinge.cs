@@ -14,29 +14,24 @@ namespace BlockEnhancementMod
 
         SteeringWheel steeringWheel;
 
-        public MToggle r2cToggle;
+        MToggle r2cToggle;
 
         public bool ReturnToCenter = false;
+        private bool orginReturnToCenter = false;
 
-        public float angleSpeed;
+        float angleSpeed;
 
         MSlider rotationSpeedSlider;
-
         Rigidbody rigidbody;
-
         MKey leftKey;
-
         MKey rightKey;
-
-        //public static BlockMessage blockMessage = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
 
         public override void SafeAwake()
         {
-            steeringWheel = GetComponent<SteeringWheel>();
+           
 
             r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
             r2cToggle.Toggled += (bool value) => { ReturnToCenter = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { ReturnToCenter = r2cToggle.IsActive; };
 
             leftKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "left");
             rightKey = steeringWheel.KeyList.ToList().Find(match => match.Key == "right");
@@ -52,21 +47,12 @@ namespace BlockEnhancementMod
             r2cToggle.DisplayInMapper = value;
         }
 
-        //public override void ChangedProperties()
-        //{
-        //    if (StatMaster.isClient)
-        //    {
-        //        ModNetworking.SendToHost(blockMessage.messageType.CreateMessage(new object[] { Block.From(BB), ReturnToCenter}));
-        //    }
-        //    else
-        //    {
-        //        ChangeParameter(ReturnToCenter);
-        //    }
-        //}
-
         public override void ChangeParameter()
         {
+            steeringWheel = GetComponent<SteeringWheel>();
             rigidbody = GetComponent<Rigidbody>();
+
+            if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
         }
 
         public override void SimulateUpdateAlways()
@@ -81,20 +67,7 @@ namespace BlockEnhancementMod
 
                 steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
             }
-        }
-
-        //public static void OnCallBack(Message message)
-        //{
-        //    Block block = (Block)message.GetData(0);
-
-        //    if ((block == null ? false : block.InternalObject != null))
-        //    {
-        //        var script = block.InternalObject.GetComponent<SteeringHinge>();
-
-        //        script.ReturnToCenter = (bool)message.GetData(1);
-        //        script.ChangeParameter(script.ReturnToCenter);
-        //    }
-        //}
+        }   
     }
 
 

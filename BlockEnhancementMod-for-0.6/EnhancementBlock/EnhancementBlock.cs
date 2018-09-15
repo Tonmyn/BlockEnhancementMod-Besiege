@@ -44,7 +44,6 @@ namespace BlockEnhancementMod
             //if (BB.isSimulating ) { return; }        
 
             Enhancement = BB.AddToggle(LanguageManager.enhancement, "Enhancement", EnhancementEnabled);
-
             Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; DisplayInMapper(value); };
 
             //LoadConfiguration();    
@@ -63,45 +62,36 @@ namespace BlockEnhancementMod
                 if (isFirstFrame)
                 {
                     isFirstFrame = false;
-                    OnSimulateStart();
-
-                    if (!StatMaster.isClient)
-                    {
-                        ChangeParameter();
-                    }
+                    if (EnhancementEnabled) { OnSimulateStart(); }
+                    
+                    if (!StatMaster.isClient) { ChangeParameter(); }
                 }
 
-                if (StatMaster.isHosting)
-                {
-                    SimulateUpdateHost();
-                }
-                if (StatMaster.isClient)
-                {
-                    SimulateUpdateClient();
-                }
+                if (!EnhancementEnabled) return;
+
+                if (StatMaster.isHosting) { SimulateUpdateHost(); }
+                if (StatMaster.isClient) { SimulateUpdateClient(); }
                 SimulateUpdateAlways();
             }
             else
             {
-                BuildingUpdate();
+                if (EnhancementEnabled) { BuildingUpdate(); }
                 isFirstFrame = true;
             }
         }
 
         private void FixedUpdate()
         {
-            if (BB.isSimulating && !isFirstFrame)
-            {
-                SimulateFixedUpdateAlways();
-            }
+            if (!EnhancementEnabled) return;
+
+            if (BB.isSimulating && !isFirstFrame) { SimulateFixedUpdateAlways(); }
         }
 
         private void LateUpdate()
         {
-            if (BB.isSimulating && !isFirstFrame)
-            {
-                SimulateLateUpdateAlways();
-            }
+            if (!EnhancementEnabled) return;
+
+            if (BB.isSimulating && !isFirstFrame) { SimulateLateUpdateAlways(); }
         }
 
         [Obsolete]

@@ -12,21 +12,18 @@ namespace BlockEnhancementMod
     {
 
         public MToggle RotationToggle;
-
         public bool Rotation = false;
+        private bool orginRotation = false;
 
-        public ConfigurableJoint CJ;
-
-        private float BreakTorque;
-
-        //public static BlockMessage BlockMessage { get; } = new BlockMessage(ModNetworking.CreateMessageType(new DataType[] { DataType.Block, DataType.Boolean }), OnCallBack);
+        private ConfigurableJoint CJ;
+        private float orginBreakTorque = 18000;
 
         public override void SafeAwake()
         {
 
             RotationToggle = BB.AddToggle(LanguageManager.cvJoint, "Rotation", Rotation);
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Rotation = RotationToggle.IsActive; };
+
 
 #if DEBUG
             ConsoleController.ShowMessage("球铰添加进阶属性");
@@ -38,31 +35,11 @@ namespace BlockEnhancementMod
             RotationToggle.DisplayInMapper = value;
         }
 
-        //public override void ChangedProperties()
-        //{
-        //    if (StatMaster.isClient)
-        //    {
-        //        ModNetworking.SendToHost(BlockMessage.messageType.CreateMessage(new object[] { Block.From(BB), Rotation }));
-        //        Debug.Log("send");
-        //    }
-        //    else
-        //    {
-        //        ChangeParameter(Rotation);
-        //    }
-        //}
-
-        //public override void OnSimulateStart()
-        //{
-        //    if (!StatMaster.isClient)
-        //    {
-        //        ChangeParameter();
-        //    }
-        //}
-
         public override void ChangeParameter()
         {
             CJ = GetComponent<ConfigurableJoint>();
-            BreakTorque = CJ.breakTorque;
+
+            if (!EnhancementEnabled) { Rotation = orginRotation; }
 
             if (Rotation)
             {
@@ -72,23 +49,9 @@ namespace BlockEnhancementMod
             else
             {
                 CJ.angularYMotion = ConfigurableJointMotion.Free;
-                CJ.breakTorque = BreakTorque;
+                CJ.breakTorque = orginBreakTorque;
             }
         }
-
-        //public static void OnCallBack(Message message)
-        //{
-        //    Block block = (Block)message.GetData(0);
-
-        //    if ((block == null ? false : block.InternalObject != null))
-        //    {
-        //        var script = block.InternalObject.GetComponent<BallJointScript>();
-                
-        //        script.Rotation = (bool)message.GetData(1);
-        //        script.ChangeParameter(script.Rotation);
-        //    }
-        //}
-
     }
 
 }
