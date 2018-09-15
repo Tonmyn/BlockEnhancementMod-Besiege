@@ -354,6 +354,12 @@ namespace BlockEnhancementMod.Blocks
         {
             if (rocket.hasFired && !rocket.hasExploded)
             {
+                if (guidedRocketStabilityOn)
+                {
+                    //Add aerodynamic force to rocket
+                    AddResistancePerpendicularToRocketVelocity();
+                }
+
                 //If no smoke mode is enabled, stop all smoke
                 if (noSmoke && !smokeStopped)
                 {
@@ -366,9 +372,6 @@ namespace BlockEnhancementMod.Blocks
 
                 if (guidedRocketActivated)
                 {
-                    //Add aerodynamic force to rocket
-                    AddResistancePerpendicularToRocketVelocity();
-
                     //Record the launch time for the guide delay
                     if (!fireTimeRecorded)
                     {
@@ -476,7 +479,9 @@ namespace BlockEnhancementMod.Blocks
                     //else, apply maximum torque to the rocket
                     if (forward && angleDiff <= searchAngle)
                     {
-                        try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                        try
+                        {
+                            rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
                         }
                         catch { }
                     }
@@ -511,7 +516,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             catch { }
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && ((activeGuide && canTrigger) || highExploActivated))
             {
                 RocketExplode();
             }
@@ -526,7 +531,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             catch { };
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && ((activeGuide && canTrigger) || highExploActivated))
             {
                 RocketExplode();
             }
