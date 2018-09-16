@@ -14,71 +14,42 @@ namespace BlockEnhancementMod.Blocks
     {
 
         public MSlider StrengthSlider;
-
         public MSlider IntervalSlider;
-
         public MSlider RandomDelaySlider;
-
         public MSlider KnockBackSpeedSlider;
-
         public MToggle CustomBulletToggle;
-
         public MToggle InheritSizeToggle;
-
         public MSlider BulletMassSlider;
-
         public MSlider BulletDragSlider;
-
         public MToggle TrailToggle;
-
         public MSlider TrailLengthSlider;
-
         public MColourSlider TrailColorSlider;
 
         public CanonBlock CB;
-
         public AudioSource AS;
 
         public float Strength = 1f;
-
         public float Interval = 0.25f;
-
         private readonly float intervalMin = No8Workshop ? 0f : 0.1f;
-
         public float RandomDelay = 0.2f;
-
         public float KnockBackSpeedZeroOne = 1f;
-
         private readonly float knockBackSpeedZeroOneMin = No8Workshop ? 0f : 0.25f;
-
         private readonly float knockBackSpeedZeroOneMax = 1f;
-
         public float originalKnockBackSpeed = 8000;
-
         public bool customBullet = false;
-
         public bool InheritSize = false;
-
         public float BulletMass = 2f;
-
         public float BulletDrag = 0.2f;
-
         public bool Trail = false;
-
         public float TrailLength = 1f;
-
         public Color TrailColor = Color.yellow;
-
         public TrailRenderer myTrailRenderer;
-
-        public GameObject BulletObject;
-
+     
         private float timer;
-
         private float knockBackSpeed;
-
         private int BulletNumber = 1;
 
+        public GameObject BulletObject;
         private GameObject customBulletObject;
 
         public override void SafeAwake()
@@ -86,43 +57,33 @@ namespace BlockEnhancementMod.Blocks
 
             IntervalSlider = BB.AddSlider(LanguageManager.fireInterval, "Interval", Interval, intervalMin, 0.5f);
             IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Interval = IntervalSlider.Value; };
 
             RandomDelaySlider = BB.AddSlider(LanguageManager.randomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
             RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { RandomDelay = RandomDelaySlider.Value; };
 
             KnockBackSpeedSlider = BB.AddSlider(LanguageManager.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
             KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { KnockBackSpeedZeroOne = KnockBackSpeedSlider.Value; };
 
             CustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", customBullet);
             CustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = InheritSizeToggle.DisplayInMapper = customBullet = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { cBullet = CustomBulletToggle.IsActive; };
 
             InheritSizeToggle = BB.AddToggle(LanguageManager.inheritSize, "InheritSize", InheritSize);
             InheritSizeToggle.Toggled += (bool value) => { InheritSize = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { InheritSize = InheritSizeToggle.IsActive; };
 
             BulletMassSlider = BB.AddSlider(LanguageManager.bulletMass, "BulletMass", BulletMass, 0.1f, 2f);
             BulletMassSlider.ValueChanged += (float value) => { BulletMass = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { BulletMass = BulletMassSlider.Value; };
 
             BulletDragSlider = BB.AddSlider(LanguageManager.bulletDrag, "BulletDrag", BulletDrag, 0.01f, 0.5f);
             BulletDragSlider.ValueChanged += (float value) => { BulletDrag = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { BulletDrag = BulletDragSlider.Value; };
 
             TrailToggle = BB.AddToggle(LanguageManager.trail, "Trail", Trail);
             TrailToggle.Toggled += (bool value) => { Trail = TrailColorSlider.DisplayInMapper = TrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { Trail = TrailToggle.IsActive; };
 
             TrailLengthSlider = BB.AddSlider(LanguageManager.trailLength, "trail length", TrailLength, 0.2f, 2f);
             TrailLengthSlider.ValueChanged += (float value) => { TrailLength = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { TrailLength = TrailLengthSlider.Value; };
 
             TrailColorSlider = BB.AddColourSlider(LanguageManager.trailColor, "trail color", TrailColor,false);
             TrailColorSlider.ValueChanged += (Color value) => { TrailColor = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { TrailColor = TrailColorSlider.Value; };
 
             // Initialise some components and default values
             AS = BB.GetComponent<AudioSource>();
@@ -290,8 +251,7 @@ namespace BlockEnhancementMod.Blocks
                 var bullet = (GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
 
                 bullet.SetActive(true);
-                try { bullet.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; }
-                catch { }
+                try { bullet.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
                 bullet.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
 
                 gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(customBulletObject.transform.localScale.x, customBulletObject.transform.localScale.z) * transform.up);
