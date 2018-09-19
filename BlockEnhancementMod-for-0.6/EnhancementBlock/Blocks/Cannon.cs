@@ -38,6 +38,7 @@ namespace BlockEnhancementMod.Blocks
         public float originalKnockBackSpeed = 8000;
         public bool customBullet = false;
         public bool InheritSize = false;
+        public bool firstShotFired = false;
         public float BulletMass = 2f;
         public float BulletDrag = 0.2f;
         public bool Trail = false;
@@ -221,7 +222,14 @@ namespace BlockEnhancementMod.Blocks
                     }
                     else
                     {
-                        CB.Shoot();
+                        if (firstShotFired)
+                        {
+                            CB.Shoot();
+                        }
+                        if (!firstShotFired)
+                        {
+                            firstShotFired = true;
+                        }
                     }
                 }
                 else
@@ -232,6 +240,7 @@ namespace BlockEnhancementMod.Blocks
             else if (CB.ShootKey.IsReleased)
             {
                 timer = Interval;
+                firstShotFired = false;
             }
 
             if (CB.ShootKey.IsDown && customBullet)
