@@ -715,22 +715,22 @@ namespace BlockEnhancementMod
             }
         }
 
-        private void OnGUI()
-        {
-            if (fixedCameraController != null)
-            {
-                if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
-                {
-                    if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
-                    {
-                        if ((Time.time - switchTime) / Time.timeScale <= displayTime)
-                        {
-                            GUI.TextArea(new Rect(1, 1, 20, 150), "CAM TRACKING: " + (autoSearch ? "AUTO" : "MANUAL"), camModeStyle);
-                        }
-                    }
-                }
-            }
-        }
+        //private void OnGUI()
+        //{
+        //    if (fixedCameraController != null)
+        //    {
+        //        if (cameraLookAtToggled && fixedCameraController.activeCamera != null)
+        //        {
+        //            if (fixedCameraController.activeCamera.CompositeTracker3 == smoothLook)
+        //            {
+        //                if ((Time.time - switchTime) / Time.timeScale <= displayTime)
+        //                {
+        //                    GUI.TextArea(new Rect(1, 1, 20, 150), "CAM TRACKING: " + (autoSearch ? "AUTO" : "MANUAL"), camModeStyle);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         readonly GUIStyle camModeStyle = new GUIStyle()
         {
