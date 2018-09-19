@@ -480,6 +480,9 @@ namespace BlockEnhancementMod
 
         private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
         {
+            //Remove any null cluster
+            simClusterForSearch.RemoveWhere(cluster => cluster == null);
+
             //Search for any blocks within the search radius for every block in the hitlist
             int[] targetValue = new int[simClusterForSearch.Count];
             Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
@@ -562,6 +565,9 @@ namespace BlockEnhancementMod
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)
             {
+                // Remove any null cluster due to stopped simulation
+                simClusters.RemoveWhere(cluster => cluster == null);
+
                 HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
                 HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
 
