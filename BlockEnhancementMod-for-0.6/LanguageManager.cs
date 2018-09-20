@@ -122,5 +122,8 @@ namespace BlockEnhancementMod
         public static string thrustForce = isChinese ? "推力" : "Thrust Force";
         public static string flameColor = isChinese ? "火焰颜色" : "Flame Color";
 
+        //WaterCannon
+        public static string boiling = isChinese ? "沸腾" : "Boiling";
+
     }
 }
