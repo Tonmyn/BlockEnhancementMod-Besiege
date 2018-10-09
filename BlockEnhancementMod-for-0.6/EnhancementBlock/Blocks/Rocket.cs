@@ -921,9 +921,12 @@ namespace BlockEnhancementMod.Blocks
         {
             if (target != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
             {
-                int squareWidth = 16;
-                Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
-                GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                if (Vector3.Dot(Camera.main.transform.forward, target.position - Camera.main.transform.position) > 0)
+                {
+                    int squareWidth = 16;
+                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
+                    GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                }
             }
         }
 
