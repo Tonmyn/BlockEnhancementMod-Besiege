@@ -71,7 +71,7 @@ namespace BlockEnhancementMod
         }
 
         /// <summary>是否有进阶属性</summary>
-        public bool HasEnhancement(BlockBehaviour block)
+        public static bool HasEnhancement(BlockBehaviour block)
         {
             return block.MapperTypes.Exists(match => match.Key == "Enhancement");
         }
@@ -152,6 +152,7 @@ namespace BlockEnhancementMod
             { (int)BlockType.Log,typeof(WoodenScript)},
             { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
+            { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
         };
         
         [Obsolete]

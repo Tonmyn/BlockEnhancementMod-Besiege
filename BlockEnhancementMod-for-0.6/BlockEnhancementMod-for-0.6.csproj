@@ -70,6 +70,7 @@
     <Compile Include="EnhancementBlock\Blocks\Decoupler.cs" />
     <Compile Include="EnhancementBlock\Blocks\FlamethrowerScript.cs" />
     <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
+    <Compile Include="EnhancementBlock\Blocks\WaterCannon.cs" />
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
