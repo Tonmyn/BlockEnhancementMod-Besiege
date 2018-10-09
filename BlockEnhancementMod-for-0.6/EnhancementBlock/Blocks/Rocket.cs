@@ -44,19 +44,27 @@ namespace BlockEnhancementMod.Blocks
         public float torque = 100f;
         private readonly float maxTorque = 10000;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
-        private List<Collider> colliders = new List<Collider>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey SwitchGuideModeKey;
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
-        private readonly float safetyRadius = 15f;
+        private readonly float safetyRadiusAuto = 50f;
+        private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
         private readonly float maxSearchAngleNo8 = 90f;
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
+
+        //Cluster value multiplier
+        private readonly int bombValue = 64;
+        private readonly int rocketValue = 1024;
+        private readonly int waterCannonValue = 16;
+        private readonly int flyingBlockValue = 2;
+        private readonly int flameThrowerValue = 8;
+        private readonly int cogMotorValue = 2;
 
         //proximity fuze related setting
         MToggle ProximityFuzeToggle;
@@ -320,8 +328,11 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    target = hits[i].transform;
-                                    break;
+                                    if (hits[i].distance >= safetyRadiusManual)
+                                    {
+                                        target = hits[i].transform;
+                                        break;
+                                    }
                                 }
                             }
                             if (target == null)
@@ -330,8 +341,11 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
                                     {
-                                        target = hits[i].transform;
-                                        break;
+                                        if (hits[i].distance >= safetyRadiusManual)
+                                        {
+                                            target = hits[i].transform;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -683,7 +697,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 foreach (var cluster in Machine.Active().simClusters)
                 {
-                    if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadius)
+                    if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadiusAuto)
                     {
                         simClusters.Add(cluster);
                     }
@@ -743,7 +757,7 @@ namespace BlockEnhancementMod.Blocks
             simClusterForSearch.RemoveWhere(cluster => cluster == null);
 
             //Search for any blocks within the search radius for every block in the hitlist
-            int[] targetValue = new int[simClusterForSearch.Count];
+            float[] targetValue = new float[simClusterForSearch.Count];
             Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
             List<Machine.SimCluster> maxClusters = new List<Machine.SimCluster>();
 
@@ -763,7 +777,7 @@ namespace BlockEnhancementMod.Blocks
             }
             //Find the block that has the max number of blocks around it
             //If there are multiple withh the same highest value, randomly return one of them
-            int maxValue = targetValue.Max();
+            float maxValue = targetValue.Max();
             for (i = 0; i < targetValue.Length; i++)
             {
                 if (targetValue[i] == maxValue)
@@ -806,7 +820,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                 {
-                    clusterValue *= 64;
+                    clusterValue *= bombValue;
                 }
             }
             //A fired and unexploded rocket
@@ -814,7 +828,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
                 {
-                    clusterValue *= 128;
+                    clusterValue *= rocketValue;
                 }
             }
             //A watering watercannon
@@ -822,7 +836,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (targetObj.GetComponent<WaterCannonController>().isActive)
                 {
-                    clusterValue *= 16;
+                    clusterValue *= waterCannonValue;
                 }
             }
             //A flying flying-block
@@ -830,7 +844,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (targetObj.GetComponent<FlyingController>().canFly)
                 {
-                    clusterValue *= 2;
+                    clusterValue *= flyingBlockValue;
                 }
             }
             //A flaming flamethrower
@@ -838,7 +852,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
                 {
-                    clusterValue *= 8;
+                    clusterValue *= flameThrowerValue;
                 }
             }
             //A spinning wheel/cog
@@ -846,7 +860,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (targetObj.GetComponent<CogMotorControllerHinge>().Velocity != 0)
                 {
-                    clusterValue *= 2;
+                    clusterValue *= cogMotorValue;
                 }
             }
             return clusterValue;
