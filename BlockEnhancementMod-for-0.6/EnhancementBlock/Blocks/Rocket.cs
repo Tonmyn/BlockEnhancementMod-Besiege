@@ -44,6 +44,7 @@ namespace BlockEnhancementMod.Blocks
         public float torque = 100f;
         private readonly float maxTorque = 10000;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -57,6 +58,7 @@ namespace BlockEnhancementMod.Blocks
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
+        private bool firstSearch = true;
 
         //Cluster value multiplier
         private readonly int bombValue = 64;
@@ -92,6 +94,9 @@ namespace BlockEnhancementMod.Blocks
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
+        //Aerodynamics setting
+        private readonly float aeroEffectMultiplier = 0.75f;
+
         private void MessageInitialisation()
         {
             ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
@@ -115,7 +120,6 @@ namespace BlockEnhancementMod.Blocks
                 receivedRayFromClient = true;
             };
         }
-
 
         public override void SafeAwake()
         {
@@ -233,10 +237,11 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Initialisation for simulation
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
-                activeGuide = true;
+                activeGuide = firstSearch = true;
                 target = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 explodedTarget.Clear();
+                clustersInSafetyRange.Clear();
                 StopAllCoroutines();
 
                 // Read the charge from rocket
@@ -371,7 +376,7 @@ namespace BlockEnhancementMod.Blocks
                 if (guidedRocketStabilityOn)
                 {
                     //Add aerodynamic force to rocket
-                    AddResistancePerpendicularToRocketVelocity();
+                    AddAerodynamicsToRocketVelocity();
                 }
 
                 //If no smoke mode is enabled, stop all smoke
@@ -673,7 +678,6 @@ namespace BlockEnhancementMod.Blocks
 
         IEnumerator SearchForTarget()
         {
-            yield return new WaitForSeconds(UnityEngine.Random.Range(0, 0.1f));
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
@@ -695,14 +699,28 @@ namespace BlockEnhancementMod.Blocks
             }
             else
             {
-                foreach (var cluster in Machine.Active().simClusters)
+                simClusters.UnionWith(Machine.Active().simClusters);
+
+                if (firstSearch)
                 {
-                    if ((cluster.Base.transform.position - rocket.Position).magnitude > safetyRadiusAuto)
+                    firstSearch = false;
+                    foreach (var cluster in Machine.Active().simClusters)
                     {
-                        simClusters.Add(cluster);
+                        if ((cluster.Base.transform.position - rocket.Position).magnitude < safetyRadiusAuto)
+                        {
+                            clustersInSafetyRange.Add(cluster);
+                        }
                     }
                 }
+
+                clustersInSafetyRange.RemoveWhere(cluster => cluster == null);
+                if (clustersInSafetyRange.Count > 0)
+                {
+                    simClusters.ExceptWith(clustersInSafetyRange);
+                }
             }
+
+            yield return new WaitForSeconds(UnityEngine.Random.Range(0, 0.1f));
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit && simClusters.Count > 0)
@@ -741,7 +759,7 @@ namespace BlockEnhancementMod.Blocks
 
                 if (simClusterForSearch.Count > 0)
                 {
-                    target = GetMostValuableBlock(simClusterForSearch);
+                    target = GetMostValuableCluster(simClusterForSearch);
                     targetAquired = true;
                     searchStarted = false;
                     SendTargetToClient();
@@ -751,7 +769,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
+        private Transform GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch)
         {
             //Remove any null cluster
             simClusterForSearch.RemoveWhere(cluster => cluster == null);
@@ -802,10 +820,10 @@ namespace BlockEnhancementMod.Blocks
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
-        private void AddResistancePerpendicularToRocketVelocity()
+        private void AddAerodynamicsToRocketVelocity()
         {
             Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * 0.5f;
+            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
