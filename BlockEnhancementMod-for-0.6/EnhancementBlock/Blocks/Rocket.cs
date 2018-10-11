@@ -58,11 +58,10 @@ namespace BlockEnhancementMod.Blocks
         private bool activeGuide = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
-        private bool firstSearch = true;
 
         //Cluster value multiplier
         private readonly int bombValue = 64;
-        private readonly int rocketValue = 1024;
+        private readonly int rocketValue = 256;
         private readonly int waterCannonValue = 16;
         private readonly int flyingBlockValue = 2;
         private readonly int flameThrowerValue = 8;
@@ -237,11 +236,21 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Initialisation for simulation
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
-                activeGuide = firstSearch = true;
+                activeGuide = true;
                 target = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 explodedTarget.Clear();
-                clustersInSafetyRange.Clear();
+                if (!StatMaster.isMP)
+                {
+                    clustersInSafetyRange.Clear();
+                    foreach (var cluster in Machine.Active().simClusters)
+                    {
+                        if ((cluster.Base.transform.position - rocket.Position).magnitude < safetyRadiusAuto)
+                        {
+                            clustersInSafetyRange.Add(cluster);
+                        }
+                    }
+                }
                 StopAllCoroutines();
 
                 // Read the charge from rocket
@@ -373,12 +382,6 @@ namespace BlockEnhancementMod.Blocks
         {
             if (rocket.hasFired && !rocket.hasExploded)
             {
-                if (guidedRocketStabilityOn)
-                {
-                    //Add aerodynamic force to rocket
-                    AddAerodynamicsToRocketVelocity();
-                }
-
                 //If no smoke mode is enabled, stop all smoke
                 if (noSmoke && !smokeStopped)
                 {
@@ -476,50 +479,59 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateLateUpdateAlways()
         {
-            if (guidedRocketActivated && rocket.hasFired && !rocket.hasExploded)
+            if (rocket.hasFired && !rocket.hasExploded)
             {
-                if (target != null && canTrigger)
+                if (guidedRocketStabilityOn)
                 {
-                    // Calculating the rotating axis
-                    Vector3 velocity = Vector3.zero;
-                    try
-                    {
-                        velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
-                    }
-                    catch { }
-                    //Add position prediction
-                    Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                    bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
-                    Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+                    //Add aerodynamic force to rocket
+                    AddAerodynamicsToRocketVelocity();
+                }
 
-                    //Add torque to the rocket based on the angle difference
-                    //If in auto guide mode, the rocket will restart searching when target is out of sight
-                    //else, apply maximum torque to the rocket
-                    if (forward && angleDiff <= searchAngle)
+                if (guidedRocketActivated)
+                {
+                    if (target != null && canTrigger)
                     {
+                        // Calculating the rotating axis
+                        Vector3 velocity = Vector3.zero;
                         try
                         {
-                            rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                            velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
                         }
                         catch { }
-                    }
-                    else
-                    {
-                        if (!activeGuide)
+                        //Add position prediction
+                        Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                        bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
+                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+
+                        //Add torque to the rocket based on the angle difference
+                        //If in auto guide mode, the rocket will restart searching when target is out of sight
+                        //else, apply maximum torque to the rocket
+                        if (forward && angleDiff <= searchAngle)
                         {
-                            try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
+                            try
+                            {
+                                rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                            }
                             catch { }
                         }
                         else
                         {
-                            targetAquired = false;
+                            if (!activeGuide)
+                            {
+                                try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
+                                catch { }
+                            }
+                            else
+                            {
+                                targetAquired = false;
+                            }
                         }
-                    }
-                    //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                    if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
-                    {
-                        RocketExplode();
+                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
+                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                        {
+                            RocketExplode();
+                        }
                     }
                 }
             }
@@ -700,20 +712,8 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 simClusters.UnionWith(Machine.Active().simClusters);
-
-                if (firstSearch)
-                {
-                    firstSearch = false;
-                    foreach (var cluster in Machine.Active().simClusters)
-                    {
-                        if ((cluster.Base.transform.position - rocket.Position).magnitude < safetyRadiusAuto)
-                        {
-                            clustersInSafetyRange.Add(cluster);
-                        }
-                    }
-                }
-
                 clustersInSafetyRange.RemoveWhere(cluster => cluster == null);
+
                 if (clustersInSafetyRange.Count > 0)
                 {
                     simClusters.ExceptWith(clustersInSafetyRange);
