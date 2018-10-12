@@ -578,7 +578,8 @@ namespace BlockEnhancementMod
             while (!targetAquired && simClusters.Count > 0)
             {
                 try
-                {                 // Remove any null cluster due to stopped simulation
+                {
+                    // Remove any null cluster due to stopped simulation
                     simClusters.RemoveWhere(cluster => cluster == null);
 
                     HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
