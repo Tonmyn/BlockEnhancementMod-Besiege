@@ -720,51 +720,53 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            yield return new WaitForSeconds(UnityEngine.Random.Range(0, 0.1f));
-
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && !targetHit && simClusters.Count > 0)
             {
-                // Remove any null cluster due to stopped simulation
-                simClusters.RemoveWhere(cluster => cluster == null);
-
-                HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
-                HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
-
-                foreach (var cluster in simClusters)
+                try
                 {
-                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.CenterOfBounds;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                    bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                    bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+                    // Remove any null cluster due to stopped simulation
+                    simClusters.RemoveWhere(cluster => cluster == null);
 
-                    if (!skipCluster)
+                    HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
+                    HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+
+                    foreach (var cluster in simClusters)
                     {
-                        foreach (var block in cluster.Blocks)
+                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.CenterOfBounds;
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                        bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
+                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+
+                        if (!skipCluster)
                         {
-                            skipCluster = ShouldSkipCluster(block);
-                            if (skipCluster)
+                            foreach (var block in cluster.Blocks)
                             {
-                                break;
+                                skipCluster = ShouldSkipCluster(block);
+                                if (skipCluster)
+                                {
+                                    break;
+                                }
                             }
                         }
+                        if (skipCluster)
+                        {
+                            unwantedClusters.Add(cluster);
+                        }
                     }
-                    if (skipCluster)
+
+                    simClusterForSearch.ExceptWith(unwantedClusters);
+
+                    if (simClusterForSearch.Count > 0)
                     {
-                        unwantedClusters.Add(cluster);
+                        target = GetMostValuableCluster(simClusterForSearch);
+                        targetAquired = true;
+                        searchStarted = false;
+                        SendTargetToClient();
+                        StopCoroutine(SearchForTarget());
                     }
                 }
-
-                simClusterForSearch.ExceptWith(unwantedClusters);
-
-                if (simClusterForSearch.Count > 0)
-                {
-                    target = GetMostValuableCluster(simClusterForSearch);
-                    targetAquired = true;
-                    searchStarted = false;
-                    SendTargetToClient();
-                    StopCoroutine(SearchForTarget());
-                }
+                catch { }
                 yield return null;
             }
         }
