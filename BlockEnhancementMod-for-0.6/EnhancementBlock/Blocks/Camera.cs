@@ -460,11 +460,11 @@ namespace BlockEnhancementMod
                                 Quaternion quaternion;
                                 if (firstPersonMode)
                                 {
-                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                    quaternion = Quaternion.LookRotation(target.gameObject.GetComponentInChildren<Collider>(true).bounds.center - smoothLook.position, transform.up);
                                 }
                                 else
                                 {
-                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position);
+                                    quaternion = Quaternion.LookRotation(target.gameObject.GetComponentInChildren<Collider>(true).bounds.center - smoothLook.position);
                                 }
                                 smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                             }

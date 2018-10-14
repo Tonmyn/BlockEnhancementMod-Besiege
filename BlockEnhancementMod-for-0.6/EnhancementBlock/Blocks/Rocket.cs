@@ -499,8 +499,8 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        Vector3 positionDiff = target.position + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
+                        Vector3 positionDiff = target.gameObject.GetComponentInChildren<Collider>(true).bounds.center + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
+                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
 
@@ -941,10 +941,10 @@ namespace BlockEnhancementMod.Blocks
         {
             if (target != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
             {
-                if (Vector3.Dot(Camera.main.transform.forward, target.position - Camera.main.transform.position) > 0)
+                if (Vector3.Dot(Camera.main.transform.forward, target.gameObject.GetComponentInChildren<Collider>(true).bounds.center - Camera.main.transform.position) > 0)
                 {
                     int squareWidth = 16;
-                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.position);
+                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(target.gameObject.GetComponentInChildren<Collider>(true).bounds.center);
                     GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
                 }
             }
