@@ -38,7 +38,7 @@ namespace BlockEnhancementMod
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> blockColliders = new List<Collider>();
-        private Bounds targetColliderBound;
+        private Collider targetCollider;
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
         //Pause tracking setting
@@ -68,14 +68,14 @@ namespace BlockEnhancementMod
             ModNetworking.Callbacks[Messages.cameraTargetBlockBehaviourMsg] += (Message msg) =>
             {
                 target = ((BlockBehaviour)msg.GetData(0)).gameObject.transform;
-                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                 Debug.Log(target.gameObject.name);
                 pauseTracking = false;
             };
             ModNetworking.Callbacks[Messages.cameraTargetEntityMsg] += (Message msg) =>
             {
                 target = ((LevelEntity)msg.GetData(0)).gameObject.transform;
-                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                 Debug.Log(target.gameObject.name);
                 pauseTracking = false;
             };
@@ -185,7 +185,7 @@ namespace BlockEnhancementMod
                 float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
-                targetColliderBound = new Bounds();
+                targetCollider = null;
                 explodedTarget.Clear();
                 if (!StatMaster.isMP)
                 {
@@ -270,7 +270,7 @@ namespace BlockEnhancementMod
                     if (LockTargetKey.IsReleased)
                     {
                         target = null;
-                        targetColliderBound = new Bounds();
+                        targetCollider = null;
                         if (autoSearch)
                         {
                             targetAquired = searchStarted = false;
@@ -345,7 +345,7 @@ namespace BlockEnhancementMod
                                 {
                                     int playerID = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
                                     target = hits[i].transform;
-                                    targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                     pauseTracking = false;
                                     break;
                                 }
@@ -354,7 +354,7 @@ namespace BlockEnhancementMod
                             if (target == null)
                             {
                                 target = rayHit.transform;
-                                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                 pauseTracking = false;
                             }
                             if (StatMaster.isClient)
@@ -397,7 +397,7 @@ namespace BlockEnhancementMod
                                 explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 return;
                             }
                         }
@@ -410,7 +410,7 @@ namespace BlockEnhancementMod
                                 explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 return;
                             }
                         }
@@ -423,7 +423,7 @@ namespace BlockEnhancementMod
                                 explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 return;
                             }
                         }
@@ -436,7 +436,7 @@ namespace BlockEnhancementMod
                                 explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 return;
                             }
                         }
@@ -470,11 +470,11 @@ namespace BlockEnhancementMod
                                 Quaternion quaternion;
                                 if (firstPersonMode)
                                 {
-                                    quaternion = Quaternion.LookRotation(targetColliderBound.center - smoothLook.position, transform.up);
+                                    quaternion = Quaternion.LookRotation(targetCollider.bounds.center - smoothLook.position, transform.up);
                                 }
                                 else
                                 {
-                                    quaternion = Quaternion.LookRotation(targetColliderBound.center - smoothLook.position);
+                                    quaternion = Quaternion.LookRotation(targetCollider.bounds.center - smoothLook.position);
                                 }
                                 smoothLook.rotation = Quaternion.Slerp(smoothLook.rotation, quaternion, smoothLerp * Time.deltaTime);
                             }
@@ -624,7 +624,7 @@ namespace BlockEnhancementMod
                     if (simClusterForSearch.Count > 0)
                     {
                         target = GetMostValuableBlock(simClusterForSearch);
-                        targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                         SaveTargetToController();
                         targetAquired = true;
                         pauseTracking = false;

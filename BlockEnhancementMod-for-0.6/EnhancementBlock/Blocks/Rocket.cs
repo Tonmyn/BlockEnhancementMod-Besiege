@@ -43,7 +43,7 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
         private readonly float maxTorque = 10000;
-        private Bounds targetColliderBound;
+        private Collider targetCollider;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
@@ -105,7 +105,7 @@ namespace BlockEnhancementMod.Blocks
                 Debug.Log("Receive block target");
 #endif
                 target = ((Block)msg.GetData(0)).GameObject.transform;
-                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
             };
             ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
             {
@@ -113,7 +113,7 @@ namespace BlockEnhancementMod.Blocks
                 Debug.Log("Receive entity target");
 #endif
                 target = ((Entity)msg.GetData(0)).GameObject.transform;
-                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
             };
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
             {
@@ -241,7 +241,7 @@ namespace BlockEnhancementMod.Blocks
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
                 activeGuide = true;
                 target = null;
-                targetColliderBound = new Bounds();
+                targetCollider = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 explodedTarget.Clear();
                 if (!StatMaster.isMP)
@@ -279,7 +279,7 @@ namespace BlockEnhancementMod.Blocks
                     if (!activeGuide)
                     {
                         target = null;
-                        targetColliderBound = new Bounds();
+                        targetCollider = null;
                     }
                     else
                     {
@@ -320,7 +320,7 @@ namespace BlockEnhancementMod.Blocks
                 if (LockTargetKey.IsReleased)
                 {
                     target = null;
-                    targetColliderBound = new Bounds();
+                    targetCollider = null;
                     if (activeGuide)
                     {
                         //When launch key is released, reset target search
@@ -351,7 +351,7 @@ namespace BlockEnhancementMod.Blocks
                                     if (hits[i].distance >= safetyRadiusManual)
                                     {
                                         target = hits[i].transform;
-                                        targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                         break;
                                     }
                                 }
@@ -365,7 +365,7 @@ namespace BlockEnhancementMod.Blocks
                                         if (hits[i].distance >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
-                                            targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                                            targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                             break;
                                         }
                                     }
@@ -374,7 +374,7 @@ namespace BlockEnhancementMod.Blocks
                             if (target == null && !StatMaster.isMP)
                             {
                                 target = rayHit.transform;
-                                targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                             }
                             if (receivedRayFromClient)
                             {
@@ -432,7 +432,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 explodedTarget.Add(target);
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 targetAquired = false;
                             }
                         }
@@ -443,7 +443,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 explodedTarget.Add(target);
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 targetAquired = false;
                             }
                         }
@@ -454,7 +454,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 explodedTarget.Add(target);
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 targetAquired = false;
                             }
                         }
@@ -465,7 +465,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 explodedTarget.Add(target);
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 targetAquired = false;
                             }
                         }
@@ -476,7 +476,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 explodedTarget.Add(target);
                                 target = null;
-                                targetColliderBound = new Bounds();
+                                targetCollider = null;
                                 targetAquired = false;
                             }
                         }
@@ -513,7 +513,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        Vector3 positionDiff = targetColliderBound.center + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
+                        Vector3 positionDiff = targetCollider.bounds.center + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -774,7 +774,7 @@ namespace BlockEnhancementMod.Blocks
                     if (simClusterForSearch.Count > 0)
                     {
                         target = GetMostValuableCluster(simClusterForSearch);
-                        targetColliderBound = target.gameObject.GetComponentInChildren<Collider>(true).bounds;
+                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                         targetAquired = true;
                         searchStarted = false;
                         SendTargetToClient();
@@ -956,10 +956,10 @@ namespace BlockEnhancementMod.Blocks
         {
             if (target != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
             {
-                if (Vector3.Dot(Camera.main.transform.forward, targetColliderBound.center - Camera.main.transform.position) > 0)
+                if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
                 {
                     int squareWidth = 16;
-                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetColliderBound.center);
+                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
                     GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
                 }
             }
