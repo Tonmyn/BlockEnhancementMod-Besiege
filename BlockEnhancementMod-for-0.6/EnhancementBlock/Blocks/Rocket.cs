@@ -513,7 +513,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        Vector3 positionDiff = targetCollider.bounds.center + velocity * Time.fixedDeltaTime - BB.CenterOfBounds;
+                        Vector3 positionDiff = targetCollider.bounds.center + velocity * Time.fixedDeltaTime - rocket.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
