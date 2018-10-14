@@ -38,7 +38,8 @@ namespace BlockEnhancementMod
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> blockColliders = new List<Collider>();
-        private List<Collider> levelEntityColliders = new List<Collider>();
+        //private List<Collider> levelEntityColliders = new List<Collider>();
+        private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
         //Pause tracking setting
         MKey PauseTrackingKey;
@@ -183,6 +184,17 @@ namespace BlockEnhancementMod
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
                 explodedTarget.Clear();
+                if (!StatMaster.isMP)
+                {
+                    clustersInSafetyRange.Clear();
+                    foreach (var cluster in Machine.Active().simClusters)
+                    {
+                        if ((cluster.Base.transform.position - fixedCamera.Position).magnitude < safetyRadius)
+                        {
+                            clustersInSafetyRange.Add(cluster);
+                        }
+                    }
+                }
                 StopAllCoroutines();
             }
         }
@@ -553,59 +565,63 @@ namespace BlockEnhancementMod
             }
             else
             {
-                foreach (var cluster in global::Machine.Active().simClusters)
+                simClusters.UnionWith(Machine.Active().simClusters);
+                clustersInSafetyRange.RemoveWhere(cluster => cluster == null);
+
+                if (clustersInSafetyRange.Count > 0)
                 {
-                    if ((cluster.Base.transform.position - fixedCamera.Position).magnitude > safetyRadius)
-                    {
-                        simClusters.Add(cluster);
-                    }
+                    simClusters.ExceptWith(clustersInSafetyRange);
                 }
             }
 
             //Iternating the list to find the target that satisfy the conditions
             while (!targetAquired && simClusters.Count > 0)
             {
-                // Remove any null cluster due to stopped simulation
-                simClusters.RemoveWhere(cluster => cluster == null);
-
-                HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
-                HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
-
-                foreach (var cluster in simClusters)
+                try
                 {
-                    Vector3 positionDiff = cluster.Base.gameObject.transform.position - smoothLook.position;
-                    float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.forward);
-                    bool forward = Vector3.Dot(positionDiff, smoothLook.forward) > 0;
-                    bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+                    // Remove any null cluster due to stopped simulation
+                    simClusters.RemoveWhere(cluster => cluster == null);
 
-                    if (!skipCluster)
+                    HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
+                    HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+
+                    foreach (var cluster in simClusters)
                     {
-                        foreach (var block in cluster.Blocks)
+                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - smoothLook.position;
+                        float angleDiff = Vector3.Angle(positionDiff.normalized, smoothLook.forward);
+                        bool forward = Vector3.Dot(positionDiff, smoothLook.forward) > 0;
+                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+
+                        if (!skipCluster)
                         {
-                            skipCluster = ShouldSkipCluster(block);
-                            if (skipCluster)
+                            foreach (var block in cluster.Blocks)
                             {
-                                break;
+                                skipCluster = ShouldSkipCluster(block);
+                                if (skipCluster)
+                                {
+                                    break;
+                                }
                             }
                         }
+                        if (skipCluster)
+                        {
+                            unwantedClusters.Add(cluster);
+                        }
                     }
-                    if (skipCluster)
+
+                    simClusterForSearch.ExceptWith(unwantedClusters);
+
+                    if (simClusterForSearch.Count > 0)
                     {
-                        unwantedClusters.Add(cluster);
+                        target = GetMostValuableBlock(simClusterForSearch);
+                        SaveTargetToController();
+                        targetAquired = true;
+                        pauseTracking = false;
+                        searchStarted = false;
+                        StopCoroutine(SearchForTarget());
                     }
                 }
-
-                simClusterForSearch.ExceptWith(unwantedClusters);
-
-                if (simClusterForSearch.Count > 0)
-                {
-                    target = GetMostValuableBlock(simClusterForSearch);
-                    SaveTargetToController();
-                    targetAquired = true;
-                    pauseTracking = false;
-                    searchStarted = false;
-                    StopCoroutine(SearchForTarget());
-                }
+                catch { }
                 yield return null;
             }
         }
