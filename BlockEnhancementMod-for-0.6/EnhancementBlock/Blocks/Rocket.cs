@@ -348,7 +348,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    if (hits[i].distance >= safetyRadiusManual)
+                                    if ((hits[i].transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
                                     {
                                         target = hits[i].transform;
                                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
@@ -362,7 +362,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
                                     {
-                                        if (hits[i].distance >= safetyRadiusManual)
+                                        if ((hits[i].transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
@@ -726,12 +726,7 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 simClusters.UnionWith(Machine.Active().simClusters);
-                clustersInSafetyRange.RemoveWhere(cluster => cluster == null);
-
-                if (clustersInSafetyRange.Count > 0)
-                {
-                    simClusters.ExceptWith(clustersInSafetyRange);
-                }
+                simClusters.ExceptWith(clustersInSafetyRange);
             }
 
             //Iternating the list to find the target that satisfy the conditions
