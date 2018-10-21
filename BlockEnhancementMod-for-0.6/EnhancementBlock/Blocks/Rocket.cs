@@ -62,7 +62,7 @@ namespace BlockEnhancementMod.Blocks
 
         //Cluster value multiplier
         private readonly int bombValue = 64;
-        private readonly int rocketValue = 256;
+        private readonly int rocketValue = 1024;
         private readonly int waterCannonValue = 16;
         private readonly int flyingBlockValue = 2;
         private readonly int flameThrowerValue = 8;
