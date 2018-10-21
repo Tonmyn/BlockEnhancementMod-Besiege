@@ -38,7 +38,6 @@ namespace BlockEnhancementMod
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> blockColliders = new List<Collider>();
-        //private List<Collider> levelEntityColliders = new List<Collider>();
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
         //Pause tracking setting
@@ -337,14 +336,29 @@ namespace BlockEnhancementMod
                             Physics.Raycast(ray, out RaycastHit rayHit);
                             for (int i = 0; i < hits.Length; i++)
                             {
-                                try
+                                if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    int playerID = hits[i].transform.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID;
-                                    target = hits[i].transform;
-                                    pauseTracking = false;
-                                    break;
+                                    if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadius)
+                                    {
+                                        target = hits[i].transform;
+                                        pauseTracking = false;
+                                        break;
+                                    }
                                 }
-                                catch { }
+                            }
+                            if (target == null)
+                            {
+                                for (int i = 0; i < hits.Length; i++)
+                                {
+                                    if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                    {
+                                        if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadius)
+                                        {
+                                            target = hits[i].transform;
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                             if (target == null)
                             {
