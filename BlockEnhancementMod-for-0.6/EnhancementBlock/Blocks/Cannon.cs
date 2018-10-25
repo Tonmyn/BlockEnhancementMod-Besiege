@@ -58,7 +58,7 @@ namespace BlockEnhancementMod.Blocks
         //public GameObject BulletObject;
         //private GameObject customBulletObject;
 
-       
+
 
         //子弹类
         public class Bullet
@@ -69,7 +69,7 @@ namespace BlockEnhancementMod.Blocks
             public float Drag { get { return rigidbody.drag; } set { rigidbody.drag = value; } }
 
             private TrailRenderer TrailRenderer;
-            public bool TrailEnable { get { return TrailRenderer.enabled; } set { TrailRenderer.enabled = value; } }        
+            public bool TrailEnable { get { return TrailRenderer.enabled; } set { TrailRenderer.enabled = value; } }
             public float TrailLength { get { return TrailRenderer.time; } set { TrailRenderer.time = value; } }
             public Color TrailColor { get { return TrailRenderer.material.color; } set { TrailRenderer.material.SetColor("_TintColor", value); } }
 
@@ -77,7 +77,7 @@ namespace BlockEnhancementMod.Blocks
             public bool InheritSize { get; set; }
 
             internal CanonBlock CB;
-            
+
             public Bullet(CanonBlock canonBlock)
             {
                 CB = canonBlock;
@@ -97,7 +97,7 @@ namespace BlockEnhancementMod.Blocks
 
                 //if (Custom)
                 //{
-  
+
                 //}
             }
             public void CreateCustomBullet()
@@ -220,14 +220,13 @@ namespace BlockEnhancementMod.Blocks
             //BulletObject = CB.boltObject.gameObject;
             timer = Interval < intervalMin ? intervalMin : Interval;
             knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-
+            Strength = CB.StrengthSlider.Value;
             if (bullet.Custom)
             {
                 bullet.CreateCustomBullet();
             }
             else
             {
-                Strength = CB.StrengthSlider.Value;
                 CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
                 if (Strength <= 20 || No8Workshop || !StatMaster.isMP)
                 {
@@ -321,7 +320,7 @@ namespace BlockEnhancementMod.Blocks
                     KnockBackSpeedSlider.DisplayInMapper = true;
                 }
             }
-            
+
         }
 
         public override void SimulateUpdateAlways()
@@ -365,7 +364,7 @@ namespace BlockEnhancementMod.Blocks
                 firstShotFired = false;
             }
 
- 
+
         }
 
         private IEnumerator Shoot()
