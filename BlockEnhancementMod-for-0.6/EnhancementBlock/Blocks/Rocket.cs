@@ -561,7 +561,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             catch { }
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && (activeGuide && canTrigger))
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
             }
@@ -576,7 +576,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             catch { };
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && (activeGuide && canTrigger))
+            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
             {
                 RocketExplode();
             }
