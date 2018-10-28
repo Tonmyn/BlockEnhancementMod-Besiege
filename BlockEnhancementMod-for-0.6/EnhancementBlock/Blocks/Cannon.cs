@@ -41,24 +41,10 @@ namespace BlockEnhancementMod.Blocks
 
 
         public Bullet bullet;
-        //public bool customBullet = false;
-        //public bool InheritSize = false;
-        //public float BulletMass = 2f;
-        //public float BulletDrag = 0.2f;
-        //public bool Trail = false;
-        //public float TrailLength = 1f;
-        //public Color TrailColor = Color.yellow;
-        //public TrailRenderer myTrailRenderer;
-
-
+ 
         private float timer;
         private float knockBackSpeed;
         private int BulletNumber = 1;
-
-        //public GameObject BulletObject;
-        //private GameObject customBulletObject;
-
-
 
         //子弹类
         public class Bullet
@@ -111,28 +97,6 @@ namespace BlockEnhancementMod.Blocks
                 if (InheritSize) { CB.particles[0].transform.localScale = gameObject.transform.localScale; }
             }
         }
-
-        //public class CustomBullet : Bullet
-        //{
-        //    public bool InheritSize;
-
-        //    private GameObject cannon;
-
-        //    public CustomBullet(CanonBlock canonBlock) : base(canonBlock)
-        //    {
-        //        cannon = CB.gameObject;
-
-        //        gameObject = (GameObject)Instantiate(gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-        //        gameObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(cannon.transform.localScale.x,cannon.transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-        //        gameObject.SetActive(false);
-        //        if (InheritSize) { CB.particles[0].transform.localScale = gameObject.transform.localScale; }
-        //    }
-
-        //    //public void InheritBulletSize()
-        //    //{
-
-        //    //}
-        //}
 
         public override void SafeAwake()
         {
@@ -203,24 +167,20 @@ namespace BlockEnhancementMod.Blocks
 
             BulletInit();
 
-            if (StatMaster.isMP) { /*customBullet = Trail = false;*/ bullet.Custom = bullet.TrailEnable = false; }
+            if (StatMaster.isMP) {  bullet.Custom = bullet.TrailEnable = false; }
 
             if (!EnhancementEnabled)
             {
                 CB.knockbackSpeed = originalKnockBackSpeed;
 
-                //customBullet = Trail = false;
-
                 bullet.Custom = bullet.TrailEnable = false;
             }
 
             CB.enabled = !bullet.Custom;
-            //CB.enabled = !customBullet;
-            //Strength = CB.StrengthSlider.Value;
-            //BulletObject = CB.boltObject.gameObject;
             timer = Interval < intervalMin ? intervalMin : Interval;
             knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
             Strength = CB.StrengthSlider.Value;
+            //独立自定子弹
             if (bullet.Custom)
             {
                 bullet.CreateCustomBullet();
@@ -232,53 +192,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
-            }
-
-            ////独立自定子弹
-            //if (customBullet)
-            //{
-            //    customBulletObject = (GameObject)Instantiate(BulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-            //    customBulletObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(transform.localScale.x, transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-            //    customBulletObject.SetActive(false);
-            //    if (InheritSize) { CB.particles[0].transform.localScale = customBulletObject.transform.localScale; }
-            //    Rigidbody bulletRigibody = customBulletObject.GetComponent<Rigidbody>();
-            //    bulletRigibody.mass = BulletMass < 0.1f ? 0.1f : BulletMass;
-            //    bulletRigibody.drag = bulletRigibody.angularDrag = BulletDrag;
-            //}
-            //else
-            //{
-            //    CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-            //    if (Strength <= 20 || No8Workshop || !StatMaster.isMP)
-            //    {
-            //        CB.knockbackSpeed = knockBackSpeed;
-            //    }
-            //}
-
-            //GameObject bullet = customBullet ? customBulletObject : BulletObject;
-
-            //if (Trail)
-            //{
-            //    myTrailRenderer = GetComponent<TrailRenderer>() ?? bullet.AddComponent<TrailRenderer>();
-            //    myTrailRenderer.enabled = Trail;
-            //    myTrailRenderer.autodestruct = false;
-            //    myTrailRenderer.receiveShadows = false;
-            //    myTrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-            //    myTrailRenderer.startWidth = 0.5f * bullet.transform.localScale.magnitude;
-            //    myTrailRenderer.endWidth = 0.1f;
-            //    myTrailRenderer.time = TrailLength;
-
-            //    myTrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
-            //    myTrailRenderer.material.SetColor("_TintColor", TrailColor);
-            //}
-            //else
-            //{
-            //    myTrailRenderer = bullet.GetComponent<TrailRenderer>();
-            //    if (myTrailRenderer)
-            //    {
-            //        myTrailRenderer.enabled = Trail;
-            //    }
-            //}
+            }        
 
             void BulletInit()
             {
