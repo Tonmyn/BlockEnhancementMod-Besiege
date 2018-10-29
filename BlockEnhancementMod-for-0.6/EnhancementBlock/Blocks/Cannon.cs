@@ -41,7 +41,7 @@ namespace BlockEnhancementMod.Blocks
 
 
         public Bullet bullet;
- 
+
         private float timer;
         private float knockBackSpeed;
         private int BulletNumber = 1;
@@ -167,7 +167,7 @@ namespace BlockEnhancementMod.Blocks
 
             BulletInit();
 
-            if (StatMaster.isMP) {  bullet.Custom = bullet.TrailEnable = false; }
+            if (StatMaster.isMP) { bullet.Custom = bullet.TrailEnable = false; }
 
             if (!EnhancementEnabled)
             {
@@ -192,7 +192,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
-            }        
+            }
 
             void BulletInit()
             {
@@ -290,7 +290,7 @@ namespace BlockEnhancementMod.Blocks
                 yield return new WaitForSeconds(randomDelay);
 
                 //克隆子弹物体
-                var bulletClone = /*(GameObject)Instantiate(customBulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);*/(GameObject)Instantiate(bullet.gameObject, CB.boltSpawnPos);
+                var bulletClone = (GameObject)Instantiate(bullet.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);/*(GameObject)Instantiate(bullet.gameObject, CB.boltSpawnPos);*/
                 bulletClone.SetActive(true);
                 //子弹施加推力并且继承炮身速度
                 try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
