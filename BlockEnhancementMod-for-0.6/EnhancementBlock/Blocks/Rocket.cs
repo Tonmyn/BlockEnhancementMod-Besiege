@@ -127,7 +127,7 @@ namespace BlockEnhancementMod.Blocks
         {
             //Load aim pic
             rocketAim = new Texture2D(256, 256);
-            rocketAim.LoadImage(ModIO.ReadAllBytes("Resources\\Square-Red.png"));
+            rocketAim.LoadImage(ModIO.ReadAllBytes("Square-Red.png", true));
             //Key mapper setup
             GuidedRocketToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
