@@ -127,7 +127,7 @@ namespace BlockEnhancementMod.Blocks
         {
             //Load aim pic
             rocketAim = new Texture2D(256, 256);
-            rocketAim.LoadImage(ModIO.ReadAllBytes("Square-Red.png", true));
+            rocketAim.LoadImage(ModIO.ReadAllBytes(@"/" + "Square-Red.png", true));
             //Key mapper setup
             GuidedRocketToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
@@ -211,7 +211,7 @@ namespace BlockEnhancementMod.Blocks
             MessageInitialisation();
 
 #if DEBUG
-            //ConsoleController.ShowMessage("火箭添加进阶属性");
+            ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
 
         }
