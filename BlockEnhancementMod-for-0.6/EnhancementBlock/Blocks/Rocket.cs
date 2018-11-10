@@ -39,10 +39,14 @@ namespace BlockEnhancementMod.Blocks
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
         MToggle GuidedRocketStabilityToggle;
+        MSlider GuidePredictionSlider;
         public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
         public float torque = 100f;
+        public float prediction = 10f;
         private readonly float maxTorque = 10000;
+        public Vector3 previousVelocity;
+        public Vector3 acceleration;
         private Collider targetCollider;
         private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
@@ -134,6 +138,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 guidedRocketActivated =
                 GuidedRocketTorqueSlider.DisplayInMapper =
+                GuidePredictionSlider.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 SwitchGuideModeKey.DisplayInMapper =
@@ -175,6 +180,10 @@ namespace BlockEnhancementMod.Blocks
 
             ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            ////BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
+            ///
+            GuidePredictionSlider = BB.AddSlider(LanguageManager.prediction, "prediction", prediction, 0, 50);
+            GuidePredictionSlider.ValueChanged += (float value) => { prediction = value; ChangedProperties(); };
             ////BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
             ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
@@ -223,6 +232,7 @@ namespace BlockEnhancementMod.Blocks
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
+            GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilityToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
@@ -243,6 +253,7 @@ namespace BlockEnhancementMod.Blocks
                 target = null;
                 targetCollider = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
+                previousVelocity = acceleration = Vector3.zero;
                 explodedTarget.Clear();
                 if (!StatMaster.isMP)
                 {
@@ -509,11 +520,17 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 velocity = Vector3.zero;
                         try
                         {
-                            velocity = target.gameObject.GetComponent<Rigidbody>().velocity;
+                            velocity = targetCollider.attachedRigidbody.velocity;
+                            if (previousVelocity != Vector3.zero)
+                            {
+                                acceleration = (velocity - previousVelocity) / Time.deltaTime;
+                            }
+                            previousVelocity = velocity;
                         }
                         catch { }
                         //Add position prediction
-                        Vector3 positionDiff = targetCollider.bounds.center + velocity * Time.fixedDeltaTime - rocket.CenterOfBounds;
+                        float pathPredictioinTime = Time.deltaTime * prediction;
+                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictioinTime + 0.5f * acceleration * pathPredictioinTime * pathPredictioinTime - rocket.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -772,6 +789,7 @@ namespace BlockEnhancementMod.Blocks
                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                         targetAquired = true;
                         searchStarted = false;
+                        previousVelocity = acceleration = Vector3.zero;
                         SendTargetToClient();
                         StopCoroutine(SearchForTarget());
                     }
