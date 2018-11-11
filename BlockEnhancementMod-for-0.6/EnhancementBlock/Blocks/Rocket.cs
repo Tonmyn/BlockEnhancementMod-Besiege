@@ -846,7 +846,19 @@ namespace BlockEnhancementMod.Blocks
                     distanceMin = distanceCurrent;
                 }
             }
-
+            foreach (var cluster in maxClusters)
+            {
+                foreach (var block in cluster.Blocks)
+                {
+                    if (block.Type == BlockType.Rocket)
+                    {
+                        if (block.gameObject.GetComponent<TimedRocket>().hasFired)
+                        {
+                            return block.transform;
+                        }
+                    }
+                }
+            }
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
