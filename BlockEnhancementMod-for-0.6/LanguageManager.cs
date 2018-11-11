@@ -119,6 +119,7 @@ namespace BlockEnhancementMod
 
         //Steering
         public static string returnToCenter = isChinese ? "自动回正" : "ReturnToCenter";
+        public static string near = isChinese ? "就近" : "Near";
 
         //FlameThrower
         public static string thrustForce = isChinese ? "推力" : "Thrust Force";
