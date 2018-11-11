@@ -260,7 +260,7 @@ namespace BlockEnhancementMod.Blocks
                     clustersInSafetyRange.Clear();
                     foreach (var cluster in Machine.Active().simClusters)
                     {
-                        if ((cluster.Base.transform.position - rocket.Position).magnitude < safetyRadiusAuto)
+                        if ((cluster.Base.transform.position - rocket.transform.position).magnitude < safetyRadiusAuto)
                         {
                             clustersInSafetyRange.Add(cluster);
                         }
