@@ -18,6 +18,8 @@ namespace BlockEnhancementMod
         //Rocket & Camera
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
 
+        public static string prediction = isChinese ? "预测" : "Prediction";
+
         public static string proximityFuze = isChinese ? "近炸" : "Proximity Fuze";
 
         public static string noSmoke = isChinese ? "无烟" : "No Smoke";
