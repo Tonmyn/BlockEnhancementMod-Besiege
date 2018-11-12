@@ -16,12 +16,14 @@ namespace BlockEnhancementMod
         MKey ExtendKey;
         MKey ShrinkKey;
         MToggle HydraulicToggle;
+        MToggle R2CToggle;
         MSlider FeedSlider;
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
 
         public int Hardness = 0;
         public bool Hydraulic = false;
+        public bool R2C = false;
         public float Feed = 0.5f;
         public float ExtendLimit = 1f;
         public float RetractLimit = 1f;
@@ -42,7 +44,10 @@ namespace BlockEnhancementMod
             ShrinkKey = BB.AddKey(LanguageManager.retract, "Shrink", KeyCode.F);           
 
             HydraulicToggle = BB.AddToggle(LanguageManager.hydraulicMode, "Pressure", Hydraulic);
-            HydraulicToggle.Toggled += (bool value) => { Hydraulic = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper = value; ChangedProperties(); };
+            HydraulicToggle.Toggled += (bool value) => { Hydraulic = R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper = value; ChangedProperties(); };
+
+            R2CToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", R2C);
+            R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
 
             FeedSlider = BB.AddSlider(LanguageManager.feedSpeed, "feed", Feed, 0f, 2f);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
@@ -67,6 +72,7 @@ namespace BlockEnhancementMod
             ExtendKey.DisplayInMapper = value && Hydraulic;
             ShrinkKey.DisplayInMapper = value && Hydraulic;
             HydraulicToggle.DisplayInMapper = value;
+            R2CToggle.DisplayInMapper = value && Hydraulic;
             FeedSlider.DisplayInMapper = value && Hydraulic;
             ExtendLimitSlider.DisplayInMapper = value && Hydraulic;
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
@@ -99,36 +105,44 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
 
-            if (Hydraulic/* && BB.isSimulating*//* && (StatMaster.isHosting || StatMaster.isLocalSim)*/)
-            {
-                if (ExtendKey.IsDown /*&& !ExtendKey.ignored*/)
+            if (Hydraulic)
+            {             
+                float? target = null;
+
+                CalculationTarget();
+                if (target != null)
                 {
-
-                    RB.WakeUp();
-                    if ((CJ.targetPosition.x - Feed * 0.005f) > -ExtendLimit)
-                    {
-                        CJ.targetPosition -= new Vector3(Feed * 0.005f, 0, 0);
-                    }
-                    else
-                    {
-                        CJ.targetPosition = new Vector3(-ExtendLimit, 0, 0);
-                    }
-
+                    SuspensionMoveTowards((float)target, Feed);
                 }
 
-                if (ShrinkKey.IsDown /*&& !ExtendKey.ignored*/)
+                void CalculationTarget()
                 {
-                    RB.WakeUp();
-                    if (CJ.targetPosition.x + Feed * 0.005f < RetractLimit)
+                    bool pressed = false;
+
+                    if (ExtendKey.IsDown)
                     {
-                        CJ.targetPosition += new Vector3(Feed * 0.005f, 0, 0);
+                        pressed = true;
+                        target = -ExtendLimit;
                     }
-                    else
+
+                    if (ShrinkKey.IsDown)
                     {
-                        CJ.targetPosition = new Vector3(RetractLimit, 0, 0);
+                        pressed = true;
+                        target = RetractLimit;
+                    }
+
+                    if (R2C && !pressed && CJ.targetPosition != Vector3.zero)
+                    {
+                        target = 0f;
                     }
                 }
             }
+        }
+
+        public void SuspensionMoveTowards(float target,float feed,float delta = 0.005f)
+        {
+            RB.WakeUp();
+            CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
         }
     }
 

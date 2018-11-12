@@ -15,23 +15,29 @@ namespace BlockEnhancementMod
         SteeringWheel steeringWheel;
 
         MToggle r2cToggle;
+        MToggle NearToggle;
 
         public bool ReturnToCenter = false;
+        public bool Near = true;
         private bool orginReturnToCenter = false;
 
-        float angleSpeed;
+        
 
         MSlider rotationSpeedSlider;
         Rigidbody rigidbody;
         MKey leftKey;
         MKey rightKey;
+        MKey lastKey;
 
         public override void SafeAwake()
         {
             steeringWheel = GetComponent<SteeringWheel>();
 
             r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
-            r2cToggle.Toggled += (bool value) => { ReturnToCenter = value; ChangedProperties(); };
+            r2cToggle.Toggled += (bool value) => { ReturnToCenter = NearToggle.DisplayInMapper = value; ChangedProperties(); };
+
+            NearToggle = BB.AddToggle(LanguageManager.near, "Near", Near);
+            NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(); };
 
             leftKey = steeringWheel.Keys.First(match => match.Key == "left");
             rightKey = steeringWheel.Keys.First(match => match.Key == "right");
@@ -45,6 +51,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             r2cToggle.DisplayInMapper = value;
+            NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
         public override void ChangeParameter()
@@ -59,13 +66,51 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
 
+            getLastKey();
+
             if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
             {
                 rigidbody.WakeUp();
 
-                angleSpeed = Time.deltaTime * 100f * steeringWheel.targetAngleSpeed * rotationSpeedSlider.Value;
+                float angleSpeed = Time.deltaTime * 100f * steeringWheel.targetAngleSpeed * rotationSpeedSlider.Value;
 
-                steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, 0f, angleSpeed);
+                float target = 0;
+
+                if (!Near && lastKey != null)
+                {
+                    float sign = Mathf.Sign(steeringWheel.AngleToBe);
+                   
+                    if (lastKey.Key == "left" && sign < 0)
+                    {
+                        target = 179;
+                    }
+                    else if (lastKey.Key == "right" && sign > 0)
+                    {
+                        target = -179;
+                    }
+                    else
+                    {
+                        target = 0;
+                    }              
+                }
+                else
+                {
+                    target = 0;
+                }
+                steeringWheel.AngleToBe = Mathf.MoveTowardsAngle(steeringWheel.AngleToBe, target, angleSpeed);
+            }
+
+            void getLastKey()
+            {
+                if (steeringWheel.AngleToBe != 0f)
+                {
+                    if (leftKey.IsReleased) lastKey = leftKey;
+                    if (rightKey.IsReleased) lastKey = rightKey;
+                }
+                else
+                {
+                    lastKey = null;
+                }
             }
         }
     }
