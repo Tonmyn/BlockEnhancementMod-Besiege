@@ -33,10 +33,6 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PluginManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>F:\Game\Besiege\Besiege.v0.66\PluginManager.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -72,6 +68,7 @@
     <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
     <Compile Include="EnhancementBlock\Blocks\WaterCannon.cs" />
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\Tools.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
@@ -98,9 +95,7 @@
   <ItemGroup>
     <None Include="Resources\Wheel.obj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EnhancementBlock\GenericScript\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\$(TargetName).dll"
