@@ -85,6 +85,8 @@ namespace BlockEnhancementMod
 
         public static string friction = isChinese ? "摩擦力" : "Friction";
 
+        public static string bounciness = isChinese ? "弹力" : "Bounciness";
+
         public static string softWood = isChinese ? "朽木" : "Soft Wood";
 
         public static string midSoftWood = isChinese ? "桦木" : "Median-Soft Wood";

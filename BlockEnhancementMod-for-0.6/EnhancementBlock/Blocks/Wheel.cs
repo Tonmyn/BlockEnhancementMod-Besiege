@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {
-    
+
     class WheelScript : EnhancementBlock
     {
 
@@ -20,10 +20,10 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            FrictionSlider = BB.AddSlider("摩擦力", "Friction", Friction, 0.1f, 3f);
+            FrictionSlider = BB.AddSlider(LanguageManager.friction, "Friction", Friction, 0.1f, 3f);
             FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
 
-            BouncinessSlider = BB.AddSlider("弹力", "Bounciness", Bounciness, 0f, 3f);
+            BouncinessSlider = BB.AddSlider(LanguageManager.bounciness, "Bounciness", Bounciness, 0f, 1f);
             BouncinessSlider.ValueChanged += (float value) => { Bounciness = value; ChangedProperties(); };
 
 #if DEBUG
@@ -38,7 +38,7 @@ namespace BlockEnhancementMod.Blocks
             FrictionSlider.DisplayInMapper = value;
             BouncinessSlider.DisplayInMapper = value;
         }
-      
+
 
         /// <summary>
         /// 是否是轮子零件
@@ -146,7 +146,7 @@ namespace BlockEnhancementMod.Blocks
 
                 Destroy(WheelCollider);
 
-               
+
             }
 #if DEBUG
             Debug.Log("enable  " + EnhancementEnabled);
@@ -213,7 +213,7 @@ namespace BlockEnhancementMod.Blocks
             }
 
         }
-       
+
     }
 }
 
