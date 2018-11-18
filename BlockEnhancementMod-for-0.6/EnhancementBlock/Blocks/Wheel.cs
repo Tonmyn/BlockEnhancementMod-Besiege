@@ -148,7 +148,9 @@ namespace BlockEnhancementMod.Blocks
 
                
             }
+#if DEBUG
             Debug.Log("enable  " + EnhancementEnabled);
+#endif
         }
 
         private PhysicMaterial SetPhysicMaterial(float friction, float bounciness)
