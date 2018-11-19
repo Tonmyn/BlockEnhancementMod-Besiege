@@ -14,6 +14,8 @@ namespace BlockEnhancementMod
 
         //Enhancement Block
         public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
+        public static string enable = isChinese ? "  开启" : "  Enable";
+        public static string enhancedEnhancement = isChinese ? "增强型进阶" : "Enhanced Enhancement";
 
         //Rocket & Camera
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
@@ -82,6 +84,8 @@ namespace BlockEnhancementMod
         public static string hardness = isChinese ? "硬度" : "Hardness";
 
         public static string friction = isChinese ? "摩擦力" : "Friction";
+
+        public static string bounciness = isChinese ? "弹力" : "Bounciness";
 
         public static string softWood = isChinese ? "朽木" : "Soft Wood";
 

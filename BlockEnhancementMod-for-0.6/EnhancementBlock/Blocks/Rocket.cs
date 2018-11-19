@@ -48,7 +48,7 @@ namespace BlockEnhancementMod.Blocks
         public Vector3 previousVelocity;
         public Vector3 acceleration;
         private Collider targetCollider;
-        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
+        private bool targetInitialCJOrHJ = false;
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
@@ -248,13 +248,14 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = false;
+                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = false;
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
+                //targetCJ = null;
+                //targetHJ = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
-                explodedTarget.Clear();
                 if (!StatMaster.isMP)
                 {
                     clustersInSafetyRange.Clear();
@@ -439,9 +440,21 @@ namespace BlockEnhancementMod.Blocks
                     {
                         try
                         {
+                            if (targetInitialCJOrHJ)
+                            {
+                                if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
+                                {
+                                    target = null;
+                                    targetCollider = null;
+                                    targetAquired = false;
+                                }
+                            }
+                        }
+                        catch { }
+                        try
+                        {
                             if (target.gameObject.GetComponent<FireTag>().burning)
                             {
-                                explodedTarget.Add(target);
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
@@ -452,7 +465,6 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                             {
-                                explodedTarget.Add(target);
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
@@ -463,7 +475,6 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                             {
-                                explodedTarget.Add(target);
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
@@ -474,7 +485,6 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                             {
-                                explodedTarget.Add(target);
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
@@ -485,7 +495,6 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                             {
-                                explodedTarget.Add(target);
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
@@ -514,7 +523,7 @@ namespace BlockEnhancementMod.Blocks
 
                 if (guidedRocketActivated)
                 {
-                    if (target != null && canTrigger)
+                    if (target != null && targetCollider != null && canTrigger)
                     {
                         // Calculating the rotating axis
                         Vector3 velocity = Vector3.zero;
@@ -762,7 +771,9 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                         bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+                        bool baseNoCJOrHJ = (cluster.Base.gameObject.GetComponent<ConfigurableJoint>() == null) && (cluster.Base.gameObject.GetComponent<HingeJoint>() == null);
+                        bool baseIsNotRocketNorBomb = cluster.Base.gameObject.GetComponent<TimedRocket>() == null && cluster.Base.gameObject.GetComponent<ExplodeOnCollideBlock>() == null;
+                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base) || (baseNoCJOrHJ && baseIsNotRocketNorBomb);
 
                         if (!skipCluster)
                         {
@@ -790,6 +801,7 @@ namespace BlockEnhancementMod.Blocks
                         targetAquired = true;
                         searchStarted = false;
                         previousVelocity = acceleration = Vector3.zero;
+                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                         SendTargetToClient();
                         StopCoroutine(SearchForTarget());
                     }

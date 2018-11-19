@@ -12,9 +12,13 @@ namespace BlockEnhancementMod
 
     class Controller : SingleInstance<Controller>
     {
-        public override string Name { get; } = "Controller"; 
+        public override string Name { get; } = "Controller";
 
         public Transform targetSavedInController;
+
+        private Rect windowRect = new Rect(15f, 100f, LanguageManager.isChinese ? 90f : 180f, 50f);
+
+        private readonly int windowID = int.MaxValue / 2 + 512;
 
         [Obsolete]
         /// <summary>存档信息</summary>
@@ -67,7 +71,7 @@ namespace BlockEnhancementMod
             {
                 AddPiece.Instance.SetBlockType(BlockType.Unused3);
                 AddPiece.Instance.clickSound.Play();
-            }             
+            }
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -154,7 +158,7 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
         };
-        
+
         [Obsolete]
         /// <summary>刷新菜单组件</summary>
         public IEnumerator RefreshSliders()
@@ -172,6 +176,32 @@ namespace BlockEnhancementMod
 #if DEBUG
             ConsoleController.ShowMessage("Refresh");
 #endif
+        }
+
+        private void OnGUI()
+        {
+            if (!Game.IsSimulating)
+            {
+                if (StatMaster.isHosting || !StatMaster.isMP)
+                {
+                    windowRect = GUI.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.enhancedEnhancement);
+                }
+            }
+        }
+
+        private void EnhancedEnhancementWindow(int windowID)
+        {
+            GUILayout.BeginVertical(new GUILayoutOption[0]);
+            {
+                GUILayout.BeginHorizontal(new GUILayoutOption[0]);
+                {
+                    EnhancementBlock.No8Workshop = GUI.Toggle(new Rect(10, 20, 70, 40), EnhancementBlock.No8Workshop, LanguageManager.enable);
+                }
+                GUILayout.EndHorizontal();
+            }
+            GUILayout.EndVertical();
+
+            GUI.DragWindow();
         }
     }
 
