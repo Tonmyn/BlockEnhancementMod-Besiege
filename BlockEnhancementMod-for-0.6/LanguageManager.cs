@@ -117,6 +117,8 @@ namespace BlockEnhancementMod
 
         //Small Wheel
         public static string rotatingSpeed = isChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
+        public static string customCollider = isChinese ? "自定碰撞" : "Custom Collider";
+        public static string showCollider = isChinese ? "显示碰撞" : "Show Collider";
 
         //Spring 
         public static string drag = isChinese ? "阻力" : "Drag";

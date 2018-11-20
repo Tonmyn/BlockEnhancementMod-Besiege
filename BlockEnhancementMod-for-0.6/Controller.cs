@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace BlockEnhancementMod
 {
@@ -14,11 +15,13 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Controller";
 
+        public bool showGUI = true;
+
         public Transform targetSavedInController;
 
         private Rect windowRect = new Rect(15f, 100f, LanguageManager.isChinese ? 90f : 180f, 50f);
 
-        private readonly int windowID = int.MaxValue / 2 + 512;
+        private readonly int windowID = ModUtility.GetWindowId();
 
         [Obsolete]
         /// <summary>存档信息</summary>
@@ -60,8 +63,6 @@ namespace BlockEnhancementMod
                 }, "help: ");
             }
             catch { }
-
-
 
         }
 
@@ -147,8 +148,8 @@ namespace BlockEnhancementMod
             { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},
             {(int)BlockType.Wheel,typeof(WheelScript) },
             {(int)BlockType.LargeWheel,typeof(WheelScript) },
-            ////{(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
-            ////{(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+            {(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
+            {(int)BlockType.WheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.Rocket,typeof(RocketScript)},
             {(int)BlockType.CameraBlock,typeof(CameraScript)},
             { (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},
@@ -180,12 +181,11 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (!Game.IsSimulating)
+            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu&& !StatMaster.isClient)
             {
-                if (StatMaster.isHosting || !StatMaster.isMP)
-                {
+      
                     windowRect = GUI.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.enhancedEnhancement);
-                }
+             
             }
         }
 
@@ -202,6 +202,24 @@ namespace BlockEnhancementMod
             GUILayout.EndVertical();
 
             GUI.DragWindow();
+        }
+
+        private bool IsBuilding()
+        {
+            List<string> scene = new List<string> { "INITIALISER", "TITLE SCREEN", "LevelSelect", "LevelSelect1", "LevelSelect2", "LevelSelect3" };
+
+            if (SceneManager.GetActiveScene().isLoaded)
+            {
+
+                if (!scene.Exists(match => match == SceneManager.GetActiveScene().name))
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            return false;
+
         }
     }
 

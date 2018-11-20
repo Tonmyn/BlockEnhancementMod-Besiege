@@ -1,12 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
+﻿using Modding;
 using UnityEngine;
-using Modding;
-using Modding.Blocks;
-using Modding.Common;
-using Modding.Levels;
 
 namespace BlockEnhancementMod
 {
@@ -32,6 +25,7 @@ namespace BlockEnhancementMod
         public override void OnLoad()
         {
             mod = new GameObject("Block Enhancement Mod");
+            Object.DontDestroyOnLoad(mod);
             Controller.Instance.transform.SetParent(mod.transform);
             MessageInit();
         }
