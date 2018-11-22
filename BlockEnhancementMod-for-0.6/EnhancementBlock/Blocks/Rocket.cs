@@ -383,10 +383,13 @@ namespace BlockEnhancementMod.Blocks
                                     }
                                 }
                             }
-                            if (target == null && !StatMaster.isMP)
+                            if (target == null)
                             {
-                                target = rayHit.transform;
-                                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                if ((rayHit.transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
+                                {
+                                    target = rayHit.transform;
+                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                }
                             }
                             if (receivedRayFromClient)
                             {
@@ -446,7 +449,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = null;
                                     targetCollider = null;
-                                    targetAquired = false;
+                                    targetAquired = targetInitialCJOrHJ = false;
                                 }
                             }
                         }
