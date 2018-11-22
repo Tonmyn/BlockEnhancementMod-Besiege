@@ -26,16 +26,9 @@ namespace BlockEnhancementMod
         private float newCamFOV, orgCamFOV, camFOVSmooth;
         private bool firstPersonOrCustom = false;
 
-        //Networking setting
-        private Transform clientTarget;
-        private Ray rayFromClient;
-        private bool receivedRayFromClient = false;
-        private int clientPlayerID;
-
         //Track target setting
         MKey LockTargetKey;
         public Transform target;
-        private HashSet<Transform> explodedTarget = new HashSet<Transform>();
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         private List<Collider> blockColliders = new List<Collider>();
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
@@ -49,40 +42,20 @@ namespace BlockEnhancementMod
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
         private bool firstPersonMode = false;
+        private bool targetInitialCJOrHJ = false;
         public float firstPersonSmooth = 0.25f;
         private float timeOfDestruction = 0f;
         private readonly float targetSwitchDelay = 1.25f;
         public List<KeyCode> activeGuideKeys = new List<KeyCode> { KeyCode.RightShift };
         private float searchAngle = 90;
-        private readonly float safetyRadius = 25f;
+        private readonly float safetyRadiusAuto = 50f;
+        private readonly float safetyRadiusManual = 15f;
         private bool autoSearch = true;
         private bool targetAquired = false;
         private bool searchStarted = false;
         private readonly float displayTime = 1f;
         private float switchTime = Mathf.NegativeInfinity;
         private bool activateTimeRecorded = false;
-
-        private void MessageInitialisation()
-        {
-            ModNetworking.Callbacks[Messages.cameraTargetBlockBehaviourMsg] += (Message msg) =>
-            {
-                target = ((BlockBehaviour)msg.GetData(0)).gameObject.transform;
-                Debug.Log(target.gameObject.name);
-                pauseTracking = false;
-            };
-            ModNetworking.Callbacks[Messages.cameraTargetEntityMsg] += (Message msg) =>
-            {
-                target = ((LevelEntity)msg.GetData(0)).gameObject.transform;
-                Debug.Log(target.gameObject.name);
-                pauseTracking = false;
-            };
-            ModNetworking.Callbacks[Messages.cameraRayToHostMsg] += (Message msg) =>
-            {
-                rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
-                clientPlayerID = msg.Sender.NetworkId;
-                receivedRayFromClient = true;
-            };
-        }
 
         public override void SafeAwake()
         {
@@ -114,9 +87,6 @@ namespace BlockEnhancementMod
             smoothLook = fixedCamera.CompositeTracker3;
             defaultLocalRotation = smoothLook.localRotation;
             selfIndex = fixedCamera.BuildIndex;
-
-            //Initialise Messages
-            MessageInitialisation();
 #if DEBUG
             ConsoleController.ShowMessage("摄像机添加进阶属性");
 #endif
@@ -177,18 +147,17 @@ namespace BlockEnhancementMod
                 newCamFOV = orgCamFOV = fixedCamera.fovSlider.Value;
                 camFOVSmooth = Mathf.Exp(smooth) / Mathf.Exp(1) / 2f;
                 // Initialise
-                searchStarted = false;
+                searchStarted = targetInitialCJOrHJ = false;
                 pauseTracking = autoSearch = targetAquired = true;
                 float searchAngleMax = Mathf.Clamp(Mathf.Atan(Mathf.Tan(fixedCamera.fovSlider.Value * Mathf.Deg2Rad / 2) * Camera.main.aspect) * Mathf.Rad2Deg, 0, 90);
                 searchAngle = Mathf.Clamp(searchAngle, 0, searchAngleMax);
                 target = null;
-                explodedTarget.Clear();
                 if (!StatMaster.isMP)
                 {
                     clustersInSafetyRange.Clear();
                     foreach (var cluster in Machine.Active().simClusters)
                     {
-                        if ((cluster.Base.transform.position - fixedCamera.Position).magnitude < safetyRadius)
+                        if ((cluster.Base.transform.position - fixedCamera.Position).magnitude < safetyRadiusAuto)
                         {
                             clustersInSafetyRange.Add(cluster);
                         }
@@ -273,46 +242,6 @@ namespace BlockEnhancementMod
                         }
                         else
                         {
-                            //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                            //if (StatMaster.isClient)
-                            //{
-                            //    SendRayToHost(ray);
-                            //}
-                            //else
-                            //{
-                            //    //Find targets in the manual search mode by casting a sphere along the ray
-                            //    float manualSearchRadius = 1.25f;
-                            //    RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
-                            //    Physics.Raycast(ray, out RaycastHit rayHit);
-                            //    for (int i = 0; i < hits.Length; i++)
-                            //    {
-                            //        if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                            //        {
-                            //            target = hits[i].transform;
-                            //            pauseTracking = false;
-                            //            break;
-                            //        }
-                            //    }
-                            //    if (target == null)
-                            //    {
-                            //        for (int i = 0; i < hits.Length; i++)
-                            //        {
-                            //            if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-                            //            {
-                            //                target = hits[i].transform;
-                            //                pauseTracking = false;
-                            //                break;
-                            //            }
-                            //        }
-                            //    }
-                            //    if (target == null && !StatMaster.isMP)
-                            //    {
-                            //        target = rayHit.transform;
-                            //        pauseTracking = false;
-                            //    }
-                            //    SaveTargetToController();
-                            //}
-
                             if (StatMaster.isClient)
                             {
                                 blockColliders.Clear();
@@ -338,7 +267,7 @@ namespace BlockEnhancementMod
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadius)
+                                    if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
                                     {
                                         target = hits[i].transform;
                                         pauseTracking = false;
@@ -352,7 +281,7 @@ namespace BlockEnhancementMod
                                 {
                                     if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
                                     {
-                                        if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadius)
+                                        if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
                                             break;
@@ -362,8 +291,11 @@ namespace BlockEnhancementMod
                             }
                             if (target == null)
                             {
-                                target = rayHit.transform;
-                                pauseTracking = false;
+                                if ((rayHit.transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
+                                {
+                                    target = rayHit.transform;
+                                    pauseTracking = false;
+                                }
                             }
                             if (StatMaster.isClient)
                             {
@@ -399,10 +331,24 @@ namespace BlockEnhancementMod
                     {
                         try
                         {
+                            if (targetInitialCJOrHJ)
+                            {
+                                if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
+                                {
+                                    timeOfDestruction = Time.time;
+                                    targetInitialCJOrHJ = false;
+                                    targetAquired = false;
+                                    target = null;
+                                    return;
+                                }
+                            }
+                        }
+                        catch { }
+                        try
+                        {
                             if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
                             {
                                 timeOfDestruction = Time.time;
-                                explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
                                 return;
@@ -414,7 +360,6 @@ namespace BlockEnhancementMod
                             if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                             {
                                 timeOfDestruction = Time.time;
-                                explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
                                 return;
@@ -426,7 +371,6 @@ namespace BlockEnhancementMod
                             if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                             {
                                 timeOfDestruction = Time.time;
-                                explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
                                 return;
@@ -438,7 +382,6 @@ namespace BlockEnhancementMod
                             if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
                             {
                                 timeOfDestruction = Time.time;
-                                explodedTarget.Add(target);
                                 targetAquired = false;
                                 target = null;
                                 return;
@@ -760,40 +703,5 @@ namespace BlockEnhancementMod
             normal = { textColor = Color.white },
             alignment = TextAnchor.UpperLeft,
         };
-
-        private void SendTargetToClient()
-        {
-            if (clientTarget != null)
-            {
-#if DEBUG
-                Debug.Log("Sending target to client");
-#endif
-                if (clientTarget.gameObject.GetComponent<BlockBehaviour>())
-                {
-#if DEBUG
-                    Debug.Log("Target is a block");
-#endif
-                    Message targetBlockBehaviourMsg = Messages.cameraTargetBlockBehaviourMsg.CreateMessage(clientTarget.gameObject.GetComponent<BlockBehaviour>());
-                    ModNetworking.SendTo(Player.GetAllPlayers()[clientPlayerID], targetBlockBehaviourMsg);
-                }
-                if (clientTarget.gameObject.GetComponent<LevelEntity>())
-                {
-#if DEBUG
-                    Debug.Log("Target is a level entity");
-#endif
-                    Message targetEntityMsg = Messages.cameraTargetEntityMsg.CreateMessage(clientTarget.gameObject.GetComponent<LevelEntity>());
-                    ModNetworking.SendTo(Player.GetAllPlayers()[clientPlayerID], targetEntityMsg);
-                }
-            }
-        }
-
-        private void SendRayToHost(Ray ray)
-        {
-            Message cameraRayToHostMsg = Messages.cameraRayToHostMsg.CreateMessage(ray.origin, ray.direction);
-            ModNetworking.SendToHost(cameraRayToHostMsg);
-#if DEBUG
-            ConsoleController.ShowMessage("Message Sent to Host");
-#endif
-        }
     }
 }
