@@ -383,7 +383,7 @@ namespace BlockEnhancementMod.Blocks
                                     }
                                 }
                             }
-                            if (target == null && !StatMaster.isMP)
+                            if (target == null)
                             {
                                 if ((rayHit.transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
                                 {
