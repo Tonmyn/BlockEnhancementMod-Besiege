@@ -44,6 +44,7 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
         public float prediction = 10f;
+        public float initialDistance = 0f;
         private readonly float maxTorque = 10000;
         public Vector3 previousVelocity;
         public Vector3 acceleration;
@@ -366,6 +367,7 @@ namespace BlockEnhancementMod.Blocks
                                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                         previousVelocity = acceleration = Vector3.zero;
+                                        initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
                                         break;
                                     }
                                 }
@@ -382,6 +384,7 @@ namespace BlockEnhancementMod.Blocks
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                             targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                             previousVelocity = acceleration = Vector3.zero;
+                                            initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
                                             break;
                                         }
                                     }
@@ -395,6 +398,7 @@ namespace BlockEnhancementMod.Blocks
                                     targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                     targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                     previousVelocity = acceleration = Vector3.zero;
+                                    initialDistance = (rayHit.transform.position - rocket.CenterOfBounds).magnitude;
                                 }
                             }
                             if (receivedRayFromClient)
@@ -455,7 +459,6 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = null;
                                     targetCollider = null;
-                                    previousVelocity = acceleration = Vector3.zero;
                                     targetAquired = targetInitialCJOrHJ = false;
                                 }
                             }
@@ -467,7 +470,6 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -478,7 +480,6 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -489,7 +490,6 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -500,7 +500,6 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -511,7 +510,6 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -553,7 +551,8 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        float pathPredictioinTime = Time.deltaTime * prediction;
+                        float actualPrediction = prediction * Mathf.Pow(10, ((targetCollider.bounds.center - rocket.CenterOfBounds).magnitude / initialDistance) - 1);
+                        float pathPredictioinTime = Time.deltaTime * actualPrediction;
                         Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictioinTime + 0.5f * acceleration * pathPredictioinTime * pathPredictioinTime - rocket.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
@@ -816,6 +815,7 @@ namespace BlockEnhancementMod.Blocks
                         targetAquired = true;
                         searchStarted = false;
                         previousVelocity = acceleration = Vector3.zero;
+                        initialDistance = (target.position - rocket.CenterOfBounds).magnitude;
                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                         SendTargetToClient();
                         StopCoroutine(SearchForTarget());
