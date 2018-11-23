@@ -1,4 +1,5 @@
 ﻿using BlockEnhancementMod.Blocks;
+using cakeslice;
 using Modding;
 using Modding.Blocks;
 using Modding.Mapper;
@@ -17,9 +18,11 @@ namespace BlockEnhancementMod
 
         public bool showGUI = true;
 
+        public bool Friction = false;
+
         public Transform targetSavedInController;
 
-        private Rect windowRect = new Rect(15f, 100f, LanguageManager.isChinese ? 90f : 180f, 50f);
+        private Rect windowRect = new Rect(15f, 100f, 180f, 50f+20f);
 
         private readonly int windowID = ModUtility.GetWindowId();
 
@@ -29,6 +32,7 @@ namespace BlockEnhancementMod
 
         //public event Action<PlayerMachineInfo> OnLoad;
         //public event Action<PlayerMachineInfo> OnSave;
+        public Action<bool> OnFrictionToggle;
 
         private void Awake()
         {
@@ -38,6 +42,8 @@ namespace BlockEnhancementMod
             //Events.OnMachineSave += SaveConfiguration;
             //添加零件初始化事件委托
             Events.OnBlockInit += AddSliders;
+
+            OnFrictionToggle += FrictionToggle;
 
             try
             {
@@ -125,6 +131,19 @@ namespace BlockEnhancementMod
             }
         }
 
+        private void FrictionToggle(bool value)
+        {
+            PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
+
+            //设置地形的摩擦力合并方式
+            foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
+            {
+                v.sharedMaterial.frictionCombine = physicMaterialCombine;
+                v.sharedMaterial.bounceCombine = physicMaterialCombine;
+                break;
+            }
+        }
+
         /// <summary>模块扩展脚本字典   通过字典自动为模块加载扩展脚本</summary>
         public Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
         {
@@ -183,24 +202,29 @@ namespace BlockEnhancementMod
         {
             if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu&& !StatMaster.isClient)
             {
-      
-                    windowRect = GUI.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.enhancedEnhancement);
-             
+                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.modSettings);
             }
         }
 
         private void EnhancedEnhancementWindow(int windowID)
         {
-            GUILayout.BeginVertical(new GUILayoutOption[0]);
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
             {
-                GUILayout.BeginHorizontal(new GUILayoutOption[0]);
+                EnhancementBlock.No8Workshop = GUILayout.Toggle(/*new Rect(10, 20, 70, 40),*/ EnhancementBlock.No8Workshop, LanguageManager.additionalFunction);
+
+                if (Friction != GUILayout.Toggle(/*new Rect(10, 70, 70, 40),*/ Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
                 {
-                    EnhancementBlock.No8Workshop = GUI.Toggle(new Rect(10, 20, 70, 40), EnhancementBlock.No8Workshop, LanguageManager.enable);
+                    Friction = !Friction;
+                    OnFrictionToggle(Friction);
                 }
-                GUILayout.EndHorizontal();
             }
             GUILayout.EndVertical();
-
+            GUILayout.BeginVertical();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
             GUI.DragWindow();
         }
 

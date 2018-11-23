@@ -19,11 +19,15 @@ namespace BlockEnhancementMod.Blocks
         bool ShowCollider = true;
         float Friction = 0.8f;
         float Bounciness = 0f;
+        int ID = 0;
 
         static GameObject WheelColliderOrgin;
 
         public override void SafeAwake()
         {
+            ID = GetComponent<BlockVisualController>().ID;
+            Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
+
             ColliderToggle = BB.AddToggle(LanguageManager.customCollider, "Custom Collider", Collider);
             ColliderToggle.Toggled += (value) => { Collider = ShowColliderToggle.DisplayInMapper = value; ChangedProperties(); };
 
@@ -86,11 +90,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        int MyId;
-
-        Collider[] Colliders;
-
-   
+        Collider[] Colliders;  
 
         private MeshFilter mFilter;
 
@@ -114,7 +114,7 @@ namespace BlockEnhancementMod.Blocks
                     if (WheelCollider != null) return;
 
                     //禁用原有碰撞
-                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.enabled = false; }
+                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = true; }
 
                     WheelCollider = (GameObject)Instantiate(WheelColliderOrgin, transform.position, transform.rotation, transform);
                     WheelCollider.SetActive(true);
@@ -122,17 +122,10 @@ namespace BlockEnhancementMod.Blocks
                     WheelCollider.transform.SetParent(transform);
 
                     mFilter = WheelCollider.AddComponent<MeshFilter>();
-                    //mFilter.mesh = WheelMesh = SimpleMesh.MeshFromObj(Application.dataPath + "/Mods/Resources/BlockEnhancement/Wheel.obj");
                     mFilter.sharedMesh = WheelCollider.GetComponent<MeshCollider>().sharedMesh;
-                    //MeshFilter meshFilter = WheelColliderOrgin.AddComponent<MeshFilter>();
-                    //meshFilter.mesh = modMesh = ModResource.GetMesh("Wheel Mesh");
-
-                    //MeshRenderer meshRenderer = WheelColliderOrgin.AddComponent<MeshRenderer>();
-                    //meshRenderer.material.color = Color.red;
 
                     mCollider = WheelCollider.GetComponent<MeshCollider>();
-                    //mCollider.convex = true;
-
+                    mCollider.convex = true;
                     mCollider.material = SetPhysicMaterial(Friction, Bounciness);
 
                     if (ShowCollider)
@@ -141,9 +134,7 @@ namespace BlockEnhancementMod.Blocks
                         mRenderer.material.color = Color.red;
                     }
  
-
-                    MyId = GetComponent<BlockVisualController>().ID;
-                    PaS pas = PaS.GetPositionAndScale(MyId);
+                    PSaF pas = PSaF.GetPositionScaleAndFriction(ID);
 
                     WheelCollider.transform.parent /*= mCollider.transform.parent*/ = transform;
                     WheelCollider.transform.rotation /*= mCollider.transform.rotation*/ = transform.rotation;
@@ -158,15 +149,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(Friction, Bounciness); }
-
-                //设置地形的摩擦力合并方式为平均
-                foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
-                {
-                    v.sharedMaterial.frictionCombine = PhysicMaterialCombine.Average;
-                    v.sharedMaterial.bounceCombine = PhysicMaterialCombine.Average;
-                    break;
-                }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(Friction, Bounciness); }           
 
             }
             else
@@ -174,13 +157,13 @@ namespace BlockEnhancementMod.Blocks
                 //启用原有碰撞
                 foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.enabled = true; }
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(0.8f, 0f); }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(PSaF.GetPositionScaleAndFriction(ID).Friction, 0f); }
 
                 Destroy(WheelCollider);
 
 
             }
-
+           
         }
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness)
@@ -201,44 +184,50 @@ namespace BlockEnhancementMod.Blocks
             return PM;
         }
 
-        private struct PaS
+        //位置缩放和摩擦
+        private struct PSaF
         {
             public Vector3 Position;
             public Vector3 Scale;
+            public float Friction;
 
-            public static PaS one = new PaS { Position = Vector3.one, Scale = Vector3.one };
+            public static PSaF one = new PSaF { Position = Vector3.one, Scale = Vector3.one, Friction = 1 };
 
-            public static PaS GetPositionAndScale(int id)
+            public static PSaF GetPositionScaleAndFriction(int id)
             {
 
-                PaS pas = new PaS();
+                PSaF psaf = new PSaF();
 
                 if (id == (int)BlockType.Wheel)
                 {
-                    pas.Position = new Vector3(0, 0, 0.175f);
-                    pas.Scale = new Vector3(0.98f, 0.98f, 1.75f);
-                    return pas;
+                    psaf.Position = new Vector3(0, 0, 0.175f);
+                    psaf.Scale = new Vector3(0.98f, 0.98f, 1.75f);
+                    psaf.Friction = 0.6f;
+                    return psaf;
                 }
                 if (id == (int)BlockType.LargeWheel)
                 {
-                    pas.Position = new Vector3(0, 0, 0.45f);
-                    pas.Scale = new Vector3(1.38f, 1.38f, 3.75f);
-                    return pas;
+                    psaf.Position = new Vector3(0, 0, 0.45f);
+                    psaf.Scale = new Vector3(1.38f, 1.38f, 3.75f);
+                    psaf.Friction = 0.8f;
+                    return psaf;
                 }
                 if (id == (int)BlockType.WheelUnpowered)
                 {
-                    pas.Position = new Vector3(0, 0, 0.175f);
-                    pas.Scale = new Vector3(0.98f,0.98f,1.75f);
-                    return pas;
+                    psaf.Position = new Vector3(0, 0, 0.175f);
+                    psaf.Scale = new Vector3(0.98f,0.98f,1.75f);
+                    psaf.Friction = 1f;
+                    return psaf;
                 }
                 if (id == (int)BlockType.LargeWheelUnpowered)
                 {
-                    pas.Position = new Vector3(0, 0, 0.45f);
-                    pas.Scale = new Vector3(1.38f, 1.38f, 1.75f);
-                    return pas;
+                    psaf.Position = new Vector3(0, 0, 0.45f);
+                    psaf.Scale = new Vector3(1.38f, 1.38f, 1.75f);
+                    psaf.Friction = 1f;
+                    return psaf;
                 }
 
-                return PaS.one;
+                return PSaF.one;
 
             }
 
