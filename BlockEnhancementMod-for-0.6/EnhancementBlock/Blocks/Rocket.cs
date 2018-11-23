@@ -252,8 +252,6 @@ namespace BlockEnhancementMod.Blocks
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
-                //targetCJ = null;
-                //targetHJ = null;
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
                 if (!StatMaster.isMP)
@@ -292,6 +290,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         target = null;
                         targetCollider = null;
+                        previousVelocity = acceleration = Vector3.zero;
                     }
                     else
                     {
@@ -333,6 +332,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = null;
                     targetCollider = null;
+                    previousVelocity = Vector3.zero;
                     if (activeGuide)
                     {
                         //When launch key is released, reset target search
@@ -364,6 +364,8 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = hits[i].transform;
                                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                        previousVelocity = acceleration = Vector3.zero;
                                         break;
                                     }
                                 }
@@ -378,6 +380,8 @@ namespace BlockEnhancementMod.Blocks
                                         {
                                             target = hits[i].transform;
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                            previousVelocity = acceleration = Vector3.zero;
                                             break;
                                         }
                                     }
@@ -389,6 +393,8 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = rayHit.transform;
                                     targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                    previousVelocity = acceleration = Vector3.zero;
                                 }
                             }
                             if (receivedRayFromClient)
@@ -449,6 +455,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = null;
                                     targetCollider = null;
+                                    previousVelocity = acceleration = Vector3.zero;
                                     targetAquired = targetInitialCJOrHJ = false;
                                 }
                             }
@@ -460,6 +467,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
+                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -470,6 +478,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
+                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -480,6 +489,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
+                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -490,6 +500,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
+                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
@@ -500,6 +511,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
+                                previousVelocity = acceleration = Vector3.zero;
                                 targetAquired = false;
                             }
                         }
