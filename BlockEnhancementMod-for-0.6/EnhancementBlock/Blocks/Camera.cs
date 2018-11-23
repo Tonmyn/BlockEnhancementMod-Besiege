@@ -417,7 +417,7 @@ namespace BlockEnhancementMod
                                 Quaternion quaternion;
                                 if (firstPersonMode)
                                 {
-                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position, transform.up);
+                                    quaternion = Quaternion.LookRotation(target.position - smoothLook.position, fixedCamera.CompositeTracker2.up);
                                 }
                                 else
                                 {
