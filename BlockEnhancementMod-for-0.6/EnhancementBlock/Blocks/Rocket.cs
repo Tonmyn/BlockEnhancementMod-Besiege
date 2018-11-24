@@ -44,7 +44,7 @@ namespace BlockEnhancementMod.Blocks
         public bool guidedRocketActivated = false;
         public float torque = 100f;
         public float prediction = 10f;
-        //public float initialDistance = 0f;
+        public float initialDistance = 0f;
         private readonly float maxTorque = 10000;
         public Vector3 previousVelocity;
         public Vector3 acceleration;
@@ -367,7 +367,7 @@ namespace BlockEnhancementMod.Blocks
                                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                         previousVelocity = acceleration = Vector3.zero;
-                                        //initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                        initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
                                         break;
                                     }
                                 }
@@ -384,7 +384,7 @@ namespace BlockEnhancementMod.Blocks
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                             targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                             previousVelocity = acceleration = Vector3.zero;
-                                            //initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                            initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
                                             break;
                                         }
                                     }
@@ -398,7 +398,7 @@ namespace BlockEnhancementMod.Blocks
                                     targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                     targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                     previousVelocity = acceleration = Vector3.zero;
-                                    //initialDistance = (rayHit.transform.position - rocket.CenterOfBounds).magnitude;
+                                    initialDistance = (rayHit.transform.position - rocket.CenterOfBounds).magnitude;
                                 }
                             }
                             if (receivedRayFromClient)
@@ -440,21 +440,29 @@ namespace BlockEnhancementMod.Blocks
                         randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                     }
 
-                    //If rocket is burning, explode it
-                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning)
-                    {
-                        RocketExplode();
-                    }
-
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
                     if (Time.time - fireTime >= guideDelay + randomDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
 
+                    //If rocket is burning, explode it
+                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning && canTrigger)
+                    {
+                        RocketExplode();
+                    }
+
                     //Check if target is no longer valuable (lazy check)
                     if (target != null)
                     {
+                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
+                        Vector3 positionDiff = targetCollider.bounds.center - rocket.CenterOfBounds;
+                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                        {
+                            RocketExplode();
+                        }
+
                         try
                         {
                             if (targetInitialCJOrHJ)
@@ -472,9 +480,12 @@ namespace BlockEnhancementMod.Blocks
                         {
                             if (target.gameObject.GetComponent<FireTag>().burning)
                             {
-                                target = null;
-                                targetCollider = null;
-                                targetAquired = false;
+                                if (target.gameObject.GetComponent<TimedRocket>() == null)
+                                {
+                                    target = null;
+                                    targetCollider = null;
+                                    targetAquired = false;
+                                }
                             }
                         }
                         catch { }
@@ -555,9 +566,10 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        //float actualPrediction = prediction * Mathf.Pow(10, ((targetCollider.bounds.center - rocket.CenterOfBounds).magnitude / initialDistance) - 1);
-                        float pathPredictioinTime = Time.deltaTime * prediction;
-                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictioinTime + 0.5f * acceleration * pathPredictioinTime * pathPredictioinTime - rocket.CenterOfBounds;
+                        float ratio = (targetCollider.bounds.center - rocket.CenterOfBounds).magnitude / initialDistance;
+                        float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
+                        float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
+                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.CenterOfBounds;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -569,6 +581,7 @@ namespace BlockEnhancementMod.Blocks
                         {
                             try
                             {
+                                //rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * Mathf.Pow(angleDiff / maxSearchAngleNo8, 0.5f) * rotatingAxis);
                                 rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
                             }
                             catch { }
@@ -585,11 +598,6 @@ namespace BlockEnhancementMod.Blocks
                                 targetAquired = false;
                             }
                         }
-                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
-                        {
-                            RocketExplode();
-                        }
                     }
                 }
             }
@@ -599,31 +607,25 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
+                    && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger)))
                 {
                     RocketExplode();
                 }
             }
             catch { }
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
-            {
-                RocketExplode();
-            }
         }
         void OnCollisionStay(Collision collision)
         {
             try
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
+                    && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger)))
                 {
                     RocketExplode();
                 }
             }
-            catch { };
-            if (rocket.hasFired && collision.impulse.magnitude > 1 && canTrigger)
-            {
-                RocketExplode();
-            }
+            catch { }
         }
 
         private void RocketExplode()
@@ -670,18 +672,17 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 try
                                 {
-                                    if (hit.attachedRigidbody.gameObject.GetComponent<RocketScript>()) continue;
-                                }
-                                catch { }
-                                try
-                                {
                                     hit.attachedRigidbody.WakeUp();
                                     hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
                                     hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
                                     hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
                                 }
                                 catch { }
-
+                                try
+                                {
+                                    hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().RocketExplode();
+                                }
+                                catch { }
                                 try
                                 {
                                     hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
@@ -819,7 +820,7 @@ namespace BlockEnhancementMod.Blocks
                         targetAquired = true;
                         searchStarted = false;
                         previousVelocity = acceleration = Vector3.zero;
-                        //initialDistance = (target.position - rocket.CenterOfBounds).magnitude;
+                        initialDistance = (target.position - rocket.CenterOfBounds).magnitude;
                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                         SendTargetToClient();
                         StopCoroutine(SearchForTarget());
@@ -885,7 +886,15 @@ namespace BlockEnhancementMod.Blocks
                     {
                         if (block.gameObject.GetComponent<TimedRocket>().hasFired)
                         {
-                            return block.transform;
+                            try
+                            {
+                                if (block.gameObject.GetComponent<RocketScript>().targetAquired)
+                                {
+                                    return block.transform;
+                                }
+                            }
+                            catch { }
+
                         }
                     }
                 }
