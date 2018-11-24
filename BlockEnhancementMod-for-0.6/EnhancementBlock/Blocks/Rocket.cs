@@ -61,9 +61,9 @@ namespace BlockEnhancementMod.Blocks
         private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
         private readonly float maxSearchAngleNo8 = 90f;
-        private bool activeGuide = true;
-        private bool targetAquired = false;
-        private bool searchStarted = false;
+        public bool activeGuide = true;
+        public bool targetAquired = false;
+        public bool searchStarted = false;
 
         //Cluster value multiplier
         private readonly int bombValue = 64;
@@ -368,6 +368,7 @@ namespace BlockEnhancementMod.Blocks
                                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                         previousVelocity = acceleration = Vector3.zero;
                                         initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                        targetAquired = true;
                                         break;
                                     }
                                 }
@@ -385,6 +386,7 @@ namespace BlockEnhancementMod.Blocks
                                             targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                             previousVelocity = acceleration = Vector3.zero;
                                             initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                            targetAquired = true;
                                             break;
                                         }
                                     }
@@ -399,6 +401,7 @@ namespace BlockEnhancementMod.Blocks
                                     targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                     previousVelocity = acceleration = Vector3.zero;
                                     initialDistance = (rayHit.transform.position - rocket.CenterOfBounds).magnitude;
+                                    targetAquired = true;
                                 }
                             }
                             if (receivedRayFromClient)
@@ -878,27 +881,7 @@ namespace BlockEnhancementMod.Blocks
                     distanceMin = distanceCurrent;
                 }
             }
-            foreach (var cluster in maxClusters)
-            {
-                foreach (var block in cluster.Blocks)
-                {
-                    if (block.Type == BlockType.Rocket)
-                    {
-                        if (block.gameObject.GetComponent<TimedRocket>().hasFired)
-                        {
-                            try
-                            {
-                                if (block.gameObject.GetComponent<RocketScript>().targetAquired)
-                                {
-                                    return block.transform;
-                                }
-                            }
-                            catch { }
 
-                        }
-                    }
-                }
-            }
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
@@ -926,9 +909,12 @@ namespace BlockEnhancementMod.Blocks
             //A fired and unexploded rocket
             if (targetObj.GetComponent<TimedRocket>())
             {
-                if (targetObj.GetComponent<TimedRocket>().hasFired && !targetObj.GetComponent<TimedRocket>().hasExploded)
+                if (targetObj.GetComponent<RocketScript>() != null)
                 {
-                    clusterValue *= rocketValue;
+                    if (targetObj.GetComponent<RocketScript>().targetAquired)
+                    {
+                        clusterValue *= rocketValue;
+                    }
                 }
             }
             //A watering watercannon
@@ -973,7 +959,10 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (block.gameObject.GetComponent<FireTag>().burning)
                 {
-                    skipCluster = true;
+                    if (target.gameObject.GetComponent<RocketScript>() == null)
+                    {
+                        skipCluster = true;
+                    }
                 }
             }
             catch { }
