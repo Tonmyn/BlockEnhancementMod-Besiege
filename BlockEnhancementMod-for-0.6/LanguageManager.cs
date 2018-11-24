@@ -12,11 +12,14 @@ namespace BlockEnhancementMod
     {
         public static readonly bool isChinese = LocalisationManager.Instance.currLangName.Contains("中文");
 
+        //Game
+        public static string modSettings = isChinese ? "扩展模组设置" : "Enhancement Mod Settings";
+        public static string unifiedFriction = isChinese ? " 统一摩擦" : "Unified Friction";
+
         //Enhancement Block
         public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
-        public static string enable = isChinese ? "  开启" : "  Enable";
-        public static string enhancedEnhancement = isChinese ? "增强型进阶" : "Enhanced Enhancement";
-
+        public static string additionalFunction = isChinese ? " 附加功能" : "Additional Function";
+   
         //Rocket & Camera
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
 
