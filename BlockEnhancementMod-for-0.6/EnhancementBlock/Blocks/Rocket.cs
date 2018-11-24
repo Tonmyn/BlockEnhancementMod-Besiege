@@ -599,7 +599,7 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
-                if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
                 {
                     RocketExplode();
                 }
@@ -614,7 +614,7 @@ namespace BlockEnhancementMod.Blocks
         {
             try
             {
-                if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
                 {
                     RocketExplode();
                 }
