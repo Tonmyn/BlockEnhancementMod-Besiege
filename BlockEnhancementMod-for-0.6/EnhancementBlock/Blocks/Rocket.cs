@@ -601,7 +601,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
                 {
-                    rocket.OnExplode();
+                    RocketExplode();
                 }
             }
             catch { }
@@ -616,7 +616,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (rocket.isSimulating && !rocket.hasExploded && collision.gameObject.name.Contains("CanonBall"))
                 {
-                    rocket.OnExplode();
+                    RocketExplode();
                 }
             }
             catch { };
