@@ -419,11 +419,15 @@ namespace BlockEnhancementMod.Blocks
                 //If no smoke mode is enabled, stop all smoke
                 if (noSmoke && !smokeStopped)
                 {
-                    foreach (var smoke in rocket.trail)
+                    try
                     {
-                        smoke.Stop();
+                        foreach (var smoke in rocket.trail)
+                        {
+                            smoke.Stop();
+                        }
+                        smokeStopped = true;
                     }
-                    smokeStopped = true;
+                    catch { }
                 }
 
                 if (guidedRocketActivated)
