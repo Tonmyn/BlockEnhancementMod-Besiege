@@ -67,7 +67,8 @@ namespace BlockEnhancementMod.Blocks
 
         //Cluster value multiplier
         private readonly int bombValue = 64;
-        private readonly int rocketValue = 1024;
+        private readonly int guidedRocketValue = 1024;
+        private readonly int normalRocketValue = 512;
         private readonly int waterCannonValue = 16;
         private readonly int flyingBlockValue = 2;
         private readonly int flameThrowerValue = 8;
@@ -361,13 +362,13 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                 {
-                                    if ((hits[i].transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
+                                    if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                     {
                                         target = hits[i].transform;
                                         targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                         previousVelocity = acceleration = Vector3.zero;
-                                        initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                        initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                         targetAquired = true;
                                         break;
                                     }
@@ -379,13 +380,13 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
                                     {
-                                        if ((hits[i].transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
+                                        if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                             targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                             previousVelocity = acceleration = Vector3.zero;
-                                            initialDistance = (hits[i].transform.position - rocket.CenterOfBounds).magnitude;
+                                            initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                             targetAquired = true;
                                             break;
                                         }
@@ -394,13 +395,13 @@ namespace BlockEnhancementMod.Blocks
                             }
                             if (target == null)
                             {
-                                if ((rayHit.transform.position - rocket.CenterOfBounds).magnitude >= safetyRadiusManual)
+                                if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                 {
                                     target = rayHit.transform;
                                     targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                                     targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                     previousVelocity = acceleration = Vector3.zero;
-                                    initialDistance = (rayHit.transform.position - rocket.CenterOfBounds).magnitude;
+                                    initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
                                     targetAquired = true;
                                 }
                             }
@@ -459,7 +460,7 @@ namespace BlockEnhancementMod.Blocks
                     if (target != null)
                     {
                         //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                        Vector3 positionDiff = targetCollider.bounds.center - rocket.CenterOfBounds;
+                        Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                         {
@@ -569,10 +570,10 @@ namespace BlockEnhancementMod.Blocks
                         }
                         catch { }
                         //Add position prediction
-                        float ratio = (targetCollider.bounds.center - rocket.CenterOfBounds).magnitude / initialDistance;
+                        float ratio = (targetCollider.bounds.center - rocket.transform.position).magnitude / initialDistance;
                         float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
                         float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
-                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.CenterOfBounds;
+                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.transform.position;
                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                         bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                         Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
@@ -790,7 +791,7 @@ namespace BlockEnhancementMod.Blocks
 
                     foreach (var cluster in simClusters)
                     {
-                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.CenterOfBounds;
+                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.transform.position;
                         float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                         bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
                         bool baseNoCJOrHJ = (cluster.Base.gameObject.GetComponent<ConfigurableJoint>() == null) && (cluster.Base.gameObject.GetComponent<HingeJoint>() == null);
@@ -823,7 +824,7 @@ namespace BlockEnhancementMod.Blocks
                         targetAquired = true;
                         searchStarted = false;
                         previousVelocity = acceleration = Vector3.zero;
-                        initialDistance = (target.position - rocket.CenterOfBounds).magnitude;
+                        initialDistance = (target.position - rocket.transform.position).magnitude;
                         targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                         SendTargetToClient();
                         StopCoroutine(SearchForTarget());
@@ -907,13 +908,17 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             //A fired and unexploded rocket
-            if (targetObj.GetComponent<TimedRocket>())
+            if (targetObj.GetComponent<RocketScript>())
             {
-                if (targetObj.GetComponent<RocketScript>() != null)
+                if (targetObj.GetComponent<TimedRocket>().hasFired)
                 {
                     if (targetObj.GetComponent<RocketScript>().targetAquired)
                     {
-                        clusterValue *= rocketValue;
+                        clusterValue *= guidedRocketValue;
+                    }
+                    else
+                    {
+                        clusterValue *= normalRocketValue;
                     }
                 }
             }

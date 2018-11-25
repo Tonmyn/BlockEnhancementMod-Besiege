@@ -18,7 +18,7 @@ namespace BlockEnhancementMod
 
         //Enhancement Block
         public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
-        public static string additionalFunction = isChinese ? " 附加功能" : "Additional Function";
+        public static string additionalFunction = isChinese ? " 增强性能" : "Enhance More";
    
         //Rocket & Camera
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
@@ -54,7 +54,7 @@ namespace BlockEnhancementMod
         public static string pauseTracking = isChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 
         //CV Joint
-        public static string cvJoint = isChinese ? "万向节" : "CV Joint";
+        public static string cvJoint = isChinese ? "万向节" : "Universal Joint";
 
         //Cannon
         public static string fireInterval = isChinese ? "发射间隔" : "Fire Interval";
