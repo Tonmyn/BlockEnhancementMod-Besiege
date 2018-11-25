@@ -459,14 +459,26 @@ namespace BlockEnhancementMod.Blocks
                     //Check if target is no longer valuable (lazy check)
                     if (target != null)
                     {
-                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                        Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
-                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                        try
                         {
-                            RocketExplode();
+                            if (targetCollider.bounds == null)
+                            {
+                                target = null;
+                                targetCollider = null;
+                                targetAquired = false;
+                            }
+                            else
+                            {
+                                //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
+                                Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
+                                float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                                if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                                {
+                                    RocketExplode();
+                                }
+                            }
                         }
-
+                        catch { }
                         try
                         {
                             if (targetInitialCJOrHJ)
@@ -1013,7 +1025,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void DrawTargetRedSquare()
         {
-            if (target != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
+            if (target != null && targetCollider.bounds != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
             {
                 if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
                 {
