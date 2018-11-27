@@ -51,6 +51,7 @@ namespace BlockEnhancementMod.Blocks
         private Collider targetCollider;
         private bool targetInitialCJOrHJ = false;
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
+        private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -254,6 +255,7 @@ namespace BlockEnhancementMod.Blocks
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
+                explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
                 if (!StatMaster.isMP)
@@ -485,6 +487,11 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
                                 {
+                                    try
+                                    {
+                                        explodedCluster.Add(target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.simClusters[target.gameObject.GetComponent<BlockBehaviour>().ClusterIndex]);
+                                    }
+                                    catch { }
                                     target = null;
                                     targetCollider = null;
                                     targetAquired = targetInitialCJOrHJ = false;
@@ -755,6 +762,7 @@ namespace BlockEnhancementMod.Blocks
 
         IEnumerator SearchForTarget()
         {
+            yield return new WaitForSeconds(randomDelay);
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
@@ -787,6 +795,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     // Remove any null cluster due to stopped simulation
                     simClusters.RemoveWhere(cluster => cluster == null);
+                    simClusters.ExceptWith(explodedCluster);
 
                     HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
                     HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
