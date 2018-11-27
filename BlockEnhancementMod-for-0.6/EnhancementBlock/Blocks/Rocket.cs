@@ -463,7 +463,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         try
                         {
-                            if (targetCollider.bounds == null)
+                            if (targetCollider == null)
                             {
                                 target = null;
                                 targetCollider = null;
@@ -512,122 +512,126 @@ namespace BlockEnhancementMod.Blocks
                             }
                         }
                         catch { }
-                        if (target.gameObject.GetComponent<BlockBehaviour>())
+                        try
                         {
-                            try
+                            if (target.gameObject.GetComponent<BlockBehaviour>())
                             {
-                                if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                try
                                 {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
+                                    if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
                                 }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
                             }
-                            catch { }
-                            try
+                            else
                             {
-                                if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                                try
                                 {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
+                                    if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
                                 }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                catch { }
+                                try
                                 {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
+                                    if (target.gameObject.GetComponent<EntityAI>().isDead)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
                                 }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                    }
+                                }
+                                catch { }
                             }
-                            catch { }
                         }
-                        else
-                        {
-                            try
-                            {
-                                if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<EntityAI>().isDead)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                }
-                            }
-                            catch { }
-                        }
+                        catch { }
                     }
                     //If no target when active guide, search for a new target
                     if (activeGuide && !targetAquired)
