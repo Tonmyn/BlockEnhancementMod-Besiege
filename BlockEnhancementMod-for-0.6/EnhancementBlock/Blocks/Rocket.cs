@@ -384,7 +384,7 @@ namespace BlockEnhancementMod.Blocks
                                         {
                                             target = hits[i].transform;
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                            targetInitialCJOrHJ = false;
                                             previousVelocity = acceleration = Vector3.zero;
                                             initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                             targetAquired = true;
@@ -451,7 +451,7 @@ namespace BlockEnhancementMod.Blocks
                     }
 
                     //If rocket is burning, explode it
-                    if (highExploActivated && rocket.gameObject.GetComponent<FireTag>().burning && canTrigger)
+                    if (highExploActivated && rocket.fireTag.burning && canTrigger)
                     {
                         RocketExplode();
                     }
@@ -518,16 +518,6 @@ namespace BlockEnhancementMod.Blocks
                         try
                         {
                             if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                            {
-                                target = null;
-                                targetCollider = null;
-                                targetAquired = false;
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
                             {
                                 target = null;
                                 targetCollider = null;
@@ -806,9 +796,7 @@ namespace BlockEnhancementMod.Blocks
                         Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.transform.position;
                         float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
                         bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                        bool baseNoCJOrHJ = (cluster.Base.gameObject.GetComponent<ConfigurableJoint>() == null) && (cluster.Base.gameObject.GetComponent<HingeJoint>() == null);
-                        bool baseIsNotRocketNorBomb = cluster.Base.gameObject.GetComponent<TimedRocket>() == null && cluster.Base.gameObject.GetComponent<ExplodeOnCollideBlock>() == null;
-                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base) || (baseNoCJOrHJ && baseIsNotRocketNorBomb);
+                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
 
                         if (!skipCluster)
                         {
@@ -895,6 +883,35 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
+            foreach (var cluster in maxClusters)
+            {
+                if (cluster.Base.Type == BlockType.Rocket)
+                {
+                    try
+                    {
+                        if (cluster.Base.gameObject.GetComponent<TimedRocket>().hasFired)
+                        {
+                            return cluster.Base.transform;
+                        }
+                    }
+                    catch { }
+                }
+                foreach (var block in cluster.Blocks)
+                {
+                    if (block.Type == BlockType.Rocket)
+                    {
+                        try
+                        {
+                            if (block.gameObject.GetComponent<TimedRocket>().hasFired)
+                            {
+                                return block.transform;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             return maxClusters[closestIndex].Base.gameObject.transform;
         }
 
@@ -912,7 +929,7 @@ namespace BlockEnhancementMod.Blocks
             //Some blocks weights more than others
             GameObject targetObj = block.gameObject;
             //A bomb
-            if (targetObj.GetComponent<ExplodeOnCollideBlock>())
+            if (block.Type == BlockType.Bomb)
             {
                 if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                 {
@@ -920,7 +937,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             //A fired and unexploded rocket
-            if (targetObj.GetComponent<RocketScript>())
+            if (block.Type == BlockType.Rocket)
             {
                 if (targetObj.GetComponent<TimedRocket>().hasFired)
                 {
@@ -935,7 +952,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             //A watering watercannon
-            if (targetObj.GetComponent<WaterCannonController>())
+            if (block.Type == BlockType.WaterCannon)
             {
                 if (targetObj.GetComponent<WaterCannonController>().isActive)
                 {
@@ -943,7 +960,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             //A flying flying-block
-            if (targetObj.GetComponent<FlyingController>())
+            if (block.Type == BlockType.FlyingBlock)
             {
                 if (targetObj.GetComponent<FlyingController>().canFly)
                 {
@@ -951,7 +968,7 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
             //A flaming flamethrower
-            if (targetObj.GetComponent<FlamethrowerController>())
+            if (block.Type == BlockType.Flamethrower)
             {
                 if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
                 {
@@ -971,44 +988,42 @@ namespace BlockEnhancementMod.Blocks
 
         private bool ShouldSkipCluster(BlockBehaviour block)
         {
-            bool skipCluster = false;
             try
             {
-                if (block.gameObject.GetComponent<FireTag>().burning)
+                if (block.Type == BlockType.Rocket)
                 {
-                    if (target.gameObject.GetComponent<RocketScript>() == null)
+                    if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
                     {
-                        skipCluster = true;
+                        return true;
                     }
                 }
-            }
-            catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
+                else
                 {
-                    skipCluster = true;
-                }
-            }
-            catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                {
-                    skipCluster = true;
-                }
-            }
-            catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                {
-                    skipCluster = true;
-                }
-            }
-            catch { }
+                    if (block.fireTag.burning)
+                    {
+                        return true;
+                    }
+                    try
+                    {
+                        if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                        {
+                            return true;
+                        }
+                    }
+                    catch { }
+                    try
+                    {
+                        if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                        {
+                            return true;
+                        }
+                    }
+                    catch { }
 
-            return skipCluster;
+                }
+            }
+            catch { }
+            return false;
         }
 
         private void OnGUI()

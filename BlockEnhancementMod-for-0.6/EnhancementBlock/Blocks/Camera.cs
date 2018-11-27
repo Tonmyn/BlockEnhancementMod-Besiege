@@ -640,41 +640,33 @@ namespace BlockEnhancementMod
 
         private bool ShouldSkipCluster(BlockBehaviour block)
         {
-            bool skipCluster = false;
             try
             {
-                if (block.gameObject.GetComponent<FireTag>().burning)
+                if (block.Type == BlockType.Rocket)
                 {
-                    skipCluster = true;
+                    if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (block.fireTag.burning)
+                    {
+                        return true;
+                    }
+                    if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                    {
+                        return true;
+                    }
+                    if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                    {
+                        return true;
+                    }
                 }
             }
             catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
-                {
-                    skipCluster = true;
-                }
-            }
-            catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                {
-                    skipCluster = true;
-                }
-            }
-            catch { }
-            try
-            {
-                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                {
-                    skipCluster = true;
-                }
-            }
-            catch { }
-
-            return skipCluster;
+            return false;
         }
 
         private void SaveTargetToController()

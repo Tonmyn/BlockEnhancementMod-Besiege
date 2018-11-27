@@ -90,7 +90,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        Collider[] Colliders;  
+        Collider[] Colliders;
 
         private MeshFilter mFilter;
 
@@ -103,7 +103,7 @@ namespace BlockEnhancementMod.Blocks
         public override void ChangeParameter()
         {
 
-            Colliders = GetComponentsInChildren<Collider>();          
+            Colliders = GetComponentsInChildren<Collider>();
 
             if (EnhancementEnabled)
             {
@@ -133,7 +133,7 @@ namespace BlockEnhancementMod.Blocks
                         mRenderer = WheelCollider.AddComponent<MeshRenderer>();
                         mRenderer.material.color = Color.red;
                     }
- 
+
                     PSaF pas = PSaF.GetPositionScaleAndFriction(ID);
 
                     WheelCollider.transform.parent /*= mCollider.transform.parent*/ = transform;
@@ -149,7 +149,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(Friction, Bounciness); }           
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(Friction, Bounciness); }
 
             }
             else
@@ -163,23 +163,24 @@ namespace BlockEnhancementMod.Blocks
 
 
             }
-           
+
         }
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness)
         {
-            PhysicMaterial PM = new PhysicMaterial();
-
-            //静摩擦力
-            PM.staticFriction = friction;
-            //动摩擦力
-            PM.dynamicFriction = friction;
-            //弹力
-            PM.bounciness = bounciness;
-            //摩擦力组合
-            PM.frictionCombine = PhysicMaterialCombine.Minimum;
-            //弹力组合
-            PM.bounceCombine = PhysicMaterialCombine.Minimum;
+            PhysicMaterial PM = new PhysicMaterial
+            {
+                //静摩擦力
+                staticFriction = friction,
+                //动摩擦力
+                dynamicFriction = friction,
+                //弹力
+                bounciness = bounciness,
+                //摩擦力组合
+                frictionCombine = PhysicMaterialCombine.Minimum,
+                //弹力组合
+                bounceCombine = PhysicMaterialCombine.Minimum
+            };
 
             return PM;
         }
@@ -215,7 +216,7 @@ namespace BlockEnhancementMod.Blocks
                 if (id == (int)BlockType.WheelUnpowered)
                 {
                     psaf.Position = new Vector3(0, 0, 0.175f);
-                    psaf.Scale = new Vector3(0.98f,0.98f,1.75f);
+                    psaf.Scale = new Vector3(0.98f, 0.98f, 1.75f);
                     psaf.Friction = 1f;
                     return psaf;
                 }
@@ -240,7 +241,7 @@ namespace BlockEnhancementMod.Blocks
             ModMesh modMesh = ModResource.CreateMeshResource("Wheel Mesh", "Resources" + @"/" + "Wheel.obj");
 
             yield return new WaitUntil(() => modMesh.Available);
-            
+
             MeshCollider meshCollider = WheelColliderOrgin.AddComponent<MeshCollider>();
             meshCollider.sharedMesh = ModResource.GetMesh("Wheel Mesh");
             meshCollider.convex = true;
