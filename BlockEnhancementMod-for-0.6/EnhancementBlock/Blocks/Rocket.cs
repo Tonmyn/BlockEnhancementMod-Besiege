@@ -111,16 +111,38 @@ namespace BlockEnhancementMod.Blocks
 #if DEBUG
                 Debug.Log("Receive block target");
 #endif
-                target = ((Block)msg.GetData(0)).GameObject.transform;
-                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                Block rocketBlock = (Block)msg.GetData(1);
+                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
+                {
+                    target = ((Block)msg.GetData(0)).GameObject.transform;
+                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                }
             };
             ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
             {
 #if DEBUG
                 Debug.Log("Receive entity target");
 #endif
-                target = ((Entity)msg.GetData(0)).GameObject.transform;
-                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                Block rocketBlock = (Block)msg.GetData(1);
+                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
+                {
+                    target = ((Entity)msg.GetData(0)).GameObject.transform;
+                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                }
+            };
+            ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
+            {
+#if DEBUG
+                Debug.Log("Receive entity target");
+#endif
+                Block rocketBlock = (Block)msg.GetData(0);
+                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
+                {
+                    target = null;
+                    targetCollider = null;
+                    previousVelocity = acceleration = Vector3.zero;
+                }
+
             };
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
             {
@@ -295,6 +317,7 @@ namespace BlockEnhancementMod.Blocks
                         target = null;
                         targetCollider = null;
                         previousVelocity = acceleration = Vector3.zero;
+                        SendClientTargetNull();
                     }
                     else
                     {
@@ -336,7 +359,8 @@ namespace BlockEnhancementMod.Blocks
                 {
                     target = null;
                     targetCollider = null;
-                    previousVelocity = Vector3.zero;
+                    previousVelocity = acceleration = Vector3.zero;
+                    SendClientTargetNull();
                     if (activeGuide)
                     {
                         //When launch key is released, reset target search
@@ -459,7 +483,7 @@ namespace BlockEnhancementMod.Blocks
                     }
 
                     //Check if target is no longer valuable (lazy check)
-                    if (target != null)
+                    if (target != null && !StatMaster.isClient)
                     {
                         try
                         {
@@ -468,6 +492,7 @@ namespace BlockEnhancementMod.Blocks
                                 target = null;
                                 targetCollider = null;
                                 targetAquired = false;
+                                SendClientTargetNull();
                             }
                             else
                             {
@@ -495,6 +520,7 @@ namespace BlockEnhancementMod.Blocks
                                     target = null;
                                     targetCollider = null;
                                     targetAquired = targetInitialCJOrHJ = false;
+                                    SendClientTargetNull();
                                 }
                             }
                         }
@@ -508,6 +534,7 @@ namespace BlockEnhancementMod.Blocks
                                     target = null;
                                     targetCollider = null;
                                     targetAquired = false;
+                                    SendClientTargetNull();
                                 }
                             }
                         }
@@ -523,6 +550,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -533,6 +561,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -543,6 +572,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -556,6 +586,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -566,6 +597,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -576,6 +608,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -586,6 +619,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -596,6 +630,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -606,6 +641,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -616,6 +652,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -626,6 +663,7 @@ namespace BlockEnhancementMod.Blocks
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
+                                        SendClientTargetNull();
                                     }
                                 }
                                 catch { }
@@ -644,61 +682,64 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateLateUpdateAlways()
         {
-            if (rocket.hasFired && !rocket.hasExploded)
+            if (!StatMaster.isClient)
             {
-                if (guidedRocketStabilityOn)
+                if (rocket.hasFired && !rocket.hasExploded)
                 {
-                    //Add aerodynamic force to rocket
-                    AddAerodynamicsToRocketVelocity();
-                }
-
-                if (guidedRocketActivated)
-                {
-                    if (target != null && targetCollider != null && canTrigger)
+                    if (guidedRocketStabilityOn)
                     {
-                        // Calculating the rotating axis
-                        Vector3 velocity = Vector3.zero;
-                        try
-                        {
-                            velocity = targetCollider.attachedRigidbody.velocity;
-                            if (previousVelocity != Vector3.zero)
-                            {
-                                acceleration = (velocity - previousVelocity) / Time.deltaTime;
-                            }
-                            previousVelocity = velocity;
-                        }
-                        catch { }
-                        //Add position prediction
-                        float ratio = (targetCollider.bounds.center - rocket.transform.position).magnitude / initialDistance;
-                        float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
-                        float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
-                        Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
-                        bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
-                        Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+                        //Add aerodynamic force to rocket
+                        AddAerodynamicsToRocketVelocity();
+                    }
 
-                        //Add torque to the rocket based on the angle difference
-                        //If in auto guide mode, the rocket will restart searching when target is out of sight
-                        //else, apply maximum torque to the rocket
-                        if (forward && angleDiff <= searchAngle)
+                    if (guidedRocketActivated)
+                    {
+                        if (target != null && targetCollider != null && canTrigger)
                         {
+                            // Calculating the rotating axis
+                            Vector3 velocity = Vector3.zero;
                             try
                             {
-                                //rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * Mathf.Pow(angleDiff / maxSearchAngleNo8, 0.5f) * rotatingAxis);
-                                rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                                velocity = targetCollider.attachedRigidbody.velocity;
+                                if (previousVelocity != Vector3.zero)
+                                {
+                                    acceleration = (velocity - previousVelocity) / Time.deltaTime;
+                                }
+                                previousVelocity = velocity;
                             }
                             catch { }
-                        }
-                        else
-                        {
-                            if (!activeGuide)
+                            //Add position prediction
+                            float ratio = (targetCollider.bounds.center - rocket.transform.position).magnitude / initialDistance;
+                            float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
+                            float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
+                            Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.transform.position;
+                            float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                            bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
+                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+
+                            //Add torque to the rocket based on the angle difference
+                            //If in auto guide mode, the rocket will restart searching when target is out of sight
+                            //else, apply maximum torque to the rocket
+                            if (forward && angleDiff <= searchAngle)
                             {
-                                try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
+                                try
+                                {
+                                    //rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * Mathf.Pow(angleDiff / maxSearchAngleNo8, 0.5f) * rotatingAxis);
+                                    rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                                }
                                 catch { }
                             }
                             else
                             {
-                                targetAquired = false;
+                                if (!activeGuide)
+                                {
+                                    try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
+                                    catch { }
+                                }
+                                else
+                                {
+                                    targetAquired = false;
+                                }
                             }
                         }
                     }
@@ -1156,14 +1197,23 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (target.gameObject.GetComponent<BlockBehaviour>())
                 {
-                    Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(target.gameObject.GetComponent<BlockBehaviour>());
+                    Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(target.gameObject.GetComponent<BlockBehaviour>(), BB);
                     ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetBlockBehaviourMsg);
                 }
                 if (target.gameObject.GetComponent<LevelEntity>())
                 {
-                    Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>());
+                    Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
                     ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetEntityMsg);
                 }
+            }
+        }
+
+        private void SendClientTargetNull()
+        {
+            if (StatMaster.isHosting && rocket.ParentMachine.PlayerID != 0)
+            {
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
+                ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
             }
         }
 
