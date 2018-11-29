@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
         public bool Near = true;
         private bool orginReturnToCenter = false;
 
-        
+
 
         MSlider rotationSpeedSlider;
         Rigidbody rigidbody;
@@ -39,9 +39,9 @@ namespace BlockEnhancementMod
             NearToggle = BB.AddToggle(LanguageManager.near, "Near", Near);
             NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(); };
 
-            leftKey = steeringWheel.Keys.First(match => match.Key == "left");
-            rightKey = steeringWheel.Keys.First(match => match.Key == "right");
-            rotationSpeedSlider = steeringWheel.Sliders.First(match => match.Key == "rotation-speed");
+            leftKey = steeringWheel.KeyList.Find(match => match.Key == "left");
+            rightKey = steeringWheel.KeyList.Find(match => match.Key == "right");
+            rotationSpeedSlider = steeringWheel.SpeedSlider;
 
 #if DEBUG
             ConsoleController.ShowMessage("转向关节添加进阶属性");
@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
 
         public override void ChangeParameter()
         {
-            
+
             rigidbody = GetComponent<Rigidbody>();
 
             if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
@@ -79,7 +79,7 @@ namespace BlockEnhancementMod
                 if (!Near && lastKey != null)
                 {
                     float sign = Mathf.Sign(steeringWheel.AngleToBe);
-                   
+
                     if (lastKey.Key == "left" && sign < 0)
                     {
                         target = 179;
@@ -91,7 +91,7 @@ namespace BlockEnhancementMod
                     else
                     {
                         target = 0;
-                    }              
+                    }
                 }
                 else
                 {

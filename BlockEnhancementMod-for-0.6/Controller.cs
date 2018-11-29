@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
 
         public Transform targetSavedInController;
 
-        private Rect windowRect = new Rect(15f, 100f, 180f, 50f+20f);
+        private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
 
         private readonly int windowID = ModUtility.GetWindowId();
 
@@ -70,6 +70,8 @@ namespace BlockEnhancementMod
             }
             catch { }
 
+            //Init message for rockets and cameras
+            RocketMessages message = new RocketMessages();
         }
 
         void Update()
@@ -200,7 +202,7 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu&& !StatMaster.isClient)
+            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu && !StatMaster.isClient)
             {
                 windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.modSettings);
             }
