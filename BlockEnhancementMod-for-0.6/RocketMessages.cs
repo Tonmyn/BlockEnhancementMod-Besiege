@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using Modding;
 using Modding.Blocks;
-using Modding.Common;
 using Modding.Levels;
+using BlockEnhancementMod.Blocks;
 
 namespace BlockEnhancementMod
 {
@@ -24,8 +20,6 @@ namespace BlockEnhancementMod
     {
         public RocketMessages()
         {
-            //Create message received callbacks
-            //Rocket
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
             Messages.rocketTargetNullMsg = ModNetworking.CreateMessageType(DataType.Block);
@@ -66,7 +60,7 @@ namespace BlockEnhancementMod
                 Debug.Log("Receive block target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(1);
-                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
                 rocket.target = ((Block)msg.GetData(0)).GameObject.transform;
                 rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
 
@@ -77,7 +71,7 @@ namespace BlockEnhancementMod
                 Debug.Log("Receive entity target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(1);
-                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
                 rocket.target = ((Entity)msg.GetData(0)).GameObject.transform;
                 rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
             };
@@ -87,7 +81,7 @@ namespace BlockEnhancementMod
                 Debug.Log("Receive entity target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(0);
-                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
                 rocket.target = null;
                 rocket.targetCollider = null;
 
@@ -95,7 +89,7 @@ namespace BlockEnhancementMod
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
             {
                 Block rocketBlock = (Block)msg.GetData(2);
-                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
                 rocket.rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
                 rocket.activeGuide = false;
                 rocket.receivedRayFromClient = true;
