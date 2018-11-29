@@ -71,8 +71,7 @@ namespace BlockEnhancementMod
             catch { }
 
             //Init message for rockets and cameras
-            RocketCameraMessage message = new RocketCameraMessage();
-            message.MessageInit();
+            RocketMessages message = new RocketMessages();
         }
 
         void Update()

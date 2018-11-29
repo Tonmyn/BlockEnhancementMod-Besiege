@@ -22,8 +22,8 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         //Networking setting
-        private bool receivedRayFromClient = false;
-        private Ray rayFromClient;
+        public bool receivedRayFromClient = false;
+        public Ray rayFromClient;
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -48,7 +48,7 @@ namespace BlockEnhancementMod.Blocks
         private readonly float maxTorque = 10000;
         public Vector3 previousVelocity;
         public Vector3 acceleration;
-        private Collider targetCollider;
+        public Collider targetCollider;
         private bool targetInitialCJOrHJ = false;
         private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
         private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
@@ -103,54 +103,6 @@ namespace BlockEnhancementMod.Blocks
 
         //Aerodynamics setting
         private readonly float aeroEffectMultiplier = 0.75f;
-
-        private void MessageInitialisation()
-        {
-            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive block target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
-                {
-                    target = ((Block)msg.GetData(0)).GameObject.transform;
-                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                }
-            };
-            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive entity target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
-                {
-                    target = ((Entity)msg.GetData(0)).GameObject.transform;
-                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                }
-            };
-            ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive entity target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(0);
-                if (rocketBlock.InternalObject.BuildIndex == rocket.BuildIndex)
-                {
-                    target = null;
-                    targetCollider = null;
-                    previousVelocity = acceleration = Vector3.zero;
-                }
-
-            };
-            ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
-            {
-                rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
-                activeGuide = false;
-                receivedRayFromClient = true;
-            };
-        }
 
         public override void SafeAwake()
         {
@@ -240,9 +192,6 @@ namespace BlockEnhancementMod.Blocks
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
-
-            //Initialise messages
-            MessageInitialisation();
 
 #if DEBUG
             //ConsoleController.ShowMessage("火箭添加进阶属性");
@@ -1219,7 +1168,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void SendRayToHost(Ray ray)
         {
-            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction);
+            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, BB);
             ModNetworking.SendToHost(rayToHostMsg);
         }
 

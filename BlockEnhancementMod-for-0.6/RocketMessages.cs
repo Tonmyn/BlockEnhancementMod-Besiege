@@ -1,5 +1,12 @@
-﻿using Modding;
+﻿using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Modding;
+using Modding.Blocks;
+using Modding.Common;
+using Modding.Levels;
 
 namespace BlockEnhancementMod
 {
@@ -11,23 +18,18 @@ namespace BlockEnhancementMod
         public static MessageType rocketTargetNullMsg;
         public static MessageType rocketRayToHostMsg;
         public static MessageType rocketHighExploPosition;
-
-        //For cameras
-        public static MessageType cameraTargetBlockBehaviourMsg;
-        public static MessageType cameraTargetEntityMsg;
-        public static MessageType cameraRayToHostMsg;
     }
 
-    public class RocketCameraMessage
+    public class RocketMessages
     {
-        public void MessageInit()
+        public RocketMessages()
         {
             //Create message received callbacks
             //Rocket
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
             Messages.rocketTargetNullMsg = ModNetworking.CreateMessageType(DataType.Block);
-            Messages.rocketRayToHostMsg = ModNetworking.CreateMessageType(DataType.Vector3, DataType.Vector3);
+            Messages.rocketRayToHostMsg = ModNetworking.CreateMessageType(DataType.Vector3, DataType.Vector3, DataType.Block);
             Messages.rocketHighExploPosition = ModNetworking.CreateMessageType(DataType.Vector3, DataType.Single);
 
             ModNetworking.Callbacks[Messages.rocketHighExploPosition] += (Message msg) =>
@@ -58,10 +60,47 @@ namespace BlockEnhancementMod
                 }
             };
 
-            //Camera
-            Messages.cameraTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block);
-            Messages.cameraTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity);
-            Messages.cameraRayToHostMsg = ModNetworking.CreateMessageType(DataType.Vector3, DataType.Vector3);
+            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
+            {
+#if DEBUG
+                Debug.Log("Receive block target");
+#endif
+                Block rocketBlock = (Block)msg.GetData(1);
+                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                rocket.target = ((Block)msg.GetData(0)).GameObject.transform;
+                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
+
+            };
+            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
+            {
+#if DEBUG
+                Debug.Log("Receive entity target");
+#endif
+                Block rocketBlock = (Block)msg.GetData(1);
+                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                rocket.target = ((Entity)msg.GetData(0)).GameObject.transform;
+                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
+            };
+            ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
+            {
+#if DEBUG
+                Debug.Log("Receive entity target");
+#endif
+                Block rocketBlock = (Block)msg.GetData(0);
+                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                rocket.target = null;
+                rocket.targetCollider = null;
+
+            };
+            ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
+            {
+                Block rocketBlock = (Block)msg.GetData(2);
+                Blocks.RocketScript rocket = rocketBlock.GameObject.GetComponent<Blocks.RocketScript>();
+                rocket.rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
+                rocket.activeGuide = false;
+                rocket.receivedRayFromClient = true;
+            };
         }
+
     }
 }
