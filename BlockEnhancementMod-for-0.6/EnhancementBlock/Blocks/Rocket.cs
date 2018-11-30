@@ -727,6 +727,7 @@ namespace BlockEnhancementMod.Blocks
             //Stop the search target coroutine
             searchStarted = targetHit = true;
             StopCoroutine(SearchForTarget());
+            SendClientTargetNull();
 
             if (!highExploActivated)
             {
@@ -1171,7 +1172,6 @@ namespace BlockEnhancementMod.Blocks
                 ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
 
                 Message rocketLostTargetMsg = Messages.rocketLostTargetMsg.CreateMessage(BB);
-                //ModNetworking.SendTo(Player.GetAllPlayers()[target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID], rocketLockOnMeMsg);
                 ModNetworking.SendToAll(rocketLostTargetMsg);
             }
         }
