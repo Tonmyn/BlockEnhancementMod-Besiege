@@ -69,9 +69,6 @@ namespace BlockEnhancementMod
                 }, "help: ");
             }
             catch { }
-
-            //Init message for rockets and cameras
-            RocketMessages message = new RocketMessages();
         }
 
         void Update()
