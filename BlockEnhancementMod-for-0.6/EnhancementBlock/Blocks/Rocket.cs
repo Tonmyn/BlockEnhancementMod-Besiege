@@ -628,7 +628,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
-            if (rocket.hasExploded && extTrigRocketExploSent)
+            if (rocket.hasExploded && !extTrigRocketExploSent)
             {
                 SendClientTargetNull();
                 extTrigRocketExploSent = true;
