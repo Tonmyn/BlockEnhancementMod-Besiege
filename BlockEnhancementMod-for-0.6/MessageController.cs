@@ -39,7 +39,7 @@ namespace BlockEnhancementMod
 
 
         private bool iAmLockedByRocket = false;
-        private Dictionary<Block, int> rocketTargetDict = new Dictionary<Block, int>();
+        private Dictionary<BlockBehaviour, int> rocketTargetDict;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
         private static readonly float warningHeight = 60f;
@@ -65,13 +65,28 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (Game.IsSimulating && rocketTargetDict.Count > 0)
+            if (!PlayerMachine.GetLocal().InternalObject.isSimulating && rocketTargetDict.Count > 0)
             {
-                foreach (var item in rocketTargetDict)
+                rocketTargetDict.Clear();
+            }
+            if (rocketTargetDict.Count == 0)
+            {
+                iAmLockedByRocket = false;
+            }
+            else
+            {
+                foreach (var rocket in rocketTargetDict)
+                {
+                    if (!rocket.Key.ParentMachine.isSimulating)
+                    {
+                        RemoveRocketTarget(rocket.Key);
+                    }
+                }
+                foreach (var rocketTargetPair in rocketTargetDict)
                 {
                     if (PlayerMachine.GetLocal() != null)
                     {
-                        if (item.Value == PlayerMachine.GetLocal().Player.NetworkId)
+                        if (rocketTargetPair.Value == PlayerMachine.GetLocal().Player.NetworkId)
                         {
                             iAmLockedByRocket = true;
                             break;
@@ -116,7 +131,7 @@ namespace BlockEnhancementMod
 
         public MessageController()
         {
-
+            rocketTargetDict = new Dictionary<BlockBehaviour, int>();
             //Initiating messages
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
@@ -201,33 +216,36 @@ namespace BlockEnhancementMod
 
             ModNetworking.Callbacks[Messages.rocketLockOnMeMsg] += (Message msg) =>
             {
-                Debug.Log("Rocket Info Received");
                 Block rocket = (Block)msg.GetData(0);
                 int targetMachineID = (int)msg.GetData(1);
-                try
-                {
-                    if (rocketTargetDict.ContainsKey(rocket))
-                    {
-                        rocketTargetDict[rocket] = targetMachineID;
-                    }
-                    else
-                    {
-                        rocketTargetDict.Add(rocket, targetMachineID);
-                    }
-
-                }
-                catch { }
+                UpdateRocketTarget(rocket.InternalObject, targetMachineID);
 
             };
             ModNetworking.Callbacks[Messages.rocketLostTargetMsg] += (Message msg) =>
             {
-                Debug.Log("Rocket Info Removed");
                 Block rocket = (Block)msg.GetData(0);
-                if (rocketTargetDict.ContainsKey(rocket))
-                {
-                    rocketTargetDict.Remove(rocket);
-                }
+                RemoveRocketTarget(rocket.InternalObject);
             };
+        }
+
+        public void UpdateRocketTarget(BlockBehaviour rocket, int targetMachineID)
+        {
+            if (rocketTargetDict.ContainsKey(rocket))
+            {
+                rocketTargetDict[rocket] = targetMachineID;
+            }
+            else
+            {
+                rocketTargetDict.Add(rocket, targetMachineID);
+            }
+        }
+
+        public void RemoveRocketTarget(BlockBehaviour rocket)
+        {
+            if (rocketTargetDict.ContainsKey(rocket))
+            {
+                rocketTargetDict.Remove(rocket);
+            }
         }
     }
 }
