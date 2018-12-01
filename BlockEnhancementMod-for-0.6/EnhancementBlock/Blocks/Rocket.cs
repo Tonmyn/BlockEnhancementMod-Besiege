@@ -42,6 +42,7 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidePredictionSlider;
         public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
+        public bool extTrigRocketExploSent = false;
         public float torque = 100f;
         public float prediction = 10f;
         public float initialDistance = 0f;
@@ -222,7 +223,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = false;
+                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
@@ -626,6 +627,11 @@ namespace BlockEnhancementMod.Blocks
                         RocketRadarSearch();
                     }
                 }
+            }
+            if (rocket.hasExploded && extTrigRocketExploSent)
+            {
+                SendClientTargetNull();
+                extTrigRocketExploSent = true;
             }
         }
 
