@@ -1175,8 +1175,7 @@ namespace BlockEnhancementMod.Blocks
                 Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
                 ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
 
-                Message rocketLostTargetMsg = Messages.rocketLostTargetMsg.CreateMessage(BB);
-                ModNetworking.SendInSimulation(rocketLostTargetMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
                 BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
             }
         }
