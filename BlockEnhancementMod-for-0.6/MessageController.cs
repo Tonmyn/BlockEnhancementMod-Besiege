@@ -39,6 +39,9 @@ namespace BlockEnhancementMod
 
 
         private bool iAmLockedByRocket = false;
+        private bool isFirstFrame = true;
+        private FixedCameraController cameraController;
+        public static bool DisplayWarning { get; internal set; } = true;
         private Dictionary<BlockBehaviour, int> rocketTargetDict;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
@@ -61,6 +64,26 @@ namespace BlockEnhancementMod
 
                 return redTexture;
             }
+        }
+
+        void FixedUpdate()
+        {
+            if (PlayerMachine.GetLocal().InternalObject.isSimulating)
+            {
+                if (isFirstFrame)
+                {
+                    isFirstFrame = false;
+                    cameraController = FindObjectOfType<FixedCameraController>();
+                }
+            }
+            else
+            {
+                if (!isFirstFrame)
+                {
+                    isFirstFrame = true;
+                }
+            }
+
         }
 
         private void OnGUI()
@@ -101,10 +124,16 @@ namespace BlockEnhancementMod
                         iAmLockedByRocket = false;
                     }
                 }
-                if (iAmLockedByRocket)
+                if (iAmLockedByRocket && DisplayWarning)
                 {
-                    DrawBorder();
-                    GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                    if (cameraController != null)
+                    {
+                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        {
+                            DrawBorder();
+                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                        }
+                    }
                 }
             }
         }

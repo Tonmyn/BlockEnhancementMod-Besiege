@@ -20,6 +20,7 @@ namespace BlockEnhancementMod.Blocks
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        public static bool MarkTarget { get; internal set; } = true;
 
         //Networking setting
         public bool receivedRayFromClient = false;
@@ -230,6 +231,7 @@ namespace BlockEnhancementMod.Blocks
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
+                randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 if (!StatMaster.isMP)
                 {
                     clustersInSafetyRange.Clear();
@@ -417,11 +419,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fireTimeRecorded = true;
                         fireTime = Time.time;
-                        randomDelay = UnityEngine.Random.Range(0f, 0.1f);
+
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay + randomDelay && !canTrigger)
+                    if (Time.time - fireTime >= guideDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
@@ -1136,13 +1138,16 @@ namespace BlockEnhancementMod.Blocks
 
         private void DrawTargetRedSquare()
         {
-            if (target != null && targetCollider.bounds != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
+            if (MarkTarget)
             {
-                if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
+                if (target != null && targetCollider.bounds != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
                 {
-                    int squareWidth = 16;
-                    Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
-                    GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                    if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
+                    {
+                        int squareWidth = 16;
+                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
+                        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                    }
                 }
             }
         }
