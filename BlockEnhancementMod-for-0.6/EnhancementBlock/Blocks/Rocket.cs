@@ -231,6 +231,7 @@ namespace BlockEnhancementMod.Blocks
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
+                randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 if (!StatMaster.isMP)
                 {
                     clustersInSafetyRange.Clear();
@@ -418,11 +419,11 @@ namespace BlockEnhancementMod.Blocks
                     {
                         fireTimeRecorded = true;
                         fireTime = Time.time;
-                        randomDelay = UnityEngine.Random.Range(0f, 0.1f);
+
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay + randomDelay && !canTrigger)
+                    if (Time.time - fireTime >= guideDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
