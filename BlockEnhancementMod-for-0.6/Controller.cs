@@ -199,7 +199,7 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu && !StatMaster.isClient)
+            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu)
             {
                 windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.modSettings);
             }
@@ -212,13 +212,18 @@ namespace BlockEnhancementMod
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             {
-                EnhancementBlock.No8Workshop = GUILayout.Toggle(/*new Rect(10, 20, 70, 40),*/ EnhancementBlock.No8Workshop, LanguageManager.additionalFunction);
-
-                if (Friction != GUILayout.Toggle(/*new Rect(10, 70, 70, 40),*/ Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
+                if (!StatMaster.isClient)
                 {
-                    Friction = !Friction;
-                    OnFrictionToggle(Friction);
+                    EnhancementBlock.No8Workshop = GUILayout.Toggle(EnhancementBlock.No8Workshop, LanguageManager.additionalFunction);
+
+                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
+                    {
+                        Friction = !Friction;
+                        OnFrictionToggle(Friction);
+                    }
                 }
+                MessageController.DisplayWarning = GUILayout.Toggle(MessageController.DisplayWarning, LanguageManager.displayWarning);
+                RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.markTarget);
             }
             GUILayout.EndVertical();
             GUILayout.BeginVertical();

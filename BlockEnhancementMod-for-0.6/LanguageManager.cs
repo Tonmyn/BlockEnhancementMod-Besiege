@@ -19,8 +19,12 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
         public static string additionalFunction = isChinese ? " 增强性能" : "Enhance More";
-   
+
         //Rocket & Camera
+        public static string displayWarning = isChinese ? "显示火箭警告" : "Display Rocket Warning";
+
+        public static string markTarget = isChinese ? "标记火箭目标" : "Mark Rocket Target";
+
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
 
         public static string prediction = isChinese ? "预测" : "Prediction";
@@ -40,7 +44,7 @@ namespace BlockEnhancementMod
         public static string torqueOnRocket = isChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
         public static string rocketStability = isChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
-        
+
         public static string guideDelay = isChinese ? "追踪延迟" : "Guide Delay";
 
         public static string lockTarget = isChinese ? "锁定目标" : "Lock Target";
