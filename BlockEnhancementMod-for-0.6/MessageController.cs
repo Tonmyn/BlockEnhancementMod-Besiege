@@ -126,10 +126,13 @@ namespace BlockEnhancementMod
                 }
                 if (iAmLockedByRocket && DisplayWarning)
                 {
-                    if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                    if (cameraController != null)
                     {
-                        DrawBorder();
-                        GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        {
+                            DrawBorder();
+                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                        }
                     }
                 }
             }
