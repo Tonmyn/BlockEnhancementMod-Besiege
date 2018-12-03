@@ -343,20 +343,18 @@ namespace BlockEnhancementMod.Blocks
                                     }
                                 }
                             }
-                            if (target == null)
+                            if (target == null && rayHit.transform != null)
                             {
-                                if (rayHit.transform != null)
+                                if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                 {
-                                    if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                                    {
-                                        target = rayHit.transform;
-                                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                                        previousVelocity = acceleration = Vector3.zero;
-                                        initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                                        targetAquired = true;
-                                    }
+                                    target = rayHit.transform;
+                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                    previousVelocity = acceleration = Vector3.zero;
+                                    initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
+                                    targetAquired = true;
                                 }
+
                             }
                             if (receivedRayFromClient)
                             {

@@ -263,33 +263,36 @@ namespace BlockEnhancementMod
                             float manualSearchRadius = 1.25f;
                             RaycastHit[] hits = Physics.SphereCastAll(ray, manualSearchRadius, Mathf.Infinity);
                             Physics.Raycast(ray, out RaycastHit rayHit);
-                            for (int i = 0; i < hits.Length; i++)
-                            {
-                                if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                                {
-                                    if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
-                                    {
-                                        target = hits[i].transform;
-                                        pauseTracking = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (target == null)
+                            if (hits.Length > 0)
                             {
                                 for (int i = 0; i < hits.Length; i++)
                                 {
-                                    if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                    if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                     {
                                         if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
+                                            pauseTracking = false;
                                             break;
                                         }
                                     }
                                 }
+                                if (target == null)
+                                {
+                                    for (int i = 0; i < hits.Length; i++)
+                                    {
+                                        if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                        {
+                                            if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
+                                            {
+                                                target = hits[i].transform;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            if (target == null)
+                            if (target == null && rayHit.transform != null)
                             {
                                 if ((rayHit.transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
                                 {
