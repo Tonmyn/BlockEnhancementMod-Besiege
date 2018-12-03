@@ -135,11 +135,14 @@ namespace BlockEnhancementMod
             PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
 
             //设置地形的摩擦力合并方式
-            foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
+            if (GameObject.Find("Terrain Terraced") != null)
             {
-                v.sharedMaterial.frictionCombine = physicMaterialCombine;
-                v.sharedMaterial.bounceCombine = physicMaterialCombine;
-                break;
+                foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
+                {
+                    v.sharedMaterial.frictionCombine = physicMaterialCombine;
+                    v.sharedMaterial.bounceCombine = physicMaterialCombine;
+                    break;
+                }
             }
         }
 
