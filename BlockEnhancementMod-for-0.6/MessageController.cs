@@ -68,70 +68,75 @@ namespace BlockEnhancementMod
 
         void FixedUpdate()
         {
-            if (PlayerMachine.GetLocal().InternalObject.isSimulating)
+            if (PlayerMachine.GetLocal() != null)
             {
-                if (isFirstFrame)
+                if (PlayerMachine.GetLocal().InternalObject.isSimulating)
                 {
-                    isFirstFrame = false;
-                    cameraController = FindObjectOfType<FixedCameraController>();
+                    if (isFirstFrame)
+                    {
+                        isFirstFrame = false;
+                        cameraController = FindObjectOfType<FixedCameraController>();
+                    }
+                }
+                else
+                {
+                    if (!isFirstFrame)
+                    {
+                        isFirstFrame = true;
+                    }
                 }
             }
-            else
-            {
-                if (!isFirstFrame)
-                {
-                    isFirstFrame = true;
-                }
-            }
-
         }
 
         private void OnGUI()
         {
-            if (!PlayerMachine.GetLocal().InternalObject.isSimulating && rocketTargetDict.Count > 0)
+            if (StatMaster.levelSimulating && PlayerMachine.GetLocal() != null)
             {
-                rocketTargetDict.Clear();
-            }
-            if (rocketTargetDict.Count == 0)
-            {
-                iAmLockedByRocket = false;
-            }
-            else
-            {
-                foreach (var rocket in rocketTargetDict)
+                if (!PlayerMachine.GetLocal().InternalObject.isSimulating && rocketTargetDict.Count > 0)
                 {
-                    if (!rocket.Key.ParentMachine.isSimulating)
-                    {
-                        RemoveRocketTarget(rocket.Key);
-                    }
+                    rocketTargetDict.Clear();
                 }
-                foreach (var rocketTargetPair in rocketTargetDict)
+                if (rocketTargetDict.Count == 0)
                 {
-                    if (PlayerMachine.GetLocal() != null)
+                    iAmLockedByRocket = false;
+                }
+                else
+                {
+                    foreach (var rocket in rocketTargetDict)
                     {
-                        if (rocketTargetPair.Value == PlayerMachine.GetLocal().Player.NetworkId)
+                        if (!rocket.Key.ParentMachine.isSimulating)
                         {
-                            iAmLockedByRocket = true;
-                            break;
+                            RemoveRocketTarget(rocket.Key);
+                        }
+                    }
+                    foreach (var rocketTargetPair in rocketTargetDict)
+                    {
+                        if (PlayerMachine.GetLocal() != null)
+                        {
+                            if (rocketTargetPair.Value == PlayerMachine.GetLocal().Player.NetworkId)
+                            {
+                                iAmLockedByRocket = true;
+                                break;
+                            }
+                            else
+                            {
+                                iAmLockedByRocket = false;
+                            }
                         }
                         else
                         {
                             iAmLockedByRocket = false;
                         }
                     }
-                    else
+                    if (iAmLockedByRocket && DisplayWarning)
                     {
-                        iAmLockedByRocket = false;
-                    }
-                }
-                if (iAmLockedByRocket && DisplayWarning)
-                {
-                    if (cameraController != null)
-                    {
-                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        if (cameraController != null)
                         {
-                            DrawBorder();
-                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                            if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                            {
+                                DrawBorder();
+                                GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                            }
                         }
                     }
                 }

@@ -277,36 +277,6 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
 
-                //if (StatMaster.isHosting && receivedRayFromClient)
-                //{
-                //    Debug.Log("Should not see this message in client");
-                //    receivedRayFromClient = false;
-                //    //Find targets in the manual search mode by casting a sphere along the ray
-                //    float manualSearchRadius = 1.25f;
-                //    RaycastHit[] hits = Physics.SphereCastAll(rayFromClient, manualSearchRadius, Mathf.Infinity);
-
-                //    for (int i = 0; i < hits.Length; i++)
-                //    {
-                //        if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                //        {
-                //            target = hits[i].transform;
-                //            break;
-                //        }
-                //    }
-                //    if (target == null)
-                //    {
-                //        for (int i = 0; i < hits.Length; i++)
-                //        {
-                //            if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-                //            {
-                //                target = hits[i].transform;
-                //                break;
-                //            }
-                //        }
-                //    }
-                //    SendTargetToClient();
-                //}
-
                 if (LockTargetKey.IsReleased)
                 {
                     target = null;
@@ -335,34 +305,17 @@ namespace BlockEnhancementMod.Blocks
                             float manualSearchRadius = 1.25f;
                             RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
                             Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-
-                            for (int i = 0; i < hits.Length; i++)
-                            {
-                                if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                                {
-                                    if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                                    {
-                                        target = hits[i].transform;
-                                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                                        previousVelocity = acceleration = Vector3.zero;
-                                        initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                                        targetAquired = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (target == null)
+                            if (hits.Length > 0)
                             {
                                 for (int i = 0; i < hits.Length; i++)
                                 {
-                                    if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                    if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                     {
                                         if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
                                             targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                            targetInitialCJOrHJ = false;
+                                            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                             previousVelocity = acceleration = Vector3.zero;
                                             initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                             targetAquired = true;
@@ -370,17 +323,39 @@ namespace BlockEnhancementMod.Blocks
                                         }
                                     }
                                 }
+                                if (target == null)
+                                {
+                                    for (int i = 0; i < hits.Length; i++)
+                                    {
+                                        if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                        {
+                                            if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                            {
+                                                target = hits[i].transform;
+                                                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                                targetInitialCJOrHJ = false;
+                                                previousVelocity = acceleration = Vector3.zero;
+                                                initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
+                                                targetAquired = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             if (target == null)
                             {
-                                if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                if (rayHit.transform != null)
                                 {
-                                    target = rayHit.transform;
-                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                                    previousVelocity = acceleration = Vector3.zero;
-                                    initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                                    targetAquired = true;
+                                    if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                    {
+                                        target = rayHit.transform;
+                                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                        previousVelocity = acceleration = Vector3.zero;
+                                        initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
+                                        targetAquired = true;
+                                    }
                                 }
                             }
                             if (receivedRayFromClient)
@@ -679,19 +654,19 @@ namespace BlockEnhancementMod.Blocks
                             //else, apply maximum torque to the rocket
                             if (forward && angleDiff <= searchAngle)
                             {
-                                try
+                                if (rocketRigidbody != null)
                                 {
-                                    //rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * Mathf.Pow(angleDiff / maxSearchAngleNo8, 0.5f) * rotatingAxis);
                                     rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
                                 }
-                                catch { }
                             }
                             else
                             {
                                 if (!activeGuide)
                                 {
-                                    try { rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis); }
-                                    catch { }
+                                    if (rocketRigidbody != null)
+                                    {
+                                        rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis);
+                                    }
                                 }
                                 else
                                 {
@@ -716,6 +691,7 @@ namespace BlockEnhancementMod.Blocks
             }
             catch { }
         }
+
         void OnCollisionStay(Collision collision)
         {
             try
