@@ -77,10 +77,12 @@ namespace BlockEnhancementMod.Blocks
         private readonly int flameThrowerValue = 8;
         private readonly int cogMotorValue = 2;
 
-        //proximity fuze related setting
+        //impact & proximity fuze related setting
+        MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
         MSlider ProximityFuzeAngleSlider;
+        public bool impactFuzeActivated = true;
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
         public float proximityAngle = 0f;
@@ -109,8 +111,9 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
             //Load aim pic
-            rocketAim = new Texture2D(256, 256);
+            rocketAim = new Texture2D(16, 16);
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
+
             //Key mapper setup
             GuidedRocketToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
@@ -128,7 +131,13 @@ namespace BlockEnhancementMod.Blocks
                 value;
                 ChangedProperties();
             };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketActivated = GuidedRocketToggle.IsActive; };
+
+            ImpactFuzeToggle = BB.AddToggle(LanguageManager.impactFuze, "ImpactFuze", impactFuzeActivated);
+            ImpactFuzeToggle.Toggled += (bool value) =>
+            {
+                impactFuzeActivated = value;
+                ChangedProperties();
+            };
 
             ProximityFuzeToggle = BB.AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
@@ -139,7 +148,6 @@ namespace BlockEnhancementMod.Blocks
                 value;
                 ChangedProperties();
             };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { proximityFuzeActivated = ProximityFuzeToggle.IsActive; };
 
             NoSmokeToggle = BB.AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
             NoSmokeToggle.Toggled += (bool value) =>
@@ -147,7 +155,6 @@ namespace BlockEnhancementMod.Blocks
                 noSmoke = value;
                 ChangedProperties();
             };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { noSmoke = NoSmokeToggle.IsActive; };
 
             HighExploToggle = BB.AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
@@ -155,35 +162,27 @@ namespace BlockEnhancementMod.Blocks
                 highExploActivated = value;
                 ChangedProperties();
             };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { highExploActivated = HighExploToggle.IsActive; };
 
             ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
-            ///
+
             GuidePredictionSlider = BB.AddSlider(LanguageManager.prediction, "prediction", prediction, 0, 50);
             GuidePredictionSlider.ValueChanged += (float value) => { prediction = value; ChangedProperties(); };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { searchAngle = ActiveGuideRocketSearchAngleSlider.Value; };
 
             ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { proximityRange = ProximityFuzeRangeSlider.Value; };
 
             ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
-            ////BlockDataLoadEvent += (XDataHolder BlockData) => { proximityAngle = ProximityFuzeAngleSlider.Value; };
 
             GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { torque = GuidedRocketTorqueSlider.Value; };
 
             GuidedRocketStabilityToggle = BB.AddToggle(LanguageManager.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
             GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { guidedRocketStabilityOn = GuidedRocketStabilityToggle.IsActive; };
 
             GuideDelaySlider = BB.AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { guideDelay = GuideDelaySlider.Value; };
 
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
@@ -211,11 +210,12 @@ namespace BlockEnhancementMod.Blocks
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketStabilityToggle.DisplayInMapper = value && guidedRocketActivated;
+            ImpactFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
-            LockTargetKey.DisplayInMapper = value && guidedRocketActivated && guidedRocketActivated;
+            LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
 
         public override void OnSimulateStart()
@@ -229,7 +229,7 @@ namespace BlockEnhancementMod.Blocks
                 target = null;
                 targetCollider = null;
                 explodedCluster.Clear();
-                searchAngle = Mathf.Clamp(searchAngle, 0, No8Workshop ? maxSearchAngleNo8 : maxSearchAngle);
+                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
                 previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 if (!StatMaster.isMP)
@@ -249,7 +249,7 @@ namespace BlockEnhancementMod.Blocks
                 explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
 
                 // Make sure the high explo mode is not too imba
-                if (highExploActivated && !No8Workshop)
+                if (highExploActivated && !EnhanceMore)
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
@@ -679,28 +679,26 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionEnter(Collision collision)
         {
-            try
+            if (rocket != null)
             {
                 if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                    && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger)))
+                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
                 {
                     RocketExplode();
                 }
             }
-            catch { }
         }
 
         void OnCollisionStay(Collision collision)
         {
-            try
+            if (rocket != null)
             {
                 if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                    && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger)))
+                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
                 {
                     RocketExplode();
                 }
             }
-            catch { }
         }
 
         private void RocketExplode()

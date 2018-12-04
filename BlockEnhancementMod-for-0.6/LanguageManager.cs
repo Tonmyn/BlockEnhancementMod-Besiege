@@ -29,6 +29,8 @@ namespace BlockEnhancementMod
 
         public static string prediction = isChinese ? "预测" : "Prediction";
 
+        public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";
+
         public static string proximityFuze = isChinese ? "近炸" : "Proximity Fuze";
 
         public static string noSmoke = isChinese ? "无烟" : "No Smoke";

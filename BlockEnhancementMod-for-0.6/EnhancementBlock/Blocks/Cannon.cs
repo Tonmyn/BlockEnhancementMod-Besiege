@@ -31,10 +31,10 @@ namespace BlockEnhancementMod.Blocks
 
         public float Strength = 1f;
         public float Interval = 0.25f;
-        private readonly float intervalMin = No8Workshop ? 0f : 0.1f;
+        private readonly float intervalMin = EnhanceMore ? 0f : 0.1f;
         public float RandomDelay = 0.2f;
         public float KnockBackSpeedZeroOne = 1f;
-        private readonly float knockBackSpeedZeroOneMin = No8Workshop ? 0f : 0.25f;
+        private readonly float knockBackSpeedZeroOneMin = EnhanceMore ? 0f : 0.25f;
         private readonly float knockBackSpeedZeroOneMax = 1f;
         public float originalKnockBackSpeed = 8000;
         public bool firstShotFired = false;
@@ -188,7 +188,7 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-                if (Strength <= 20 || No8Workshop || !StatMaster.isMP)
+                if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
@@ -216,7 +216,7 @@ namespace BlockEnhancementMod.Blocks
                     BulletTrailToggle.DisplayInMapper = false;
                 }
             }
-            if (!No8Workshop && StatMaster.isMP)
+            if (!EnhanceMore && StatMaster.isMP)
             {
                 if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
                 {
