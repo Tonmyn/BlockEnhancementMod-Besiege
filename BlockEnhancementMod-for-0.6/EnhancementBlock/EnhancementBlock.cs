@@ -8,7 +8,7 @@ namespace BlockEnhancementMod
 {
     public  class EnhancementBlock : MonoBehaviour
     {
-        public static bool No8Workshop { get; internal set; } = false;
+        public static bool EnhanceMore { get; internal set; } = false;
 
         /// <summary>模块行为</summary>
         public BlockBehaviour BB { get; internal set; } 

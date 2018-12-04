@@ -45,30 +45,6 @@ namespace BlockEnhancementMod
 
             OnFrictionToggle += FrictionToggle;
 
-            try
-            {
-                ModConsole.RegisterCommand("CompleteFunctionMode", args =>
-                {
-                    try
-                    {
-                        if (args[0].ToLower() == "no8workshop")
-                        {
-                            EnhancementBlock.No8Workshop = true;
-                        }
-                        else
-                        {
-                            EnhancementBlock.No8Workshop = false;
-                        }
-                    }
-                    catch
-                    {
-                        EnhancementBlock.No8Workshop = false;
-                    }
-
-
-                }, "help: ");
-            }
-            catch { }
         }
 
         void Update()
@@ -217,7 +193,7 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    EnhancementBlock.No8Workshop = GUILayout.Toggle(EnhancementBlock.No8Workshop, LanguageManager.additionalFunction);
+                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.additionalFunction);
 
                     if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
                     {

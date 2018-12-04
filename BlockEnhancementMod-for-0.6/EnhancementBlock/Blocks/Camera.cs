@@ -157,7 +157,7 @@ namespace BlockEnhancementMod
                     clustersInSafetyRange.Clear();
                     foreach (var cluster in Machine.Active().simClusters)
                     {
-                        if ((cluster.Base.transform.position - fixedCamera.Position).magnitude < safetyRadiusAuto)
+                        if ((cluster.Base.transform.position - fixedCamera.transform.position).magnitude < safetyRadiusAuto)
                         {
                             clustersInSafetyRange.Add(cluster);
                         }
@@ -169,39 +169,6 @@ namespace BlockEnhancementMod
 
         public override void SimulateUpdateAlways()
         {
-            //if (StatMaster.isHosting)
-            //{
-            //    Debug.Log("Received Ray from Client: " + receivedRayFromClient);
-            //}
-            //if (StatMaster.isHosting && receivedRayFromClient)
-            //{
-            //    Debug.Log("Received Ray from Client: " + receivedRayFromClient);
-            //    receivedRayFromClient = false;
-            //    float manualSearchRadius = 1.25f;
-            //    RaycastHit[] hits = Physics.SphereCastAll(rayFromClient, manualSearchRadius, Mathf.Infinity);
-            //    Physics.Raycast(rayFromClient, out RaycastHit rayHit);
-            //    for (int i = 0; i < hits.Length; i++)
-            //    {
-            //        if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-            //        {
-            //            clientTarget = hits[i].transform;
-            //            break;
-            //        }
-            //    }
-            //    if (clientTarget == null)
-            //    {
-            //        for (int i = 0; i < hits.Length; i++)
-            //        {
-            //            if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-            //            {
-            //                clientTarget = hits[i].transform;
-            //                break;
-            //            }
-            //        }
-            //    }
-            //    Debug.Log("Client target is null? " + (clientTarget == null));
-            //    SendTargetToClient();
-            //}
             if (cameraLookAtToggled)
             {
                 if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
@@ -269,7 +236,7 @@ namespace BlockEnhancementMod
                                 {
                                     if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                     {
-                                        if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
+                                        if ((hits[i].transform.position - fixedCamera.transform.position).magnitude >= safetyRadiusManual)
                                         {
                                             target = hits[i].transform;
                                             pauseTracking = false;
@@ -283,7 +250,7 @@ namespace BlockEnhancementMod
                                     {
                                         if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
                                         {
-                                            if ((hits[i].transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
+                                            if ((hits[i].transform.position - fixedCamera.transform.position).magnitude >= safetyRadiusManual)
                                             {
                                                 target = hits[i].transform;
                                                 break;
@@ -294,7 +261,7 @@ namespace BlockEnhancementMod
                             }
                             if (target == null && rayHit.transform != null)
                             {
-                                if ((rayHit.transform.position - fixedCamera.Position).magnitude >= safetyRadiusManual)
+                                if ((rayHit.transform.position - fixedCamera.transform.position).magnitude >= safetyRadiusManual)
                                 {
                                     target = rayHit.transform;
                                     pauseTracking = false;
