@@ -90,7 +90,7 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (StatMaster.levelSimulating && PlayerMachine.GetLocal() != null)
+            if (StatMaster.levelSimulating && PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
             {
                 if (!PlayerMachine.GetLocal().InternalObject.isSimulating && rocketTargetDict.Count > 0)
                 {
@@ -102,13 +102,6 @@ namespace BlockEnhancementMod
                 }
                 else
                 {
-                    foreach (var rocket in rocketTargetDict)
-                    {
-                        if (!rocket.Key.ParentMachine.isSimulating)
-                        {
-                            RemoveRocketTarget(rocket.Key);
-                        }
-                    }
                     foreach (var rocketTargetPair in rocketTargetDict)
                     {
                         if (PlayerMachine.GetLocal() != null)
@@ -130,13 +123,10 @@ namespace BlockEnhancementMod
                     }
                     if (iAmLockedByRocket && DisplayWarning)
                     {
-                        if (cameraController != null)
+                        if (cameraController?.activeCamera?.CamMode == FixedCameraBlock.Mode.FirstPerson)
                         {
-                            if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
-                            {
-                                DrawBorder();
-                                GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
-                            }
+                            DrawBorder();
+                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
                         }
                     }
                 }
