@@ -4,9 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Modding;
-using Modding.Blocks;
 using Modding.Common;
-using Modding.Levels;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -824,6 +822,48 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             yield return new WaitForSeconds(randomDelay);
+            // First test the rockets that are fired
+            Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
+            Transform rocketTarget = null;
+            if (rocketTargetDict != null)
+            {
+                if (rocketTargetDict.Count > 0)
+                {
+                    float distance = Mathf.Infinity;
+                    foreach (var rocketTargetPair in rocketTargetDict)
+                    {
+                        BlockBehaviour targetRocket = rocketTargetPair.Key;
+                        if (targetRocket != null)
+                        {
+                            if (CheckInRange(targetRocket) && targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID
+                            && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team))
+                            {
+                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+                                if (tempDistance <= distance)
+                                {
+                                    rocketTarget = targetRocket.transform;
+                                    distance = tempDistance;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (rocketTarget != null)
+            {
+                target = rocketTarget;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                targetAquired = true;
+                searchStarted = false;
+                previousVelocity = acceleration = Vector3.zero;
+                initialDistance = (target.position - rocket.transform.position).magnitude;
+                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                SendTargetToClient();
+                StopCoroutine(SearchForTarget());
+                yield return null;
+            }
+
+
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
@@ -863,10 +903,8 @@ namespace BlockEnhancementMod.Blocks
 
                     foreach (var cluster in simClusters)
                     {
-                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                        bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+                        bool inRange = CheckInRange(cluster.Base);
+                        bool skipCluster = !(inRange) || ShouldSkipCluster(cluster.Base);
 
                         if (!skipCluster)
                         {
@@ -903,6 +941,14 @@ namespace BlockEnhancementMod.Blocks
                 catch { }
                 yield return null;
             }
+        }
+
+        private bool CheckInRange(BlockBehaviour target)
+        {
+            Vector3 positionDiff = target.gameObject.transform.position - rocket.transform.position;
+            float angleDiff = Vector3.Angle(positionDiff.normalized, rocket.transform.up);
+            bool forward = Vector3.Dot(positionDiff, rocket.transform.up) > 0;
+            return forward && angleDiff < searchAngle;
         }
 
         private Transform GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch)
@@ -1153,12 +1199,15 @@ namespace BlockEnhancementMod.Blocks
 
         private void SendClientTargetNull()
         {
-            if (StatMaster.isHosting)
+            if (!StatMaster.isClient)
             {
-                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
+                if (StatMaster.isHosting)
+                {
+                    Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
+                    ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
 
-                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                }
                 BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
             }
         }
