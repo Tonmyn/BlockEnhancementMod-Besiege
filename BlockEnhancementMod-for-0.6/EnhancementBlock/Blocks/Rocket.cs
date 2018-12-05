@@ -1184,7 +1184,7 @@ namespace BlockEnhancementMod.Blocks
                         ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetBlockBehaviourMsg);
                     }
                     ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                    BlockEnhancementMod.mod.GetComponent<MessageController>().UpdateRocketTarget(BB, id);
+                    MessageController.Instance.UpdateRocketTarget(BB, id);
                 }
                 if (target.gameObject.GetComponent<LevelEntity>())
                 {
@@ -1192,7 +1192,7 @@ namespace BlockEnhancementMod.Blocks
                     ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetEntityMsg);
 
                     ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                    BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
+                    MessageController.Instance.RemoveRocketTarget(BB);
                 }
             }
         }
@@ -1208,7 +1208,7 @@ namespace BlockEnhancementMod.Blocks
 
                     ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
                 }
-                BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
+                MessageController.Instance.RemoveRocketTarget(BB);
             }
         }
 
