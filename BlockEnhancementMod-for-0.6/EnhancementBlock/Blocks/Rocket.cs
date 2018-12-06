@@ -821,48 +821,43 @@ namespace BlockEnhancementMod.Blocks
 
         IEnumerator SearchForTarget()
         {
-            yield return new WaitForSeconds(randomDelay);
             // First test the rockets that are fired
             Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
             Transform rocketTarget = null;
-            if (rocketTargetDict != null)
+            Transform clusterTarget = null;
+            float clusterValue = 0;
+
+            if (rocketTargetDict?.Count > 0)
             {
-                if (rocketTargetDict.Count > 0)
+                float distance = Mathf.Infinity;
+                foreach (var rocketTargetPair in rocketTargetDict)
                 {
-                    float distance = Mathf.Infinity;
-                    foreach (var rocketTargetPair in rocketTargetDict)
+                    BlockBehaviour targetRocket = rocketTargetPair.Key;
+                    if (targetRocket != null)
                     {
-                        BlockBehaviour targetRocket = rocketTargetPair.Key;
-                        if (targetRocket != null)
+                        bool shouldCheckRocket = false;
+                        if (StatMaster.isMP)
                         {
-                            if (CheckInRange(targetRocket) && targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID
-                            && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team))
+                            shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                        }
+                        else
+                        {
+                            shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
+                        }
+                        if (CheckInRange(targetRocket) && shouldCheckRocket)
+                        {
+                            float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+                            if (tempDistance <= distance)
                             {
-                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
-                                if (tempDistance <= distance)
-                                {
-                                    rocketTarget = targetRocket.transform;
-                                    distance = tempDistance;
-                                }
+                                rocketTarget = targetRocket.transform;
+                                distance = tempDistance;
                             }
                         }
                     }
+
                 }
             }
-            if (rocketTarget != null)
-            {
-                target = rocketTarget;
-                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                targetAquired = true;
-                searchStarted = false;
-                previousVelocity = acceleration = Vector3.zero;
-                initialDistance = (target.position - rocket.transform.position).magnitude;
-                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                SendTargetToClient();
-                StopCoroutine(SearchForTarget());
-                yield return null;
-            }
-
+            yield return new WaitForEndOfFrame();
 
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
@@ -927,18 +922,21 @@ namespace BlockEnhancementMod.Blocks
 
                     if (simClusterForSearch.Count > 0)
                     {
-                        target = GetMostValuableCluster(simClusterForSearch);
-                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                        targetAquired = true;
-                        searchStarted = false;
-                        previousVelocity = acceleration = Vector3.zero;
-                        initialDistance = (target.position - rocket.transform.position).magnitude;
-                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                        SendTargetToClient();
-                        StopCoroutine(SearchForTarget());
+                        GetMostValuableCluster(simClusterForSearch, out clusterTarget, out clusterValue);
                     }
                 }
                 catch { }
+                if (rocketTarget != null || clusterTarget != null)
+                {
+                    target = guidedRocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                    targetAquired = true;
+                    searchStarted = false;
+                    previousVelocity = acceleration = Vector3.zero;
+                    initialDistance = (target.position - rocket.transform.position).magnitude;
+                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                    SendTargetToClient();
+                }
                 yield return null;
             }
         }
@@ -951,7 +949,7 @@ namespace BlockEnhancementMod.Blocks
             return forward && angleDiff < searchAngle;
         }
 
-        private Transform GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch)
+        private void GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch, out Transform targetTransform, out float targetClusterValue)
         {
             //Remove any null cluster
             simClusterForSearch.RemoveWhere(cluster => cluster == null);
@@ -999,37 +997,11 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            foreach (var cluster in maxClusters)
-            {
-                if (cluster.Base.Type == BlockType.Rocket)
-                {
-                    try
-                    {
-                        if (cluster.Base.gameObject.GetComponent<TimedRocket>().hasFired)
-                        {
-                            return cluster.Base.transform;
-                        }
-                    }
-                    catch { }
-                }
-                foreach (var block in cluster.Blocks)
-                {
-                    if (block.Type == BlockType.Rocket)
-                    {
-                        try
-                        {
-                            if (block.gameObject.GetComponent<TimedRocket>().hasFired)
-                            {
-                                return block.transform;
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-
-            return maxClusters[closestIndex].Base.gameObject.transform;
+            targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
+            targetClusterValue = maxValue;
         }
+
+
 
         private void AddAerodynamicsToRocketVelocity()
         {
