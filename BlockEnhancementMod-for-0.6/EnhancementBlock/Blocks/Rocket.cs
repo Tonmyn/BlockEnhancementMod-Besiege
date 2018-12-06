@@ -825,36 +825,56 @@ namespace BlockEnhancementMod.Blocks
             Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
             Transform rocketTarget = null;
             Transform clusterTarget = null;
+            float rocketValue = 0;
             float clusterValue = 0;
 
-            if (rocketTargetDict?.Count > 0)
+            if (rocketTargetDict != null)
             {
-                float distance = Mathf.Infinity;
-                foreach (var rocketTargetPair in rocketTargetDict)
+                if (rocketTargetDict.Count > 0)
                 {
-                    BlockBehaviour targetRocket = rocketTargetPair.Key;
-                    if (targetRocket != null)
+                    float distance = Mathf.Infinity;
+                    foreach (var rocketTargetPair in rocketTargetDict)
                     {
-                        bool shouldCheckRocket = false;
-                        if (StatMaster.isMP)
+                        BlockBehaviour targetRocket = rocketTargetPair.Key;
+                        if (targetRocket != null)
                         {
-                            shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
-                        }
-                        else
-                        {
-                            shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
-                        }
-                        if (CheckInRange(targetRocket) && shouldCheckRocket)
-                        {
-                            float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
-                            if (tempDistance <= distance)
+                            bool shouldCheckRocket = false;
+                            if (StatMaster.isMP)
                             {
-                                rocketTarget = targetRocket.transform;
-                                distance = tempDistance;
+                                shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                            }
+                            else
+                            {
+                                if (targetRocket.ClusterIndex == -1)
+                                {
+                                    shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
+                                }
+                                else
+                                {
+                                    int count = 0;
+                                    foreach (var cluster in clustersInSafetyRange)
+                                    {
+                                        if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
+                                        {
+                                            count++;
+                                        }
+                                    }
+                                    shouldCheckRocket = count > 0 ? false : true;
+                                }
+
+                            }
+                            if (CheckInRange(targetRocket) && shouldCheckRocket)
+                            {
+                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+                                if (tempDistance <= distance)
+                                {
+                                    rocketTarget = targetRocket.transform;
+                                    distance = tempDistance;
+                                    rocketValue = guidedRocketValue;
+                                }
                             }
                         }
                     }
-
                 }
             }
             yield return new WaitForEndOfFrame();
@@ -885,7 +905,7 @@ namespace BlockEnhancementMod.Blocks
             }
 
             //Iternating the list to find the target that satisfy the conditions
-            while (!targetAquired && !targetHit && simClusters.Count > 0)
+            if (!targetAquired && !targetHit && simClusters.Count > 0)
             {
                 try
                 {
@@ -928,7 +948,7 @@ namespace BlockEnhancementMod.Blocks
                 catch { }
                 if (rocketTarget != null || clusterTarget != null)
                 {
-                    target = guidedRocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                    target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
                     targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
                     targetAquired = true;
                     searchStarted = false;
