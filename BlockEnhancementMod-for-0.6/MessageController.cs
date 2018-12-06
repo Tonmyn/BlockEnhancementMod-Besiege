@@ -76,14 +76,15 @@ namespace BlockEnhancementMod
                     {
                         isFirstFrame = false;
                         cameraController = FindObjectOfType<FixedCameraController>();
+                        rocketTargetDict.Clear();
                     }
                 }
                 else
                 {
                     if (!isFirstFrame)
                     {
-                        isFirstFrame = true;
                         rocketTargetDict.Clear();
+                        isFirstFrame = true;
                     }
                 }
             }
@@ -91,6 +92,17 @@ namespace BlockEnhancementMod
             {
                 if (PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
                 {
+                    try
+                    {
+                        foreach (var rocketTargetPair in rocketTargetDict)
+                        {
+                            if (!rocketTargetPair.Key.ParentMachine.isSimulating)
+                            {
+                                RemoveRocketTarget(rocketTargetPair.Key);
+                            }
+                        }
+                    }
+                    catch { }
                     if (rocketTargetDict.Count == 0)
                     {
                         iAmLockedByRocket = false;
@@ -126,13 +138,18 @@ namespace BlockEnhancementMod
         {
             if (iAmLockedByRocket && DisplayWarning)
             {
-                if (cameraController?.activeCamera?.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                if (cameraController != null)
                 {
-                    DrawBorder();
-                    GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                    if (cameraController.activeCamera != null)
+                    {
+                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        {
+                            DrawBorder();
+                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+                        }
+                    }
                 }
             }
-
         }
 
         private void DrawBorder()
