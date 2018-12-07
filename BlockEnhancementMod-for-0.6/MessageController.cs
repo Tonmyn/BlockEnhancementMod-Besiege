@@ -42,7 +42,7 @@ namespace BlockEnhancementMod
         private bool isFirstFrame = true;
         private FixedCameraController cameraController;
         public static bool DisplayWarning { get; internal set; } = true;
-        private Dictionary<BlockBehaviour, int> rocketTargetDict;
+        public Dictionary<BlockBehaviour, int> rocketTargetDict;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
         private static readonly float warningHeight = 60f;
@@ -76,13 +76,59 @@ namespace BlockEnhancementMod
                     {
                         isFirstFrame = false;
                         cameraController = FindObjectOfType<FixedCameraController>();
+                        rocketTargetDict.Clear();
                     }
                 }
                 else
                 {
                     if (!isFirstFrame)
                     {
+                        rocketTargetDict.Clear();
                         isFirstFrame = true;
+                    }
+                }
+            }
+            if (!isFirstFrame)
+            {
+                if (PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
+                {
+                    try
+                    {
+                        foreach (var rocketTargetPair in rocketTargetDict)
+                        {
+                            if (!rocketTargetPair.Key.ParentMachine.isSimulating)
+                            {
+                                RemoveRocketTarget(rocketTargetPair.Key);
+                            }
+                        }
+                    }
+                    catch { }
+                    if (rocketTargetDict.Count == 0)
+                    {
+                        iAmLockedByRocket = false;
+                    }
+                    else
+                    {
+                        foreach (var rocketTargetPair in rocketTargetDict)
+                        {
+                            if (PlayerMachine.GetLocal() != null)
+                            {
+                                if (rocketTargetPair.Value == (StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0))
+                                {
+                                    iAmLockedByRocket = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    iAmLockedByRocket = false;
+                                }
+                            }
+                            else
+                            {
+                                iAmLockedByRocket = false;
+                            }
+                        }
+
                     }
                 }
             }
@@ -90,40 +136,13 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (StatMaster.levelSimulating && PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
+            if (iAmLockedByRocket && DisplayWarning)
             {
-                if (!PlayerMachine.GetLocal().InternalObject.isSimulating && rocketTargetDict.Count > 0)
+                if (cameraController != null)
                 {
-                    rocketTargetDict.Clear();
-                }
-                if (rocketTargetDict.Count == 0)
-                {
-                    iAmLockedByRocket = false;
-                }
-                else
-                {
-                    foreach (var rocketTargetPair in rocketTargetDict)
+                    if (cameraController.activeCamera != null)
                     {
-                        if (PlayerMachine.GetLocal() != null)
-                        {
-                            if (rocketTargetPair.Value == PlayerMachine.GetLocal().Player.NetworkId)
-                            {
-                                iAmLockedByRocket = true;
-                                break;
-                            }
-                            else
-                            {
-                                iAmLockedByRocket = false;
-                            }
-                        }
-                        else
-                        {
-                            iAmLockedByRocket = false;
-                        }
-                    }
-                    if (iAmLockedByRocket && DisplayWarning)
-                    {
-                        if (cameraController?.activeCamera?.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
                         {
                             DrawBorder();
                             GUI.Box(warningRect, "Missile Alert", missileWarningStyle);

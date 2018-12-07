@@ -4,9 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Modding;
-using Modding.Blocks;
 using Modding.Common;
-using Modding.Levels;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -823,7 +821,64 @@ namespace BlockEnhancementMod.Blocks
 
         IEnumerator SearchForTarget()
         {
-            yield return new WaitForSeconds(randomDelay);
+            // First test the rockets that are fired
+            Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
+            Transform rocketTarget = null;
+            Transform clusterTarget = null;
+            float rocketValue = 0;
+            float clusterValue = 0;
+
+            if (rocketTargetDict != null)
+            {
+                if (rocketTargetDict.Count > 0)
+                {
+                    float distance = Mathf.Infinity;
+                    foreach (var rocketTargetPair in rocketTargetDict)
+                    {
+                        BlockBehaviour targetRocket = rocketTargetPair.Key;
+                        if (targetRocket != null)
+                        {
+                            bool shouldCheckRocket = false;
+                            if (StatMaster.isMP)
+                            {
+                                shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                            }
+                            else
+                            {
+                                if (targetRocket.ClusterIndex == -1)
+                                {
+                                    shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
+                                }
+                                else
+                                {
+                                    int count = 0;
+                                    foreach (var cluster in clustersInSafetyRange)
+                                    {
+                                        if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
+                                        {
+                                            count++;
+                                        }
+                                    }
+                                    shouldCheckRocket = count > 0 ? false : true;
+                                }
+
+                            }
+                            if (CheckInRange(targetRocket) && shouldCheckRocket)
+                            {
+                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+                                if (tempDistance <= distance)
+                                {
+                                    rocketTarget = targetRocket.transform;
+                                    distance = tempDistance;
+                                    rocketValue = guidedRocketValue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            yield return new WaitForEndOfFrame();
+
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
@@ -850,7 +905,7 @@ namespace BlockEnhancementMod.Blocks
             }
 
             //Iternating the list to find the target that satisfy the conditions
-            while (!targetAquired && !targetHit && simClusters.Count > 0)
+            if (!targetAquired && !targetHit && simClusters.Count > 0)
             {
                 try
                 {
@@ -863,10 +918,8 @@ namespace BlockEnhancementMod.Blocks
 
                     foreach (var cluster in simClusters)
                     {
-                        Vector3 positionDiff = cluster.Base.gameObject.transform.position - rocket.transform.position;
-                        float angleDiff = Vector3.Angle(positionDiff.normalized, transform.up);
-                        bool forward = Vector3.Dot(positionDiff, transform.up) > 0;
-                        bool skipCluster = !(forward && angleDiff < searchAngle) || ShouldSkipCluster(cluster.Base);
+                        bool inRange = CheckInRange(cluster.Base);
+                        bool skipCluster = !(inRange) || ShouldSkipCluster(cluster.Base);
 
                         if (!skipCluster)
                         {
@@ -889,23 +942,34 @@ namespace BlockEnhancementMod.Blocks
 
                     if (simClusterForSearch.Count > 0)
                     {
-                        target = GetMostValuableCluster(simClusterForSearch);
-                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                        targetAquired = true;
-                        searchStarted = false;
-                        previousVelocity = acceleration = Vector3.zero;
-                        initialDistance = (target.position - rocket.transform.position).magnitude;
-                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                        SendTargetToClient();
-                        StopCoroutine(SearchForTarget());
+                        GetMostValuableCluster(simClusterForSearch, out clusterTarget, out clusterValue);
                     }
                 }
                 catch { }
+                if (rocketTarget != null || clusterTarget != null)
+                {
+                    target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                    targetAquired = true;
+                    searchStarted = false;
+                    previousVelocity = acceleration = Vector3.zero;
+                    initialDistance = (target.position - rocket.transform.position).magnitude;
+                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                    SendTargetToClient();
+                }
                 yield return null;
             }
         }
 
-        private Transform GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch)
+        private bool CheckInRange(BlockBehaviour target)
+        {
+            Vector3 positionDiff = target.gameObject.transform.position - rocket.transform.position;
+            float angleDiff = Vector3.Angle(positionDiff.normalized, rocket.transform.up);
+            bool forward = Vector3.Dot(positionDiff, rocket.transform.up) > 0;
+            return forward && angleDiff < searchAngle;
+        }
+
+        private void GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch, out Transform targetTransform, out float targetClusterValue)
         {
             //Remove any null cluster
             simClusterForSearch.RemoveWhere(cluster => cluster == null);
@@ -953,37 +1017,11 @@ namespace BlockEnhancementMod.Blocks
                 }
             }
 
-            foreach (var cluster in maxClusters)
-            {
-                if (cluster.Base.Type == BlockType.Rocket)
-                {
-                    try
-                    {
-                        if (cluster.Base.gameObject.GetComponent<TimedRocket>().hasFired)
-                        {
-                            return cluster.Base.transform;
-                        }
-                    }
-                    catch { }
-                }
-                foreach (var block in cluster.Blocks)
-                {
-                    if (block.Type == BlockType.Rocket)
-                    {
-                        try
-                        {
-                            if (block.gameObject.GetComponent<TimedRocket>().hasFired)
-                            {
-                                return block.transform;
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-
-            return maxClusters[closestIndex].Base.gameObject.transform;
+            targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
+            targetClusterValue = maxValue;
         }
+
+
 
         private void AddAerodynamicsToRocketVelocity()
         {
@@ -1138,7 +1176,7 @@ namespace BlockEnhancementMod.Blocks
                         ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetBlockBehaviourMsg);
                     }
                     ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                    BlockEnhancementMod.mod.GetComponent<MessageController>().UpdateRocketTarget(BB, id);
+                    MessageController.Instance.UpdateRocketTarget(BB, id);
                 }
                 if (target.gameObject.GetComponent<LevelEntity>())
                 {
@@ -1146,20 +1184,23 @@ namespace BlockEnhancementMod.Blocks
                     ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], targetEntityMsg);
 
                     ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                    BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
+                    MessageController.Instance.RemoveRocketTarget(BB);
                 }
             }
         }
 
         private void SendClientTargetNull()
         {
-            if (StatMaster.isHosting)
+            if (!StatMaster.isClient)
             {
-                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
+                if (StatMaster.isHosting)
+                {
+                    Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
+                    ModNetworking.SendTo(Player.GetAllPlayers()[rocket.ParentMachine.PlayerID], rocketTargetNullMsg);
 
-                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                BlockEnhancementMod.mod.GetComponent<MessageController>().RemoveRocketTarget(BB);
+                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                }
+                MessageController.Instance.RemoveRocketTarget(BB);
             }
         }
 
