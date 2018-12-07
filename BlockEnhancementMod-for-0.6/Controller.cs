@@ -20,8 +20,6 @@ namespace BlockEnhancementMod
 
         public bool Friction = false;
 
-        public Transform targetSavedInController;
-
         private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
 
         private readonly int windowID = ModUtility.GetWindowId();
@@ -217,7 +215,6 @@ namespace BlockEnhancementMod
 
             if (SceneManager.GetActiveScene().isLoaded)
             {
-
                 if (!scene.Exists(match => match == SceneManager.GetActiveScene().name))
                 {
                     return true;
