@@ -1151,9 +1151,10 @@ namespace BlockEnhancementMod.Blocks
         {
             if (MarkTarget)
             {
-                if (target != null && targetCollider.bounds != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
+                if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
                 {
-                    if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
+                    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
+                    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
                         Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
