@@ -1157,7 +1157,7 @@ namespace BlockEnhancementMod.Blocks
                     if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
-                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
+                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
                         GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
                     }
                 }
