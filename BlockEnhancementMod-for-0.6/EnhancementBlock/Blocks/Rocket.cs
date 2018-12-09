@@ -280,13 +280,12 @@ namespace BlockEnhancementMod.Blocks
         {
             if (guidedRocketActivated)
             {
-                if (GroupFireKey.IsReleased)
+                if (GroupFireKey.IsDown)
                 {
                     if (!MessageController.Instance.launchStarted)
                     {
                         StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
                     }
-                    //MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Pop().fireTag.Ignite();
                 }
                 //When toggle auto aim key is released, change the auto aim status
                 if (SwitchGuideModeKey.IsReleased)
