@@ -189,7 +189,7 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
-            GroupFireKey = BB.AddKey("Group Fire", "groupFire", KeyCode.Alpha0);
+            GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.Alpha0);
             GroupFireKey.InvokeKeysChanged();
 
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);

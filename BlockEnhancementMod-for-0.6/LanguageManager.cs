@@ -27,6 +27,8 @@ namespace BlockEnhancementMod
 
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
 
+        public static string groupedFire = isChinese ? "同组依次发射" : "Grouped Launch";
+
         public static string prediction = isChinese ? "预测" : "Prediction";
 
         public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";
