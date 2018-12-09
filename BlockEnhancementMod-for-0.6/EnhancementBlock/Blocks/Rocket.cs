@@ -14,7 +14,6 @@ namespace BlockEnhancementMod.Blocks
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
         MKey GroupFireKey;
-        private bool firedFromGroup = false;
         private Texture2D rocketAim;
         public Transform target;
         public TimedRocket rocket;
@@ -280,7 +279,6 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (GroupFireKey.IsReleased)
                 {
-                    firedFromGroup = true;
                     if (!MessageController.Instance.firingStarted)
                     {
                         StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.Key));
@@ -425,11 +423,11 @@ namespace BlockEnhancementMod.Blocks
                         canTrigger = true;
                     }
 
-                    //If rocket is burning, explode it
-                    if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
-                    {
-                        RocketExplode();
-                    }
+                    ////If rocket is burning, explode it
+                    //if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
+                    //{
+                    //    RocketExplode();
+                    //}
 
                     //Check if target is no longer valuable (lazy check)
                     if (target != null && !StatMaster.isClient)
