@@ -76,7 +76,7 @@ namespace BlockEnhancementMod
                 {
                     if (isFirstFrame)
                     {
-                        isFirstFrame = false;
+                        isFirstFrame = launchStarted = false;
                         cameraController = FindObjectOfType<FixedCameraController>();
                         rocketTargetDict.Clear();
                     }
@@ -306,7 +306,7 @@ namespace BlockEnhancementMod
                 rocket.hasExploded = false;
             }
             catch { }
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 25; i++)
             {
                 yield return new WaitForFixedUpdate();
             }
