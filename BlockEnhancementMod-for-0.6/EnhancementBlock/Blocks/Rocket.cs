@@ -33,8 +33,8 @@ namespace BlockEnhancementMod.Blocks
         //Firing record related setting
         private bool targetHit = false;
         private float randomDelay = 0;
-        private float fireTime = 0f;
-        private bool fireTimeRecorded = false;
+        private float launchTime = 0f;
+        private bool launchTimeRecorded = false;
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
@@ -241,7 +241,7 @@ namespace BlockEnhancementMod.Blocks
                     MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Push(rocket);
                 }
                 // Initialisation for simulation
-                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
+                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
@@ -410,15 +410,15 @@ namespace BlockEnhancementMod.Blocks
                 if (guidedRocketActivated)
                 {
                     //Record the launch time for the guide delay
-                    if (!fireTimeRecorded)
+                    if (!launchTimeRecorded)
                     {
-                        fireTimeRecorded = true;
-                        fireTime = Time.time;
+                        launchTimeRecorded = true;
+                        launchTime = Time.time;
 
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay && !canTrigger)
+                    if (Time.time - launchTime >= guideDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
