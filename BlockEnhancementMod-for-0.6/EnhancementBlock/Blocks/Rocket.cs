@@ -188,7 +188,7 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
-            GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.Alpha0);
+            GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.None);
             GroupFireKey.InvokeKeysChanged();
 
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
@@ -228,17 +228,20 @@ namespace BlockEnhancementMod.Blocks
             smokeStopped = false;
             if (guidedRocketActivated)
             {
-                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                if (GroupFireKey.GetKey(0) != KeyCode.None)
                 {
-                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<string, Stack<TimedRocket>>());
-                }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.Key))
-                {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.Key, new Stack<TimedRocket>());
-                }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Contains(rocket))
-                {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Push(rocket);
+                    if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                    {
+                        MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                    }
+                    if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                    {
+                        MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                    }
+                    if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                    {
+                        MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                    }
                 }
                 // Initialisation for simulation
                 launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
@@ -279,9 +282,9 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (GroupFireKey.IsReleased)
                 {
-                    if (!MessageController.Instance.firingStarted)
+                    if (!MessageController.Instance.launchStarted)
                     {
-                        StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.Key));
+                        StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
                     }
                     //MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Pop().fireTag.Ignite();
                 }

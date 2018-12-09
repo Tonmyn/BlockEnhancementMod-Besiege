@@ -43,8 +43,8 @@ namespace BlockEnhancementMod
         public static bool DisplayWarning { get; internal set; } = true;
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
-        public Dictionary<int, Dictionary<string, Stack<TimedRocket>>> playerGroupedRockets;
-        public bool firingStarted = false;
+        public Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>> playerGroupedRockets;
+        public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
         private static readonly float warningHeight = 60f;
@@ -178,7 +178,7 @@ namespace BlockEnhancementMod
         public MessageController()
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
-            playerGroupedRockets = new Dictionary<int, Dictionary<string, Stack<TimedRocket>>>();
+            playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>>();
             //Initiating messages
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
@@ -295,15 +295,22 @@ namespace BlockEnhancementMod
             }
         }
 
-        public IEnumerator LaunchRocketFromGroup(int id, string key)
+        public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
-            firingStarted = true;
-            playerGroupedRockets[id][key].Pop().fireTag.Ignite();
+            launchStarted = true;
+            try
+            {
+                TimedRocket rocket = playerGroupedRockets[id][key].Pop();
+                rocket.fireTag.Ignite();
+                rocket.hasFired = true;
+                rocket.hasExploded = false;
+            }
+            catch { }
             for (int i = 0; i < 10; i++)
             {
                 yield return new WaitForFixedUpdate();
             }
-            firingStarted = false;
+            launchStarted = false;
             yield return null;
         }
     }
