@@ -121,7 +121,6 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
-                GroupFireKey.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 SwitchGuideModeKey.DisplayInMapper =
@@ -210,7 +209,7 @@ namespace BlockEnhancementMod.Blocks
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
-            GroupFireKey.DisplayInMapper = value && guidedRocketActivated;
+            GroupFireKey.DisplayInMapper = value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -226,23 +225,23 @@ namespace BlockEnhancementMod.Blocks
         public override void OnSimulateStart()
         {
             smokeStopped = false;
+            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            {
+                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                {
+                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                }
+            }
             if (guidedRocketActivated)
             {
-                if (GroupFireKey.GetKey(0) != KeyCode.None)
-                {
-                    if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
-                    {
-                        MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
-                    }
-                    if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
-                    {
-                        MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
-                    }
-                    if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
-                    {
-                        MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
-                    }
-                }
                 // Initialisation for simulation
                 launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
                 activeGuide = true;
@@ -278,15 +277,15 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateUpdateAlways()
         {
+            if (GroupFireKey.IsDown)
+            {
+                if (!MessageController.Instance.launchStarted)
+                {
+                    StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                }
+            }
             if (guidedRocketActivated)
             {
-                if (GroupFireKey.IsDown)
-                {
-                    if (!MessageController.Instance.launchStarted)
-                    {
-                        StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
-                    }
-                }
                 //When toggle auto aim key is released, change the auto aim status
                 if (SwitchGuideModeKey.IsReleased)
                 {
