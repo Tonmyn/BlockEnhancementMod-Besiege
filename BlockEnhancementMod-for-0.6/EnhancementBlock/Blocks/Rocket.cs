@@ -643,7 +643,10 @@ namespace BlockEnhancementMod.Blocks
                     if (guidedRocketStabilityOn)
                     {
                         //Add aerodynamic force to rocket
-                        AddAerodynamicsToRocketVelocity();
+                        if (rocketRigidbody != null)
+                        {
+                            AddAerodynamicsToRocketVelocity();
+                        }
                     }
 
                     if (guidedRocketActivated)
