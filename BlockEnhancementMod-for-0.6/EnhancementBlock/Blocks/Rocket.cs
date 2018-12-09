@@ -878,7 +878,6 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
-            yield return new WaitForEndOfFrame();
 
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
@@ -905,7 +904,7 @@ namespace BlockEnhancementMod.Blocks
                 simClusters.ExceptWith(clustersInSafetyRange);
             }
 
-            //Iternating the list to find the target that satisfy the conditions
+            //Iternating the list to find the cluster that satisfy the conditions
             if (!targetAquired && !targetHit && simClusters.Count > 0)
             {
                 try
@@ -947,19 +946,19 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
                 catch { }
-                if (rocketTarget != null || clusterTarget != null)
-                {
-                    target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
-                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                    targetAquired = true;
-                    searchStarted = false;
-                    previousVelocity = acceleration = Vector3.zero;
-                    initialDistance = (target.position - rocket.transform.position).magnitude;
-                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                    SendTargetToClient();
-                }
-                yield return null;
             }
+            if (rocketTarget != null || clusterTarget != null)
+            {
+                target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                targetAquired = true;
+                searchStarted = false;
+                previousVelocity = acceleration = Vector3.zero;
+                initialDistance = (target.position - rocket.transform.position).magnitude;
+                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                SendTargetToClient();
+            }
+            yield return null;
         }
 
         private bool CheckInRange(BlockBehaviour target)
@@ -1021,8 +1020,6 @@ namespace BlockEnhancementMod.Blocks
             targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
             targetClusterValue = maxValue;
         }
-
-
 
         private void AddAerodynamicsToRocketVelocity()
         {

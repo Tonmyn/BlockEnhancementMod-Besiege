@@ -57,6 +57,12 @@ namespace BlockEnhancementMod
 
         public static string firstPersonSmooth = isChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
 
+        public static string zoomIn = isChinese ? "增加焦距" : "Zoom In";
+
+        public static string zoomOut = isChinese ? "减小焦距" : "Zoom Out";
+
+        public static string zoomSpeed = isChinese ? "变焦速度" : "Zoom Speed";
+
         public static string pauseTracking = isChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 
         //CV Joint

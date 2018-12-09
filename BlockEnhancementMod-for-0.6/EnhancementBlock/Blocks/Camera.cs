@@ -37,6 +37,10 @@ namespace BlockEnhancementMod
         //Auto lookat related setting
         MSlider NonCustomModeSmoothSlider;
         MKey AutoLookAtKey;
+        MKey ZoomInKey;
+        MKey ZoomOutKey;
+        MSlider ZoomSpeedSlider;
+        private float zoomSpeed = 2f;
         private bool firstPersonMode = false;
         private bool targetInitialCJOrHJ = false;
         public float firstPersonSmooth = 0.25f;
@@ -87,6 +91,13 @@ namespace BlockEnhancementMod
 
             AutoLookAtKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
 
+            ZoomInKey = BB.AddKey(LanguageManager.zoomIn, "ZoomInKey", KeyCode.Equals);
+
+            ZoomOutKey = BB.AddKey(LanguageManager.zoomOut, "ZoomOutKey", KeyCode.Minus);
+
+            ZoomSpeedSlider = BB.AddSlider(LanguageManager.zoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
+            ZoomSpeedSlider.ValueChanged += (float value) => { zoomSpeed = value; ChangedProperties(); };
+
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();
             smoothLook = fixedCamera.CompositeTracker3;
@@ -107,7 +118,9 @@ namespace BlockEnhancementMod
             CameraLookAtToggle.DisplayInMapper = value;
             NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
             AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
-            //RecordTargetToggle.DisplayInMapper = value && cameraLookAtToggled;
+            ZoomInKey.DisplayInMapper = value;
+            ZoomOutKey.DisplayInMapper = value;
+            ZoomSpeedSlider.DisplayInMapper = value;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
@@ -174,22 +187,26 @@ namespace BlockEnhancementMod
 
         public override void SimulateUpdateAlways()
         {
-            if (cameraLookAtToggled)
+            if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {
-                if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
+                if (firstPersonOrCustom)
                 {
-                    if (firstPersonOrCustom)
+                    Camera activeCam = mouseOrbit.cam;
+                    if (ZoomInKey.IsDown)
                     {
-                        Camera activeCam = mouseOrbit.cam;
-                        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
-                        {
-                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Mathf.Sign(Input.GetAxis("Mouse ScrollWheel")) * 2.5f, 1, orgCamFOV);
-                        }
-                        if (activeCam.fieldOfView != newCamFOV)
-                        {
-                            activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
-                        }
+                        newCamFOV = Mathf.Clamp(activeCam.fieldOfView - zoomSpeed, 1, orgCamFOV);
                     }
+                    if (ZoomOutKey.IsDown)
+                    {
+                        newCamFOV = Mathf.Clamp(activeCam.fieldOfView + zoomSpeed, 1, orgCamFOV);
+                    }
+                    if (activeCam.fieldOfView != newCamFOV)
+                    {
+                        activeCam.fieldOfView = Mathf.SmoothStep(activeCam.fieldOfView, newCamFOV, camFOVSmooth);
+                    }
+                }
+                if (cameraLookAtToggled)
+                {
                     if (!activateTimeRecorded)
                     {
                         switchTime = Time.time;
@@ -422,7 +439,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        private Transform GetMostValuableBlock(HashSet<Machine.SimCluster> simClusterForSearch)
+        private void GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch, out Transform targetTransform, out float targetClusterValue)
         {
             //Remove any null cluster
             simClusterForSearch.RemoveWhere(cluster => cluster == null);
@@ -471,7 +488,8 @@ namespace BlockEnhancementMod
                 }
             }
 
-            return maxClusters[closestIndex].Base.gameObject.transform;
+            targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
+            targetClusterValue = maxValue;
         }
 
         private bool CheckInRange(BlockBehaviour target)
@@ -609,14 +627,18 @@ namespace BlockEnhancementMod
 
                     if (simClusterForSearch.Count > 0)
                     {
-                        target = GetMostValuableBlock(simClusterForSearch);
-                        targetAquired = true;
-                        pauseTracking = false;
-                        searchStarted = false;
-                        StopCoroutine(SearchForTarget());
+                        GetMostValuableCluster(simClusterForSearch, out clusterTarget, out clusterValue);
                     }
                 }
                 catch { }
+                if (rocketTarget != null || clusterTarget != null)
+                {
+                    target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                    targetAquired = true;
+                    pauseTracking = false;
+                    searchStarted = false;
+                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                }
                 yield return null;
             }
         }
