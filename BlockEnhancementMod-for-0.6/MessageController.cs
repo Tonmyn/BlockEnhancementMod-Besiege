@@ -304,6 +304,7 @@ namespace BlockEnhancementMod
                 yield return new WaitForFixedUpdate();
             }
             firingStarted = false;
+            yield return null;
         }
     }
 }
