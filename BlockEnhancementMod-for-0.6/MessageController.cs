@@ -40,9 +40,11 @@ namespace BlockEnhancementMod
 
         private bool iAmLockedByRocket = false;
         private bool isFirstFrame = true;
-        private FixedCameraController cameraController;
         public static bool DisplayWarning { get; internal set; } = true;
+        private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
+        public Dictionary<int, Dictionary<string, Stack<TimedRocket>>> playerGroupedRockets;
+        public bool firingStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
         private static readonly float warningHeight = 60f;
@@ -84,6 +86,7 @@ namespace BlockEnhancementMod
                     if (!isFirstFrame)
                     {
                         rocketTargetDict.Clear();
+                        playerGroupedRockets.Clear();
                         isFirstFrame = true;
                     }
                 }
@@ -175,6 +178,7 @@ namespace BlockEnhancementMod
         public MessageController()
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
+            playerGroupedRockets = new Dictionary<int, Dictionary<string, Stack<TimedRocket>>>();
             //Initiating messages
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
@@ -289,6 +293,17 @@ namespace BlockEnhancementMod
             {
                 rocketTargetDict.Remove(rocket);
             }
+        }
+
+        public IEnumerator LaunchRocketFromGroup(int id, string key)
+        {
+            firingStarted = true;
+            playerGroupedRockets[id][key].Pop().fireTag.Ignite();
+            for (int i = 0; i < 10; i++)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            firingStarted = false;
         }
     }
 }

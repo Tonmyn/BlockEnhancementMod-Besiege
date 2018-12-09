@@ -13,6 +13,8 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
+        MKey GroupFireKey;
+        private bool firedFromGroup = false;
         private Texture2D rocketAim;
         public Transform target;
         public TimedRocket rocket;
@@ -120,6 +122,7 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
+                GroupFireKey.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 SwitchGuideModeKey.DisplayInMapper =
@@ -186,6 +189,9 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
+            GroupFireKey = BB.AddKey("Group Fire", "groupFire", KeyCode.Alpha0);
+            GroupFireKey.InvokeKeysChanged();
+
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
@@ -205,6 +211,7 @@ namespace BlockEnhancementMod.Blocks
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
+            GroupFireKey.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -222,6 +229,18 @@ namespace BlockEnhancementMod.Blocks
             smokeStopped = false;
             if (guidedRocketActivated)
             {
+                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                {
+                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<string, Stack<TimedRocket>>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.Key))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.Key, new Stack<TimedRocket>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Contains(rocket))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Push(rocket);
+                }
                 // Initialisation for simulation
                 fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
                 activeGuide = true;
@@ -259,6 +278,15 @@ namespace BlockEnhancementMod.Blocks
         {
             if (guidedRocketActivated)
             {
+                if (GroupFireKey.IsReleased)
+                {
+                    firedFromGroup = true;
+                    if (!MessageController.Instance.firingStarted)
+                    {
+                        StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.Key));
+                    }
+                    //MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.Key].Pop().fireTag.Ignite();
+                }
                 //When toggle auto aim key is released, change the auto aim status
                 if (SwitchGuideModeKey.IsReleased)
                 {
@@ -285,11 +313,8 @@ namespace BlockEnhancementMod.Blocks
                     if (activeGuide)
                     {
                         //When launch key is released, reset target search
-                        if (rocket.hasFired)
-                        {
-                            targetAquired = searchStarted = false;
-                            RocketRadarSearch();
-                        }
+                        targetAquired = searchStarted = false;
+                        RocketRadarSearch();
                     }
                     else
                     {
@@ -401,7 +426,7 @@ namespace BlockEnhancementMod.Blocks
                     }
 
                     //If rocket is burning, explode it
-                    if (highExploActivated && rocket.fireTag.burning && canTrigger)
+                    if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
                     {
                         RocketExplode();
                     }
