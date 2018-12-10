@@ -40,9 +40,11 @@ namespace BlockEnhancementMod
 
         private bool iAmLockedByRocket = false;
         private bool isFirstFrame = true;
-        private FixedCameraController cameraController;
         public static bool DisplayWarning { get; internal set; } = true;
+        private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
+        public Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>> playerGroupedRockets;
+        public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
         private static readonly float warningHeight = 60f;
@@ -74,7 +76,7 @@ namespace BlockEnhancementMod
                 {
                     if (isFirstFrame)
                     {
-                        isFirstFrame = false;
+                        isFirstFrame = launchStarted = false;
                         cameraController = FindObjectOfType<FixedCameraController>();
                         rocketTargetDict.Clear();
                     }
@@ -84,6 +86,7 @@ namespace BlockEnhancementMod
                     if (!isFirstFrame)
                     {
                         rocketTargetDict.Clear();
+                        playerGroupedRockets.Clear();
                         isFirstFrame = true;
                     }
                 }
@@ -175,6 +178,7 @@ namespace BlockEnhancementMod
         public MessageController()
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
+            playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>>();
             //Initiating messages
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
@@ -289,6 +293,25 @@ namespace BlockEnhancementMod
             {
                 rocketTargetDict.Remove(rocket);
             }
+        }
+
+        public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
+        {
+            launchStarted = true;
+            try
+            {
+                TimedRocket rocket = playerGroupedRockets[id][key].Pop();
+                rocket.fireTag.Ignite();
+                rocket.hasFired = true;
+                rocket.hasExploded = false;
+            }
+            catch { }
+            for (int i = 0; i < 25; i++)
+            {
+                yield return new WaitForFixedUpdate();
+            }
+            launchStarted = false;
+            yield return null;
         }
     }
 }

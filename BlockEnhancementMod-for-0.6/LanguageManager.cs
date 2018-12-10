@@ -27,6 +27,8 @@ namespace BlockEnhancementMod
 
         public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
 
+        public static string groupedFire = isChinese ? "同组依次发射" : "Grouped Launch";
+
         public static string prediction = isChinese ? "预测" : "Prediction";
 
         public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";
@@ -56,6 +58,12 @@ namespace BlockEnhancementMod
         public static string recordTarget = isChinese ? "记录目标" : "Save Target";
 
         public static string firstPersonSmooth = isChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
+
+        public static string zoomIn = isChinese ? "增加焦距" : "Zoom In";
+
+        public static string zoomOut = isChinese ? "减小焦距" : "Zoom Out";
+
+        public static string zoomSpeed = isChinese ? "变焦速度" : "Zoom Speed";
 
         public static string pauseTracking = isChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 

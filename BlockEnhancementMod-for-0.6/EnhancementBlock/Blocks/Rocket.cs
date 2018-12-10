@@ -13,6 +13,7 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
+        MKey GroupFireKey;
         private Texture2D rocketAim;
         public Transform target;
         public TimedRocket rocket;
@@ -32,8 +33,8 @@ namespace BlockEnhancementMod.Blocks
         //Firing record related setting
         private bool targetHit = false;
         private float randomDelay = 0;
-        private float fireTime = 0f;
-        private bool fireTimeRecorded = false;
+        private float launchTime = 0f;
+        private bool launchTimeRecorded = false;
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
@@ -119,6 +120,7 @@ namespace BlockEnhancementMod.Blocks
                 guidedRocketActivated =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
+                ImpactFuzeToggle.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 SwitchGuideModeKey.DisplayInMapper =
@@ -185,6 +187,9 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
+            GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.None);
+            GroupFireKey.InvokeKeysChanged();
+
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
@@ -204,6 +209,7 @@ namespace BlockEnhancementMod.Blocks
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
+            GroupFireKey.DisplayInMapper = value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -219,10 +225,25 @@ namespace BlockEnhancementMod.Blocks
         public override void OnSimulateStart()
         {
             smokeStopped = false;
+            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            {
+                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                {
+                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                }
+                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                {
+                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                }
+            }
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                fireTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
+                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
                 activeGuide = true;
                 target = null;
                 targetCollider = null;
@@ -256,6 +277,13 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateUpdateAlways()
         {
+            if (GroupFireKey.IsDown)
+            {
+                if (!MessageController.Instance.launchStarted)
+                {
+                    StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                }
+            }
             if (guidedRocketActivated)
             {
                 //When toggle auto aim key is released, change the auto aim status
@@ -284,11 +312,8 @@ namespace BlockEnhancementMod.Blocks
                     if (activeGuide)
                     {
                         //When launch key is released, reset target search
-                        if (rocket.hasFired)
-                        {
-                            targetAquired = searchStarted = false;
-                            RocketRadarSearch();
-                        }
+                        targetAquired = searchStarted = false;
+                        RocketRadarSearch();
                     }
                     else
                     {
@@ -386,24 +411,24 @@ namespace BlockEnhancementMod.Blocks
                 if (guidedRocketActivated)
                 {
                     //Record the launch time for the guide delay
-                    if (!fireTimeRecorded)
+                    if (!launchTimeRecorded)
                     {
-                        fireTimeRecorded = true;
-                        fireTime = Time.time;
+                        launchTimeRecorded = true;
+                        launchTime = Time.time;
 
                     }
 
                     //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - fireTime >= guideDelay && !canTrigger)
+                    if (Time.time - launchTime >= guideDelay && !canTrigger)
                     {
                         canTrigger = true;
                     }
 
-                    //If rocket is burning, explode it
-                    if (highExploActivated && rocket.fireTag.burning && canTrigger)
-                    {
-                        RocketExplode();
-                    }
+                    ////If rocket is burning, explode it
+                    //if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
+                    //{
+                    //    RocketExplode();
+                    //}
 
                     //Check if target is no longer valuable (lazy check)
                     if (target != null && !StatMaster.isClient)
@@ -617,7 +642,10 @@ namespace BlockEnhancementMod.Blocks
                     if (guidedRocketStabilityOn)
                     {
                         //Add aerodynamic force to rocket
-                        AddAerodynamicsToRocketVelocity();
+                        if (rocketRigidbody != null)
+                        {
+                            AddAerodynamicsToRocketVelocity();
+                        }
                     }
 
                     if (guidedRocketActivated)
@@ -877,7 +905,6 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
             }
-            yield return new WaitForEndOfFrame();
 
             //Grab every machine block at the start of search
             HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
@@ -904,7 +931,7 @@ namespace BlockEnhancementMod.Blocks
                 simClusters.ExceptWith(clustersInSafetyRange);
             }
 
-            //Iternating the list to find the target that satisfy the conditions
+            //Iternating the list to find the cluster that satisfy the conditions
             if (!targetAquired && !targetHit && simClusters.Count > 0)
             {
                 try
@@ -946,19 +973,19 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
                 catch { }
-                if (rocketTarget != null || clusterTarget != null)
-                {
-                    target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
-                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                    targetAquired = true;
-                    searchStarted = false;
-                    previousVelocity = acceleration = Vector3.zero;
-                    initialDistance = (target.position - rocket.transform.position).magnitude;
-                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                    SendTargetToClient();
-                }
-                yield return null;
             }
+            if (rocketTarget != null || clusterTarget != null)
+            {
+                target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
+                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                targetAquired = true;
+                searchStarted = false;
+                previousVelocity = acceleration = Vector3.zero;
+                initialDistance = (target.position - rocket.transform.position).magnitude;
+                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                SendTargetToClient();
+            }
+            yield return null;
         }
 
         private bool CheckInRange(BlockBehaviour target)
@@ -1020,8 +1047,6 @@ namespace BlockEnhancementMod.Blocks
             targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
             targetClusterValue = maxValue;
         }
-
-
 
         private void AddAerodynamicsToRocketVelocity()
         {
@@ -1150,12 +1175,13 @@ namespace BlockEnhancementMod.Blocks
         {
             if (MarkTarget)
             {
-                if (target != null && targetCollider.bounds != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
+                if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
                 {
-                    if (Vector3.Dot(Camera.main.transform.forward, targetCollider.bounds.center - Camera.main.transform.position) > 0)
+                    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
+                    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
-                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(targetCollider.bounds.center);
+                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
                         GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
                     }
                 }
