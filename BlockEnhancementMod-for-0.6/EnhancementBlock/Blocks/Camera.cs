@@ -137,33 +137,41 @@ namespace BlockEnhancementMod
                 firstPersonMode = true;
                 NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
             }
+            if (EnhancementEnabled)
+            {
+                ZoomInKey.DisplayInMapper =
+                    ZoomOutKey.DisplayInMapper =
+                    fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom;
+            }
+
         }
 
         public override void OnSimulateStart()
         {
             firstPersonOrCustom = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom;
+
+            //Initialise the SmoothLook component
+            fixedCameraController = FindObjectOfType<FixedCameraController>();
+            mouseOrbit = FindObjectOfType<MouseOrbit>();
+            foreach (var camera in fixedCameraController.cameras)
+            {
+                if (camera.BuildIndex == selfIndex)
+                {
+                    if (firstPersonMode)
+                    {
+                        smooth = Mathf.Clamp01(firstPersonSmooth);
+                    }
+                    else
+                    {
+                        smooth = Mathf.Clamp01(camera.SmoothSlider.Value);
+                    }
+                    SetSmoothing();
+                }
+            }
+            newCamFOV = orgCamFOV = fixedCamera.fovSlider.Value;
+            camFOVSmooth = Mathf.Exp(smooth) / Mathf.Exp(1) / 2f;
             if (cameraLookAtToggled)
             {
-                //Initialise the SmoothLook component
-                fixedCameraController = FindObjectOfType<FixedCameraController>();
-                mouseOrbit = FindObjectOfType<MouseOrbit>();
-                foreach (var camera in fixedCameraController.cameras)
-                {
-                    if (camera.BuildIndex == selfIndex)
-                    {
-                        if (firstPersonMode)
-                        {
-                            smooth = Mathf.Clamp01(firstPersonSmooth);
-                        }
-                        else
-                        {
-                            smooth = Mathf.Clamp01(camera.SmoothSlider.Value);
-                        }
-                        SetSmoothing();
-                    }
-                }
-                newCamFOV = orgCamFOV = fixedCamera.fovSlider.Value;
-                camFOVSmooth = Mathf.Exp(smooth) / Mathf.Exp(1) / 2f;
                 // Initialise
                 searchStarted = targetInitialCJOrHJ = false;
                 pauseTracking = autoSearch = targetAquired = true;
