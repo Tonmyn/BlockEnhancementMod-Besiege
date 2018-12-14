@@ -439,7 +439,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                targetAquired = searchStarted = false;
+                                targetAquired = false;
                                 SendClientTargetNull();
                             }
                             else
@@ -744,6 +744,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (!rocket.hasExploded)
             {
+                rocket.hasExploded = true;
                 rocket.OnExplode();
             }
             if (highExploActivated)
@@ -752,7 +753,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (StatMaster.isHosting)
                     {
-                        SendExplosionPositionToAll();
+                        SendExplosionPositionToAll(position);
                     }
                     bombHasExploded = true;
                     //Generate a bomb from level editor and let it explode
@@ -1255,9 +1256,9 @@ namespace BlockEnhancementMod.Blocks
             ModNetworking.SendToHost(rayToHostMsg);
         }
 
-        private void SendExplosionPositionToAll()
+        private void SendExplosionPositionToAll(Vector3 position)
         {
-            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(rocket.transform.position, bombExplosiveCharge);
+            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
             ModNetworking.SendToAll(explosionPositionMsg);
         }
     }
