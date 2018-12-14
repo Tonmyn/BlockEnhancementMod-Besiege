@@ -620,7 +620,7 @@ namespace BlockEnhancementMod.Blocks
                         catch { }
                     }
                     //If no target when active guide, search for a new target
-                    if (activeGuide && !targetAquired)
+                    if (activeGuide && !targetAquired && !searchStarted)
                     {
                         RocketRadarSearch();
                     }
