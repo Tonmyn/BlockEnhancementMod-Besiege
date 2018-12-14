@@ -467,7 +467,7 @@ namespace BlockEnhancementMod.Blocks
                                     catch { }
                                     target = null;
                                     targetCollider = null;
-                                    targetAquired = targetInitialCJOrHJ = searchStarted = false;
+                                    targetAquired = targetInitialCJOrHJ = false;
                                     SendClientTargetNull();
                                 }
                             }
@@ -481,7 +481,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = null;
                                     targetCollider = null;
-                                    targetAquired = searchStarted = false;
+                                    targetAquired = false;
                                     SendClientTargetNull();
                                 }
                             }
@@ -497,7 +497,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -508,7 +508,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -519,7 +519,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -533,7 +533,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -544,7 +544,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -555,7 +555,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -566,7 +566,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -577,7 +577,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -588,7 +588,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -599,7 +599,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -610,7 +610,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = searchStarted = false;
+                                        targetAquired = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -620,7 +620,7 @@ namespace BlockEnhancementMod.Blocks
                         catch { }
                     }
                     //If no target when active guide, search for a new target
-                    if (activeGuide && !targetAquired && !searchStarted)
+                    if (activeGuide && !targetAquired)
                     {
                         RocketRadarSearch();
                     }
@@ -707,22 +707,26 @@ namespace BlockEnhancementMod.Blocks
         {
             if (rocket != null)
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
                 {
-                    RocketExplode();
+                    if (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated))
+                    {
+                        RocketExplode();
+                    }
                 }
             }
         }
 
-        void OnCollisionStay(Collision collision)
+        void OnCollisionExit(Collision collision)
         {
             if (rocket != null)
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
+                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
                 {
-                    RocketExplode();
+                    if (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated))
+                    {
+                        RocketExplode();
+                    }
                 }
             }
         }
