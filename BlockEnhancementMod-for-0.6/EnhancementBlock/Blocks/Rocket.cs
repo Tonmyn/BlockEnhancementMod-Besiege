@@ -735,11 +735,14 @@ namespace BlockEnhancementMod.Blocks
             StopCoroutine(SearchForTarget());
             SendClientTargetNull();
 
-            if (!highExploActivated)
+            Vector3 position = rocket.transform.position;
+            Quaternion rotation = rocket.transform.rotation;
+
+            if (!rocket.hasExploded)
             {
-                if (!rocket.hasExploded) rocket.OnExplode();
+                rocket.OnExplode();
             }
-            else
+            if (highExploActivated)
             {
                 if (!bombHasExploded && explosiveCharge != 0)
                 {
@@ -751,7 +754,7 @@ namespace BlockEnhancementMod.Blocks
                     //Generate a bomb from level editor and let it explode
                     try
                     {
-                        GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, rocket.transform.position, rocket.transform.rotation);
+                        GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, position, rotation);
                         ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
                         bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
                         bombControl.radius = radius * bombExplosiveCharge;
@@ -828,10 +831,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     catch { }
-                    if (!rocket.hasExploded)
-                    {
-                        rocket.OnExplode();
-                    }
                 }
 
             }
