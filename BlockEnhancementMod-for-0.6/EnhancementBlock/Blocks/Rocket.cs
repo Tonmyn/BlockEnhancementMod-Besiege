@@ -717,20 +717,6 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        void OnCollisionExit(Collision collision)
-        {
-            if (rocket != null)
-            {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
-                {
-                    if (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated))
-                    {
-                        RocketExplode();
-                    }
-                }
-            }
-        }
-
         private void RocketExplode()
         {
             //Reset some parameter and set the rocket to explode
