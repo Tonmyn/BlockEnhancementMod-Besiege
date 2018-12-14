@@ -439,7 +439,7 @@ namespace BlockEnhancementMod.Blocks
                             {
                                 target = null;
                                 targetCollider = null;
-                                targetAquired = false;
+                                targetAquired = searchStarted = false;
                                 SendClientTargetNull();
                             }
                             else
@@ -467,7 +467,7 @@ namespace BlockEnhancementMod.Blocks
                                     catch { }
                                     target = null;
                                     targetCollider = null;
-                                    targetAquired = targetInitialCJOrHJ = false;
+                                    targetAquired = targetInitialCJOrHJ = searchStarted = false;
                                     SendClientTargetNull();
                                 }
                             }
@@ -481,7 +481,7 @@ namespace BlockEnhancementMod.Blocks
                                 {
                                     target = null;
                                     targetCollider = null;
-                                    targetAquired = false;
+                                    targetAquired = searchStarted = false;
                                     SendClientTargetNull();
                                 }
                             }
@@ -497,7 +497,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -508,7 +508,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -519,7 +519,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -533,7 +533,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -544,7 +544,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -555,7 +555,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -566,7 +566,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -577,7 +577,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -588,7 +588,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -599,7 +599,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
@@ -610,7 +610,7 @@ namespace BlockEnhancementMod.Blocks
                                     {
                                         target = null;
                                         targetCollider = null;
-                                        targetAquired = false;
+                                        targetAquired = searchStarted = false;
                                         SendClientTargetNull();
                                     }
                                 }
