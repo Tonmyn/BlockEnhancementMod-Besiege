@@ -81,7 +81,7 @@ namespace BlockEnhancementMod.Blocks
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
         MSlider ProximityFuzeAngleSlider;
-        public bool impactFuzeActivated = true;
+        public bool impactFuzeActivated = false;
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
         public float proximityAngle = 0f;
