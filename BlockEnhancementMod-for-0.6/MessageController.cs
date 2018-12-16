@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Modding;
@@ -298,15 +296,30 @@ namespace BlockEnhancementMod
         public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
             launchStarted = true;
-            try
+            float defaultDelay = 0.25f;
+            if (playerGroupedRockets[id][key].Count > 0)
             {
                 TimedRocket rocket = playerGroupedRockets[id][key].Pop();
-                rocket.fireTag.Ignite();
-                rocket.hasFired = true;
-                rocket.hasExploded = false;
+                if (rocket != null)
+                {
+                    RocketScript rocketScript = rocket.GetComponent<RocketScript>();
+                    rocket.fireTag.Ignite();
+                    rocket.hasFired = true;
+                    rocket.hasExploded = false;
+                    if (rocketScript != null)
+                    {
+                        if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
+                        {
+                            foreach (var grabber in rocket.grabbers)
+                            {
+                                grabber.StartCoroutine(rocket.grabbers[0].IEBreakJoint());
+                            }
+                        }
+                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                    }
+                }
             }
-            catch { }
-            for (int i = 0; i < 25; i++)
+            for (int i = 0; i < defaultDelay * 100; i++)
             {
                 yield return new WaitForFixedUpdate();
             }

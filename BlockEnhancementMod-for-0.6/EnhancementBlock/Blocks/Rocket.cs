@@ -14,6 +14,10 @@ namespace BlockEnhancementMod.Blocks
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
         MKey GroupFireKey;
+        MSlider GroupFireRateSlider;
+        MToggle AutoGrabberReleaseToggle;
+        public bool autoGrabberRelease = false;
+        public float groupFireRate = 0.25f;
         private Texture2D rocketAim;
         public Transform target;
         public TimedRocket rocket;
@@ -81,10 +85,12 @@ namespace BlockEnhancementMod.Blocks
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
         MSlider ProximityFuzeAngleSlider;
-        public bool impactFuzeActivated = true;
+        public bool impactFuzeActivated = false;
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
         public float proximityAngle = 0f;
+        public float triggerForceImpactFuzeOn = 50f;
+        public float triggerForceImpactFuzeOff = 400f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
@@ -129,6 +135,13 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketStabilityToggle.DisplayInMapper =
                 NoSmokeToggle.DisplayInMapper =
                 value;
+                ChangedProperties();
+            };
+
+            AutoGrabberReleaseToggle = BB.AddToggle(LanguageManager.autoGrabberRelease, "AutoGrabberRelease", autoGrabberRelease);
+            AutoGrabberReleaseToggle.Toggled += (bool value) =>
+            {
+                autoGrabberRelease = value;
                 ChangedProperties();
             };
 
@@ -190,6 +203,9 @@ namespace BlockEnhancementMod.Blocks
             GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.None);
             GroupFireKey.InvokeKeysChanged();
 
+            GroupFireRateSlider = BB.AddSlider(LanguageManager.groupFireRate, "groupFireRate", groupFireRate, 0.1f, 1f);
+            GroupFireRateSlider.ValueChanged += (float value) => { groupFireRate = value; ChangedProperties(); };
+
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
@@ -210,6 +226,8 @@ namespace BlockEnhancementMod.Blocks
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             GroupFireKey.DisplayInMapper = value;
+            GroupFireRateSlider.DisplayInMapper = value;
+            AutoGrabberReleaseToggle.DisplayInMapper = value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -656,7 +674,7 @@ namespace BlockEnhancementMod.Blocks
                             Vector3 velocity = Vector3.zero;
                             try
                             {
-                                velocity = targetCollider.attachedRigidbody.velocity;
+                                velocity = targetCollider.attachedRigidbody.velocity - rocket.Rigidbody.velocity;
                                 if (previousVelocity != Vector3.zero)
                                 {
                                     acceleration = (velocity - previousVelocity) / Time.deltaTime;
@@ -703,26 +721,19 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        void OnCollisionEnter(Collision collision)
-        {
-            if (rocket != null)
-            {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
-                {
-                    RocketExplode();
-                }
-            }
-        }
-
         void OnCollisionStay(Collision collision)
         {
-            if (rocket != null)
+            if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded
-                   && (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated)))
+                if (canTrigger)
                 {
-                    RocketExplode();
+                    if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
+                    {
+                        if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+                        {
+                            RocketExplode();
+                        }
+                    }
                 }
             }
         }
@@ -735,23 +746,27 @@ namespace BlockEnhancementMod.Blocks
             StopCoroutine(SearchForTarget());
             SendClientTargetNull();
 
-            if (!highExploActivated)
+            Vector3 position = rocket.transform.position;
+            Quaternion rotation = rocket.transform.rotation;
+
+            if (!rocket.hasExploded)
             {
-                if (!rocket.hasExploded) rocket.OnExplode();
+                rocket.hasExploded = true;
+                rocket.OnExplode();
             }
-            else
+            if (highExploActivated)
             {
                 if (!bombHasExploded && explosiveCharge != 0)
                 {
                     if (StatMaster.isHosting)
                     {
-                        SendExplosionPositionToAll();
+                        SendExplosionPositionToAll(position);
                     }
                     bombHasExploded = true;
                     //Generate a bomb from level editor and let it explode
                     try
                     {
-                        GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, rocket.transform.position, rocket.transform.rotation);
+                        GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, position, rotation);
                         ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
                         bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
                         bombControl.radius = radius * bombExplosiveCharge;
@@ -828,10 +843,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     catch { }
-                    if (!rocket.hasExploded)
-                    {
-                        rocket.OnExplode();
-                    }
                 }
 
             }
@@ -1252,9 +1263,9 @@ namespace BlockEnhancementMod.Blocks
             ModNetworking.SendToHost(rayToHostMsg);
         }
 
-        private void SendExplosionPositionToAll()
+        private void SendExplosionPositionToAll(Vector3 position)
         {
-            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(rocket.transform.position, bombExplosiveCharge);
+            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
             ModNetworking.SendToAll(explosionPositionMsg);
         }
     }
