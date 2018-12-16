@@ -87,6 +87,8 @@ namespace BlockEnhancementMod.Blocks
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
         public float proximityAngle = 0f;
+        public float triggerForceImpactFuzeOn = 50f;
+        public float triggerForceImpactFuzeOff = 400f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
@@ -662,7 +664,7 @@ namespace BlockEnhancementMod.Blocks
                             Vector3 velocity = Vector3.zero;
                             try
                             {
-                                velocity = targetCollider.attachedRigidbody.velocity;
+                                velocity = targetCollider.attachedRigidbody.velocity - rocket.Rigidbody.velocity;
                                 if (previousVelocity != Vector3.zero)
                                 {
                                     acceleration = (velocity - previousVelocity) / Time.deltaTime;
@@ -711,13 +713,16 @@ namespace BlockEnhancementMod.Blocks
 
         void OnCollisionStay(Collision collision)
         {
-            if (canTrigger)
+            if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
+                if (canTrigger)
                 {
-                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? 10f : 400f))
+                    if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
                     {
-                        RocketExplode();
+                        if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+                        {
+                            RocketExplode();
+                        }
                     }
                 }
             }
