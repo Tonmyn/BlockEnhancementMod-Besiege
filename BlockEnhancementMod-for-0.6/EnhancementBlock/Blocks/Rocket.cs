@@ -14,6 +14,8 @@ namespace BlockEnhancementMod.Blocks
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
         MKey GroupFireKey;
+        MSlider GroupFireRateSlider;
+        public float groupFireRate = 0.25f;
         private Texture2D rocketAim;
         public Transform target;
         public TimedRocket rocket;
@@ -190,6 +192,9 @@ namespace BlockEnhancementMod.Blocks
             GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.None);
             GroupFireKey.InvokeKeysChanged();
 
+            GroupFireRateSlider = BB.AddSlider(LanguageManager.groupFireRate, "groupFireRate", groupFireRate, 0.1f, 1f);
+            GroupFireRateSlider.ValueChanged += (float value) => { groupFireRate = value; ChangedProperties(); };
+
             SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
@@ -210,6 +215,7 @@ namespace BlockEnhancementMod.Blocks
             NoSmokeToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             GroupFireKey.DisplayInMapper = value;
+            GroupFireRateSlider.DisplayInMapper = value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -703,13 +709,13 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        void OnCollisionEnter(Collision collision)
+        void OnCollisionStay(Collision collision)
         {
-            if (rocket != null)
+            if (canTrigger)
             {
                 if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
                 {
-                    if (collision.gameObject.name.Contains("CanonBall") || (collision.impulse.magnitude > 1 && canTrigger && impactFuzeActivated))
+                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? 10f : 400f))
                     {
                         RocketExplode();
                     }
