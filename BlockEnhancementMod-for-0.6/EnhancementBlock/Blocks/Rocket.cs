@@ -15,6 +15,8 @@ namespace BlockEnhancementMod.Blocks
         MKey LockTargetKey;
         MKey GroupFireKey;
         MSlider GroupFireRateSlider;
+        MToggle AutoGrabberReleaseToggle;
+        public bool autoGrabberRelease = false;
         public float groupFireRate = 0.25f;
         private Texture2D rocketAim;
         public Transform target;
@@ -136,6 +138,13 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
 
+            AutoGrabberReleaseToggle = BB.AddToggle(LanguageManager.autoGrabberRelease, "AutoGrabberRelease", autoGrabberRelease);
+            AutoGrabberReleaseToggle.Toggled += (bool value) =>
+            {
+                autoGrabberRelease = value;
+                ChangedProperties();
+            };
+
             ImpactFuzeToggle = BB.AddToggle(LanguageManager.impactFuze, "ImpactFuze", impactFuzeActivated);
             ImpactFuzeToggle.Toggled += (bool value) =>
             {
@@ -218,6 +227,7 @@ namespace BlockEnhancementMod.Blocks
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value;
+            AutoGrabberReleaseToggle.DisplayInMapper = value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;

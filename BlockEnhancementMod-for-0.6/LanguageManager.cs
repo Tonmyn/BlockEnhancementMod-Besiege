@@ -31,6 +31,8 @@ namespace BlockEnhancementMod
 
         public static string groupFireRate = isChinese ? "同组发射间隔" : "Goruped Launch Rate";
 
+        public static string autoGrabberRelease = isChinese ? "自动释放钩爪" : "Auto Grabber Release";
+
         public static string prediction = isChinese ? "预测" : "Prediction";
 
         public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";

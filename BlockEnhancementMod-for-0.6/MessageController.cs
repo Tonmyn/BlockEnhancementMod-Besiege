@@ -302,10 +302,21 @@ namespace BlockEnhancementMod
                 TimedRocket rocket = playerGroupedRockets[id][key].Pop();
                 if (rocket != null)
                 {
+                    RocketScript rocketScript = rocket.GetComponent<RocketScript>();
                     rocket.fireTag.Ignite();
                     rocket.hasFired = true;
                     rocket.hasExploded = false;
-                    defaultDelay = Mathf.Clamp(rocket.GetComponent<RocketScript>().groupFireRate, 0.1f, 1f);
+                    if (rocketScript != null)
+                    {
+                        if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
+                        {
+                            foreach (var grabber in rocket.grabbers)
+                            {
+                                grabber.StartCoroutine(rocket.grabbers[0].IEBreakJoint());
+                            }
+                        }
+                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                    }
                 }
             }
             for (int i = 0; i < defaultDelay * 100; i++)
