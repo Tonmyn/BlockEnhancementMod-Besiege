@@ -240,6 +240,33 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
 
+        public override void BuildingUpdate()
+        {
+            if (GroupFireKey.GetKey(0) == KeyCode.None)
+            {
+                if (AutoGrabberReleaseToggle.DisplayInMapper)
+                {
+                    AutoGrabberReleaseToggle.DisplayInMapper = false;
+                    AutoGrabberReleaseToggle.SetValue(false);
+                }
+                if (GroupFireRateSlider.DisplayInMapper)
+                {
+                    GroupFireRateSlider.DisplayInMapper = false;
+                }
+            }
+            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            {
+                if (!AutoGrabberReleaseToggle.DisplayInMapper)
+                {
+                    AutoGrabberReleaseToggle.DisplayInMapper = true;
+                }
+                if (!GroupFireRateSlider.DisplayInMapper)
+                {
+                    GroupFireRateSlider.DisplayInMapper = true;
+                }
+            }
+        }
+
         public override void OnSimulateStart()
         {
             smokeStopped = false;
@@ -442,12 +469,6 @@ namespace BlockEnhancementMod.Blocks
                         canTrigger = true;
                     }
 
-                    ////If rocket is burning, explode it
-                    //if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
-                    //{
-                    //    RocketExplode();
-                    //}
-
                     //Check if target is no longer valuable (lazy check)
                     if (target != null && !StatMaster.isClient)
                     {
@@ -642,6 +663,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         RocketRadarSearch();
                     }
+
                 }
             }
             if (rocket.hasExploded && !extTrigRocketExploSent)
@@ -665,10 +687,9 @@ namespace BlockEnhancementMod.Blocks
                             AddAerodynamicsToRocketVelocity();
                         }
                     }
-
-                    if (guidedRocketActivated)
+                    if (guidedRocketActivated && canTrigger)
                     {
-                        if (target != null && targetCollider != null && canTrigger)
+                        if (target != null && targetCollider != null)
                         {
                             // Calculating the rotating axis
                             Vector3 velocity = Vector3.zero;
@@ -721,18 +742,15 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        void OnCollisionStay(Collision collision)
+        void OnCollisionEnter(Collision collision)
         {
-            if (rocket.PowerSlider.Value > 0.1f)
+            if (canTrigger)
             {
-                if (canTrigger)
+                if (rocket.PowerSlider.Value > 0.1f)
                 {
-                    if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
+                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                     {
-                        if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-                        {
-                            RocketExplode();
-                        }
+                        RocketExplode();
                     }
                 }
             }

@@ -297,6 +297,7 @@ namespace BlockEnhancementMod
         {
             launchStarted = true;
             float defaultDelay = 0.25f;
+            float grabberDelay = 0.1f;
             if (playerGroupedRockets[id][key].Count > 0)
             {
                 TimedRocket rocket = playerGroupedRockets[id][key].Pop();
@@ -306,6 +307,7 @@ namespace BlockEnhancementMod
                     rocket.fireTag.Ignite();
                     rocket.hasFired = true;
                     rocket.hasExploded = false;
+                    yield return new WaitForSeconds(grabberDelay);
                     if (rocketScript != null)
                     {
                         if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
@@ -319,9 +321,12 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-            for (int i = 0; i < defaultDelay * 100; i++)
+            if (defaultDelay >= grabberDelay)
             {
-                yield return new WaitForFixedUpdate();
+                for (int i = 0; i < (defaultDelay - grabberDelay) * 100; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
             }
             launchStarted = false;
             yield return null;
