@@ -33,6 +33,18 @@ namespace BlockEnhancementMod
 
         public static string autoGrabberRelease = isChinese ? "自动释放钩爪" : "Auto Grabber Release";
 
+        public static string searchMode = isChinese ? "搜索模式" : "Search Mode";
+
+        public static string defaultAuto = isChinese ? "默认自动搜索" : "Default " + Environment.NewLine + "Auto Search";
+
+        public static string defaultManual = isChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
+
+        public static string zoomControlMode = isChinese ? "变焦控制" : "Zoom Contorol";
+
+        public static string mouseWheelZoomControl = isChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
+
+        public static string keyboardZoomControl = isChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
+
         public static string prediction = isChinese ? "预测" : "Prediction";
 
         public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";

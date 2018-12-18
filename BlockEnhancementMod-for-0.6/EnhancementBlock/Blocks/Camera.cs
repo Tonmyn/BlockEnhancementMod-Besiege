@@ -20,7 +20,7 @@ namespace BlockEnhancementMod
         public float smooth;
         public float smoothLerp;
         private float newCamFOV, orgCamFOV, camFOVSmooth;
-        private bool firstPersonOrCustom = false;
+        private bool firstPerson = false;
 
         //Track target setting
         MKey LockTargetKey;
@@ -40,7 +40,10 @@ namespace BlockEnhancementMod
         MKey ZoomInKey;
         MKey ZoomOutKey;
         MSlider ZoomSpeedSlider;
+        MMenu ZoomControlModeMenu;
+        private int zoomControlModeIndex = 0;
         private float zoomSpeed = 2f;
+        public List<string> zoomControlMode = new List<string>() { LanguageManager.mouseWheelZoomControl, LanguageManager.keyboardZoomControl };
         private bool firstPersonMode = false;
         private bool targetInitialCJOrHJ = false;
         public float firstPersonSmooth = 0.25f;
@@ -79,11 +82,16 @@ namespace BlockEnhancementMod
                 value;
                 ChangedProperties();
             };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { cameraLookAtToggled = CameraLookAtToggle.IsActive; };
+
+            ZoomControlModeMenu = BB.AddMenu(LanguageManager.zoomControlMode, zoomControlModeIndex, zoomControlMode, false);
+            ZoomControlModeMenu.ValueChanged += (int value) =>
+            {
+                zoomControlModeIndex = value;
+                ChangedProperties();
+            };
 
             NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
-            //BlockDataLoadEvent += (XDataHolder BlockData) => { firstPersonSmooth = NonCustomModeSmoothSlider.Value; };
 
             LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
 
@@ -115,12 +123,13 @@ namespace BlockEnhancementMod
             {
                 firstPersonMode = true;
             }
-            CameraLookAtToggle.DisplayInMapper = value;
-            NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
-            AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             ZoomInKey.DisplayInMapper = value;
             ZoomOutKey.DisplayInMapper = value;
             ZoomSpeedSlider.DisplayInMapper = value;
+            ZoomControlModeMenu.DisplayInMapper = value;
+            CameraLookAtToggle.DisplayInMapper = value;
+            NonCustomModeSmoothSlider.DisplayInMapper = value && cameraLookAtToggled && firstPersonMode;
+            AutoLookAtKey.DisplayInMapper = value && cameraLookAtToggled;
             LockTargetKey.DisplayInMapper = value && cameraLookAtToggled;
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
@@ -131,24 +140,34 @@ namespace BlockEnhancementMod
             {
                 firstPersonMode = false;
                 NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
+                ZoomControlModeMenu.DisplayInMapper = ZoomSpeedSlider.DisplayInMapper = firstPersonMode;
             }
             if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
                 firstPersonMode = true;
                 NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
+                ZoomControlModeMenu.DisplayInMapper = ZoomSpeedSlider.DisplayInMapper = firstPersonMode;
             }
-            if (EnhancementEnabled)
+            if (ZoomControlModeMenu.DisplayInMapper)
             {
-                ZoomInKey.DisplayInMapper =
-                    ZoomOutKey.DisplayInMapper =
-                    fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom;
+                if (!ZoomInKey.DisplayInMapper && !ZoomOutKey.DisplayInMapper && zoomControlModeIndex == 1)
+                {
+                    ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = true;
+                }
+                if (ZoomInKey.DisplayInMapper && ZoomOutKey.DisplayInMapper && zoomControlModeIndex == 0)
+                {
+                    ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = false;
+                }
             }
-
+            if (!ZoomControlModeMenu.DisplayInMapper && ZoomInKey.DisplayInMapper && ZoomOutKey.DisplayInMapper)
+            {
+                ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = ZoomControlModeMenu.DisplayInMapper;
+            }
         }
 
         public override void OnSimulateStart()
         {
-            firstPersonOrCustom = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom;
+            firstPerson = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson;
 
             //Initialise the SmoothLook component
             fixedCameraController = FindObjectOfType<FixedCameraController>();
@@ -197,16 +216,26 @@ namespace BlockEnhancementMod
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {
-                if (firstPersonOrCustom)
+                if (firstPerson)
                 {
                     Camera activeCam = mouseOrbit.cam;
-                    if (ZoomInKey.IsDown)
+                    if (zoomControlModeIndex == 0)
                     {
-                        newCamFOV = Mathf.Clamp(activeCam.fieldOfView - zoomSpeed, 1, orgCamFOV);
+                        if (Input.GetAxis("Mouse ScrollWheel") != 0f)
+                        {
+                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - Mathf.Sign(Input.GetAxis("Mouse ScrollWheel")) * zoomSpeed, 1, orgCamFOV);
+                        }
                     }
-                    if (ZoomOutKey.IsDown)
+                    else
                     {
-                        newCamFOV = Mathf.Clamp(activeCam.fieldOfView + zoomSpeed, 1, orgCamFOV);
+                        if (ZoomInKey.IsDown)
+                        {
+                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView - zoomSpeed, 1, orgCamFOV);
+                        }
+                        if (ZoomOutKey.IsDown)
+                        {
+                            newCamFOV = Mathf.Clamp(activeCam.fieldOfView + zoomSpeed, 1, orgCamFOV);
+                        }
                     }
                     if (activeCam.fieldOfView != newCamFOV)
                     {

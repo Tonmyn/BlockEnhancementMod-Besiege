@@ -61,6 +61,9 @@ namespace BlockEnhancementMod.Blocks
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey SwitchGuideModeKey;
+        MMenu DefaultSearchModeMenu;
+        private int searchModeIndex = 0;
+        public List<string> searchMode = new List<string>() { LanguageManager.defaultAuto, LanguageManager.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
         private readonly float safetyRadiusAuto = 50f;
@@ -124,6 +127,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
+                DefaultSearchModeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
@@ -135,6 +139,13 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketStabilityToggle.DisplayInMapper =
                 NoSmokeToggle.DisplayInMapper =
                 value;
+                ChangedProperties();
+            };
+
+            DefaultSearchModeMenu = BB.AddMenu(LanguageManager.searchMode, searchModeIndex, searchMode, false);
+            DefaultSearchModeMenu.ValueChanged += (int value) =>
+            {
+                searchModeIndex = value;
                 ChangedProperties();
             };
 
@@ -224,10 +235,11 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
-            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value;
             AutoGrabberReleaseToggle.DisplayInMapper = value;
+            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
+            DefaultSearchModeMenu.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -238,6 +250,33 @@ namespace BlockEnhancementMod.Blocks
             ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
+        }
+
+        public override void BuildingUpdate()
+        {
+            if (GroupFireKey.GetKey(0) == KeyCode.None)
+            {
+                if (AutoGrabberReleaseToggle.DisplayInMapper)
+                {
+                    AutoGrabberReleaseToggle.DisplayInMapper = false;
+                    AutoGrabberReleaseToggle.SetValue(false);
+                }
+                if (GroupFireRateSlider.DisplayInMapper)
+                {
+                    GroupFireRateSlider.DisplayInMapper = false;
+                }
+            }
+            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            {
+                if (!AutoGrabberReleaseToggle.DisplayInMapper)
+                {
+                    AutoGrabberReleaseToggle.DisplayInMapper = true;
+                }
+                if (!GroupFireRateSlider.DisplayInMapper)
+                {
+                    GroupFireRateSlider.DisplayInMapper = true;
+                }
+            }
         }
 
         public override void OnSimulateStart()
@@ -262,7 +301,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Initialisation for simulation
                 launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
-                activeGuide = true;
+                activeGuide = (searchModeIndex == 0);
                 target = null;
                 targetCollider = null;
                 explodedCluster.Clear();
@@ -441,12 +480,6 @@ namespace BlockEnhancementMod.Blocks
                     {
                         canTrigger = true;
                     }
-
-                    ////If rocket is burning, explode it
-                    //if (highExploActivated && rocket.fireTag.burning && canTrigger && !firedFromGroup)
-                    //{
-                    //    RocketExplode();
-                    //}
 
                     //Check if target is no longer valuable (lazy check)
                     if (target != null && !StatMaster.isClient)
@@ -642,6 +675,7 @@ namespace BlockEnhancementMod.Blocks
                     {
                         RocketRadarSearch();
                     }
+
                 }
             }
             if (rocket.hasExploded && !extTrigRocketExploSent)
@@ -665,10 +699,9 @@ namespace BlockEnhancementMod.Blocks
                             AddAerodynamicsToRocketVelocity();
                         }
                     }
-
-                    if (guidedRocketActivated)
+                    if (guidedRocketActivated && canTrigger)
                     {
-                        if (target != null && targetCollider != null && canTrigger)
+                        if (target != null && targetCollider != null)
                         {
                             // Calculating the rotating axis
                             Vector3 velocity = Vector3.zero;
@@ -721,18 +754,15 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        void OnCollisionStay(Collision collision)
+        void OnCollisionEnter(Collision collision)
         {
-            if (rocket.PowerSlider.Value > 0.1f)
+            if (canTrigger)
             {
-                if (canTrigger)
+                if (rocket.PowerSlider.Value > 0.1f)
                 {
-                    if (rocket.isSimulating && rocket.hasFired && !rocket.hasExploded)
+                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                     {
-                        if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-                        {
-                            RocketExplode();
-                        }
+                        RocketExplode();
                     }
                 }
             }
