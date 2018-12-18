@@ -20,7 +20,7 @@ namespace BlockEnhancementMod
         public float smooth;
         public float smoothLerp;
         private float newCamFOV, orgCamFOV, camFOVSmooth;
-        private bool firstPersonOrCustom = false;
+        private bool firstPerson = false;
 
         //Track target setting
         MKey LockTargetKey;
@@ -140,23 +140,34 @@ namespace BlockEnhancementMod
             {
                 firstPersonMode = false;
                 NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
+                ZoomControlModeMenu.DisplayInMapper = ZoomSpeedSlider.DisplayInMapper = firstPersonMode;
             }
             if (fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson && !firstPersonMode)
             {
                 firstPersonMode = true;
                 NonCustomModeSmoothSlider.DisplayInMapper = cameraLookAtToggled && firstPersonMode;
+                ZoomControlModeMenu.DisplayInMapper = ZoomSpeedSlider.DisplayInMapper = firstPersonMode;
             }
-            if (EnhancementEnabled)
+            if (ZoomControlModeMenu.DisplayInMapper)
             {
-                ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper =
-                   ((fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom) && (zoomControlModeIndex == 1));
+                if (!ZoomInKey.DisplayInMapper && !ZoomOutKey.DisplayInMapper && zoomControlModeIndex == 1)
+                {
+                    ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = true;
+                }
+                if (ZoomInKey.DisplayInMapper && ZoomOutKey.DisplayInMapper && zoomControlModeIndex == 0)
+                {
+                    ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = false;
+                }
             }
-
+            if (!ZoomControlModeMenu.DisplayInMapper && ZoomInKey.DisplayInMapper && ZoomOutKey.DisplayInMapper)
+            {
+                ZoomInKey.DisplayInMapper = ZoomOutKey.DisplayInMapper = ZoomControlModeMenu.DisplayInMapper;
+            }
         }
 
         public override void OnSimulateStart()
         {
-            firstPersonOrCustom = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson || fixedCamera.CamMode == FixedCameraBlock.Mode.Custom;
+            firstPerson = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson;
 
             //Initialise the SmoothLook component
             fixedCameraController = FindObjectOfType<FixedCameraController>();
@@ -205,7 +216,7 @@ namespace BlockEnhancementMod
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {
-                if (firstPersonOrCustom)
+                if (firstPerson)
                 {
                     Camera activeCam = mouseOrbit.cam;
                     if (zoomControlModeIndex == 0)
