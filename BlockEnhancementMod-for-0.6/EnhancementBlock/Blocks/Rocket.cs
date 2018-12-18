@@ -61,6 +61,9 @@ namespace BlockEnhancementMod.Blocks
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey SwitchGuideModeKey;
+        MMenu DefaultSearchModeMenu;
+        private int searchModeIndex = 0;
+        public List<string> searchMode = new List<string>() { LanguageManager.defaultAuto, LanguageManager.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
         private readonly float safetyRadiusAuto = 50f;
@@ -124,6 +127,7 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
+                DefaultSearchModeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
@@ -135,6 +139,13 @@ namespace BlockEnhancementMod.Blocks
                 GuidedRocketStabilityToggle.DisplayInMapper =
                 NoSmokeToggle.DisplayInMapper =
                 value;
+                ChangedProperties();
+            };
+
+            DefaultSearchModeMenu = BB.AddMenu(LanguageManager.searchMode, searchModeIndex, searchMode, false);
+            DefaultSearchModeMenu.ValueChanged += (int value) =>
+            {
+                searchModeIndex = value;
                 ChangedProperties();
             };
 
@@ -224,10 +235,11 @@ namespace BlockEnhancementMod.Blocks
             GuidedRocketToggle.DisplayInMapper = value;
             HighExploToggle.DisplayInMapper = value;
             NoSmokeToggle.DisplayInMapper = value;
-            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value;
             AutoGrabberReleaseToggle.DisplayInMapper = value;
+            SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
+            DefaultSearchModeMenu.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidedRocketTorqueSlider.DisplayInMapper = value && guidedRocketActivated;
@@ -289,7 +301,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 // Initialisation for simulation
                 launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
-                activeGuide = true;
+                activeGuide = (searchModeIndex == 0);
                 target = null;
                 targetCollider = null;
                 explodedCluster.Clear();
