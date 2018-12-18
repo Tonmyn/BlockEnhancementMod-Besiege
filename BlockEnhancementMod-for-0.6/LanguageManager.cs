@@ -39,6 +39,12 @@ namespace BlockEnhancementMod
 
         public static string defaultManual = isChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
 
+        public static string zoomControlMode = isChinese ? "变焦控制" : "Zoom Contorol";
+
+        public static string mouseWheelZoomControl = isChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
+
+        public static string keyboardZoomControl = isChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
+
         public static string prediction = isChinese ? "预测" : "Prediction";
 
         public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";
