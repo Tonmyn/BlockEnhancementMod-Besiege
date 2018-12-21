@@ -689,7 +689,7 @@ namespace BlockEnhancementMod.Blocks
         {
             if (!StatMaster.isClient)
             {
-                if (rocket.hasFired && !rocket.hasExploded)
+                if (rocket.hasFired && !rocket.hasExploded && canTrigger)
                 {
                     if (guidedRocketStabilityOn)
                     {
@@ -699,7 +699,7 @@ namespace BlockEnhancementMod.Blocks
                             AddAerodynamicsToRocketVelocity();
                         }
                     }
-                    if (guidedRocketActivated && canTrigger)
+                    if (guidedRocketActivated)
                     {
                         if (target != null && targetCollider != null)
                         {

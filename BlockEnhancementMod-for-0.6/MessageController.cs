@@ -297,7 +297,7 @@ namespace BlockEnhancementMod
         {
             launchStarted = true;
             float defaultDelay = 0.25f;
-            float grabberDelay = 0.1f;
+            float grabberDelay = 0.16f;
             if (playerGroupedRockets[id][key].Count > 0)
             {
                 TimedRocket rocket = playerGroupedRockets[id][key].Pop();
