@@ -304,12 +304,12 @@ namespace BlockEnhancementMod
                 if (rocket != null)
                 {
                     RocketScript rocketScript = rocket.GetComponent<RocketScript>();
-                    rocket.fireTag.Ignite();
-                    rocket.hasFired = true;
-                    rocket.hasExploded = false;
-                    yield return new WaitForSeconds(grabberDelay);
                     if (rocketScript != null)
                     {
+                        yield return new WaitForSeconds(grabberDelay);
+                        rocket.fireTag.Ignite();
+                        rocket.hasFired = true;
+                        rocket.hasExploded = false;
                         if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                         {
                             foreach (var grabber in rocket.grabbers)
