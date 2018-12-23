@@ -68,6 +68,13 @@ namespace BlockEnhancementMod
 
         void FixedUpdate()
         {
+            if (!StatMaster.levelSimulating)
+            {
+                if (playerGroupedRockets.Count > 0)
+                {
+                    playerGroupedRockets.Clear();
+                }
+            }
             if (PlayerMachine.GetLocal() != null)
             {
                 if (PlayerMachine.GetLocal().InternalObject.isSimulating)
@@ -84,7 +91,6 @@ namespace BlockEnhancementMod
                     if (!isFirstFrame)
                     {
                         rocketTargetDict.Clear();
-                        playerGroupedRockets.Clear();
                         isFirstFrame = true;
                     }
                 }
@@ -296,38 +302,57 @@ namespace BlockEnhancementMod
         public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
             launchStarted = true;
+            bool grabberReleased = false;
             float defaultDelay = 0.25f;
             float grabberDelay = 0.16f;
-            if (playerGroupedRockets[id]?[key]?.Count > 0)
+            if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, Stack<TimedRocket>> timedRocketDict))
             {
-                TimedRocket rocket = playerGroupedRockets[id][key].Pop();
-                if (rocket != null)
+                if (timedRocketDict.TryGetValue(key, out Stack<TimedRocket> timedRockets))
                 {
-                    RocketScript rocketScript = rocket.GetComponent<RocketScript>();
-                    if (rocketScript != null)
+                    if (timedRockets.Count > 0)
                     {
-                        yield return new WaitForSeconds(grabberDelay);
-                        rocket.fireTag.Ignite();
-                        rocket.hasFired = true;
-                        rocket.hasExploded = false;
-                        if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
+                        TimedRocket rocket = timedRockets.Pop();
+                        if (rocket != null)
                         {
-                            foreach (var grabber in rocket.grabbers)
+                            RocketScript rocketScript = rocket.GetComponent<RocketScript>();
+                            if (rocketScript != null)
                             {
-                                grabber.StartCoroutine(rocket.grabbers[0].IEBreakJoint());
+                                rocket.fireTag.Ignite();
+                                rocket.hasFired = true;
+                                rocket.hasExploded = false;
+                                if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
+                                {
+                                    yield return new WaitForSeconds(grabberDelay);
+                                    grabberReleased = true;
+                                    foreach (var grabber in rocket.grabbers)
+                                    {
+                                        grabber?.StartCoroutine(grabber.IEBreakJoint());
+                                    }
+                                }
+                                defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
                             }
                         }
-                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
                     }
                 }
             }
-            if (defaultDelay >= grabberDelay)
+            if (grabberReleased)
             {
-                for (int i = 0; i < (defaultDelay - grabberDelay) * 100; i++)
+                if (defaultDelay >= grabberDelay)
+                {
+                    for (int i = 0; i < (defaultDelay - grabberDelay) * 100; i++)
+                    {
+                        yield return new WaitForFixedUpdate();
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < defaultDelay * 100; i++)
                 {
                     yield return new WaitForFixedUpdate();
                 }
             }
+
             launchStarted = false;
             yield return null;
         }
