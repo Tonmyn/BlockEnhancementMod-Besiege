@@ -334,7 +334,7 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateUpdateAlways()
         {
-            if (GroupFireKey.IsDown)
+            if (GroupFireKey.IsDown && !StatMaster.isClient)
             {
                 if (!MessageController.Instance.launchStarted)
                 {
