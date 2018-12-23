@@ -297,19 +297,19 @@ namespace BlockEnhancementMod
         {
             launchStarted = true;
             float defaultDelay = 0.25f;
-            float grabberDelay = 0.1f;
-            if (playerGroupedRockets[id][key].Count > 0)
+            float grabberDelay = 0.16f;
+            if (playerGroupedRockets[id]?[key]?.Count > 0)
             {
                 TimedRocket rocket = playerGroupedRockets[id][key].Pop();
                 if (rocket != null)
                 {
                     RocketScript rocketScript = rocket.GetComponent<RocketScript>();
-                    rocket.fireTag.Ignite();
-                    rocket.hasFired = true;
-                    rocket.hasExploded = false;
-                    yield return new WaitForSeconds(grabberDelay);
                     if (rocketScript != null)
                     {
+                        yield return new WaitForSeconds(grabberDelay);
+                        rocket.fireTag.Ignite();
+                        rocket.hasFired = true;
+                        rocket.hasExploded = false;
                         if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                         {
                             foreach (var grabber in rocket.grabbers)
