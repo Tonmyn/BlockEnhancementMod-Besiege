@@ -212,7 +212,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateUpdateAlways()
+        public override void SimulateUpdateEnhancementEnableAlways()
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {

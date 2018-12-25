@@ -33,6 +33,7 @@ namespace BlockEnhancementMod.Blocks
         public float Interval = 0.25f;
         private readonly float intervalMin = EnhanceMore ? 0f : 0.1f;
         public float RandomDelay = 0.2f;
+        private float orginRandomDelay = 0.2f;
         public float KnockBackSpeedZeroOne = 1f;
         private readonly float knockBackSpeedZeroOneMin = EnhanceMore ? 0f : 0.25f;
         private readonly float knockBackSpeedZeroOneMax = 1f;
@@ -67,6 +68,7 @@ namespace BlockEnhancementMod.Blocks
             public Bullet(CanonBlock canonBlock)
             {
                 CB = canonBlock;
+
                 bulletObject = Instantiate(CB.boltObject.gameObject);
                 bulletObject.SetActive(false);
 
@@ -175,29 +177,32 @@ namespace BlockEnhancementMod.Blocks
                 bullet.Custom = bullet.TrailEnable = false;
             }
 
-            firstShotFired = true;   
+            firstShotFired = true;
             knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
             Strength = CB.StrengthSlider.Value;
             //独立自定子弹
             if (bullet.Custom)
             {
                 bullet.CreateCustomBullet();
+                //CB.knockbackSpeed = knockBackSpeed * bullet.Mass;
                 CB.randomDelay = 0f;
-
+       
             }
             else
             {
-                CB.boltObject.gameObject.SetActive(true);
-                CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;           
+                CB.randomDelay = RandomDelay < 0 ? 0 : orginRandomDelay;
+                if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
+                {
+                    CB.knockbackSpeed = knockBackSpeed;
+                }
             }
 
-            if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
-            {
-                CB.knockbackSpeed = knockBackSpeed;
-            }
+         
 
             void BulletInit()
             {
+                BulletNumber = 1;
+                firstShotFired = true;
                 bullet.Custom = BullerCustomBulletToggle.IsActive;
                 bullet.Mass = BulletMassSlider.Value;
                 bullet.Drag = BulletDragSlider.Value;
@@ -235,7 +240,11 @@ namespace BlockEnhancementMod.Blocks
         {
             if (StatMaster.isClient) return;
 
-            if (CB.ShootKey.IsReleased) firstShotFired = true;
+            if (CB.ShootKey.IsReleased)
+            {
+                firstShotFired = true;
+                ShootEnabled = true;
+            }
 
             if (CB.ShootKey.IsDown && ShootEnabled)
             {
@@ -246,12 +255,12 @@ namespace BlockEnhancementMod.Blocks
         private IEnumerator Shoot()
         {
             ShootEnabled = false;
-            BulletNumber--;
 
-            if (bullet.Custom)
+            if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
             {
-                if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
+                if (bullet.Custom)
                 {
+
                     float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
 
                     yield return new WaitForSeconds(randomDelay);
@@ -264,7 +273,7 @@ namespace BlockEnhancementMod.Blocks
                     bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                     //炮身施加后坐力
                     //gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
-                    
+
                     //if (!firstShotFired)
                     //{
                     //    //播放开炮音效和特效
@@ -272,18 +281,30 @@ namespace BlockEnhancementMod.Blocks
                     //    CB.fuseParticles.Stop();
                     //    AS.Play();
                     //}
+
+                }
+                else if (CB.boltObject.gameObject.activeSelf == false)
+                {
+
+                    GameObject go = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    go.SetActive(true);
+                    go.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+
                 }
             }
-
             if (!firstShotFired)
             {
                 CB.Shoot();
-            }         
-           
+            }
+
+            BulletNumber--;
             firstShotFired = false;
 
             yield return new WaitForSeconds(Interval);
-            ShootEnabled = true;
+            if (EnhancementEnabled)
+            {
+                ShootEnabled = true;
+            }
         }
     }
 }

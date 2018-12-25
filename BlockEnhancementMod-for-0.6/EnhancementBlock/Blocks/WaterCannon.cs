@@ -41,7 +41,7 @@ namespace BlockEnhancementMod
   
         }
 
-        public override void SimulateUpdateAlways()
+        public override void SimulateUpdateEnhancementEnableAlways()
         {
             if (StatMaster.isClient) return;
 
