@@ -17,7 +17,9 @@ namespace BlockEnhancementMod
 
         public float ThrustForce = 0f;       
         public Color FlameColor = Color.blue;
+        public string FlameShader = "Particles/Additive";
         private Color orginFlameColor = Color.white;
+        private string orginShader = "Particles/Alpha Blended";
 
         Rigidbody rigidbody;
 
@@ -48,8 +50,10 @@ namespace BlockEnhancementMod
             if (!EnhancementEnabled)
             {
                 FlameColor = orginFlameColor;
+                FlameShader = orginShader;             
             }
-
+    
+            flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
             flamethrowerController.fireParticles.startColor = FlameColor;
         }
 
