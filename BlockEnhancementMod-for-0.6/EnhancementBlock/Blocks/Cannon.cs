@@ -183,15 +183,17 @@ namespace BlockEnhancementMod.Blocks
             {
                 bullet.CreateCustomBullet();
                 CB.randomDelay = 0f;
+
             }
             else
             {
                 CB.boltObject.gameObject.SetActive(true);
-                CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
-                if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
-                {
-                    CB.knockbackSpeed = knockBackSpeed;
-                }
+                CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;           
+            }
+
+            if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
+            {
+                CB.knockbackSpeed = knockBackSpeed;
             }
 
             void BulletInit()
@@ -258,11 +260,11 @@ namespace BlockEnhancementMod.Blocks
                     var bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
                     bulletClone.SetActive(true);
                     //子弹施加推力并且继承炮身速度
-                    try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
+                    //try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
                     bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                     //炮身施加后坐力
-                    gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
-
+                    //gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
+                    
                     //if (!firstShotFired)
                     //{
                     //    //播放开炮音效和特效
@@ -275,7 +277,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (!firstShotFired)
             {
-                StartCoroutine(CB.IEShoot());
+                CB.Shoot();
             }         
            
             firstShotFired = false;
