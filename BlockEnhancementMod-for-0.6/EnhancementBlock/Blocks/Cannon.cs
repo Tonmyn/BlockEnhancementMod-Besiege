@@ -37,19 +37,19 @@ namespace BlockEnhancementMod.Blocks
         private readonly float knockBackSpeedZeroOneMin = EnhanceMore ? 0f : 0.25f;
         private readonly float knockBackSpeedZeroOneMax = 1f;
         public float originalKnockBackSpeed = 8000;
-        public bool firstShotFired = false;
+        public bool firstShotFired = true;
 
+        public bool ShootEnabled { get; set; } = true;
 
         public Bullet bullet;
 
-        private float timer;
         private float knockBackSpeed;
         private int BulletNumber = 1;
 
         //子弹类
         public class Bullet
         {
-            public GameObject gameObject;
+            public GameObject bulletObject;
             public Rigidbody rigidbody;
             public float Mass { get { return rigidbody.mass; } set { rigidbody.mass = Mathf.Clamp(value, 0.1f, value); } }
             public float Drag { get { return rigidbody.drag; } set { rigidbody.drag = value; } }
@@ -67,34 +67,33 @@ namespace BlockEnhancementMod.Blocks
             public Bullet(CanonBlock canonBlock)
             {
                 CB = canonBlock;
-                gameObject = CB.boltObject.gameObject;
-                rigidbody = gameObject.GetComponent<Rigidbody>();
-                TrailRenderer = gameObject.GetComponent<TrailRenderer>() ?? gameObject.AddComponent<TrailRenderer>();
-                //TrailRenderer.enabled = Trail;
+                bulletObject = Instantiate(CB.boltObject.gameObject);
+                bulletObject.SetActive(false);
+
+                rigidbody = bulletObject.GetComponent<Rigidbody>();
+                TrailRenderer = bulletObject.GetComponent<TrailRenderer>() ?? bulletObject.AddComponent<TrailRenderer>();
                 TrailRenderer.autodestruct = false;
                 TrailRenderer.receiveShadows = false;
                 TrailRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                TrailRenderer.startWidth = 0.5f * gameObject.transform.localScale.magnitude;
+                TrailRenderer.startWidth = 0.5f * bulletObject.transform.localScale.magnitude;
                 TrailRenderer.endWidth = 0.1f;
-                //TrailRenderer.time = TrailLength;
 
                 TrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
-                //TrailRenderer.material.SetColor("_TintColor", Color.yellow);
-
-                //if (Custom)
-                //{
-
-                //}
             }
             public void CreateCustomBullet()
             {
-                GameObject cannon = CB.gameObject;
+                Transform cannon = CB.transform;
 
-                gameObject = (GameObject)Instantiate(gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-                gameObject.transform.localScale = !InheritSize ? new Vector3(0.5f, 0.5f, 0.5f) : Vector3.Scale(Vector3.one * Mathf.Min(cannon.transform.localScale.x, cannon.transform.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
-                gameObject.SetActive(false);
+                bulletObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
-                if (InheritSize) { CB.particles[0].transform.localScale = gameObject.transform.localScale; }
+                CB.boltObject.gameObject.SetActive(false);
+
+                if (InheritSize)
+                {
+                    Vector3 scaleVector = Vector3.Scale(Vector3.one * Mathf.Min(cannon.localScale.x, cannon.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+
+                    bulletObject.transform.localScale = CB.particles[0].transform.localScale = scaleVector;
+                }
             }
         }
 
@@ -118,7 +117,7 @@ namespace BlockEnhancementMod.Blocks
             #region 子弹控件初始化
 
             BullerCustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", false);
-            BullerCustomBulletToggle.Toggled += (bool value) => { BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
+            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
 
             BulletInheritSizeToggle = BB.AddToggle(LanguageManager.inheritSize, "InheritSize", false);
             BulletInheritSizeToggle.Toggled += (bool value) => { bullet.InheritSize = value; ChangedProperties(); };
@@ -151,12 +150,12 @@ namespace BlockEnhancementMod.Blocks
             IntervalSlider.DisplayInMapper = value;
             RandomDelaySlider.DisplayInMapper = value;
             KnockBackSpeedSlider.DisplayInMapper = value;
+
             BullerCustomBulletToggle.DisplayInMapper = value && !StatMaster.isMP;
             BulletInheritSizeToggle.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletMassSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletDragSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
-
-            BulletTrailToggle.DisplayInMapper = value;
+            BulletTrailToggle.DisplayInMapper = value && bullet.Custom && !StatMaster.isMP;
             BulletTrailColorSlider.DisplayInMapper = /*Trail*/bullet.TrailEnable && !StatMaster.isMP;
             BulletTrailLengthSlider.DisplayInMapper = /*Trail*/bullet.TrailEnable && !StatMaster.isMP;
 
@@ -176,17 +175,18 @@ namespace BlockEnhancementMod.Blocks
                 bullet.Custom = bullet.TrailEnable = false;
             }
 
-            CB.enabled = !bullet.Custom;
-            timer = Interval < intervalMin ? intervalMin : Interval;
+            firstShotFired = true;   
             knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
             Strength = CB.StrengthSlider.Value;
             //独立自定子弹
             if (bullet.Custom)
             {
                 bullet.CreateCustomBullet();
+                CB.randomDelay = 0f;
             }
             else
             {
+                CB.boltObject.gameObject.SetActive(true);
                 CB.randomDelay = RandomDelay < 0 ? 0 : RandomDelay;
                 if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
                 {
@@ -209,13 +209,6 @@ namespace BlockEnhancementMod.Blocks
 
         public override void BuildingUpdate()
         {
-            if (StatMaster.isMP)
-            {
-                if (BulletTrailToggle.DisplayInMapper)
-                {
-                    BulletTrailToggle.DisplayInMapper = false;
-                }
-            }
             if (!EnhanceMore && StatMaster.isMP)
             {
                 if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
@@ -234,83 +227,61 @@ namespace BlockEnhancementMod.Blocks
                     KnockBackSpeedSlider.DisplayInMapper = true;
                 }
             }
-
         }
 
         public override void SimulateUpdateAlways()
         {
             if (StatMaster.isClient) return;
 
-            if (CB.ShootKey.IsDown && /*customBullet*/bullet.Custom)
-            {
-                CB.StopAllCoroutines();
-            }
+            if (CB.ShootKey.IsReleased) firstShotFired = true;
 
-            if (CB.ShootKey.IsDown && Interval > 0)
+            if (CB.ShootKey.IsDown && ShootEnabled)
             {
-                if (timer > Interval)
-                {
-                    timer = 0;
-                    if (/*customBullet*/bullet.Custom)
-                    {
-                        StartCoroutine(Shoot());
-                    }
-                    else
-                    {
-                        if (firstShotFired)
-                        {
-                            CB.Shoot();
-                        }
-                        if (!firstShotFired)
-                        {
-                            firstShotFired = true;
-                        }
-                    }
-                }
-                else
-                {
-                    timer += Time.deltaTime;
-                }
+                StartCoroutine(Shoot());
             }
-            else if (CB.ShootKey.IsReleased)
-            {
-                timer = Interval;
-                firstShotFired = false;
-            }
-
-
         }
 
         private IEnumerator Shoot()
         {
-            if (BulletNumber > 0)
+            ShootEnabled = false;
+            BulletNumber--;
+
+            if (bullet.Custom)
             {
-                float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
+                if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
+                {
+                    float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
 
-                yield return new WaitForSeconds(randomDelay);
+                    yield return new WaitForSeconds(randomDelay);
 
-                //克隆子弹物体
-                var bulletClone = (GameObject)Instantiate(bullet.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);/*(GameObject)Instantiate(bullet.gameObject, CB.boltSpawnPos);*/
-                bulletClone.SetActive(true);
-                //子弹施加推力并且继承炮身速度
-                try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
-                bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
-                //炮身施加后坐力
-                gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(/*customBulletObject*/bullet.gameObject.transform.localScale.x, /*customBulletObject*/bullet.gameObject.transform.localScale.z) * transform.up);
-                //播放开炮音效和特效
-                foreach (var particle in CB.particles) { particle.Play(); }
-                CB.fuseParticles.Stop();
-                AS.Play();
+                    //克隆子弹物体
+                    var bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    bulletClone.SetActive(true);
+                    //子弹施加推力并且继承炮身速度
+                    try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
+                    bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+                    //炮身施加后坐力
+                    gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
+
+                    //if (!firstShotFired)
+                    //{
+                    //    //播放开炮音效和特效
+                    //    foreach (var particle in CB.particles) { particle.Play(); }
+                    //    CB.fuseParticles.Stop();
+                    //    AS.Play();
+                    //}
+                }
             }
 
-            if (!StatMaster.GodTools.InfiniteAmmoMode)
+            if (!firstShotFired)
             {
-                BulletNumber--;
-            }
-            else
-            {
-                BulletNumber = 1;
-            }
+                StartCoroutine(CB.IEShoot());
+            }         
+           
+            firstShotFired = false;
+
+            yield return new WaitForSeconds(Interval);
+            ShootEnabled = true;
         }
     }
 }
