@@ -332,7 +332,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdateAlways()
+        public override void SimulateUpdateEnhancementEnableAlways()
         {
             if (GroupFireKey.IsDown && !StatMaster.isClient)
             {

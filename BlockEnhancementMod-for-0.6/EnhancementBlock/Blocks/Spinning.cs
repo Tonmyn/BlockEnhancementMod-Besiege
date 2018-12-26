@@ -147,7 +147,7 @@ namespace BlockEnhancementMod
 
         }
 
-        public override void SimulateUpdateAlways()
+        public override void SimulateUpdateEnhancementEnableAlways()
         {
             MotorFreezeRotation(RotationKey.IsDown);
         }

@@ -66,12 +66,13 @@ namespace BlockEnhancementMod
                     
                     if (!StatMaster.isClient) { ChangeParameter(); }
                 }
+                SimulateUpdateAlways();
 
                 if (!EnhancementEnabled) return;
 
                 if (StatMaster.isHosting) { SimulateUpdateHost(); }
                 if (StatMaster.isClient) { SimulateUpdateClient(); }
-                SimulateUpdateAlways();
+                SimulateUpdateEnhancementEnableAlways();
             }
             else
             {
@@ -198,6 +199,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
+        public virtual void SimulateUpdateEnhancementEnableAlways() { }
         public virtual void SimulateUpdateAlways() { }
         /// <summary>
         /// 在模拟模式下的FixedUpdate
