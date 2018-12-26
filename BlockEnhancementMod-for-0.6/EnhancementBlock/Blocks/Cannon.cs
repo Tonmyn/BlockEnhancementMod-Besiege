@@ -173,6 +173,7 @@ namespace BlockEnhancementMod.Blocks
             if (!EnhancementEnabled)
             {
                 CB.knockbackSpeed = originalKnockBackSpeed;
+                CB.randomDelay = orginRandomDelay;
 
                 bullet.Custom = bullet.TrailEnable = false;
             }
@@ -180,27 +181,23 @@ namespace BlockEnhancementMod.Blocks
             firstShotFired = true;
             
             Strength = CB.StrengthSlider.Value;
+            RandomDelay = Mathf.Clamp(RandomDelay, 0f, RandomDelay);
+            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
             
-            float randomDelay = orginRandomDelay;
             //独立自定子弹
             if (bullet.Custom)
             {
-                bullet.CreateCustomBullet();
-                //CB.knockbackSpeed = knockBackSpeed * bullet.Mass;
-                knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-                randomDelay = 0f;
-       
+                bullet.CreateCustomBullet();    
             }
-            else
-            {
-                randomDelay = RandomDelay < 0 ? 0 : orginRandomDelay;
-                if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
-                {
-                    CB.knockbackSpeed = knockBackSpeed;
-                }
-            }
+            //else
+            //{
+            //    if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
+            //    {
+            //        CB.knockbackSpeed = knockBackSpeed;
+            //    }
+            //}
 
-            CB.randomDelay = randomDelay;
+            CB.randomDelay = 0;
             CB.knockbackSpeed= knockBackSpeed;    
 
             void BulletInit()
@@ -262,12 +259,12 @@ namespace BlockEnhancementMod.Blocks
 
             if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
             {
+                float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
+
+                yield return new WaitForSeconds(randomDelay);
+
                 if (bullet.Custom)
                 {
-
-                    float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
-
-                    yield return new WaitForSeconds(randomDelay);
 
                     //克隆子弹物体
                     var bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
