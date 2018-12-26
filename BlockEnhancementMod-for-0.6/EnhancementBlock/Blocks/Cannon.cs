@@ -178,26 +178,30 @@ namespace BlockEnhancementMod.Blocks
             }
 
             firstShotFired = true;
-            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
+            
             Strength = CB.StrengthSlider.Value;
+            
+            float randomDelay = orginRandomDelay;
             //独立自定子弹
             if (bullet.Custom)
             {
                 bullet.CreateCustomBullet();
                 //CB.knockbackSpeed = knockBackSpeed * bullet.Mass;
-                CB.randomDelay = 0f;
+                knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
+                randomDelay = 0f;
        
             }
             else
             {
-                CB.randomDelay = RandomDelay < 0 ? 0 : orginRandomDelay;
+                randomDelay = RandomDelay < 0 ? 0 : orginRandomDelay;
                 if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
                 {
                     CB.knockbackSpeed = knockBackSpeed;
                 }
             }
 
-         
+            CB.randomDelay = randomDelay;
+            CB.knockbackSpeed= knockBackSpeed;    
 
             void BulletInit()
             {
