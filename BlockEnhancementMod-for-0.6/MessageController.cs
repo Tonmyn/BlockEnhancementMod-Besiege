@@ -302,9 +302,7 @@ namespace BlockEnhancementMod
         public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
             launchStarted = true;
-            bool grabberReleased = false;
             float defaultDelay = 0.25f;
-            float grabberDelay = 0.16f;
             if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, Stack<TimedRocket>> timedRocketDict))
             {
                 if (timedRocketDict.TryGetValue(key, out Stack<TimedRocket> timedRockets))
@@ -317,13 +315,11 @@ namespace BlockEnhancementMod
                             RocketScript rocketScript = rocket.GetComponent<RocketScript>();
                             if (rocketScript != null)
                             {
-                                rocket.fireTag.Ignite();
+                                rocket.Fire(0f);
                                 rocket.hasFired = true;
                                 rocket.hasExploded = false;
                                 if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                                 {
-                                    yield return new WaitForSeconds(grabberDelay);
-                                    grabberReleased = true;
                                     foreach (var grabber in rocket.grabbers)
                                     {
                                         grabber?.StartCoroutine(grabber.IEBreakJoint());
@@ -335,22 +331,9 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-            if (grabberReleased)
+            for (int i = 0; i < defaultDelay * 100; i++)
             {
-                if (defaultDelay >= grabberDelay)
-                {
-                    for (int i = 0; i < (defaultDelay - grabberDelay) * 100; i++)
-                    {
-                        yield return new WaitForFixedUpdate();
-                    }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < defaultDelay * 100; i++)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
+                yield return new WaitForFixedUpdate();
             }
 
             launchStarted = false;
