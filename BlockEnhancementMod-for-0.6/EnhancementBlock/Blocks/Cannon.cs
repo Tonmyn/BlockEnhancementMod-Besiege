@@ -119,7 +119,7 @@ namespace BlockEnhancementMod.Blocks
             #region 子弹控件初始化
 
             BullerCustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", false);
-            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
+            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper =BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
 
             BulletInheritSizeToggle = BB.AddToggle(LanguageManager.inheritSize, "InheritSize", false);
             BulletInheritSizeToggle.Toggled += (bool value) => { bullet.InheritSize = value; ChangedProperties(); };
@@ -158,8 +158,8 @@ namespace BlockEnhancementMod.Blocks
             BulletMassSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletDragSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletTrailToggle.DisplayInMapper = value && bullet.Custom && !StatMaster.isMP;
-            BulletTrailColorSlider.DisplayInMapper = /*Trail*/bullet.TrailEnable && !StatMaster.isMP;
-            BulletTrailLengthSlider.DisplayInMapper = /*Trail*/bullet.TrailEnable && !StatMaster.isMP;
+            BulletTrailColorSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
+            BulletTrailLengthSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
 
         }
 
@@ -169,40 +169,56 @@ namespace BlockEnhancementMod.Blocks
             BulletInit();
 
             if (StatMaster.isMP) { bullet.Custom = bullet.TrailEnable = false; }
-
+        
             if (!EnhancementEnabled)
             {
                 CB.knockbackSpeed = originalKnockBackSpeed;
-
                 bullet.Custom = bullet.TrailEnable = false;
-            }
 
-            firstShotFired = true;
-            knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
-            Strength = CB.StrengthSlider.Value;
-            //独立自定子弹
-            if (bullet.Custom)
-            {
-                bullet.CreateCustomBullet();
-                //CB.knockbackSpeed = knockBackSpeed * bullet.Mass;
-                CB.randomDelay = 0f;
-       
+                if (CB.boltObject.gameObject.activeSelf == true)
+                {
+                    
+                    CB.randomDelay = orginRandomDelay;
+                    RandomDelay = 0;                  
+                }
+                else
+                {              
+                    CB.randomDelay = 0;
+                    RandomDelay = orginRandomDelay;               
+                }             
             }
             else
             {
-                CB.randomDelay = RandomDelay < 0 ? 0 : orginRandomDelay;
-                if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
-                {
-                    CB.knockbackSpeed = knockBackSpeed;
-                }
-            }
 
-         
+                RandomDelay = Mathf.Clamp(RandomDelay, 0f, RandomDelay);
+                knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
+
+               
+
+                //独立自定子弹
+                if (bullet.Custom)
+                {
+                    bullet.CreateCustomBullet();
+                }
+                //else
+                //{
+                //    if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
+                //    {
+                //        CB.knockbackSpeed = knockBackSpeed;
+                //    }
+                //}      
+
+                CB.randomDelay = 0;
+                CB.knockbackSpeed = knockBackSpeed;
+            }
+                   
 
             void BulletInit()
             {
                 BulletNumber = 1;
                 firstShotFired = true;
+                Strength = CB.StrengthSlider.Value;
+
                 bullet.Custom = BullerCustomBulletToggle.IsActive;
                 bullet.Mass = BulletMassSlider.Value;
                 bullet.Drag = BulletDragSlider.Value;
@@ -244,6 +260,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 firstShotFired = true;
                 ShootEnabled = true;
+                StopCoroutine(Shoot());
             }
 
             if (CB.ShootKey.IsDown && ShootEnabled)
@@ -256,47 +273,48 @@ namespace BlockEnhancementMod.Blocks
         {
             ShootEnabled = false;
 
+            GameObject bulletClone = null;
+
             if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
-            {
+            {                      
                 if (bullet.Custom)
                 {
 
-                    float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
-
-                    yield return new WaitForSeconds(randomDelay);
-
-                    //克隆子弹物体
-                    var bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-                    bulletClone.SetActive(true);
-                    //子弹施加推力并且继承炮身速度
-                    //try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
-                    bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+                    ////克隆子弹物体
+                    //bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    //bulletClone.SetActive(true);
+                    ////子弹施加推力并且继承炮身速度
+                    ////try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
+                    //bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                     //炮身施加后坐力
                     //gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
 
-                    //if (!firstShotFired)
-                    //{
-                    //    //播放开炮音效和特效
-                    //    foreach (var particle in CB.particles) { particle.Play(); }
-                    //    CB.fuseParticles.Stop();
-                    //    AS.Play();
-                    //}
-
+                    bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    //bulletClone.SetActive(true);
+                    //bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                 }
                 else if (CB.boltObject.gameObject.activeSelf == false)
                 {
-
-                    GameObject go = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-                    go.SetActive(true);
-                    go.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+                    bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
 
                 }
             }
-            if (!firstShotFired)
+
+            float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
+
+            yield return new WaitForSeconds(randomDelay);
+
+            if (bulletClone != null)
             {
-                CB.Shoot();
+                bulletClone.SetActive(true);
+                bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
             }
 
+            if (!firstShotFired)
+            {
+                CB.Shoot();            
+            }
+          
             BulletNumber--;
             firstShotFired = false;
 
