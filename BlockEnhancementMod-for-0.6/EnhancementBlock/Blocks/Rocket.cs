@@ -75,13 +75,13 @@ namespace BlockEnhancementMod.Blocks
         public bool searchStarted = false;
 
         //Cluster value multiplier
-        private readonly int bombValue = 64;
-        private readonly int guidedRocketValue = 1024;
-        private readonly int normalRocketValue = 512;
-        private readonly int waterCannonValue = 16;
-        private readonly int flyingBlockValue = 2;
-        private readonly int flameThrowerValue = 8;
-        private readonly int cogMotorValue = 2;
+        private readonly float bombValue = 64;
+        private readonly float guidedRocketValue = 1024;
+        private readonly float normalRocketValue = 512;
+        private readonly float waterCannonValue = 16;
+        private readonly float flyingBlockValue = 2;
+        private readonly float flameThrowerValue = 8;
+        private readonly float cogMotorValue = 2;
 
         //impact & proximity fuze related setting
         MToggle ImpactFuzeToggle;
@@ -360,7 +360,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                 }
 
-                if (LockTargetKey.IsReleased)
+                if (LockTargetKey.IsPressed)
                 {
                     target = null;
                     targetCollider = null;
@@ -910,7 +910,7 @@ namespace BlockEnhancementMod.Blocks
                             bool shouldCheckRocket = false;
                             if (StatMaster.isMP)
                             {
-                                shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                                shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
                             }
                             else
                             {
@@ -993,6 +993,10 @@ namespace BlockEnhancementMod.Blocks
                         {
                             foreach (var block in cluster.Blocks)
                             {
+                                if (block.Type == BlockType.Rocket)
+                                {
+                                    continue;
+                                }
                                 skipCluster = ShouldSkipCluster(block);
                                 if (skipCluster)
                                 {
@@ -1051,7 +1055,7 @@ namespace BlockEnhancementMod.Blocks
             int i = 0;
             foreach (var simCluster in simClusterForSearch)
             {
-                int clusterValue = simCluster.Blocks.Length + 1;
+                float clusterValue = simCluster.Blocks.Length + 1;
                 clusterValue = CalculateClusterValue(simCluster.Base, clusterValue);
                 foreach (var block in simCluster.Blocks)
                 {
@@ -1098,7 +1102,7 @@ namespace BlockEnhancementMod.Blocks
             rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
         }
 
-        private int CalculateClusterValue(BlockBehaviour block, int clusterValue)
+        private float CalculateClusterValue(BlockBehaviour block, float clusterValue)
         {
             //Some blocks weights more than others
             GameObject targetObj = block.gameObject;
@@ -1110,21 +1114,21 @@ namespace BlockEnhancementMod.Blocks
                     clusterValue *= bombValue;
                 }
             }
-            //A fired and unexploded rocket
-            if (block.Type == BlockType.Rocket)
-            {
-                if (targetObj.GetComponent<TimedRocket>().hasFired)
-                {
-                    if (targetObj.GetComponent<RocketScript>().targetAquired)
-                    {
-                        clusterValue *= guidedRocketValue;
-                    }
-                    else
-                    {
-                        clusterValue *= normalRocketValue;
-                    }
-                }
-            }
+            ////A fired and unexploded rocket
+            //if (block.Type == BlockType.Rocket)
+            //{
+            //    if (targetObj.GetComponent<TimedRocket>().hasFired)
+            //    {
+            //        if (targetObj.GetComponent<RocketScript>().targetAquired)
+            //        {
+            //            clusterValue *= guidedRocketValue;
+            //        }
+            //        else
+            //        {
+            //            clusterValue *= normalRocketValue;
+            //        }
+            //    }
+            //}
             //A watering watercannon
             if (block.Type == BlockType.WaterCannon)
             {
@@ -1193,7 +1197,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     catch { }
-
                 }
             }
             catch { }
