@@ -199,7 +199,7 @@ namespace BlockEnhancementMod
                         OnFrictionToggle(Friction);
                     }
                 }
-                MessageController.DisplayWarning = GUILayout.Toggle(MessageController.DisplayWarning, LanguageManager.displayWarning);
+                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.displayWarning);
                 RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.markTarget);
             }
             GUILayout.EndVertical();

@@ -284,17 +284,17 @@ namespace BlockEnhancementMod.Blocks
             smokeStopped = false;
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
-                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
                 {
-                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
                 }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
                 {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
                 }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
                 {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
                 }
             }
             if (guidedRocketActivated)
@@ -336,9 +336,9 @@ namespace BlockEnhancementMod.Blocks
         {
             if (GroupFireKey.IsDown && !StatMaster.isClient)
             {
-                if (!MessageController.Instance.launchStarted)
+                if (!RocketsController.Instance.launchStarted)
                 {
-                    StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                    StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
                 }
             }
             if (guidedRocketActivated)
@@ -891,7 +891,7 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             // First test the rockets that are fired
-            Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
+            Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
             Transform rocketTarget = null;
             Transform clusterTarget = null;
             float rocketValue = 0;
@@ -1249,7 +1249,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                    MessageController.Instance.UpdateRocketTarget(BB, id);
+                    RocketsController.Instance.UpdateRocketTarget(BB, id);
                 }
                 if (target.gameObject.GetComponent<LevelEntity>())
                 {
@@ -1262,7 +1262,7 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                    MessageController.Instance.RemoveRocketTarget(BB);
+                    RocketsController.Instance.RemoveRocketTarget(BB);
                 }
             }
         }
@@ -1283,7 +1283,7 @@ namespace BlockEnhancementMod.Blocks
                     }
                     ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
                 }
-                MessageController.Instance.RemoveRocketTarget(BB);
+                RocketsController.Instance.RemoveRocketTarget(BB);
             }
         }
 
