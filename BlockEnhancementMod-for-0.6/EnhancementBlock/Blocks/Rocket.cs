@@ -781,8 +781,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (!rocket.hasExploded)
             {
-                rocket.hasExploded = true;
-                rocket.OnExplode();
+                rocket.ExplodeMessage();
             }
             if (highExploActivated)
             {
