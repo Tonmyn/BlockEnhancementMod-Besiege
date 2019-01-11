@@ -1099,7 +1099,10 @@ namespace BlockEnhancementMod.Blocks
             Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+
+            Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
+            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - rocket.transform.up);
         }
 
         private float CalculateClusterValue(BlockBehaviour block, float clusterValue)
