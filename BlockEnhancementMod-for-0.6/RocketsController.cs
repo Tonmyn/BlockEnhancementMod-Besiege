@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Modding;
 using Modding.Blocks;
@@ -81,17 +82,20 @@ namespace BlockEnhancementMod
             {
                 if (PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
                 {
-                    try
+                    if (!StatMaster.isClient)
                     {
-                        foreach (var rocketTargetPair in rocketTargetDict)
+                        try
                         {
-                            if (!rocketTargetPair.Key.ParentMachine.isSimulating)
+                            foreach (var rocketTargetPair in rocketTargetDict)
                             {
-                                RemoveRocketTarget(rocketTargetPair.Key);
+                                if (!rocketTargetPair.Key.ParentMachine.isSimulating || !rocketTargetPair.Key.gameObject.activeInHierarchy)
+                                {
+                                    RemoveRocketTarget(rocketTargetPair.Key);
+                                }
                             }
                         }
+                        catch { }
                     }
-                    catch { }
                     if (rocketTargetDict.Count == 0)
                     {
                         iAmLockedByRocket = false;
