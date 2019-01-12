@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,6 +7,7 @@ using Modding;
 using Modding.Blocks;
 using Modding.Levels;
 using BlockEnhancementMod.Blocks;
+using Localisation;
 
 namespace BlockEnhancementMod
 {
@@ -42,6 +44,9 @@ namespace BlockEnhancementMod
                 return redTexture;
             }
         }
+        private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
+        private readonly int windowID = ModUtility.GetWindowId() - 1;
+        public static bool DisplayRocketCount { get; internal set; } = true;
 
         public RocketsController()
         {
@@ -82,20 +87,6 @@ namespace BlockEnhancementMod
             {
                 if (PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
                 {
-                    //if (!StatMaster.isClient)
-                    //{
-                    //    try
-                    //    {
-                    //        foreach (var rocketTargetPair in rocketTargetDict)
-                    //        {
-                    //            if (!rocketTargetPair.Key.ParentMachine.isSimulating || !rocketTargetPair.Key.gameObject.activeInHierarchy)
-                    //            {
-                    //                RemoveRocketTarget(rocketTargetPair.Key);
-                    //            }
-                    //        }
-                    //    }
-                    //    catch { }
-                    //}
                     if (rocketTargetDict.Count == 0)
                     {
                         iAmLockedByRocket = false;
@@ -135,6 +126,14 @@ namespace BlockEnhancementMod
             alignment = TextAnchor.MiddleCenter,
         };
 
+        readonly GUIStyle groupedRocketsCounterStyle = new GUIStyle()
+        {
+            fontStyle = FontStyle.Bold,
+            fontSize = 16,
+            normal = { textColor = new Color(0, 1, 0, transparancy) },
+            alignment = TextAnchor.MiddleCenter,
+        };
+
         private void DrawBorder()
         {
             //Top
@@ -163,6 +162,33 @@ namespace BlockEnhancementMod
                     }
                 }
             }
+            if (DisplayRocketCount)
+            {
+                if (cameraController != null)
+                {
+                    if (cameraController.activeCamera != null)
+                    {
+                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+                        {
+                            if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out Dictionary<KeyCode, Stack<TimedRocket>> groupedRockets))
+                            {
+                                string textString = "";
+                                foreach (var group in groupedRockets)
+                                {
+                                    textString += KeyCodeConverter.GetKey(group.Key).ToString() + ": " + group.Value.Count + Environment.NewLine;
+                                }
+                                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.remainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        private void EnhancedEnhancementWindow(int windowID)
+        {
+
         }
 
         public void UpdateRocketTarget(BlockBehaviour rocket, int targetMachineID)

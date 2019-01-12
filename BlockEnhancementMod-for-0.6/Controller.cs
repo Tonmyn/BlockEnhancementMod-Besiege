@@ -201,6 +201,7 @@ namespace BlockEnhancementMod
                 }
                 RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.displayWarning);
                 RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.markTarget);
+                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.displayRocketCount);
             }
             GUILayout.EndVertical();
             GUILayout.BeginVertical();

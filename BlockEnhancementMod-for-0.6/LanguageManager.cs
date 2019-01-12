@@ -29,6 +29,10 @@ namespace BlockEnhancementMod
 
         public static string markTarget = IsChinese ? " 标记火箭目标" : " Mark Rocket Target";
 
+        public static string displayRocketCount = IsChinese ? " 显示剩余火箭量" : " Display Rocket Count";
+
+        public static string remainingRockets = IsChinese ? " 残余火箭" : " Rocket Count";
+
         public static string trackTarget = IsChinese ? "搜索目标" : "Search Target";
 
         public static string groupedFire = IsChinese ? "同组依次发射" : "Grouped Launch";
