@@ -24,6 +24,7 @@ namespace BlockEnhancementMod.Blocks
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         public static bool MarkTarget { get; internal set; } = true;
+        public bool noLongerActiveSent = false;
 
         //Networking setting
         public bool receivedRayFromClient = false;
@@ -46,7 +47,8 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidePredictionSlider;
         public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
-        public bool extTrigRocketExploSent = false;
+        public bool rocketExploMsgSent = false;
+        public bool rocketInBuildSent = false;
         public float torque = 100f;
         public float prediction = 10f;
         public float initialDistance = 0f;
@@ -77,7 +79,6 @@ namespace BlockEnhancementMod.Blocks
         //Cluster value multiplier
         private readonly float bombValue = 64;
         private readonly float guidedRocketValue = 1024;
-        private readonly float normalRocketValue = 512;
         private readonly float waterCannonValue = 16;
         private readonly float flyingBlockValue = 2;
         private readonly float flameThrowerValue = 8;
@@ -114,7 +115,8 @@ namespace BlockEnhancementMod.Blocks
         private readonly float upPower = 0.25f;
 
         //Aerodynamics setting
-        private readonly float aeroEffectMultiplier = 0.75f;
+        private readonly float aeroEffectMultiplier = 5f;
+        private Vector3 aeroEffectPosition = Vector3.zero;
 
         public override void SafeAwake()
         {
@@ -254,6 +256,12 @@ namespace BlockEnhancementMod.Blocks
 
         public override void BuildingUpdate()
         {
+            if (!rocketInBuildSent)
+            {
+                SendClientTargetNull();
+                rocketInBuildSent = true;
+            }
+
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
                 if (AutoGrabberReleaseToggle.DisplayInMapper)
@@ -266,7 +274,7 @@ namespace BlockEnhancementMod.Blocks
                     GroupFireRateSlider.DisplayInMapper = false;
                 }
             }
-            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            else  /*(GroupFireKey.GetKey(0) != KeyCode.None)*/
             {
                 if (!AutoGrabberReleaseToggle.DisplayInMapper)
                 {
@@ -281,7 +289,9 @@ namespace BlockEnhancementMod.Blocks
 
         public override void OnSimulateStart()
         {
-            smokeStopped = false;
+            smokeStopped = rocketInBuildSent = noLongerActiveSent = false;
+            aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
+            //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
                 if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
@@ -300,7 +310,7 @@ namespace BlockEnhancementMod.Blocks
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
+                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 target = null;
                 targetCollider = null;
@@ -683,10 +693,18 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                 }
-                if (rocket.hasExploded && !extTrigRocketExploSent)
+                if (rocket.hasExploded && !rocketExploMsgSent)
                 {
                     SendClientTargetNull();
-                    extTrigRocketExploSent = true;
+                    rocketExploMsgSent = true;
+                }
+            }
+            else
+            {
+                if (!noLongerActiveSent)
+                {
+                    SendClientTargetNull();
+                    noLongerActiveSent = true;
                 }
             }
         }
@@ -916,48 +934,41 @@ namespace BlockEnhancementMod.Blocks
                     foreach (var rocketTargetPair in rocketTargetDict)
                     {
                         BlockBehaviour targetRocket = rocketTargetPair.Key;
-                        if (!targetRocket.gameObject.activeInHierarchy)
+                        if (targetRocket != null)
                         {
-                            targetRocket.GetComponent<RocketScript>().SendClientTargetNull();
-                        }
-                        else
-                        {
-                            if (targetRocket != null)
+                            bool shouldCheckRocket = false;
+                            if (StatMaster.isMP)
                             {
-                                bool shouldCheckRocket = false;
-                                if (StatMaster.isMP)
+                                shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                            }
+                            else
+                            {
+                                if (targetRocket.ClusterIndex == -1)
                                 {
-                                    shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                                    shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
                                 }
                                 else
                                 {
-                                    if (targetRocket.ClusterIndex == -1)
+                                    int count = 0;
+                                    foreach (var cluster in clustersInSafetyRange)
                                     {
-                                        shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
-                                    }
-                                    else
-                                    {
-                                        int count = 0;
-                                        foreach (var cluster in clustersInSafetyRange)
+                                        if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
                                         {
-                                            if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
-                                            {
-                                                count++;
-                                            }
+                                            count++;
                                         }
-                                        shouldCheckRocket = count > 0 ? false : true;
                                     }
-
+                                    shouldCheckRocket = count > 0 ? false : true;
                                 }
-                                if (CheckInRange(targetRocket) && shouldCheckRocket)
+
+                            }
+                            if (CheckInRange(targetRocket) && shouldCheckRocket)
+                            {
+                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+                                if (tempDistance <= distance)
                                 {
-                                    float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
-                                    if (tempDistance <= distance)
-                                    {
-                                        rocketTarget = targetRocket.transform;
-                                        distance = tempDistance;
-                                        rocketValue = guidedRocketValue;
-                                    }
+                                    rocketTarget = targetRocket.transform;
+                                    distance = tempDistance;
+                                    rocketValue = guidedRocketValue;
                                 }
                             }
                         }
@@ -1120,7 +1131,7 @@ namespace BlockEnhancementMod.Blocks
             //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
 
             Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
-            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - rocket.transform.up);
+            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         }
 
         private float CalculateClusterValue(BlockBehaviour block, float clusterValue)

@@ -82,20 +82,20 @@ namespace BlockEnhancementMod
             {
                 if (PlayerMachine.GetLocal() != null && rocketTargetDict != null && !isFirstFrame)
                 {
-                    if (!StatMaster.isClient)
-                    {
-                        try
-                        {
-                            foreach (var rocketTargetPair in rocketTargetDict)
-                            {
-                                if (!rocketTargetPair.Key.ParentMachine.isSimulating || !rocketTargetPair.Key.gameObject.activeInHierarchy)
-                                {
-                                    RemoveRocketTarget(rocketTargetPair.Key);
-                                }
-                            }
-                        }
-                        catch { }
-                    }
+                    //if (!StatMaster.isClient)
+                    //{
+                    //    try
+                    //    {
+                    //        foreach (var rocketTargetPair in rocketTargetDict)
+                    //        {
+                    //            if (!rocketTargetPair.Key.ParentMachine.isSimulating || !rocketTargetPair.Key.gameObject.activeInHierarchy)
+                    //            {
+                    //                RemoveRocketTarget(rocketTargetPair.Key);
+                    //            }
+                    //        }
+                    //    }
+                    //    catch { }
+                    //}
                     if (rocketTargetDict.Count == 0)
                     {
                         iAmLockedByRocket = false;
