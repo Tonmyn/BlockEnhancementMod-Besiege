@@ -12,322 +12,333 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Language Manager";
 
-        public static bool isChinese { get; set; }
+        public static bool IsChinese { get; set; }
+
+        private bool wasChinese = IsChinese;
 
         //Game
-        public static string modSettings = isChinese ? "扩展模组设置" : "Enhancement Mod Settings";
-        public static string unifiedFriction = isChinese ? " 统一摩擦" : " Unified Friction";
+        public static string modSettings = IsChinese ? "扩展模组设置" : "Enhancement Mod Settings";
+        public static string unifiedFriction = IsChinese ? " 统一摩擦" : " Unified Friction";
 
         //Enhancement Block
-        public static string enhancement = isChinese ? "进阶属性" : "Enhancement";
-        public static string additionalFunction = isChinese ? " 增强性能" : " Enhance More";
+        public static string enhancement = IsChinese ? "进阶属性" : "Enhancement";
+        public static string additionalFunction = IsChinese ? " 增强性能" : " Enhance More";
 
         //Rocket & Camera
-        public static string displayWarning = isChinese ? " 第一人称下显示火箭警告" : " Rocket Warning in First Person Camera";
+        public static string displayWarning = IsChinese ? " 第一人称下显示火箭警告" : " Rocket Warning in First Person Camera";
 
-        public static string markTarget = isChinese ? " 标记火箭目标" : " Mark Rocket Target";
+        public static string markTarget = IsChinese ? " 标记火箭目标" : " Mark Rocket Target";
 
-        public static string trackTarget = isChinese ? "搜索目标" : "Search Target";
+        public static string displayRocketCount = IsChinese ? " 显示剩余火箭量" : " Display Rocket Count";
 
-        public static string groupedFire = isChinese ? "同组依次发射" : "Grouped Launch";
+        public static string remainingRockets = IsChinese ? " 残余火箭" : " Rocket Count";
 
-        public static string groupFireRate = isChinese ? "同组发射间隔" : "Goruped Launch Rate";
+        public static string trackTarget = IsChinese ? "搜索目标" : "Search Target";
 
-        public static string autoGrabberRelease = isChinese ? "自动释放钩爪" : "Auto Grabber Release";
+        public static string groupedFire = IsChinese ? "同组依次发射" : "Grouped Launch";
 
-        public static string searchMode = isChinese ? "搜索模式" : "Search Mode";
+        public static string groupFireRate = IsChinese ? "同组发射间隔" : "Goruped Launch Rate";
 
-        public static string defaultAuto = isChinese ? "默认自动搜索" : "Default " + Environment.NewLine + "Auto Search";
+        public static string autoGrabberRelease = IsChinese ? "自动释放钩爪" : "Auto Grabber Release";
 
-        public static string defaultManual = isChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
+        public static string searchMode = IsChinese ? "搜索模式" : "Search Mode";
 
-        public static string zoomControlMode = isChinese ? "变焦控制" : "Zoom Contorol";
+        public static string defaultAuto = IsChinese ? "默认自动搜索" : "Default " + Environment.NewLine + "Auto Search";
 
-        public static string mouseWheelZoomControl = isChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
+        public static string defaultManual = IsChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
 
-        public static string keyboardZoomControl = isChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
+        public static string zoomControlMode = IsChinese ? "变焦控制" : "Zoom Contorol";
 
-        public static string prediction = isChinese ? "预测" : "Prediction";
+        public static string mouseWheelZoomControl = IsChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
 
-        public static string impactFuze = isChinese ? "碰炸" : "Impact Fuze";
+        public static string keyboardZoomControl = IsChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
 
-        public static string proximityFuze = isChinese ? "近炸" : "Proximity Fuze";
+        public static string prediction = IsChinese ? "预测" : "Prediction";
 
-        public static string noSmoke = isChinese ? "无烟" : "No Smoke";
+        public static string impactFuze = IsChinese ? "碰炸" : "Impact Fuze";
 
-        public static string highExplo = isChinese ? "高爆" : "High-Explosive";
+        public static string proximityFuze = IsChinese ? "近炸" : "Proximity Fuze";
 
-        public static string searchAngle = isChinese ? "搜索角度" : "Search Angle";
+        public static string noSmoke = IsChinese ? "无烟" : "No Smoke";
 
-        public static string closeRange = isChinese ? "近炸距离" : "Proximity" + Environment.NewLine + "Range";
+        public static string highExplo = IsChinese ? "高爆" : "High-Explosive";
 
-        public static string closeAngle = isChinese ? "近炸角度" : "Proximity" + Environment.NewLine + "Angle";
+        public static string searchAngle = IsChinese ? "搜索角度" : "Search Angle";
 
-        public static string torqueOnRocket = isChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
+        public static string closeRange = IsChinese ? "近炸距离" : "Proximity" + Environment.NewLine + "Range";
 
-        public static string rocketStability = isChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
+        public static string closeAngle = IsChinese ? "近炸角度" : "Proximity" + Environment.NewLine + "Angle";
 
-        public static string guideDelay = isChinese ? "追踪延迟" : "Guide Delay";
+        public static string torqueOnRocket = IsChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
-        public static string lockTarget = isChinese ? "锁定目标" : "Lock Target";
+        public static string rocketStability = IsChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
 
-        public static string switchGuideMode = isChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
+        public static string guideDelay = IsChinese ? "追踪延迟" : "Guide Delay";
 
-        public static string recordTarget = isChinese ? "记录目标" : "Save Target";
+        public static string lockTarget = IsChinese ? "锁定目标" : "Lock Target";
 
-        public static string firstPersonSmooth = isChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
+        public static string switchGuideMode = IsChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
 
-        public static string zoomIn = isChinese ? "增加焦距" : "Zoom In";
+        public static string recordTarget = IsChinese ? "记录目标" : "Save Target";
 
-        public static string zoomOut = isChinese ? "减小焦距" : "Zoom Out";
+        public static string firstPersonSmooth = IsChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
 
-        public static string zoomSpeed = isChinese ? "变焦速度" : "Zoom Speed";
+        public static string zoomIn = IsChinese ? "增加焦距" : "Zoom In";
 
-        public static string pauseTracking = isChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
+        public static string zoomOut = IsChinese ? "减小焦距" : "Zoom Out";
+
+        public static string zoomSpeed = IsChinese ? "变焦速度" : "Zoom Speed";
+
+        public static string pauseTracking = IsChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 
         //CV Joint
-        public static string cvJoint = isChinese ? "万向节" : "Universal Joint";
+        public static string cvJoint = IsChinese ? "万向节" : "Universal Joint";
 
         //Cannon
-        public static string fireInterval = isChinese ? "发射间隔" : "Fire Interval";
+        public static string fireInterval = IsChinese ? "发射间隔" : "Fire Interval";
 
-        public static string randomDelay = isChinese ? "随机延迟" : "Random Delay";
+        public static string randomDelay = IsChinese ? "随机延迟" : "Random Delay";
 
-        public static string recoil = isChinese ? "后坐力" : "Recoil";
+        public static string recoil = IsChinese ? "后坐力" : "Recoil";
 
-        public static string customBullet = isChinese ? "自定子弹" : "Custom Cannonball";
+        public static string customBullet = IsChinese ? "自定子弹" : "Custom Cannonball";
 
-        public static string inheritSize = isChinese ? "继承尺寸" : "Inherit Size";
+        public static string inheritSize = IsChinese ? "继承尺寸" : "Inherit Size";
 
-        public static string bulletMass = isChinese ? "炮弹质量" : "Cannonball Mass";
+        public static string bulletMass = IsChinese ? "炮弹质量" : "Cannonball Mass";
 
-        public static string bulletDrag = isChinese ? "炮弹阻力" : "Cannonball Drag";
+        public static string bulletDrag = IsChinese ? "炮弹阻力" : "Cannonball Drag";
 
-        public static string trail = isChinese ? "显示尾迹" : "Trail";
+        public static string trail = IsChinese ? "显示尾迹" : "Trail";
 
-        public static string trailLength = isChinese ? "尾迹长度" : "Trail Length";
+        public static string trailLength = IsChinese ? "尾迹长度" : "Trail Length";
 
-        public static string trailColor = isChinese ? "尾迹颜色" : "Trail Color";
+        public static string trailColor = IsChinese ? "尾迹颜色" : "Trail Color";
 
         //Decoupler
-        public static string explodeForce = isChinese ? "爆炸力" : "Exploding" + Environment.NewLine + "Force";
+        public static string explodeForce = IsChinese ? "爆炸力" : "Exploding" + Environment.NewLine + "Force";
 
-        public static string explodeTorque = isChinese ? "爆炸扭矩" : "Exploding" + Environment.NewLine + "Torque";
+        public static string explodeTorque = IsChinese ? "爆炸扭矩" : "Exploding" + Environment.NewLine + "Torque";
 
 
         //Grip Pad & Piston & Slider & Suspension
-        public static string hardness = isChinese ? "硬度" : "Hardness";
+        public static string hardness = IsChinese ? "硬度" : "Hardness";
 
-        public static string friction = isChinese ? "摩擦力" : "Friction";
+        public static string friction = IsChinese ? "摩擦力" : "Friction";
 
-        public static string bounciness = isChinese ? "弹力" : "Bounciness";
+        public static string bounciness = IsChinese ? "弹力" : "Bounciness";
 
-        public static string softWood = isChinese ? "朽木" : "Soft Wood";
+        public static string softWood = IsChinese ? "朽木" : "Soft Wood";
 
-        public static string midSoftWood = isChinese ? "桦木" : "Median-Soft Wood";
+        public static string midSoftWood = IsChinese ? "桦木" : "Median-Soft Wood";
 
-        public static string hardWood = isChinese ? "梨木" : "Hard Wood";
+        public static string hardWood = IsChinese ? "梨木" : "Hard Wood";
 
-        public static string veryHardWood = isChinese ? "檀木" : "Very Hard Wood";
+        public static string veryHardWood = IsChinese ? "檀木" : "Very Hard Wood";
 
-        public static string lowCarbonSteel = isChinese ? "低碳钢" : "Low Carbon Steel";
+        public static string lowCarbonSteel = IsChinese ? "低碳钢" : "Low Carbon Steel";
 
-        public static string midCarbonSteel = isChinese ? "中碳钢" : "Mid Carbon Steel";
+        public static string midCarbonSteel = IsChinese ? "中碳钢" : "Mid Carbon Steel";
 
-        public static string highCarbonSteel = isChinese ? "高碳钢" : "High Carbon Steel";
+        public static string highCarbonSteel = IsChinese ? "高碳钢" : "High Carbon Steel";
 
-        public static string limit = isChinese ? "限制" : "Limit";
+        public static string limit = IsChinese ? "限制" : "Limit";
 
-        public static string extend = isChinese ? "伸出" : "Extend";
+        public static string extend = IsChinese ? "伸出" : "Extend";
 
-        public static string retract = isChinese ? "收缩" : "Retract";
+        public static string retract = IsChinese ? "收缩" : "Retract";
 
-        public static string hydraulicMode = isChinese ? "液压模式" : "Hydraulic Mode ";
+        public static string hydraulicMode = IsChinese ? "液压模式" : "Hydraulic Mode ";
 
-        public static string feedSpeed = isChinese ? "进给速度" : "Feed Speed";
+        public static string feedSpeed = IsChinese ? "进给速度" : "Feed Speed";
 
-        public static string extendLimit = isChinese ? "伸出限制" : "Extension" + Environment.NewLine + "Limit";
+        public static string extendLimit = IsChinese ? "伸出限制" : "Extension" + Environment.NewLine + "Limit";
 
-        public static string retractLimit = isChinese ? "收缩限制" : "Retraction" + Environment.NewLine + "Limit";
+        public static string retractLimit = IsChinese ? "收缩限制" : "Retraction" + Environment.NewLine + "Limit";
 
         //Small Wheel
-        public static string rotatingSpeed = isChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
-        public static string customCollider = isChinese ? "自定碰撞" : "Custom Collider";
-        public static string showCollider = isChinese ? "显示碰撞" : "Show Collider";
+        public static string rotatingSpeed = IsChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
+        public static string customCollider = IsChinese ? "自定碰撞" : "Custom Collider";
+        public static string showCollider = IsChinese ? "显示碰撞" : "Show Collider";
 
         //Spring 
-        public static string drag = isChinese ? "阻力" : "Drag";
+        public static string drag = IsChinese ? "阻力" : "Drag";
 
         //Steering
-        public static string returnToCenter = isChinese ? "自动回正" : "ReturnToCenter";
-        public static string near = isChinese ? "就近" : "Near";
+        public static string returnToCenter = IsChinese ? "自动回正" : "ReturnToCenter";
+        public static string near = IsChinese ? "就近" : "Near";
 
         //FlameThrower
-        public static string thrustForce = isChinese ? "推力" : "Thrust Force";
-        public static string flameColor = isChinese ? "火焰颜色" : "Flame Color";
+        public static string thrustForce = IsChinese ? "推力" : "Thrust Force";
+        public static string flameColor = IsChinese ? "火焰颜色" : "Flame Color";
 
         //WaterCannon
-        public static string boiling = isChinese ? "沸腾" : "Boiling";
+        public static string boiling = IsChinese ? "沸腾" : "Boiling";
 
         void Update()
         {
-            isChinese = LocalisationManager.Instance.currLangName.Contains("中文");
+            IsChinese = LocalisationManager.Instance.currLangName.Contains("中文");
 
-            //Game
-        modSettings = isChinese ? "扩展模组设置" : "Enhancement Mod Settings";
-          unifiedFriction = isChinese ? " 统一摩擦" : " Unified Friction";
+            if ((IsChinese && !wasChinese) || (!IsChinese && wasChinese))
+            {
+                wasChinese = IsChinese;
 
-        //Enhancement Block
-          enhancement = isChinese ? "进阶属性" : "Enhancement";
-          additionalFunction = isChinese ? " 增强性能" : " Enhance More";
+                //Game
+                modSettings = IsChinese ? "扩展模组设置" : "Enhancement Mod Settings";
+                unifiedFriction = IsChinese ? " 统一摩擦" : " Unified Friction";
 
-        //Rocket & Camera
-          displayWarning = isChinese ? " 第一人称下显示火箭警告" : " Rocket Warning in First Person Camera";
+                //Enhancement Block
+                enhancement = IsChinese ? "进阶属性" : "Enhancement";
+                additionalFunction = IsChinese ? " 增强性能" : " Enhance More";
 
-          markTarget = isChinese ? " 标记火箭目标" : " Mark Rocket Target";
+                //Rocket & Camera
+                displayWarning = IsChinese ? " 第一人称下显示火箭警告" : " Rocket Warning in First Person Camera";
 
-          trackTarget = isChinese ? "搜索目标" : "Search Target";
+                markTarget = IsChinese ? " 标记火箭目标" : " Mark Rocket Target";
 
-          groupedFire = isChinese ? "同组依次发射" : "Grouped Launch";
+                trackTarget = IsChinese ? "搜索目标" : "Search Target";
 
-          groupFireRate = isChinese ? "同组发射间隔" : "Goruped Launch Rate";
+                groupedFire = IsChinese ? "同组依次发射" : "Grouped Launch";
 
-          autoGrabberRelease = isChinese ? "自动释放钩爪" : "Auto Grabber Release";
+                groupFireRate = IsChinese ? "同组发射间隔" : "Goruped Launch Rate";
 
-          searchMode = isChinese ? "搜索模式" : "Search Mode";
+                autoGrabberRelease = IsChinese ? "自动释放钩爪" : "Auto Grabber Release";
 
-          defaultAuto = isChinese ? "默认自动搜索" : "Default " + Environment.NewLine + "Auto Search";
+                searchMode = IsChinese ? "搜索模式" : "Search Mode";
 
-          defaultManual = isChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
+                defaultAuto = IsChinese ? "默认自动搜索" : "Default " + Environment.NewLine + "Auto Search";
 
-          zoomControlMode = isChinese ? "变焦控制" : "Zoom Contorol";
+                defaultManual = IsChinese ? "默认手动搜索" : "Default " + Environment.NewLine + " Manual Search";
 
-          mouseWheelZoomControl = isChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
+                zoomControlMode = IsChinese ? "变焦控制" : "Zoom Contorol";
 
-          keyboardZoomControl = isChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
+                mouseWheelZoomControl = IsChinese ? "鼠标滚轮变焦" : "Zoom" + Environment.NewLine + "Mouse Wheel";
 
-          prediction = isChinese ? "预测" : "Prediction";
+                keyboardZoomControl = IsChinese ? "按键变焦" : "Zoom" + Environment.NewLine + "Keyboard";
 
-          impactFuze = isChinese ? "碰炸" : "Impact Fuze";
+                prediction = IsChinese ? "预测" : "Prediction";
 
-          proximityFuze = isChinese ? "近炸" : "Proximity Fuze";
+                impactFuze = IsChinese ? "碰炸" : "Impact Fuze";
 
-          noSmoke = isChinese ? "无烟" : "No Smoke";
+                proximityFuze = IsChinese ? "近炸" : "Proximity Fuze";
 
-          highExplo = isChinese ? "高爆" : "High-Explosive";
+                noSmoke = IsChinese ? "无烟" : "No Smoke";
 
-          searchAngle = isChinese ? "搜索角度" : "Search Angle";
+                highExplo = IsChinese ? "高爆" : "High-Explosive";
 
-          closeRange = isChinese ? "近炸距离" : "Proximity" + Environment.NewLine + "Range";
+                searchAngle = IsChinese ? "搜索角度" : "Search Angle";
 
-          closeAngle = isChinese ? "近炸角度" : "Proximity" + Environment.NewLine + "Angle";
+                closeRange = IsChinese ? "近炸距离" : "Proximity" + Environment.NewLine + "Range";
 
-          torqueOnRocket = isChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
+                closeAngle = IsChinese ? "近炸角度" : "Proximity" + Environment.NewLine + "Angle";
 
-          rocketStability = isChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
+                torqueOnRocket = IsChinese ? "扭转力度" : "Turning" + Environment.NewLine + "Torque";
 
-          guideDelay = isChinese ? "追踪延迟" : "Guide Delay";
+                rocketStability = IsChinese ? "发射后气动" : "Aerodynamics" + Environment.NewLine + "After Launch";
 
-          lockTarget = isChinese ? "锁定目标" : "Lock Target";
+                guideDelay = IsChinese ? "追踪延迟" : "Guide Delay";
 
-          switchGuideMode = isChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
+                lockTarget = IsChinese ? "锁定目标" : "Lock Target";
 
-          recordTarget = isChinese ? "记录目标" : "Save Target";
+                switchGuideMode = IsChinese ? "自动/手动切换" : "Switch" + Environment.NewLine + "Auto/Manual";
 
-          firstPersonSmooth = isChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
+                recordTarget = IsChinese ? "记录目标" : "Save Target";
 
-          zoomIn = isChinese ? "增加焦距" : "Zoom In";
+                firstPersonSmooth = IsChinese ? "第一人称" + Environment.NewLine + "平滑" : "FP Smooth";
 
-          zoomOut = isChinese ? "减小焦距" : "Zoom Out";
+                zoomIn = IsChinese ? "增加焦距" : "Zoom In";
 
-          zoomSpeed = isChinese ? "变焦速度" : "Zoom Speed";
+                zoomOut = IsChinese ? "减小焦距" : "Zoom Out";
 
-          pauseTracking = isChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
+                zoomSpeed = IsChinese ? "变焦速度" : "Zoom Speed";
 
-        //CV Joint
-          cvJoint = isChinese ? "万向节" : "Universal Joint";
+                pauseTracking = IsChinese ? "暂停/恢复追踪" : "Pause/Resume" + Environment.NewLine + "Tracking";
 
-        //Cannon
-          fireInterval = isChinese ? "发射间隔" : "Fire Interval";
+                //CV Joint
+                cvJoint = IsChinese ? "万向节" : "Universal Joint";
 
-          randomDelay = isChinese ? "随机延迟" : "Random Delay";
+                //Cannon
+                fireInterval = IsChinese ? "发射间隔" : "Fire Interval";
 
-          recoil = isChinese ? "后坐力" : "Recoil";
+                randomDelay = IsChinese ? "随机延迟" : "Random Delay";
 
-          customBullet = isChinese ? "自定子弹" : "Custom Cannonball";
+                recoil = IsChinese ? "后坐力" : "Recoil";
 
-          inheritSize = isChinese ? "继承尺寸" : "Inherit Size";
+                customBullet = IsChinese ? "自定子弹" : "Custom Cannonball";
 
-          bulletMass = isChinese ? "炮弹质量" : "Cannonball Mass";
+                inheritSize = IsChinese ? "继承尺寸" : "Inherit Size";
 
-          bulletDrag = isChinese ? "炮弹阻力" : "Cannonball Drag";
+                bulletMass = IsChinese ? "炮弹质量" : "Cannonball Mass";
 
-          trail = isChinese ? "显示尾迹" : "Trail";
+                bulletDrag = IsChinese ? "炮弹阻力" : "Cannonball Drag";
 
-          trailLength = isChinese ? "尾迹长度" : "Trail Length";
+                trail = IsChinese ? "显示尾迹" : "Trail";
 
-          trailColor = isChinese ? "尾迹颜色" : "Trail Color";
+                trailLength = IsChinese ? "尾迹长度" : "Trail Length";
 
-        //Decoupler
-          explodeForce = isChinese ? "爆炸力" : "Exploding" + Environment.NewLine + "Force";
+                trailColor = IsChinese ? "尾迹颜色" : "Trail Color";
 
-          explodeTorque = isChinese ? "爆炸扭矩" : "Exploding" + Environment.NewLine + "Torque";
+                //Decoupler
+                explodeForce = IsChinese ? "爆炸力" : "Exploding" + Environment.NewLine + "Force";
 
+                explodeTorque = IsChinese ? "爆炸扭矩" : "Exploding" + Environment.NewLine + "Torque";
 
-        //Grip Pad & Piston & Slider & Suspension
-          hardness = isChinese ? "硬度" : "Hardness";
 
-          friction = isChinese ? "摩擦力" : "Friction";
+                //Grip Pad & Piston & Slider & Suspension
+                hardness = IsChinese ? "硬度" : "Hardness";
 
-          bounciness = isChinese ? "弹力" : "Bounciness";
+                friction = IsChinese ? "摩擦力" : "Friction";
 
-          softWood = isChinese ? "朽木" : "Soft Wood";
+                bounciness = IsChinese ? "弹力" : "Bounciness";
 
-          midSoftWood = isChinese ? "桦木" : "Median-Soft Wood";
+                softWood = IsChinese ? "朽木" : "Soft Wood";
 
-          hardWood = isChinese ? "梨木" : "Hard Wood";
+                midSoftWood = IsChinese ? "桦木" : "Median-Soft Wood";
 
-          veryHardWood = isChinese ? "檀木" : "Very Hard Wood";
+                hardWood = IsChinese ? "梨木" : "Hard Wood";
 
-          lowCarbonSteel = isChinese ? "低碳钢" : "Low Carbon Steel";
+                veryHardWood = IsChinese ? "檀木" : "Very Hard Wood";
 
-          midCarbonSteel = isChinese ? "中碳钢" : "Mid Carbon Steel";
+                lowCarbonSteel = IsChinese ? "低碳钢" : "Low Carbon Steel";
 
-          highCarbonSteel = isChinese ? "高碳钢" : "High Carbon Steel";
+                midCarbonSteel = IsChinese ? "中碳钢" : "Mid Carbon Steel";
 
-          limit = isChinese ? "限制" : "Limit";
+                highCarbonSteel = IsChinese ? "高碳钢" : "High Carbon Steel";
 
-          extend = isChinese ? "伸出" : "Extend";
+                limit = IsChinese ? "限制" : "Limit";
 
-          retract = isChinese ? "收缩" : "Retract";
+                extend = IsChinese ? "伸出" : "Extend";
 
-          hydraulicMode = isChinese ? "液压模式" : "Hydraulic Mode ";
+                retract = IsChinese ? "收缩" : "Retract";
 
-          feedSpeed = isChinese ? "进给速度" : "Feed Speed";
+                hydraulicMode = IsChinese ? "液压模式" : "Hydraulic Mode ";
 
-          extendLimit = isChinese ? "伸出限制" : "Extension" + Environment.NewLine + "Limit";
+                feedSpeed = IsChinese ? "进给速度" : "Feed Speed";
 
-          retractLimit = isChinese ? "收缩限制" : "Retraction" + Environment.NewLine + "Limit";
+                extendLimit = IsChinese ? "伸出限制" : "Extension" + Environment.NewLine + "Limit";
 
-        //Small Wheel
-          rotatingSpeed = isChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
-          customCollider = isChinese ? "自定碰撞" : "Custom Collider";
-          showCollider = isChinese ? "显示碰撞" : "Show Collider";
+                retractLimit = IsChinese ? "收缩限制" : "Retraction" + Environment.NewLine + "Limit";
 
-        //Spring 
-          drag = isChinese ? "阻力" : "Drag";
+                //Small Wheel
+                rotatingSpeed = IsChinese ? "旋转速度" : "Rotating" + Environment.NewLine + "Speed";
+                customCollider = IsChinese ? "自定碰撞" : "Custom Collider";
+                showCollider = IsChinese ? "显示碰撞" : "Show Collider";
 
-        //Steering
-          returnToCenter = isChinese ? "自动回正" : "ReturnToCenter";
-          near = isChinese ? "就近" : "Near";
+                //Spring 
+                drag = IsChinese ? "阻力" : "Drag";
 
-        //FlameThrower
-          thrustForce = isChinese ? "推力" : "Thrust Force";
-          flameColor = isChinese ? "火焰颜色" : "Flame Color";
+                //Steering
+                returnToCenter = IsChinese ? "自动回正" : "ReturnToCenter";
+                near = IsChinese ? "就近" : "Near";
 
-        //WaterCannon
-          boiling = isChinese ? "沸腾" : "Boiling";
-    }
+                //FlameThrower
+                thrustForce = IsChinese ? "推力" : "Thrust Force";
+                flameColor = IsChinese ? "火焰颜色" : "Flame Color";
+
+                //WaterCannon
+                boiling = IsChinese ? "沸腾" : "Boiling";
+            }
+        }
 
     }
 }

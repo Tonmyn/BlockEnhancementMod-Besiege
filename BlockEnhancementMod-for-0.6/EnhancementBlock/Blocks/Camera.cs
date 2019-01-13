@@ -540,7 +540,7 @@ namespace BlockEnhancementMod
         IEnumerator SearchForTarget()
         {
             // First test the rockets that are fired
-            Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
+            Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
             Transform rocketTarget = null;
             Transform clusterTarget = null;
             float rocketValue = 0;

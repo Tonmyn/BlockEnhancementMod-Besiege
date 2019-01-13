@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
-        MKey GroupFireKey;
+        public MKey GroupFireKey;
         MSlider GroupFireRateSlider;
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
@@ -24,6 +24,8 @@ namespace BlockEnhancementMod.Blocks
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         public static bool MarkTarget { get; internal set; } = true;
+        public bool noLongerActiveSent = false;
+        public bool removedFromGroup = false;
 
         //Networking setting
         public bool receivedRayFromClient = false;
@@ -46,7 +48,8 @@ namespace BlockEnhancementMod.Blocks
         MSlider GuidePredictionSlider;
         public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
-        public bool extTrigRocketExploSent = false;
+        public bool rocketExploMsgSent = false;
+        public bool rocketInBuildSent = false;
         public float torque = 100f;
         public float prediction = 10f;
         public float initialDistance = 0f;
@@ -75,13 +78,12 @@ namespace BlockEnhancementMod.Blocks
         public bool searchStarted = false;
 
         //Cluster value multiplier
-        private readonly int bombValue = 64;
-        private readonly int guidedRocketValue = 1024;
-        private readonly int normalRocketValue = 512;
-        private readonly int waterCannonValue = 16;
-        private readonly int flyingBlockValue = 2;
-        private readonly int flameThrowerValue = 8;
-        private readonly int cogMotorValue = 2;
+        private readonly float bombValue = 64;
+        private readonly float guidedRocketValue = 1024;
+        private readonly float waterCannonValue = 16;
+        private readonly float flyingBlockValue = 2;
+        private readonly float flameThrowerValue = 8;
+        private readonly float cogMotorValue = 2;
 
         //impact & proximity fuze related setting
         MToggle ImpactFuzeToggle;
@@ -114,7 +116,8 @@ namespace BlockEnhancementMod.Blocks
         private readonly float upPower = 0.25f;
 
         //Aerodynamics setting
-        private readonly float aeroEffectMultiplier = 0.75f;
+        private readonly float aeroEffectMultiplier = 5f;
+        private Vector3 aeroEffectPosition = Vector3.zero;
 
         public override void SafeAwake()
         {
@@ -254,6 +257,19 @@ namespace BlockEnhancementMod.Blocks
 
         public override void BuildingUpdate()
         {
+            if (!rocketInBuildSent)
+            {
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                {
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
+                }
+                SendClientTargetNull();
+                rocketInBuildSent = true;
+            }
+
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
                 if (AutoGrabberReleaseToggle.DisplayInMapper)
@@ -266,7 +282,7 @@ namespace BlockEnhancementMod.Blocks
                     GroupFireRateSlider.DisplayInMapper = false;
                 }
             }
-            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            else  /*(GroupFireKey.GetKey(0) != KeyCode.None)*/
             {
                 if (!AutoGrabberReleaseToggle.DisplayInMapper)
                 {
@@ -281,26 +297,28 @@ namespace BlockEnhancementMod.Blocks
 
         public override void OnSimulateStart()
         {
-            smokeStopped = false;
+            smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
+            aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
+            //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
-                if (!MessageController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
                 {
-                    MessageController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
                 }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
                 {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
                 }
-                if (!MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
                 {
-                    MessageController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
                 }
             }
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = extTrigRocketExploSent = false;
+                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 target = null;
                 targetCollider = null;
@@ -334,86 +352,70 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateUpdateEnhancementEnableAlways()
         {
-            if (GroupFireKey.IsDown && !StatMaster.isClient)
+            if (gameObject.activeInHierarchy)
             {
-                if (!MessageController.Instance.launchStarted)
+                if (GroupFireKey.IsDown && !StatMaster.isClient)
                 {
-                    StartCoroutine(MessageController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                    if (!RocketsController.Instance.launchStarted)
+                    {
+                        StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                    }
                 }
-            }
-            if (guidedRocketActivated)
-            {
-                //When toggle auto aim key is released, change the auto aim status
-                if (SwitchGuideModeKey.IsReleased)
+                if (guidedRocketActivated)
                 {
-                    activeGuide = !activeGuide;
-                    if (!activeGuide)
+                    //When toggle auto aim key is released, change the auto aim status
+                    if (SwitchGuideModeKey.IsReleased)
+                    {
+                        activeGuide = !activeGuide;
+                        if (!activeGuide)
+                        {
+                            target = null;
+                            targetCollider = null;
+                            previousVelocity = acceleration = Vector3.zero;
+                            SendClientTargetNull();
+                        }
+                        else
+                        {
+                            targetAquired = false;
+                        }
+                    }
+
+                    if (LockTargetKey.IsPressed)
                     {
                         target = null;
                         targetCollider = null;
                         previousVelocity = acceleration = Vector3.zero;
                         SendClientTargetNull();
-                    }
-                    else
-                    {
-                        targetAquired = false;
-                    }
-                }
-
-                if (LockTargetKey.IsReleased)
-                {
-                    target = null;
-                    targetCollider = null;
-                    previousVelocity = acceleration = Vector3.zero;
-                    SendClientTargetNull();
-                    if (activeGuide)
-                    {
-                        //When launch key is released, reset target search
-                        targetAquired = searchStarted = false;
-                        RocketRadarSearch();
-                    }
-                    else
-                    {
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        if (StatMaster.isClient)
+                        if (activeGuide)
                         {
-                            SendRayToHost(ray);
+                            //When launch key is released, reset target search
+                            targetAquired = searchStarted = false;
+                            RocketRadarSearch();
                         }
                         else
                         {
-                            //Find targets in the manual search mode by casting a sphere along the ray
-                            float manualSearchRadius = 1.25f;
-                            RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
-                            Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-                            if (hits.Length > 0)
+                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                            if (StatMaster.isClient)
                             {
-                                for (int i = 0; i < hits.Length; i++)
-                                {
-                                    if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                                    {
-                                        if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                                        {
-                                            target = hits[i].transform;
-                                            targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                                            previousVelocity = acceleration = Vector3.zero;
-                                            initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                                            targetAquired = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (target == null)
+                                SendRayToHost(ray);
+                            }
+                            else
+                            {
+                                //Find targets in the manual search mode by casting a sphere along the ray
+                                float manualSearchRadius = 1.25f;
+                                RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
+                                Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
+                                if (hits.Length > 0)
                                 {
                                     for (int i = 0; i < hits.Length; i++)
                                     {
-                                        if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                        if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
                                         {
                                             if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
                                             {
                                                 target = hits[i].transform;
                                                 targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                                targetInitialCJOrHJ = false;
+                                                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
                                                 previousVelocity = acceleration = Vector3.zero;
                                                 initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                                 targetAquired = true;
@@ -421,26 +423,45 @@ namespace BlockEnhancementMod.Blocks
                                             }
                                         }
                                     }
+                                    if (target == null)
+                                    {
+                                        for (int i = 0; i < hits.Length; i++)
+                                        {
+                                            if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                            {
+                                                if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                                {
+                                                    target = hits[i].transform;
+                                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                                    targetInitialCJOrHJ = false;
+                                                    previousVelocity = acceleration = Vector3.zero;
+                                                    initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
+                                                    targetAquired = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                            if (target == null && rayHit.transform != null)
-                            {
-                                if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                if (target == null && rayHit.transform != null)
                                 {
-                                    target = rayHit.transform;
-                                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                                    previousVelocity = acceleration = Vector3.zero;
-                                    initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                                    targetAquired = true;
-                                }
+                                    if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
+                                    {
+                                        target = rayHit.transform;
+                                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+                                        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+                                        previousVelocity = acceleration = Vector3.zero;
+                                        initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
+                                        targetAquired = true;
+                                    }
 
+                                }
+                                if (receivedRayFromClient)
+                                {
+                                    SendTargetToClient();
+                                }
+                                receivedRayFromClient = false;
                             }
-                            if (receivedRayFromClient)
-                            {
-                                SendTargetToClient();
-                            }
-                            receivedRayFromClient = false;
                         }
                     }
                 }
@@ -449,303 +470,324 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SimulateFixedUpdateAlways()
         {
-            if (rocket.hasFired && !rocket.hasExploded)
+            if (gameObject.activeInHierarchy)
             {
-                //If no smoke mode is enabled, stop all smoke
-                if (noSmoke && !smokeStopped)
+                if (rocket.hasFired)
                 {
-                    try
+                    SendRocketFired();
+                    if (!rocket.hasExploded)
                     {
-                        foreach (var smoke in rocket.trail)
+                        //If no smoke mode is enabled, stop all smoke
+                        if (noSmoke && !smokeStopped)
                         {
-                            smoke.Stop();
+                            try
+                            {
+                                foreach (var smoke in rocket.trail)
+                                {
+                                    smoke.Stop();
+                                }
+                                smokeStopped = true;
+                            }
+                            catch { }
                         }
-                        smokeStopped = true;
+
+                        if (guidedRocketActivated)
+                        {
+                            //Record the launch time for the guide delay
+                            if (!launchTimeRecorded)
+                            {
+                                launchTimeRecorded = true;
+                                launchTime = Time.time;
+
+                            }
+
+                            //Rocket can be triggered after the time elapsed after firing is greater than guide delay
+                            if (Time.time - launchTime >= guideDelay && !canTrigger)
+                            {
+                                canTrigger = true;
+                            }
+
+                            //Check if target is no longer valuable (lazy check)
+                            if (target != null && !StatMaster.isClient)
+                            {
+                                try
+                                {
+                                    if (targetCollider == null)
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                        SendClientTargetNull();
+                                    }
+                                    else
+                                    {
+                                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
+                                        Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
+                                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                                        {
+                                            RocketExplode();
+                                        }
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (targetInitialCJOrHJ)
+                                    {
+                                        if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
+                                        {
+                                            try
+                                            {
+                                                explodedCluster.Add(target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.simClusters[target.gameObject.GetComponent<BlockBehaviour>().ClusterIndex]);
+                                            }
+                                            catch { }
+                                            target = null;
+                                            targetCollider = null;
+                                            targetAquired = targetInitialCJOrHJ = false;
+                                            SendClientTargetNull();
+                                        }
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<FireTag>().burning)
+                                    {
+                                        if (target.gameObject.GetComponent<TimedRocket>() == null)
+                                        {
+                                            target = null;
+                                            targetCollider = null;
+                                            targetAquired = false;
+                                            SendClientTargetNull();
+                                        }
+                                    }
+                                }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BlockBehaviour>())
+                                    {
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<EntityAI>().isDead)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                }
+                                catch { }
+                            }
+
+                            //If no target when active guide, search for a new target
+                            if (activeGuide && !targetAquired)
+                            {
+                                RocketRadarSearch();
+                            }
+                        }
                     }
-                    catch { }
                 }
-
-                if (guidedRocketActivated)
+                if (rocket.hasExploded && !rocketExploMsgSent)
                 {
-                    //Record the launch time for the guide delay
-                    if (!launchTimeRecorded)
-                    {
-                        launchTimeRecorded = true;
-                        launchTime = Time.time;
-
-                    }
-
-                    //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                    if (Time.time - launchTime >= guideDelay && !canTrigger)
-                    {
-                        canTrigger = true;
-                    }
-
-                    //Check if target is no longer valuable (lazy check)
-                    if (target != null && !StatMaster.isClient)
-                    {
-                        try
-                        {
-                            if (targetCollider == null)
-                            {
-                                target = null;
-                                targetCollider = null;
-                                targetAquired = false;
-                                SendClientTargetNull();
-                            }
-                            else
-                            {
-                                //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                                Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
-                                float angleDiff = Vector3.Angle(positionDiff, transform.up);
-                                if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
-                                {
-                                    RocketExplode();
-                                }
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (targetInitialCJOrHJ)
-                            {
-                                if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
-                                {
-                                    try
-                                    {
-                                        explodedCluster.Add(target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.simClusters[target.gameObject.GetComponent<BlockBehaviour>().ClusterIndex]);
-                                    }
-                                    catch { }
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = targetInitialCJOrHJ = false;
-                                    SendClientTargetNull();
-                                }
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<FireTag>().burning)
-                            {
-                                if (target.gameObject.GetComponent<TimedRocket>() == null)
-                                {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                    SendClientTargetNull();
-                                }
-                            }
-                        }
-                        catch { }
-                        try
-                        {
-                            if (target.gameObject.GetComponent<BlockBehaviour>())
-                            {
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<EntityAI>().isDead)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                                try
-                                {
-                                    if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                        catch { }
-                    }
-                    //If no target when active guide, search for a new target
-                    if (activeGuide && !targetAquired)
-                    {
-                        RocketRadarSearch();
-                    }
-
+                    SendClientTargetNull();
+                    rocketExploMsgSent = true;
                 }
             }
-            if (rocket.hasExploded && !extTrigRocketExploSent)
+            else
             {
-                SendClientTargetNull();
-                extTrigRocketExploSent = true;
+                if (!noLongerActiveSent)
+                {
+                    SendClientTargetNull();
+                    noLongerActiveSent = true;
+                }
             }
         }
 
         public override void SimulateLateUpdateAlways()
         {
-            if (!StatMaster.isClient)
+            if (gameObject.activeInHierarchy)
             {
-                if (rocket.hasFired && !rocket.hasExploded && canTrigger)
+                if (!StatMaster.isClient)
                 {
-                    if (guidedRocketStabilityOn)
+                    if (rocket.hasFired && !rocket.hasExploded && canTrigger)
                     {
-                        //Add aerodynamic force to rocket
-                        if (rocketRigidbody != null)
+                        if (guidedRocketStabilityOn)
                         {
-                            AddAerodynamicsToRocketVelocity();
+                            //Add aerodynamic force to rocket
+                            if (rocketRigidbody != null)
+                            {
+                                AddAerodynamicsToRocketVelocity();
+                            }
                         }
-                    }
-                    if (guidedRocketActivated)
-                    {
-                        if (target != null && targetCollider != null)
+                        if (guidedRocketActivated)
                         {
-                            // Calculating the rotating axis
-                            Vector3 velocity = Vector3.zero;
-                            try
+                            if (target != null && targetCollider != null)
                             {
-                                velocity = targetCollider.attachedRigidbody.velocity - rocket.Rigidbody.velocity;
-                                if (previousVelocity != Vector3.zero)
+                                // Calculating the rotating axis
+                                Vector3 velocity = Vector3.zero;
+                                try
                                 {
-                                    acceleration = (velocity - previousVelocity) / Time.deltaTime;
+                                    velocity = targetCollider.attachedRigidbody.velocity - rocket.Rigidbody.velocity;
+                                    if (previousVelocity != Vector3.zero)
+                                    {
+                                        acceleration = (velocity - previousVelocity) / Time.deltaTime;
+                                    }
+                                    previousVelocity = velocity;
                                 }
-                                previousVelocity = velocity;
-                            }
-                            catch { }
-                            //Add position prediction
-                            float ratio = (targetCollider.bounds.center - rocket.transform.position).magnitude / initialDistance;
-                            float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
-                            float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
-                            Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.transform.position;
-                            float angleDiff = Vector3.Angle(positionDiff, transform.up);
-                            bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
-                            Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
+                                catch { }
+                                //Add position prediction
+                                float ratio = (targetCollider.bounds.center - rocket.transform.position).magnitude / initialDistance;
+                                float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
+                                float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
+                                Vector3 positionDiff = targetCollider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - rocket.transform.position;
+                                float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                                bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
+                                Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
 
-                            //Add torque to the rocket based on the angle difference
-                            //If in auto guide mode, the rocket will restart searching when target is out of sight
-                            //else, apply maximum torque to the rocket
-                            if (forward && angleDiff <= searchAngle)
-                            {
-                                if (rocketRigidbody != null)
-                                {
-                                    rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
-                                }
-                            }
-                            else
-                            {
-                                if (!activeGuide)
+                                //Add torque to the rocket based on the angle difference
+                                //If in auto guide mode, the rocket will restart searching when target is out of sight
+                                //else, apply maximum torque to the rocket
+                                if (forward && angleDiff <= searchAngle)
                                 {
                                     if (rocketRigidbody != null)
                                     {
-                                        rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis);
+                                        rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
                                     }
                                 }
                                 else
                                 {
-                                    targetAquired = false;
+                                    if (!activeGuide)
+                                    {
+                                        if (rocketRigidbody != null)
+                                        {
+                                            rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        target = null;
+                                        targetCollider = null;
+                                        targetAquired = false;
+                                        SendClientTargetNull();
+                                    }
                                 }
                             }
                         }
@@ -781,8 +823,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (!rocket.hasExploded)
             {
-                rocket.hasExploded = true;
-                rocket.OnExplode();
+                rocket.ExplodeMessage();
             }
             if (highExploActivated)
             {
@@ -891,7 +932,7 @@ namespace BlockEnhancementMod.Blocks
         IEnumerator SearchForTarget()
         {
             // First test the rockets that are fired
-            Dictionary<BlockBehaviour, int> rocketTargetDict = MessageController.Instance.rocketTargetDict;
+            Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
             Transform rocketTarget = null;
             Transform clusterTarget = null;
             float rocketValue = 0;
@@ -910,7 +951,7 @@ namespace BlockEnhancementMod.Blocks
                             bool shouldCheckRocket = false;
                             if (StatMaster.isMP)
                             {
-                                shouldCheckRocket = targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+                                shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
                             }
                             else
                             {
@@ -993,6 +1034,10 @@ namespace BlockEnhancementMod.Blocks
                         {
                             foreach (var block in cluster.Blocks)
                             {
+                                if (block.Type == BlockType.Rocket)
+                                {
+                                    continue;
+                                }
                                 skipCluster = ShouldSkipCluster(block);
                                 if (skipCluster)
                                 {
@@ -1051,7 +1096,7 @@ namespace BlockEnhancementMod.Blocks
             int i = 0;
             foreach (var simCluster in simClusterForSearch)
             {
-                int clusterValue = simCluster.Blocks.Length + 1;
+                float clusterValue = simCluster.Blocks.Length + 1;
                 clusterValue = CalculateClusterValue(simCluster.Base, clusterValue);
                 foreach (var block in simCluster.Blocks)
                 {
@@ -1095,10 +1140,13 @@ namespace BlockEnhancementMod.Blocks
             Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
             float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
             float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+            //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
+
+            Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
+            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         }
 
-        private int CalculateClusterValue(BlockBehaviour block, int clusterValue)
+        private float CalculateClusterValue(BlockBehaviour block, float clusterValue)
         {
             //Some blocks weights more than others
             GameObject targetObj = block.gameObject;
@@ -1110,21 +1158,21 @@ namespace BlockEnhancementMod.Blocks
                     clusterValue *= bombValue;
                 }
             }
-            //A fired and unexploded rocket
-            if (block.Type == BlockType.Rocket)
-            {
-                if (targetObj.GetComponent<TimedRocket>().hasFired)
-                {
-                    if (targetObj.GetComponent<RocketScript>().targetAquired)
-                    {
-                        clusterValue *= guidedRocketValue;
-                    }
-                    else
-                    {
-                        clusterValue *= normalRocketValue;
-                    }
-                }
-            }
+            ////A fired and unexploded rocket
+            //if (block.Type == BlockType.Rocket)
+            //{
+            //    if (targetObj.GetComponent<TimedRocket>().hasFired)
+            //    {
+            //        if (targetObj.GetComponent<RocketScript>().targetAquired)
+            //        {
+            //            clusterValue *= guidedRocketValue;
+            //        }
+            //        else
+            //        {
+            //            clusterValue *= normalRocketValue;
+            //        }
+            //    }
+            //}
             //A watering watercannon
             if (block.Type == BlockType.WaterCannon)
             {
@@ -1166,6 +1214,10 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (block.Type == BlockType.Rocket)
                 {
+                    if (!block.gameObject.activeInHierarchy)
+                    {
+                        return true;
+                    }
                     if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
                     {
                         return true;
@@ -1193,7 +1245,6 @@ namespace BlockEnhancementMod.Blocks
                         }
                     }
                     catch { }
-
                 }
             }
             catch { }
@@ -1229,62 +1280,77 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        private void SendTargetToClient()
+        public void SendRocketFired()
         {
-            if (target != null)
+            if (!removedFromGroup)
             {
-                if (target.gameObject.GetComponent<BlockBehaviour>())
+                if (StatMaster.isHosting)
                 {
-                    BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
-                    int id = targetBB.ParentMachine.PlayerID;
-                    if (rocket.ParentMachine.PlayerID != 0)
+                    Message rocketFiredMsg = Messages.rocketFiredMsg.CreateMessage(BB);
+                    ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == rocket.ParentMachine.PlayerID), rocketFiredMsg);
+                }
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                {
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
                     {
-                        Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                        rockets.Remove(rocket);
+                    }
+                }
+                removedFromGroup = true;
+            }
+
+        }
+
+        public void SendTargetToClient()
+        {
+            if (StatMaster.isHosting)
+            {
+                if (target != null)
+                {
+                    if (target.gameObject.GetComponent<BlockBehaviour>())
+                    {
+                        BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
+                        int id = targetBB.ParentMachine.PlayerID;
+                        if (rocket.ParentMachine.PlayerID != 0)
+                        {
+                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                            foreach (var player in Player.GetAllPlayers())
+                            {
+                                if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                                {
+                                    ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+                                }
+                            }
+                        }
+                        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
+                        RocketsController.Instance.UpdateRocketTarget(BB, id);
+                    }
+                    if (target.gameObject.GetComponent<LevelEntity>())
+                    {
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
                         foreach (var player in Player.GetAllPlayers())
                         {
                             if (player.NetworkId == rocket.ParentMachine.PlayerID)
                             {
-                                ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+                                ModNetworking.SendTo(player, targetEntityMsg);
                             }
                         }
+                        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                        RocketsController.Instance.RemoveRocketTarget(BB);
                     }
-                    ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                    MessageController.Instance.UpdateRocketTarget(BB, id);
-                }
-                if (target.gameObject.GetComponent<LevelEntity>())
-                {
-                    Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
-                    foreach (var player in Player.GetAllPlayers())
-                    {
-                        if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                        {
-                            ModNetworking.SendTo(player, targetEntityMsg);
-                        }
-                    }
-                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                    MessageController.Instance.RemoveRocketTarget(BB);
                 }
             }
         }
 
-        private void SendClientTargetNull()
+        public void SendClientTargetNull()
         {
-            if (!StatMaster.isClient)
+            if (StatMaster.isHosting)
             {
-                if (StatMaster.isHosting)
-                {
-                    Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                    foreach (var player in Player.GetAllPlayers())
-                    {
-                        if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                        {
-                            ModNetworking.SendTo(player, rocketTargetNullMsg);
-                        }
-                    }
-                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                }
-                MessageController.Instance.RemoveRocketTarget(BB);
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == rocket.ParentMachine.PlayerID), rocketTargetNullMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
             }
+            RocketsController.Instance.RemoveRocketTarget(BB);
         }
 
         private void SendRayToHost(Ray ray)
@@ -1295,8 +1361,11 @@ namespace BlockEnhancementMod.Blocks
 
         private void SendExplosionPositionToAll(Vector3 position)
         {
-            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
-            ModNetworking.SendToAll(explosionPositionMsg);
+            if (StatMaster.isHosting)
+            {
+                Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
+                ModNetworking.SendToAll(explosionPositionMsg);
+            }
         }
     }
 }
