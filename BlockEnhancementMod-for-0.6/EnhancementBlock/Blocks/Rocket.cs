@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
-        MKey GroupFireKey;
+        public MKey GroupFireKey;
         MSlider GroupFireRateSlider;
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
@@ -472,152 +472,89 @@ namespace BlockEnhancementMod.Blocks
         {
             if (gameObject.activeInHierarchy)
             {
-                if (rocket.hasFired || rocket.hasExploded)
+                if (rocket.hasFired)
                 {
-                    if (!removedFromGroup)
+                    SendRocketFired();
+                    if (!rocket.hasExploded)
                     {
-                        if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
-                        {
-                            if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
-                            {
-                                rockets.Remove(rocket);
-                            }
-                        }
-                        removedFromGroup = true;
-                    }
-                }
-                if (rocket.hasFired && !rocket.hasExploded)
-                {
-                    //If no smoke mode is enabled, stop all smoke
-                    if (noSmoke && !smokeStopped)
-                    {
-                        try
-                        {
-                            foreach (var smoke in rocket.trail)
-                            {
-                                smoke.Stop();
-                            }
-                            smokeStopped = true;
-                        }
-                        catch { }
-                    }
-
-                    if (guidedRocketActivated)
-                    {
-                        //Record the launch time for the guide delay
-                        if (!launchTimeRecorded)
-                        {
-                            launchTimeRecorded = true;
-                            launchTime = Time.time;
-
-                        }
-
-                        //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                        if (Time.time - launchTime >= guideDelay && !canTrigger)
-                        {
-                            canTrigger = true;
-                        }
-
-                        //Check if target is no longer valuable (lazy check)
-                        if (target != null && !StatMaster.isClient)
+                        //If no smoke mode is enabled, stop all smoke
+                        if (noSmoke && !smokeStopped)
                         {
                             try
                             {
-                                if (targetCollider == null)
+                                foreach (var smoke in rocket.trail)
                                 {
-                                    target = null;
-                                    targetCollider = null;
-                                    targetAquired = false;
-                                    SendClientTargetNull();
+                                    smoke.Stop();
                                 }
-                                else
-                                {
-                                    //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
-                                    Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
-                                    float angleDiff = Vector3.Angle(positionDiff, transform.up);
-                                    if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
-                                    {
-                                        RocketExplode();
-                                    }
-                                }
+                                smokeStopped = true;
                             }
                             catch { }
-                            try
+                        }
+
+                        if (guidedRocketActivated)
+                        {
+                            //Record the launch time for the guide delay
+                            if (!launchTimeRecorded)
                             {
-                                if (targetInitialCJOrHJ)
-                                {
-                                    if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
-                                    {
-                                        try
-                                        {
-                                            explodedCluster.Add(target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.simClusters[target.gameObject.GetComponent<BlockBehaviour>().ClusterIndex]);
-                                        }
-                                        catch { }
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = targetInitialCJOrHJ = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
+                                launchTimeRecorded = true;
+                                launchTime = Time.time;
+
                             }
-                            catch { }
-                            try
+
+                            //Rocket can be triggered after the time elapsed after firing is greater than guide delay
+                            if (Time.time - launchTime >= guideDelay && !canTrigger)
                             {
-                                if (target.gameObject.GetComponent<FireTag>().burning)
+                                canTrigger = true;
+                            }
+
+                            //Check if target is no longer valuable (lazy check)
+                            if (target != null && !StatMaster.isClient)
+                            {
+                                try
                                 {
-                                    if (target.gameObject.GetComponent<TimedRocket>() == null)
+                                    if (targetCollider == null)
                                     {
                                         target = null;
                                         targetCollider = null;
                                         targetAquired = false;
                                         SendClientTargetNull();
                                     }
+                                    else
+                                    {
+                                        //If proximity fuse is enabled, the rocket will explode when target is in preset range&angle
+                                        Vector3 positionDiff = targetCollider.bounds.center - rocket.transform.position;
+                                        float angleDiff = Vector3.Angle(positionDiff, transform.up);
+                                        if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
+                                        {
+                                            RocketExplode();
+                                        }
+                                    }
                                 }
-                            }
-                            catch { }
-                            try
-                            {
-                                if (target.gameObject.GetComponent<BlockBehaviour>())
+                                catch { }
+                                try
                                 {
-                                    try
+                                    if (targetInitialCJOrHJ)
                                     {
-                                        if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                        if (target.gameObject.GetComponent<ConfigurableJoint>() == null && target.gameObject.GetComponent<HingeJoint>() == null)
                                         {
+                                            try
+                                            {
+                                                explodedCluster.Add(target.gameObject.GetComponent<BlockBehaviour>().ParentMachine.simClusters[target.gameObject.GetComponent<BlockBehaviour>().ClusterIndex]);
+                                            }
+                                            catch { }
                                             target = null;
                                             targetCollider = null;
-                                            targetAquired = false;
+                                            targetAquired = targetInitialCJOrHJ = false;
                                             SendClientTargetNull();
                                         }
                                     }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
                                 }
-                                else
+                                catch { }
+                                try
                                 {
-                                    try
+                                    if (target.gameObject.GetComponent<FireTag>().burning)
                                     {
-                                        if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                        if (target.gameObject.GetComponent<TimedRocket>() == null)
                                         {
                                             target = null;
                                             targetCollider = null;
@@ -625,93 +562,146 @@ namespace BlockEnhancementMod.Blocks
                                             SendClientTargetNull();
                                         }
                                     }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<EntityAI>().isDead)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
-                                    try
-                                    {
-                                        if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
-                                        {
-                                            target = null;
-                                            targetCollider = null;
-                                            targetAquired = false;
-                                            SendClientTargetNull();
-                                        }
-                                    }
-                                    catch { }
                                 }
+                                catch { }
+                                try
+                                {
+                                    if (target.gameObject.GetComponent<BlockBehaviour>())
+                                    {
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<TimedRocket>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ControllableBomb>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<ExplodeOnCollide>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<EntityAI>().isDead)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<CastleWallBreak>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<CastleFloorBreak>().hasExploded)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForce>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceNoScaling>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceNoSpawn>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                        try
+                                        {
+                                            if (target.gameObject.GetComponent<BreakOnForceBoulder>().BrokenInstance.hasChanged)
+                                            {
+                                                target = null;
+                                                targetCollider = null;
+                                                targetAquired = false;
+                                                SendClientTargetNull();
+                                            }
+                                        }
+                                        catch { }
+                                    }
+                                }
+                                catch { }
                             }
-                            catch { }
-                        }
 
-                        //If no target when active guide, search for a new target
-                        if (activeGuide && !targetAquired)
-                        {
-                            RocketRadarSearch();
+                            //If no target when active guide, search for a new target
+                            if (activeGuide && !targetAquired)
+                            {
+                                RocketRadarSearch();
+                            }
                         }
                     }
                 }
@@ -1290,6 +1280,27 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
+        public void SendRocketFired()
+        {
+            if (!removedFromGroup)
+            {
+                if (StatMaster.isHosting)
+                {
+                    Message rocketFiredMsg = Messages.rocketFiredMsg.CreateMessage(BB);
+                    ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == rocket.ParentMachine.PlayerID), rocketFiredMsg);
+                }
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                {
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
+                }
+                removedFromGroup = true;
+            }
+
+        }
+
         public void SendTargetToClient()
         {
             if (StatMaster.isHosting)
@@ -1336,13 +1347,7 @@ namespace BlockEnhancementMod.Blocks
             if (StatMaster.isHosting)
             {
                 Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                foreach (var player in Player.GetAllPlayers())
-                {
-                    if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                    {
-                        ModNetworking.SendTo(player, rocketTargetNullMsg);
-                    }
-                }
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == rocket.ParentMachine.PlayerID), rocketTargetNullMsg);
                 ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
             }
             RocketsController.Instance.RemoveRocketTarget(BB);

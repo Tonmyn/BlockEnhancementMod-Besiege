@@ -77,6 +77,10 @@ namespace BlockEnhancementMod
                 {
                     if (!isFirstFrame)
                     {
+                        if (playerGroupedRockets.ContainsKey(PlayerMachine.GetLocal().InternalObject.PlayerID))
+                        {
+                            playerGroupedRockets.Remove(PlayerMachine.GetLocal().InternalObject.PlayerID);
+                        }
                         rocketTargetDict.Clear();
                         isFirstFrame = true;
                     }
@@ -184,6 +188,22 @@ namespace BlockEnhancementMod
                 }
             }
         }
+
+        public void UpdateRocketFiredStatus(TimedRocket rocket)
+        {
+            if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+            {
+                RocketScript rocketScript = rocket.GetComponent<RocketScript>();
+                if (rocketScript != null)
+                {
+                    if (groupedRockets.TryGetValue(rocketScript.GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
+                }
+            }
+        }
+
         public void UpdateRocketTarget(BlockBehaviour rocket, int targetMachineID)
         {
             if (rocketTargetDict.ContainsKey(rocket))

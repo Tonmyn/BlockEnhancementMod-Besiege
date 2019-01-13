@@ -14,6 +14,7 @@ namespace BlockEnhancementMod
         public static MessageType rocketTargetBlockBehaviourMsg;
         public static MessageType rocketTargetEntityMsg;
         public static MessageType rocketTargetNullMsg;
+        public static MessageType rocketFiredMsg;
         public static MessageType rocketRayToHostMsg;
         public static MessageType rocketHighExploPosition;
         public static MessageType rocketLockOnMeMsg;
@@ -28,6 +29,7 @@ namespace BlockEnhancementMod
         public MessageController()
         {
             //Initiating messages
+            Messages.rocketFiredMsg = ModNetworking.CreateMessageType(DataType.Block);
             Messages.rocketTargetBlockBehaviourMsg = ModNetworking.CreateMessageType(DataType.Block, DataType.Block);
             Messages.rocketTargetEntityMsg = ModNetworking.CreateMessageType(DataType.Entity, DataType.Block);
             Messages.rocketTargetNullMsg = ModNetworking.CreateMessageType(DataType.Block);
@@ -63,6 +65,13 @@ namespace BlockEnhancementMod
                     }
                     catch { }
                 }
+            };
+
+            ModNetworking.Callbacks[Messages.rocketFiredMsg] += (Message msg) =>
+            {
+                Block rocketBlock = (Block)msg.GetData(0);
+                TimedRocket rocket = rocketBlock.GameObject.GetComponent<TimedRocket>();
+                RocketsController.Instance.UpdateRocketFiredStatus(rocket);
             };
 
             ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
