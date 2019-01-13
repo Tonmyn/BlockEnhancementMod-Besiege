@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
-        public MKey GroupFireKey;
+        MKey GroupFireKey;
         MSlider GroupFireRateSlider;
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
