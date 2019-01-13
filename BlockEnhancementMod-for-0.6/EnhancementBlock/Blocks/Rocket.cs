@@ -1292,58 +1292,58 @@ namespace BlockEnhancementMod.Blocks
 
         public void SendTargetToClient()
         {
-            if (target != null)
+            if (StatMaster.isHosting)
             {
-                if (target.gameObject.GetComponent<BlockBehaviour>())
+                if (target != null)
                 {
-                    BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
-                    int id = targetBB.ParentMachine.PlayerID;
-                    if (rocket.ParentMachine.PlayerID != 0)
+                    if (target.gameObject.GetComponent<BlockBehaviour>())
                     {
-                        Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                        BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
+                        int id = targetBB.ParentMachine.PlayerID;
+                        if (rocket.ParentMachine.PlayerID != 0)
+                        {
+                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                            foreach (var player in Player.GetAllPlayers())
+                            {
+                                if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                                {
+                                    ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+                                }
+                            }
+                        }
+                        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
+                        RocketsController.Instance.UpdateRocketTarget(BB, id);
+                    }
+                    if (target.gameObject.GetComponent<LevelEntity>())
+                    {
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
                         foreach (var player in Player.GetAllPlayers())
                         {
                             if (player.NetworkId == rocket.ParentMachine.PlayerID)
                             {
-                                ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+                                ModNetworking.SendTo(player, targetEntityMsg);
                             }
                         }
+                        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                        RocketsController.Instance.RemoveRocketTarget(BB);
                     }
-                    ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                    RocketsController.Instance.UpdateRocketTarget(BB, id);
-                }
-                if (target.gameObject.GetComponent<LevelEntity>())
-                {
-                    Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
-                    foreach (var player in Player.GetAllPlayers())
-                    {
-                        if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                        {
-                            ModNetworking.SendTo(player, targetEntityMsg);
-                        }
-                    }
-                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                    RocketsController.Instance.RemoveRocketTarget(BB);
                 }
             }
         }
 
         public void SendClientTargetNull()
         {
-            if (!StatMaster.isClient)
+            if (StatMaster.isHosting)
             {
-                if (StatMaster.isHosting)
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
+                foreach (var player in Player.GetAllPlayers())
                 {
-                    Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                    foreach (var player in Player.GetAllPlayers())
+                    if (player.NetworkId == rocket.ParentMachine.PlayerID)
                     {
-                        if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                        {
-                            ModNetworking.SendTo(player, rocketTargetNullMsg);
-                        }
+                        ModNetworking.SendTo(player, rocketTargetNullMsg);
                     }
-                    ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
                 }
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
             }
             RocketsController.Instance.RemoveRocketTarget(BB);
         }
@@ -1356,8 +1356,11 @@ namespace BlockEnhancementMod.Blocks
 
         private void SendExplosionPositionToAll(Vector3 position)
         {
-            Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
-            ModNetworking.SendToAll(explosionPositionMsg);
+            if (StatMaster.isHosting)
+            {
+                Message explosionPositionMsg = Messages.rocketHighExploPosition.CreateMessage(position, bombExplosiveCharge);
+                ModNetworking.SendToAll(explosionPositionMsg);
+            }
         }
     }
 }
