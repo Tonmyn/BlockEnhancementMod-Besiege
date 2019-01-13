@@ -44,8 +44,7 @@ namespace BlockEnhancementMod
                 return redTexture;
             }
         }
-        private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
-        private readonly int windowID = ModUtility.GetWindowId() - 1;
+        private Rect counterRect = new Rect(Screen.width - screenOffset - warningWidth, Screen.height - 0.5f * screenOffset - warningHeight, warningWidth, warningHeight);
         public static bool DisplayRocketCount { get; internal set; } = true;
 
         public RocketsController()
@@ -177,7 +176,7 @@ namespace BlockEnhancementMod
                                 {
                                     textString += KeyCodeConverter.GetKey(group.Key).ToString() + ": " + group.Value.Count + Environment.NewLine;
                                 }
-                                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.remainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
+                                GUI.Box(counterRect, LanguageManager.remainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
                             }
 
                         }
@@ -185,12 +184,6 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
-        private void EnhancedEnhancementWindow(int windowID)
-        {
-
-        }
-
         public void UpdateRocketTarget(BlockBehaviour rocket, int targetMachineID)
         {
             if (rocketTargetDict.ContainsKey(rocket))
