@@ -196,6 +196,8 @@ namespace BlockEnhancementMod
 
                 markTarget = IsChinese ? " 标记火箭目标" : " Mark Rocket Target";
 
+                displayRocketCount = IsChinese ? " 显示剩余火箭量" : " Display Rocket Count";
+
                 trackTarget = IsChinese ? "搜索目标" : "Search Target";
 
                 groupedFire = IsChinese ? "同组依次发射" : "Grouped Launch";

@@ -12,8 +12,10 @@ namespace BlockEnhancementMod
         {
             mod = new GameObject("Block Enhancement Mod");
             Object.DontDestroyOnLoad(mod);
+            mod.AddComponent<EnhancementController>();
 
-            Controller.Instance.transform.SetParent(mod.transform);
+            //Controller.Instance.transform.SetParent(mod.transform);
+            ModSettingUI.Instance.transform.SetParent(mod.transform);
             LanguageManager.Instance.transform.SetParent(mod.transform);
             MessageController.Instance.transform.SetParent(mod.transform);
             RocketsController.Instance.transform.SetParent(mod.transform);
