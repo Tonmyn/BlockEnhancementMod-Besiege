@@ -10,7 +10,7 @@ using System.Collections;
 
 namespace BlockEnhancementMod
 {
-    class EnhancementController : MonoBehaviour
+    class EnhancementBlockController : MonoBehaviour
     {
         //public override string Name { get; } = "Block Script Controller";
 
