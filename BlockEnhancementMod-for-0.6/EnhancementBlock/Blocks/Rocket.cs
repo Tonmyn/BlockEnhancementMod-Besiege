@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
-        MKey GroupFireKey;
+        public MKey GroupFireKey;
         MSlider GroupFireRateSlider;
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
@@ -25,6 +25,7 @@ namespace BlockEnhancementMod.Blocks
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
         public static bool MarkTarget { get; internal set; } = true;
         public bool noLongerActiveSent = false;
+        public bool removedFromGroup = false;
 
         //Networking setting
         public bool receivedRayFromClient = false;
@@ -258,6 +259,13 @@ namespace BlockEnhancementMod.Blocks
         {
             if (!rocketInBuildSent)
             {
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                {
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
+                }
                 SendClientTargetNull();
                 rocketInBuildSent = true;
             }
@@ -289,22 +297,22 @@ namespace BlockEnhancementMod.Blocks
 
         public override void OnSimulateStart()
         {
-            smokeStopped = rocketInBuildSent = noLongerActiveSent = false;
+            smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
             aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
                 if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
                 {
-                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, Stack<TimedRocket>>());
+                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
                 }
                 if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
                 {
-                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new Stack<TimedRocket>());
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
                 }
                 if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
                 {
-                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Push(rocket);
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
                 }
             }
             if (guidedRocketActivated)
@@ -464,6 +472,20 @@ namespace BlockEnhancementMod.Blocks
         {
             if (gameObject.activeInHierarchy)
             {
+                if (rocket.hasFired || rocket.hasExploded)
+                {
+                    if (!removedFromGroup)
+                    {
+                        if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                        {
+                            if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                            {
+                                rockets.Remove(rocket);
+                            }
+                        }
+                        removedFromGroup = true;
+                    }
+                }
                 if (rocket.hasFired && !rocket.hasExploded)
                 {
                     //If no smoke mode is enabled, stop all smoke

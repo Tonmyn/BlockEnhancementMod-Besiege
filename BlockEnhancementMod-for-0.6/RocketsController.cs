@@ -20,7 +20,7 @@ namespace BlockEnhancementMod
         public static bool DisplayWarning { get; internal set; } = true;
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
-        public Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>> playerGroupedRockets;
+        public Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>> playerGroupedRockets;
         public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
@@ -50,7 +50,7 @@ namespace BlockEnhancementMod
         public RocketsController()
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
-            playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, Stack<TimedRocket>>>();
+            playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>>();
         }
 
         void FixedUpdate()
@@ -169,7 +169,7 @@ namespace BlockEnhancementMod
                     {
                         if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
                         {
-                            if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out Dictionary<KeyCode, Stack<TimedRocket>> groupedRockets))
+                            if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
                             {
                                 string textString = "";
                                 foreach (var group in groupedRockets)
@@ -208,13 +208,14 @@ namespace BlockEnhancementMod
         {
             launchStarted = true;
             float defaultDelay = 0.25f;
-            if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, Stack<TimedRocket>> timedRocketDict))
+            if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
             {
-                if (timedRocketDict.TryGetValue(key, out Stack<TimedRocket> timedRockets))
+                if (timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
                 {
                     if (timedRockets.Count > 0)
                     {
-                        TimedRocket rocket = timedRockets.Pop();
+                        TimedRocket rocket = timedRockets.First();
+                        timedRockets.Remove(rocket);
                         if (rocket != null)
                         {
                             RocketScript rocketScript = rocket.GetComponent<RocketScript>();
