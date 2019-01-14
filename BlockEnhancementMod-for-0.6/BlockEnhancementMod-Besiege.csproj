@@ -85,6 +85,8 @@
     <Compile Include="EnhancementBlock\EnhancementBlock.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EnhancementBlock\EnhancementBlockController.cs" />
+    <Compile Include="UI\ModSettingUI.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\icon.png" />

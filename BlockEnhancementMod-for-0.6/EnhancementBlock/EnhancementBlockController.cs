@@ -1,28 +1,18 @@
-﻿using BlockEnhancementMod.Blocks;
-using cakeslice;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UnityEngine;
 using Modding;
 using Modding.Blocks;
-using Modding.Mapper;
-using System;
+using BlockEnhancementMod.Blocks;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace BlockEnhancementMod
 {
-    [Obsolete]
-    class Controller : SingleInstance<Controller>
+    class EnhancementBlockController : MonoBehaviour
     {
-        public override string Name { get; } = "Controller";
-
-        public bool showGUI = true;
-
-        public bool Friction = false;
-
-        private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
-
-        private readonly int windowID = ModUtility.GetWindowId();
+        //public override string Name { get; } = "Block Script Controller";
 
         [Obsolete]
         /// <summary>存档信息</summary>
@@ -30,7 +20,6 @@ namespace BlockEnhancementMod
 
         //public event Action<PlayerMachineInfo> OnLoad;
         //public event Action<PlayerMachineInfo> OnSave;
-        public Action<bool> OnFrictionToggle;
 
         private void Awake()
         {
@@ -40,18 +29,6 @@ namespace BlockEnhancementMod
             //Events.OnMachineSave += SaveConfiguration;
             //添加零件初始化事件委托
             Events.OnBlockInit += AddSliders;
-
-            OnFrictionToggle += FrictionToggle;
-
-        }
-
-        void Update()
-        {
-            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                AddPiece.Instance.SetBlockType(BlockType.Unused3);
-                AddPiece.Instance.clickSound.Play();
-            }
         }
 
         /// <summary>是否有进阶属性</summary>
@@ -100,22 +77,6 @@ namespace BlockEnhancementMod
                 if (block.GetComponent(EB) == null)
                 {
                     block.gameObject.AddComponent(EB);
-                }
-            }
-        }
-
-        private void FrictionToggle(bool value)
-        {
-            PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
-
-            //设置地形的摩擦力合并方式
-            if (GameObject.Find("Terrain Terraced") != null)
-            {
-                foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
-                {
-                    v.sharedMaterial.frictionCombine = physicMaterialCombine;
-                    v.sharedMaterial.bounceCombine = physicMaterialCombine;
-                    break;
                 }
             }
         }
@@ -172,59 +133,6 @@ namespace BlockEnhancementMod
 #if DEBUG
             ConsoleController.ShowMessage("Refresh");
 #endif
-        }
-
-        private void OnGUI()
-        {
-            if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu)
-            {
-                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.modSettings);
-            }
-        }
-
-        private void EnhancedEnhancementWindow(int windowID)
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.BeginVertical();
-            GUILayout.EndVertical();
-            GUILayout.BeginVertical();
-            {
-                if (!StatMaster.isClient)
-                {
-                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.additionalFunction);
-
-                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
-                    {
-                        Friction = !Friction;
-                        OnFrictionToggle(Friction);
-                    }
-                }
-                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.displayWarning);
-                RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.markTarget);
-                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.displayRocketCount);
-            }
-            GUILayout.EndVertical();
-            GUILayout.BeginVertical();
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-            GUI.DragWindow();
-        }
-
-        private bool IsBuilding()
-        {
-            List<string> scene = new List<string> { "INITIALISER", "TITLE SCREEN", "LevelSelect", "LevelSelect1", "LevelSelect2", "LevelSelect3" };
-
-            if (SceneManager.GetActiveScene().isLoaded)
-            {
-                if (!scene.Exists(match => match == SceneManager.GetActiveScene().name))
-                {
-                    return true;
-                }
-                return false;
-            }
-
-            return false;
-
-        }
+        }     
     }
 }
