@@ -237,7 +237,7 @@ namespace BlockEnhancementMod.Blocks
         static IEnumerator ReadWheelMesh()
         {
             WheelColliderOrgin = new GameObject("Wheel Collider Orgin");
-            WheelColliderOrgin.transform.SetParent(Controller.Instance.transform);
+            WheelColliderOrgin.transform.SetParent(EnhancementBlockController.Instance.transform);
             ModMesh modMesh = ModResource.CreateMeshResource("Wheel Mesh", "Resources" + @"/" + "Wheel.obj");
 
             yield return new WaitUntil(() => modMesh.Available);
