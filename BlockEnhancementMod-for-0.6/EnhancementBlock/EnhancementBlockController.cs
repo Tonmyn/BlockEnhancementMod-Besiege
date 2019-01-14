@@ -10,9 +10,9 @@ using System.Collections;
 
 namespace BlockEnhancementMod
 {
-    class EnhancementBlockController : MonoBehaviour
+    class EnhancementBlockController : SingleInstance<EnhancementBlockController>
     {
-        //public override string Name { get; } = "Block Script Controller";
+        public override string Name { get; } = "Enhancement Block Controller";
 
         [Obsolete]
         /// <summary>存档信息</summary>

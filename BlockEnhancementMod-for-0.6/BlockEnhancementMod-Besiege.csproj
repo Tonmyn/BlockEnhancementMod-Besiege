@@ -81,7 +81,6 @@
     <Compile Include="EnhancementBlock\Blocks\BallJoint.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cannon.cs" />
     <Compile Include="EnhancementBlock\Blocks\Wheel.cs" />
-    <Compile Include="Controller.cs" />
     <Compile Include="EnhancementBlock\EnhancementBlock.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

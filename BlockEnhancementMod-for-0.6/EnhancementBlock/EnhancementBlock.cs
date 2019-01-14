@@ -140,12 +140,12 @@ namespace BlockEnhancementMod
 #if DEBUG
             ConsoleController.ShowMessage("On load en");
 #endif
-            if (Controller.Instance.PMI == null)
+            if (EnhancementBlockController.Instance.PMI == null)
             {
                 return;
             }
 
-            foreach (var blockinfo in Controller.Instance.PMI.Blocks)
+            foreach (var blockinfo in EnhancementBlockController.Instance.PMI.Blocks)
             {
                 if (blockinfo.Guid == BB.Guid)
                 {
