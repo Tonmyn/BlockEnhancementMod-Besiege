@@ -1,5 +1,7 @@
 ﻿using Modding;
 using UnityEngine;
+using Modding.Levels;
+using System.Collections.Generic;
 
 namespace BlockEnhancementMod
 {
@@ -20,7 +22,8 @@ namespace BlockEnhancementMod
             MessageController.Instance.transform.SetParent(mod.transform);
             RocketsController.Instance.transform.SetParent(mod.transform);
 
-
+            EnhancementEventsController events = mod.AddComponent<EnhancementEventsController>(); ;
+            ModEvents.RegisterCallback(1, events.OnGroup);
         }
     }
 
