@@ -58,7 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnhancementEntity\EnhancementEventsController.cs" />
-    <Compile Include="RocketsController.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\RocketsController.cs" />
     <Compile Include="EnhancementBlock\Blocks\CrossBow.cs" />
     <Compile Include="MessageController.cs" />
     <Compile Include="EnhancementBlock\Blocks\Camera.cs" />
@@ -68,7 +68,6 @@
     <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
     <Compile Include="EnhancementBlock\Blocks\WaterCannon.cs" />
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\Tools.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
