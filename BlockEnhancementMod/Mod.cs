@@ -15,6 +15,7 @@ namespace BlockEnhancementMod
             mod = new GameObject("Block Enhancement Mod");
             Object.DontDestroyOnLoad(mod);
             mod.AddComponent<EnhancementBlockController>();
+            mod.AddComponent<Zone>();
 
             //Controller.Instance.transform.SetParent(mod.transform);
             ModSettingUI.Instance.transform.SetParent(mod.transform);
