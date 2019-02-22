@@ -73,6 +73,8 @@ namespace BlockEnhancementMod.Blocks
                 bulletObject.SetActive(false);
 
                 rigidbody = bulletObject.GetComponent<Rigidbody>();
+                rigidbody.detectCollisions = false;
+                bulletObject.GetComponent<Collider>().enabled = false;
                 TrailRenderer = bulletObject.GetComponent<TrailRenderer>() ?? bulletObject.AddComponent<TrailRenderer>();
                 TrailRenderer.autodestruct = false;
                 TrailRenderer.receiveShadows = false;
@@ -306,6 +308,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (bulletClone != null)
             {
+                bulletClone.AddComponent<DelayCollision>();
                 bulletClone.SetActive(true);
                 bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
             }
