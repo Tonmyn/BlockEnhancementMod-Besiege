@@ -23,7 +23,7 @@ namespace BlockEnhancementMod.Blocks
             SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.enabled, "Switch", KeyCode.O);
             SwitchKey.KeysChanged += ChangedProperties;
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, WoodHardness, false);
+            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
             EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enabledOnAwake, "Effect", Effect);

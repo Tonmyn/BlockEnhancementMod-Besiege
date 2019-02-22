@@ -37,7 +37,7 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.hardness, Hardness, MetalHardness, false);
+            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
             ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.extend, "Extend", KeyCode.E);

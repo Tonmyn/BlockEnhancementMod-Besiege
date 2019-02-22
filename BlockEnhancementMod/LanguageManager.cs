@@ -465,6 +465,8 @@ namespace BlockEnhancementMod
 
         string bulletDrag { get; }
 
+        string bulletDelayCollision { get; }
+
         string trail { get; }
 
         string trailLength { get; }
@@ -478,25 +480,28 @@ namespace BlockEnhancementMod
 
 
         //Grip Pad & Piston & Slider & Suspension
-        string hardness { get; }
+
+            List<string> MetalHardness { get; }
+        List<string> WoodenHardness { get; }
+        //string hardness { get; }
 
         string friction { get; }
 
         string bounciness { get; }
 
-        string softWood { get; }
+        //string softWood { get; }
 
-        string midSoftWood { get; }
+        //string midSoftWood { get; }
 
-        string hardWood { get; }
+        //string hardWood { get; }
 
-        string veryHardWood { get; }
+        //string veryHardWood { get; }
 
-        string lowCarbonSteel { get; }
+        //string lowCarbonSteel { get; }
 
-        string midCarbonSteel { get; }
+        //string midCarbonSteel { get; }
 
-        string highCarbonSteel { get; }
+        //string highCarbonSteel { get; }
 
         string limit { get; }
 
@@ -633,6 +638,8 @@ namespace BlockEnhancementMod
 
         public  string bulletDrag {get;}= "炮弹阻力" ;
 
+        public string bulletDelayCollision { get; } = "碰撞延时";
+
         public  string trail {get;}= "显示尾迹" ;
 
         public  string trailLength {get;}= "尾迹长度" ;
@@ -646,25 +653,28 @@ namespace BlockEnhancementMod
 
 
         //Grip Pad & Piston & Slider & Suspension
-        public  string hardness {get;}= "硬度" ;
+        public List<string> MetalHardness { get; } = new List<string> { "低碳钢", "中碳钢", "高碳钢" };
+        public List<string> WoodenHardness { get; } = new List<string> { "朽木", "桦木", "梨木", "檀木" };
+
+        //public  string hardness {get;}= "硬度" ;
 
         public  string friction {get;}= "摩擦力" ;
 
         public  string bounciness {get;}= "弹力" ;
 
-        public  string softWood {get;}= "朽木" ;
+        //public  string softWood {get;}= "朽木" ;
 
-        public  string midSoftWood {get;}= "桦木" ;
+        //public  string midSoftWood {get;}= "桦木" ;
 
-        public  string hardWood {get;}= "梨木" ;
+        //public  string hardWood {get;}= "梨木" ;
 
-        public  string veryHardWood {get;}= "檀木" ;
+        //public  string veryHardWood {get;}= "檀木" ;
 
-        public  string lowCarbonSteel {get;}= "低碳钢" ;
+        //public  string lowCarbonSteel {get;}= "低碳钢" ;
 
-        public  string midCarbonSteel {get;}= "中碳钢" ;
+        //public  string midCarbonSteel {get;}= "中碳钢" ;
 
-        public  string highCarbonSteel {get;}= "高碳钢" ;
+        //public  string highCarbonSteel {get;}= "高碳钢" ;
 
         public  string limit {get;}= "限制" ;
 
@@ -800,6 +810,8 @@ namespace BlockEnhancementMod
 
         public  string bulletDrag {get;}= "Cannonball Drag";
 
+        public string bulletDelayCollision { get; } = "Delay Collision";
+
         public  string trail {get;}= "Trail";
 
         public  string trailLength {get;}= "Trail Length";
@@ -813,25 +825,28 @@ namespace BlockEnhancementMod
 
 
         //Grip Pad & Piston & Slider & Suspension
-        public  string hardness {get;}= "Hardness";
+        public List<string> MetalHardness { get; } = new List<string> { "Low Carbon Steel", "Mid Carbon Steel", "High Carbon Steel" };
+        public List<string> WoodenHardness { get; } = new List<string> { "Soft Wood", "Median-Soft Wood", "Hard Wood", "Very Hard Wood" };
+
+        //public  string hardness {get;}= "Hardness";
 
         public  string friction {get;}= "Friction";
 
         public  string bounciness {get;}= "Bounciness";
 
-        public  string softWood {get;}= "Soft Wood";
+        //public  string softWood {get;}= "Soft Wood";
 
-        public  string midSoftWood {get;}= "Median-Soft Wood";
+        //public  string midSoftWood {get;}= "Median-Soft Wood";
 
-        public  string hardWood {get;}= "Hard Wood";
+        //public  string hardWood {get;}= "Hard Wood";
 
-        public  string veryHardWood {get;}= "Very Hard Wood";
+        //public  string veryHardWood {get;}= "Very Hard Wood";
 
-        public  string lowCarbonSteel {get;}= "Low Carbon Steel";
+        //public  string lowCarbonSteel {get;}= "Low Carbon Steel";
 
-        public  string midCarbonSteel {get;}= "Mid Carbon Steel";
+        //public  string midCarbonSteel {get;}= "Mid Carbon Steel";
 
-        public  string highCarbonSteel {get;}= "High Carbon Steel";
+        //public  string highCarbonSteel {get;}= "High Carbon Steel";
 
         public  string limit {get;}= "Limit";
 

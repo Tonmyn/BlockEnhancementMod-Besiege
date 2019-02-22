@@ -19,9 +19,9 @@ namespace BlockEnhancementMod
         /// <summary>进阶属性激活</summary>
         public bool EnhancementEnabled { get; set; } = false;
 
-        internal static List<string> MetalHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.lowCarbonSteel, LanguageManager.Instance.CurrentLanguage.midCarbonSteel, LanguageManager.Instance.CurrentLanguage.highCarbonSteel };
+        //internal static List<string> MetalHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.lowCarbonSteel, LanguageManager.Instance.CurrentLanguage.midCarbonSteel, LanguageManager.Instance.CurrentLanguage.highCarbonSteel };
 
-        internal static List<string> WoodHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.softWood, LanguageManager.Instance.CurrentLanguage.midSoftWood, LanguageManager.Instance.CurrentLanguage.hardWood, LanguageManager.Instance.CurrentLanguage.veryHardWood };
+        //internal static List<string> WoodHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.softWood, LanguageManager.Instance.CurrentLanguage.midSoftWood, LanguageManager.Instance.CurrentLanguage.hardWood, LanguageManager.Instance.CurrentLanguage.veryHardWood };
 
         [Obsolete]
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
