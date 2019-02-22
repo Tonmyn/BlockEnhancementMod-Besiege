@@ -12,22 +12,25 @@ namespace BlockEnhancementMod.Blocks
         MKey SwitchKey;
         MMenu HardnessMenu;
         MToggle EffectToggle;
+        MToggle ToggleToggle;
 
         int Hardness = 1;
-        bool Effect = true;
+        bool Effect = true,Toggle = true;
 
         public override void SafeAwake()
         {
 
-            SwitchKey = BB.AddKey("气动开关", "Switch", KeyCode.O);
+            SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.enabled, "Switch", KeyCode.O);
             SwitchKey.KeysChanged += ChangedProperties;
 
             HardnessMenu = BB.AddMenu("Hardness", Hardness, WoodHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
-            EffectToggle = BB.AddToggle("初始生效", "Effect", Effect);
+            EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enabledOnAwake, "Effect", Effect);
             EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
 
+            ToggleToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.toggleMode, "Toggle Mode", Toggle);
+            ToggleToggle.Toggled += (value) => { Toggle = value; ChangedProperties(); };
 
 #if DEBUG
             ConsoleController.ShowMessage("桨叶添加进阶属性");
@@ -49,6 +52,7 @@ namespace BlockEnhancementMod.Blocks
             SwitchKey.DisplayInMapper = value;
             HardnessMenu.DisplayInMapper = value;
             EffectToggle.DisplayInMapper = value;
+            ToggleToggle.DisplayInMapper = value;
         }
 
         private ConfigurableJoint CJ;
@@ -66,12 +70,22 @@ namespace BlockEnhancementMod.Blocks
             SwitchWoodHardness(Hardness, CJ);
         }
         public override void SimulateUpdateEnhancementEnableAlways()
-        { 
-            if (SwitchKey.IsPressed)
+        {
+
+                if (SwitchKey.IsPressed)
+                {
+                    Effect = !Effect;
+                    SetVelocityCap(Effect);
+                }
+
+            if(!Toggle)
             {
-                Effect = !Effect;
-                SetVelocityCap(Effect);
-            }        
+                if (SwitchKey.IsReleased)
+                {
+                    Effect = !Effect;
+                    SetVelocityCap(Effect);
+                }
+            }       
         }
 
         private void SetVelocityCap(bool value)

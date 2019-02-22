@@ -43,7 +43,7 @@ namespace BlockEnhancementMod
         MMenu ZoomControlModeMenu;
         private int zoomControlModeIndex = 0;
         private float zoomSpeed = 2f;
-        public List<string> zoomControlMode = new List<string>() { LanguageManager.mouseWheelZoomControl, LanguageManager.keyboardZoomControl };
+        public List<string> zoomControlMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.mouseWheelZoomControl, LanguageManager.Instance.CurrentLanguage.keyboardZoomControl };
         private bool firstPersonMode = false;
         private bool targetInitialCJOrHJ = false;
         public float firstPersonSmooth = 0.25f;
@@ -71,7 +71,7 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            CameraLookAtToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.trackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
@@ -83,27 +83,27 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            ZoomControlModeMenu = BB.AddMenu(LanguageManager.zoomControlMode, zoomControlModeIndex, zoomControlMode, false);
+            ZoomControlModeMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.zoomControlMode, zoomControlModeIndex, zoomControlMode, false);
             ZoomControlModeMenu.ValueChanged += (int value) =>
             {
                 zoomControlModeIndex = value;
                 ChangedProperties();
             };
 
-            NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
+            NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
 
-            LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
+            LockTargetKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.lockTarget, "LockTarget", KeyCode.Delete);
 
-            PauseTrackingKey = BB.AddKey(LanguageManager.pauseTracking, "ResetView", KeyCode.X);
+            PauseTrackingKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.pauseTracking, "ResetView", KeyCode.X);
 
-            AutoLookAtKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            AutoLookAtKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
 
-            ZoomInKey = BB.AddKey(LanguageManager.zoomIn, "ZoomInKey", KeyCode.Equals);
+            ZoomInKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.zoomIn, "ZoomInKey", KeyCode.Equals);
 
-            ZoomOutKey = BB.AddKey(LanguageManager.zoomOut, "ZoomOutKey", KeyCode.Minus);
+            ZoomOutKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.zoomOut, "ZoomOutKey", KeyCode.Minus);
 
-            ZoomSpeedSlider = BB.AddSlider(LanguageManager.zoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
+            ZoomSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.zoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
             ZoomSpeedSlider.ValueChanged += (float value) => { zoomSpeed = value; ChangedProperties(); };
 
             // Add reference to the camera's buildindex

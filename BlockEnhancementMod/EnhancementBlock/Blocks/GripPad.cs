@@ -25,10 +25,10 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, WoodHardness, false);
+            HardnessMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.hardness, Hardness, WoodHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.friction, "Friction", Friction, 0f, 1000f);
+            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.friction, "Friction", Friction, 0f, 1000f);
             FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
 
 

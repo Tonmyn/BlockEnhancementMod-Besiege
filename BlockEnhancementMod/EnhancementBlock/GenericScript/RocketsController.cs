@@ -180,7 +180,7 @@ namespace BlockEnhancementMod
                                 {
                                     textString += KeyCodeConverter.GetKey(group.Key).ToString() + ": " + group.Value.Count + Environment.NewLine;
                                 }
-                                GUI.Box(counterRect, LanguageManager.remainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
+                                GUI.Box(counterRect, LanguageManager.Instance.CurrentLanguage.remainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
                             }
 
                         }

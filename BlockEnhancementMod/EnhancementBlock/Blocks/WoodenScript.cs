@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {        
 
-            HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, WoodHardness, false);
+            HardnessMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.hardness, Hardness, WoodHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
 #if DEBUG

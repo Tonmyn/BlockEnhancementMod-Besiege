@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            SpeedSlider = BB.AddSlider(LanguageManager.rotatingSpeed, "Speed", Speed, 0f, 5f);
+            SpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.rotatingSpeed, "Speed", Speed, 0f, 5f);
             SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedProperties(); };
 
 

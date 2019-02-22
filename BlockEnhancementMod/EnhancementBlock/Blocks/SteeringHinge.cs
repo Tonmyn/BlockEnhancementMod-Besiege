@@ -33,10 +33,10 @@ namespace BlockEnhancementMod
         {
             steeringWheel = GetComponent<SteeringWheel>();
 
-            r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
+            r2cToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.returnToCenter, "Return to center", ReturnToCenter);
             r2cToggle.Toggled += (bool value) => { ReturnToCenter = NearToggle.DisplayInMapper = value; ChangedProperties(); };
 
-            NearToggle = BB.AddToggle(LanguageManager.near, "Near", Near);
+            NearToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.near, "Near", Near);
             NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(); };
 
             leftKey = steeringWheel.KeyList.Find(match => match.Key == "left");

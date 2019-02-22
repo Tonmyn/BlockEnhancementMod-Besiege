@@ -37,25 +37,25 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, MetalHardness, false);
+            HardnessMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.hardness, Hardness, MetalHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
-            ExtendKey = BB.AddKey(LanguageManager.extend, "Extend", KeyCode.E);
-            ShrinkKey = BB.AddKey(LanguageManager.retract, "Shrink", KeyCode.F);           
+            ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.extend, "Extend", KeyCode.E);
+            ShrinkKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.retract, "Shrink", KeyCode.F);           
 
-            HydraulicToggle = BB.AddToggle(LanguageManager.hydraulicMode, "Pressure", Hydraulic);
+            HydraulicToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.hydraulicMode, "Pressure", Hydraulic);
             HydraulicToggle.Toggled += (bool value) => { Hydraulic = R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper = value; ChangedProperties(); };
 
-            R2CToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", R2C);
+            R2CToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.returnToCenter, "Return to center", R2C);
             R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
 
-            FeedSlider = BB.AddSlider(LanguageManager.feedSpeed, "feed", Feed, 0f, 2f);
+            FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.feedSpeed, "feed", Feed, 0f, 2f);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
 
-            ExtendLimitSlider = BB.AddSlider(LanguageManager.extendLimit, "ExtendLimit", ExtendLimit, 0f, 3f);
+            ExtendLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.extendLimit, "ExtendLimit", ExtendLimit, 0f, 3f);
             ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
 
-            ShrinkLimitSlider = BB.AddSlider(LanguageManager.retractLimit, "ShrinkLimit", RetractLimit, 0f, 3f);
+            ShrinkLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.retractLimit, "ShrinkLimit", RetractLimit, 0f, 3f);
             ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
 
 
