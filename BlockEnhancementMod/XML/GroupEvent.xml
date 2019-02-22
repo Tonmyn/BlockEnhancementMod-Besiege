@@ -1,0 +1,8 @@
+﻿ <Event>
+            <Name>Group Event</Name>
+            <ID>1</ID>
+            <Icon name="Group Icon" />
+            <Properties>
+              <Picker name="Picker" mode="Entity" />               
+            </Properties>
+ </Event>

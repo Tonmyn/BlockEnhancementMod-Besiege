@@ -57,8 +57,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RocketsController.cs" />
+    <Compile Include="EnhancementEntity\EnhancementEventsController.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\RocketsController.cs" />
     <Compile Include="EnhancementBlock\Blocks\CrossBow.cs" />
+    <Compile Include="EnhancementEntity\Entitise\Zone.cs" />
     <Compile Include="MessageController.cs" />
     <Compile Include="EnhancementBlock\Blocks\Camera.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
@@ -67,7 +69,6 @@
     <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
     <Compile Include="EnhancementBlock\Blocks\WaterCannon.cs" />
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\Tools.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
@@ -88,8 +89,10 @@
     <Compile Include="UI\ModSettingUI.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Group-Icon.png" />
     <Content Include="Resources\icon.png" />
-    <Content Include="Mod.xml" />
+    <Content Include="XML\GroupEvent.xml" />
+    <Content Include="XML\Mod.xml" />
     <Content Include="Resources\Square-Red.png" />
   </ItemGroup>
   <ItemGroup>
@@ -100,7 +103,7 @@
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\$(TargetName).dll"
 copy /Y "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\Resources\"
-copy /Y "$(ProjectDir)Mod.xml" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\Mod.xml"</PostBuildEvent>
+copy /Y "$(ProjectDir)XML\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>

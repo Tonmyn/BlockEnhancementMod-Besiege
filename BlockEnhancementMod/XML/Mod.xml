@@ -98,7 +98,7 @@ A block enhancementmod <!-- FIX: Insert a short description here. -->
 	<!-- Any logic event types your mod adds to the game. -->
 	<!-- See the ModEvents class for info on how to handle your events being activated. -->
 	<Events>
-		
+		<Event path="GroupEvent.xml"/>
 	</Events>
 	
 	<!-- Access these keys using the ModKeys class. -->
@@ -115,6 +115,7 @@ A block enhancementmod <!-- FIX: Insert a short description here. -->
 		<!-- <Mesh name="some-mesh-name" path="some_mesh_file.obj" /> -->
 		<!-- <Texture name="some-texture-name" path="some_texture_file.png" /> -->
     <Texture name="Mod Icon" path="icon.png" />
+    <Texture name="Group Icon" path="Group-Icon.png"/>
 	</Resources>
 
 
