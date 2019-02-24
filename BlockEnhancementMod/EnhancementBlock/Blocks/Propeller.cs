@@ -55,6 +55,7 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu.DisplayInMapper = value;
             EffectToggle.DisplayInMapper = value;
             ToggleToggle.DisplayInMapper = value;
+            LiftIndicatorToggle.DisplayInMapper = value;
         }
 
         private ConfigurableJoint CJ;
