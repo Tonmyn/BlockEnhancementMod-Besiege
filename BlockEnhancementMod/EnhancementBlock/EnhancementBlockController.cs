@@ -31,6 +31,15 @@ namespace BlockEnhancementMod
             Events.OnBlockInit += AddSliders;
         }
 
+        private void Update()
+        {
+            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                AddPiece.Instance.SetBlockType(BlockType.Unused3);
+                AddPiece.Instance.clickSound.Play();
+            }
+        }
+
         /// <summary>是否有进阶属性</summary>
         public static bool HasEnhancement(BlockBehaviour block)
         {

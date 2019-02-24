@@ -14,30 +14,11 @@ namespace BlockEnhancementMod
         public override string Name { get; } = "Mod Setting UI";
 
         public bool showGUI = true;
-
         public bool Friction = false;
-
         private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
-
         private readonly int windowID = ModUtility.GetWindowId();
 
-
         public Action<bool> OnFrictionToggle;
-
-        private void Awake()
-        {
-            OnFrictionToggle += FrictionToggle;
-        }
-
-        void Update()
-        {
-            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                AddPiece.Instance.SetBlockType(BlockType.Unused3);
-                AddPiece.Instance.clickSound.Play();
-            }
-        }   
-
         private void FrictionToggle(bool value)
         {
             PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
@@ -53,15 +34,27 @@ namespace BlockEnhancementMod
                 }
             }
         }
-   
+
+        private void Awake()
+        {
+            OnFrictionToggle += FrictionToggle;
+        }
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F8))
+            {
+                showGUI = !showGUI;
+            }       
+        }
+
+       
         private void OnGUI()
         {
             if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu)
             {
-                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.Instance.CurrentLanguage.modSettings);
+                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F8");
             }
         }
-
         private void EnhancedEnhancementWindow(int windowID)
         {
             GUILayout.BeginHorizontal();
