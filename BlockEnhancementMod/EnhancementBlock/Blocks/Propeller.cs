@@ -5,227 +5,134 @@ using System.Text;
 using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
-{   [Obsolete]
+{   
     class PropellerScript : EnhancementBlock
     {
-  
-
         MKey SwitchKey;
-
         MMenu HardnessMenu;
-
         MToggle EffectToggle;
+        MToggle ToggleToggle;
+        MToggle LiftIndicatorToggle;
 
         int Hardness = 1;
-
-        bool Effect = true;
+        bool Effect = true,Toggle = true,LiftIndicator = false;
 
         public override void SafeAwake()
         {
 
-            SwitchKey = new MKey("气动开关", "Switch", KeyCode.O);
+            SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.enabled, "Switch", KeyCode.O);
             SwitchKey.KeysChanged += ChangedProperties;
-            //CurrentMapperTypes.Add(SwitchKey);
 
-            HardnessMenu = new MMenu("", Hardness, WoodHardness, false);
+            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
-            //CurrentMapperTypes.Add(HardnessMenu);
 
-            EffectToggle = new MToggle("初始生效", "Effect", Effect);
+            EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enabledOnAwake, "Effect", Effect);
             EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
-            //CurrentMapperTypes.Add(EffectToggle);
 
+            ToggleToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.toggleMode, "Toggle Mode", Toggle);
+            ToggleToggle.Toggled += (value) => { Toggle = value; ChangedProperties(); };
+
+            LiftIndicatorToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.liftIndicator, "Lift Indicator", LiftIndicator);
+            LiftIndicatorToggle.Toggled += (value) => { LiftIndicator = value; ChangedProperties(); };
 
 #if DEBUG
-            //ConsoleController.ShowMessage("桨叶添加进阶属性");
+            ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
         }
 
-        /// <summary>
-        /// 是否是桨叶零件
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns>零件号</returns>
-        public static bool IsPropeller(int id)
+        private Dictionary<int, Vector3> Dic_AxisDrag = new Dictionary<int, Vector3>
         {
-            bool result;
-
-            switch (id)
-            {
-                case (int)BlockType.Propeller:
-                    result = true;
-                    break;
-
-                case (int)BlockType.SmallPropeller:
-                    result = true;
-                    break;
-                case 52:
-                    result = true;
-                    break;
-
-                default: result = false; break;
-            }
-            return result;
-
-        }
-
-        //public override void SaveConfiguration(MachineInfo mi)
-        //{
-        //    base.SaveConfiguration(mi);
-
-        //    foreach (var blockinfo in mi.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-
-        //            blockinfo.BlockData.Write("bmt-" + SwitchKey.Key, SwitchKey.Serialize().RawValue);
-
-        //            blockinfo.BlockData.Write("bmt-" + HardnessMenu.Key, HardnessMenu.Value);
-
-        //            blockinfo.BlockData.Write("bmt-" + EffectToggle.Key, EffectToggle.IsActive);
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void LoadConfiguration()
-        //{
-        //    base.LoadConfiguration();
-
-        //    if (Controller.MI == null)
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (var blockinfo in Controller.MI.Blocks)
-        //    {
-        //        if (blockinfo.Guid == BB.Guid)
-        //        {
-        //            XDataHolder bd = blockinfo.BlockData;
-
-        //            if (bd.HasKey("bmt-" + SwitchKey.Key))
-        //            {
-        //                string[] strs = bd.ReadStringArray("bmt-" + SwitchKey.Key);
-        //                foreach (string str in strs)
-        //                {
-        //                    SwitchKey.AddOrReplaceKey(Array.IndexOf(strs,str), (KeyCode)Enum.Parse(typeof(KeyCode), str, true));
-        //                }
-        //            }
-
-        //            if (bd.HasKey("bmt-" + HardnessMenu.Key)) { HardnessMenu.Value = Hardness = bd.ReadInt("bmt-" + HardnessMenu.Key); }
-
-        //            if (bd.HasKey("bmt-" + EffectToggle.Key)) { EffectToggle.IsActive = Effect = bd.ReadBool("bmt-" + EffectToggle.Key); }
-
-        //            break;
-        //        }
-
-        //    }
-        //}
-
-        //public override void ChangedPropertise()
-        //{
-        //    base.ChangedPropertise();
-        //    PS.Switch = Tools.Get_List_keycode(SwitchKey);
-        //    PS.Hardness = Hardness;
-        //    PS.Effect = Effect;
-            
-        //}
-
+            { (int)BlockType.Propeller,new Vector3(0,0.015f,0) },
+            { (int)BlockType.SmallPropeller,new Vector3(0,0.015f,0) },
+            { (int)BlockType.Unused3,new Vector3(0,0.015f,0)},
+            { (int)BlockType.Wing , new Vector3(0,0.04f,0) },
+            { (int)BlockType.WingPanel , new Vector3(0,0.02f,0) },
+        };
+     
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
             SwitchKey.DisplayInMapper = value;
             HardnessMenu.DisplayInMapper = value;
             EffectToggle.DisplayInMapper = value;
+            ToggleToggle.DisplayInMapper = value;
+            LiftIndicatorToggle.DisplayInMapper = value;
         }
 
-
-
-        //public List<KeyCode> Switch;
-
-        //public int Hardness;
-
-        //public bool Effect;
-
-        //private MKey SwitchKey;
-
         private ConfigurableJoint CJ;
-
-        //private AxialDrag AD;
-
-        //private PropellorController PC;
-
-        private GameObject liftObject;
-
-        private int MyId,i=0;
+        private LineRenderer LR;
+        private AxialDrag AD;
+        
+        private int MyId;
+        private Vector3 liftVector;
 
         public override void OnSimulateStart()
         {
             MyId = GetComponent<BlockVisualController>().ID;
-
-            //SwitchKey = GetKey(Switch);
             CJ = GetComponent<ConfigurableJoint>();
-            //AD = GetComponent<AxialDrag>();
-            //PC = GetComponent<PropellorController>();
-            Transform go;
-            while (liftObject == null)
-            {
-                if (gameObject.transform.GetChild(i) != null)
-                {
-                    go = gameObject.transform.GetChild(i++);
-                    if (go.name == "liftNormal")
-                    {
-                        liftObject = go.gameObject;
-                        ConsoleController.ShowMessage(liftObject.name);
-                        break;
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
+            AD = GetComponent<AxialDrag>();
 
-
-
-            //AD.enabled = Effect;
-            //PC.enabled = Effect;
-            //liftObject.SetActive(Effect);
-            if (!Effect)
-            {
-                Destroy(gameObject.transform.GetChild(i).gameObject);
-            }
-            
-            
-
+            SetVelocityCap(Effect);
+                
             SwitchWoodHardness(Hardness, CJ);
 
-        }
+            
+            if (LiftIndicator)
+            {
+                LR = GetComponent<LineRenderer>() ?? gameObject.AddComponent<LineRenderer>();
 
+                LR.useWorldSpace = true;
+                LR.SetVertexCount(2);
+                LR.material = new Material(Shader.Find("Particles/Additive"));
+                LR.SetColors(Color.red, Color.yellow);
+                LR.SetWidth(0.5f, 0.5f);
+                LR.enabled = true;
+            }
+            else
+            {
+                if (LR != null) Destroy(LR);          
+            }
+        }
         public override void SimulateUpdateEnhancementEnableAlways()
         {
 
             if (SwitchKey.IsPressed)
             {
+                Effect = !Effect;
+                SetVelocityCap(Effect);
+            }
 
-                ConsoleController.ShowMessage("propeller");
-                //AD.enabled = Effect = !Effect;
-                //PC.enabled = Effect = !Effect;
-
-                //Effect = !Effect;
-                //if (!Effect)
-                //{
-                //    Destroy(gameObject.transform.GetChild(i).gameObject);
-                //}
-                //else
-                //{
-                //    if(gameObject.transform.GetChild)
-                //}
+            if (!Toggle)
+            {
+                if (SwitchKey.IsReleased)
+                {
+                    Effect = !Effect;
+                    SetVelocityCap(Effect);
+                }
             }
 
 
+            if (LiftIndicator)
+            {
+                ////模拟速度向量转换到升力模块的坐标
+                //AD.xyz = Vector3.Scale(AD.Rigidbody.transform.InverseTransformDirection(SettingWindow.simulateVelocity_Vector), ad.AxisDrag);
+                ////计算模拟速度向量模的平方
+                //ad.currentVelocitySqr = Mathf.Min(SettingWindow.simulateVelocity_Vector.sqrMagnitude, GetComponent<BlockBehaviour>().GetBlockID() == (int)BlockType.Wing ? 100 : 900);
+                if (CJ != null)
+                {
+                    liftVector = AD.Rigidbody.transform.TransformVector(AD.xyz * AD.currentVelocitySqr);
+                    LR.SetPosition(0, transform.TransformPoint(AD.Rigidbody.centerOfMass));
+                    LR.SetPosition(1, transform.TransformPoint(AD.Rigidbody.centerOfMass) + liftVector);
+                }
+                else
+                {
+                    LR.enabled = false;
+                }
+            }          
+        }
+
+        private void SetVelocityCap(bool value)
+        {
+            AD.AxisDrag = (value == false) ? Vector3.zero : Dic_AxisDrag[MyId];
         }
     }
 }

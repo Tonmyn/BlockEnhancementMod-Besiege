@@ -25,10 +25,10 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, WoodHardness, false);
+            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.limit, "Limit", Limit, 0f, 2f);
+            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0f, 2f);
             LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
 
 #if DEBUG

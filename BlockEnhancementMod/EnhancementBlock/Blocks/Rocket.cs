@@ -66,7 +66,7 @@ namespace BlockEnhancementMod.Blocks
         MKey SwitchGuideModeKey;
         MMenu DefaultSearchModeMenu;
         private int searchModeIndex = 0;
-        public List<string> searchMode = new List<string>() { LanguageManager.defaultAuto, LanguageManager.defaultManual };
+        public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.defaultAuto, LanguageManager.Instance.CurrentLanguage.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 10;
         private readonly float safetyRadiusAuto = 50f;
@@ -126,7 +126,7 @@ namespace BlockEnhancementMod.Blocks
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
 
             //Key mapper setup
-            GuidedRocketToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingRocket", guidedRocketActivated);
+            GuidedRocketToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
@@ -145,28 +145,28 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
 
-            DefaultSearchModeMenu = BB.AddMenu(LanguageManager.searchMode, searchModeIndex, searchMode, false);
+            DefaultSearchModeMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.searchMode, searchModeIndex, searchMode, false);
             DefaultSearchModeMenu.ValueChanged += (int value) =>
             {
                 searchModeIndex = value;
                 ChangedProperties();
             };
 
-            AutoGrabberReleaseToggle = BB.AddToggle(LanguageManager.autoGrabberRelease, "AutoGrabberRelease", autoGrabberRelease);
+            AutoGrabberReleaseToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.autoGrabberRelease, "AutoGrabberRelease", autoGrabberRelease);
             AutoGrabberReleaseToggle.Toggled += (bool value) =>
             {
                 autoGrabberRelease = value;
                 ChangedProperties();
             };
 
-            ImpactFuzeToggle = BB.AddToggle(LanguageManager.impactFuze, "ImpactFuze", impactFuzeActivated);
+            ImpactFuzeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.impactFuze, "ImpactFuze", impactFuzeActivated);
             ImpactFuzeToggle.Toggled += (bool value) =>
             {
                 impactFuzeActivated = value;
                 ChangedProperties();
             };
 
-            ProximityFuzeToggle = BB.AddToggle(LanguageManager.proximityFuze, "ProximityFuze", proximityFuzeActivated);
+            ProximityFuzeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.proximityFuze, "ProximityFuze", proximityFuzeActivated);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
                 proximityFuzeActivated =
@@ -176,51 +176,51 @@ namespace BlockEnhancementMod.Blocks
                 ChangedProperties();
             };
 
-            NoSmokeToggle = BB.AddToggle(LanguageManager.noSmoke, "NoSmoke", noSmoke);
+            NoSmokeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.noSmoke, "NoSmoke", noSmoke);
             NoSmokeToggle.Toggled += (bool value) =>
             {
                 noSmoke = value;
                 ChangedProperties();
             };
 
-            HighExploToggle = BB.AddToggle(LanguageManager.highExplo, "HighExplo", highExploActivated);
+            HighExploToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.highExplo, "HighExplo", highExploActivated);
             HighExploToggle.Toggled += (bool value) =>
             {
                 highExploActivated = value;
                 ChangedProperties();
             };
 
-            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
+            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
 
-            GuidePredictionSlider = BB.AddSlider(LanguageManager.prediction, "prediction", prediction, 0, 50);
+            GuidePredictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.prediction, "prediction", prediction, 0, 50);
             GuidePredictionSlider.ValueChanged += (float value) => { prediction = value; ChangedProperties(); };
 
-            ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.closeRange, "closeRange", proximityRange, 0, 10);
+            ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
 
-            ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.closeAngle, "closeAngle", proximityAngle, 0, 90);
+            ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeAngle, "closeAngle", proximityAngle, 0, 90);
             ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
 
-            GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
+            GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
 
-            GuidedRocketStabilityToggle = BB.AddToggle(LanguageManager.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
+            GuidedRocketStabilityToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.rocketStability, "RocketStabilityOn", guidedRocketStabilityOn);
             GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
 
-            GuideDelaySlider = BB.AddSlider(LanguageManager.guideDelay, "guideDelay", guideDelay, 0, 2);
+            GuideDelaySlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.guideDelay, "guideDelay", guideDelay, 0, 2);
             GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
 
-            LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "lockTarget", KeyCode.Delete);
+            LockTargetKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.lockTarget, "lockTarget", KeyCode.Delete);
             LockTargetKey.InvokeKeysChanged();
 
-            GroupFireKey = BB.AddKey(LanguageManager.groupedFire, "groupFire", KeyCode.None);
+            GroupFireKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.groupedFire, "groupFire", KeyCode.None);
             GroupFireKey.InvokeKeysChanged();
 
-            GroupFireRateSlider = BB.AddSlider(LanguageManager.groupFireRate, "groupFireRate", groupFireRate, 0.1f, 1f);
+            GroupFireRateSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.groupFireRate, "groupFireRate", groupFireRate, 0.1f, 1f);
             GroupFireRateSlider.ValueChanged += (float value) => { groupFireRate = value; ChangedProperties(); };
 
-            SwitchGuideModeKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            SwitchGuideModeKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
             //Add reference to TimedRocket

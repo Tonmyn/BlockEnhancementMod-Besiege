@@ -24,6 +24,7 @@ namespace BlockEnhancementMod.Blocks
         public MSlider BulletDragSlider;
         public MToggle BulletTrailToggle;
         public MSlider BulletTrailLengthSlider;
+        public MSlider BulletDelayCollisionSlider;
         public MColourSlider BulletTrailColorSlider;
 
         public CanonBlock CB;
@@ -54,6 +55,7 @@ namespace BlockEnhancementMod.Blocks
             public Rigidbody rigidbody;
             public float Mass { get { return rigidbody.mass; } set { rigidbody.mass = Mathf.Clamp(value, 0.1f, value); } }
             public float Drag { get { return rigidbody.drag; } set { rigidbody.drag = value; } }
+            public float DelayCollision { get; set; }
 
             private TrailRenderer TrailRenderer;
             public bool TrailEnable { get { return TrailRenderer.enabled; } set { TrailRenderer.enabled = value; } }
@@ -73,6 +75,8 @@ namespace BlockEnhancementMod.Blocks
                 bulletObject.SetActive(false);
 
                 rigidbody = bulletObject.GetComponent<Rigidbody>();
+                rigidbody.detectCollisions = false;
+                bulletObject.GetComponent<Collider>().enabled = false;
                 TrailRenderer = bulletObject.GetComponent<TrailRenderer>() ?? bulletObject.AddComponent<TrailRenderer>();
                 TrailRenderer.autodestruct = false;
                 TrailRenderer.receiveShadows = false;
@@ -107,36 +111,39 @@ namespace BlockEnhancementMod.Blocks
             bullet = new Bullet(CB);
 
 
-            IntervalSlider = BB.AddSlider(LanguageManager.fireInterval, "Interval", Interval, intervalMin, 0.5f);
+            IntervalSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.fireInterval, "Interval", Interval, intervalMin, 0.5f);
             IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
 
-            RandomDelaySlider = BB.AddSlider(LanguageManager.randomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
+            RandomDelaySlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.randomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
             RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
 
-            KnockBackSpeedSlider = BB.AddSlider(LanguageManager.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
+            KnockBackSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
             KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
 
             #region 子弹控件初始化
 
-            BullerCustomBulletToggle = BB.AddToggle(LanguageManager.customBullet, "Bullet", false);
-            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper =BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
+            BullerCustomBulletToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.customBullet, "Bullet", false);
+            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper =BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = BulletDelayCollisionSlider.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
 
-            BulletInheritSizeToggle = BB.AddToggle(LanguageManager.inheritSize, "InheritSize", false);
+            BulletInheritSizeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.inheritSize, "InheritSize", false);
             BulletInheritSizeToggle.Toggled += (bool value) => { bullet.InheritSize = value; ChangedProperties(); };
 
-            BulletMassSlider = BB.AddSlider(LanguageManager.bulletMass, "BulletMass", 2f, 0.1f, 2f);
+            BulletMassSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletMass, "BulletMass", 2f, 0.1f, 2f);
             BulletMassSlider.ValueChanged += (float value) => { bullet.Mass = value; ChangedProperties(); };
 
-            BulletDragSlider = BB.AddSlider(LanguageManager.bulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
+            BulletDragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
             BulletDragSlider.ValueChanged += (float value) => { bullet.Drag = value; ChangedProperties(); };
 
-            BulletTrailToggle = BB.AddToggle(LanguageManager.trail, "Trail", false);
+            BulletDelayCollisionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
+            BulletDelayCollisionSlider.ValueChanged += (value) => { bullet.DelayCollision = value; ChangedProperties(); };
+
+            BulletTrailToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.trail, "Trail", false);
             BulletTrailToggle.Toggled += (bool value) => { bullet.TrailEnable = BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
 
-            BulletTrailLengthSlider = BB.AddSlider(LanguageManager.trailLength, "trail length", 1f, 0.2f, 2f);
+            BulletTrailLengthSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.trailLength, "trail length", 1f, 0.2f, 2f);
             BulletTrailLengthSlider.ValueChanged += (float value) => { bullet.TrailLength = value; ChangedProperties(); };
 
-            BulletTrailColorSlider = BB.AddColourSlider(LanguageManager.trailColor, "trail color", Color.yellow, false);
+            BulletTrailColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.trailColor, "trail color", Color.yellow, false);
             BulletTrailColorSlider.ValueChanged += (Color value) => { bullet.TrailColor = value; ChangedProperties(); };
 
             #endregion
@@ -157,6 +164,7 @@ namespace BlockEnhancementMod.Blocks
             BulletInheritSizeToggle.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletMassSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletDragSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
+            BulletDelayCollisionSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
             BulletTrailToggle.DisplayInMapper = value && bullet.Custom && !StatMaster.isMP;
             BulletTrailColorSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
             BulletTrailLengthSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
@@ -222,6 +230,7 @@ namespace BlockEnhancementMod.Blocks
                 bullet.Custom = BullerCustomBulletToggle.IsActive;
                 bullet.Mass = BulletMassSlider.Value;
                 bullet.Drag = BulletDragSlider.Value;
+                bullet.DelayCollision = BulletDelayCollisionSlider.Value;
                 bullet.InheritSize = BulletInheritSizeToggle.IsActive;
                 bullet.TrailEnable = BulletTrailToggle.IsActive;
                 bullet.TrailLength = BulletTrailLengthSlider.Value;
@@ -306,6 +315,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (bulletClone != null)
             {
+                bulletClone.AddComponent<DelayCollision>().Delay = bullet.DelayCollision;
                 bulletClone.SetActive(true);
                 bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
             }

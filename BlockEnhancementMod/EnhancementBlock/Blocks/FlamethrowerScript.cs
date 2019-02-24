@@ -26,9 +26,9 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            thrustForceSlider = BB.AddSlider(LanguageManager.thrustForce, "Thrust Force", ThrustForce, 0f, 5f);
+            thrustForceSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.thrustForce, "Thrust Force", ThrustForce, 0f, 5f);
             thrustForceSlider.ValueChanged += (float value) => { ThrustForce = value; ChangedProperties(); };           
-            flameColorSlider = BB.AddColourSlider(LanguageManager.flameColor, "Flame Color", FlameColor, false);
+            flameColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.flameColor, "Flame Color", FlameColor, false);
             flameColorSlider.ValueChanged += (Color value) => { FlameColor = value; ChangedProperties(); };
 
 #if DEBUG

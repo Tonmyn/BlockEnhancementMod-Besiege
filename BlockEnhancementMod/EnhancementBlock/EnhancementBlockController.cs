@@ -31,6 +31,15 @@ namespace BlockEnhancementMod
             Events.OnBlockInit += AddSliders;
         }
 
+        private void Update()
+        {
+            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                AddPiece.Instance.SetBlockType(BlockType.Unused3);
+                AddPiece.Instance.clickSound.Play();
+            }
+        }
+
         /// <summary>是否有进阶属性</summary>
         public static bool HasEnhancement(BlockBehaviour block)
         {
@@ -92,8 +101,11 @@ namespace BlockEnhancementMod
             {(int)BlockType.Decoupler,typeof(DecouplerScript) },
             {(int)BlockType.GripPad,typeof(GripPadScript) },
             {(int)BlockType.Piston,typeof(PistonScript) },
-            ////{(int)BlockType.Propeller,typeof(PropellerScript) },
-            ////{(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            {(int)BlockType.Propeller,typeof(PropellerScript) },
+            {(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            { (int)BlockType.Wing,typeof(PropellerScript)},
+            { (int)BlockType.WingPanel,typeof(PropellerScript)},
+            { (int)BlockType.Unused3,typeof(PropellerScript)},
             {(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
             ////{(int)BlockType.SpinningBlock,typeof(SpinningScript) },

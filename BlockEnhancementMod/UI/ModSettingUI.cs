@@ -14,30 +14,11 @@ namespace BlockEnhancementMod
         public override string Name { get; } = "Mod Setting UI";
 
         public bool showGUI = true;
-
         public bool Friction = false;
-
         private Rect windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
-
         private readonly int windowID = ModUtility.GetWindowId();
 
-
         public Action<bool> OnFrictionToggle;
-
-        private void Awake()
-        {
-            OnFrictionToggle += FrictionToggle;
-        }
-
-        void Update()
-        {
-            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                AddPiece.Instance.SetBlockType(BlockType.Unused3);
-                AddPiece.Instance.clickSound.Play();
-            }
-        }   
-
         private void FrictionToggle(bool value)
         {
             PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
@@ -53,15 +34,27 @@ namespace BlockEnhancementMod
                 }
             }
         }
-   
+
+        private void Awake()
+        {
+            OnFrictionToggle += FrictionToggle;
+        }
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
+            {
+                showGUI = !showGUI;
+            }       
+        }
+
+       
         private void OnGUI()
         {
             if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu)
             {
-                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.modSettings);
+                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F9");
             }
         }
-
         private void EnhancedEnhancementWindow(int windowID)
         {
             GUILayout.BeginHorizontal();
@@ -70,17 +63,17 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.additionalFunction);
+                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.additionalFunction);
 
-                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.unifiedFriction, "dahjksdhakjsd")))
+                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.unifiedFriction, "dahjksdhakjsd")))
                     {
                         Friction = !Friction;
                         OnFrictionToggle(Friction);
                     }
                 }
-                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.displayWarning);
-                RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.markTarget);
-                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.displayRocketCount);
+                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.displayWarning);
+                RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.markTarget);
+                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.displayRocketCount);
             }
             GUILayout.Space(2);
             GUILayout.EndVertical();
