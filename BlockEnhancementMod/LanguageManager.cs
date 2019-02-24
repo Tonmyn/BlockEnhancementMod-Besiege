@@ -540,7 +540,7 @@ namespace BlockEnhancementMod
         string enabled { get; }
         string enabledOnAwake { get; }
         string toggleMode { get; }
-
+        string liftIndicator { get; }
     }
 
     public class Chinese : ILanguage
@@ -713,6 +713,7 @@ namespace BlockEnhancementMod
         public string enabled { get; } = "气动开关";
         public string enabledOnAwake { get; } = "初始生效";
         public string toggleMode { get; } = "持续生效模式";
+        public string liftIndicator { get; } = "升力指示";
     }
 
     public class English : ILanguage
@@ -885,5 +886,6 @@ namespace BlockEnhancementMod
         public string enabled { get; } = "Switch";
         public string enabledOnAwake { get; } = "Enabled On Awake";
         public string toggleMode { get; } = "Toggle Mode";
+        public string liftIndicator { get; } = "Lift Indicator";
     }
 }
