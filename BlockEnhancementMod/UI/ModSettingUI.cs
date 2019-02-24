@@ -41,7 +41,7 @@ namespace BlockEnhancementMod
         }
         private void Update()
         {
-            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F8))
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
             {
                 showGUI = !showGUI;
             }       
@@ -52,7 +52,7 @@ namespace BlockEnhancementMod
         {
             if (showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu)
             {
-                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F8");
+                windowRect = GUILayout.Window(windowID, windowRect, new GUI.WindowFunction(EnhancedEnhancementWindow), LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F9");
             }
         }
         private void EnhancedEnhancementWindow(int windowID)
