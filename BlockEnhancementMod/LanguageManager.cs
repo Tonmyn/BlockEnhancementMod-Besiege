@@ -719,8 +719,8 @@ namespace BlockEnhancementMod
     public class English : ILanguage
     {
         //Game
-        public  string modSettings {get;}= "Enhancement Mod Settings";
-        public  string unifiedFriction {get;}= " Unified Friction";
+        public  string modSettings {get;}= "Enhancement Mod";
+        public  string unifiedFriction {get;}= "Unified Friction";
 
         //Enhancement Block
         public  string enhancement {get;}= "Enhancement";
