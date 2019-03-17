@@ -103,28 +103,28 @@ namespace BlockEnhancementMod
 
         public override bool ShouldShowGUI { get; set; } = true;
         public bool showGUI = true;
-        public bool Friction = false;
+        //public bool Friction = false;
 
-        public Action<bool> OnFrictionToggle;
-        private void FrictionToggle(bool value)
-        {
-            PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
+        //public Action<bool> OnFrictionToggle;
+        //private void FrictionToggle(bool value)
+        //{
+        //    PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
 
-            //设置地形的摩擦力合并方式
-            if (GameObject.Find("Terrain Terraced") != null)
-            {
-                foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
-                {
-                    v.sharedMaterial.frictionCombine = physicMaterialCombine;
-                    v.sharedMaterial.bounceCombine = physicMaterialCombine;
-                    break;
-                }
-            }
-        }
+        //    //设置地形的摩擦力合并方式
+        //    if (GameObject.Find("Terrain Terraced") != null)
+        //    {
+        //        foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
+        //        {
+        //            v.sharedMaterial.frictionCombine = physicMaterialCombine;
+        //            v.sharedMaterial.bounceCombine = physicMaterialCombine;
+        //            break;
+        //        }
+        //    }
+        //}
 
         public override void SafeAwake()
         {
-            OnFrictionToggle += FrictionToggle;
+            //OnFrictionToggle += FrictionToggle;
               
             windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
             windowName = LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F9";
@@ -165,11 +165,11 @@ namespace BlockEnhancementMod
                 {
                     EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.additionalFunction);
 
-                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.unifiedFriction)))
-                    {
-                        Friction = !Friction;
-                        OnFrictionToggle(Friction);
-                    }
+                    //if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.unifiedFriction)))
+                    //{
+                    //    Friction = !Friction;
+                    //    OnFrictionToggle(Friction);
+                    //}
                 }
                 RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.displayWarning);
                 RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.markTarget);
