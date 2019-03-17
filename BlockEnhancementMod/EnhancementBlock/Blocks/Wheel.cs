@@ -107,7 +107,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (EnhancementEnabled)
             {
-
+                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Minimum);
                 if (Collider)
                 {
                     //if (StatMaster.isMP && StatMaster.isClient) return;
@@ -126,7 +126,7 @@ namespace BlockEnhancementMod.Blocks
 
                     mCollider = WheelCollider.GetComponent<MeshCollider>();
                     mCollider.convex = true;
-                    mCollider.material = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Minimum);
+                    mCollider.material = wheelPhysicMaterial;
 
                     if (ShowCollider)
                     {
@@ -136,11 +136,10 @@ namespace BlockEnhancementMod.Blocks
 
                     PSaF pas = PSaF.GetPositionScaleAndFriction(ID);
 
-                    WheelCollider.transform.parent /*= mCollider.transform.parent*/ = transform;
-                    WheelCollider.transform.rotation /*= mCollider.transform.rotation*/ = transform.rotation;
-                    WheelCollider.transform.position /*= mCollider.transform.position*/ = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
-                    WheelCollider.transform.localScale /*= mCollider.transform.localScale*/ = pas.Scale;
-                    //WheelCollider.AddComponent<DestroyIfEditMode>();
+                    WheelCollider.transform.parent = transform;
+                    WheelCollider.transform.rotation = transform.rotation;
+                    WheelCollider.transform.position = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
+                    WheelCollider.transform.localScale = pas.Scale;
 
                 }
                 else
@@ -149,7 +148,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Minimum); }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
 
             }
             else
@@ -161,7 +160,6 @@ namespace BlockEnhancementMod.Blocks
 
                 Destroy(WheelCollider);
             }
-            foreach (Collider c in Colliders) { if (c.name == "CubeColliders") Debug.Log(c.GetComponent<BoxCollider>().material.dynamicFriction) ; }
         }
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)
