@@ -107,7 +107,7 @@ namespace BlockEnhancementMod.Blocks
 
             if (EnhancementEnabled)
             {
-                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Minimum);
+                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Maximum);
                 if (Collider)
                 {
                     //if (StatMaster.isMP && StatMaster.isClient) return;
@@ -182,19 +182,7 @@ namespace BlockEnhancementMod.Blocks
         }
         private static PhysicMaterial SetPhysicMaterial(PSaF pSaF)
         {
-            PhysicMaterial PM = new PhysicMaterial
-            {
-                //静摩擦力
-                staticFriction = pSaF.Friction,
-                //动摩擦力
-                dynamicFriction = pSaF.Friction,
-                //弹力
-                bounciness = pSaF.Bounciness,
-                //摩擦力组合
-                frictionCombine = PhysicMaterialCombine.Maximum,
-                //弹力组合
-                bounceCombine = PhysicMaterialCombine.Average
-            };
+            PhysicMaterial PM = SetPhysicMaterial(pSaF.Friction, pSaF.Bounciness, PhysicMaterialCombine.Maximum);
 
             return PM;
         }
