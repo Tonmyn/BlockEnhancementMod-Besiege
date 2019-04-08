@@ -23,6 +23,7 @@ namespace BlockEnhancementMod.Blocks
 
         static GameObject WheelColliderOrgin;
 
+
         public override void SafeAwake()
         {
             ID = GetComponent<BlockVisualController>().ID;
@@ -63,8 +64,8 @@ namespace BlockEnhancementMod.Blocks
         /// <summary>
         /// 是否是轮子零件
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns>零件号</returns>
+        /// <param name="id">零件号</param>
+        /// <returns></returns>
         public static bool IsWheel(int id)
         {
             bool result = false;
@@ -98,12 +99,15 @@ namespace BlockEnhancementMod.Blocks
 
         private MeshCollider mCollider;
 
+        private PhysicMaterial wheelPhysicMaterialOrgin;
+
         public GameObject WheelCollider;
 
         public override void ChangeParameter()
         {
 
             Colliders = GetComponentsInChildren<Collider>();
+            wheelPhysicMaterialOrgin = Colliders[0].material;
 
             if (EnhancementEnabled)
             {
@@ -156,7 +160,7 @@ namespace BlockEnhancementMod.Blocks
                 //启用原有碰撞
                 foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.enabled = true; }
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = SetPhysicMaterial(PSaF.GetPositionScaleAndFriction(ID)); }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = /*SetPhysicMaterial(PSaF.GetPositionScaleAndFriction(ID))*/wheelPhysicMaterialOrgin; }
 
                 Destroy(WheelCollider);
             }
