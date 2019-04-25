@@ -19,10 +19,6 @@ namespace BlockEnhancementMod
         /// <summary>进阶属性激活</summary>
         public bool EnhancementEnabled { get; set; } = false;
 
-        //internal static List<string> MetalHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.lowCarbonSteel, LanguageManager.Instance.CurrentLanguage.midCarbonSteel, LanguageManager.Instance.CurrentLanguage.highCarbonSteel };
-
-        //internal static List<string> WoodHardness = new List<string>() { LanguageManager.Instance.CurrentLanguage.softWood, LanguageManager.Instance.CurrentLanguage.midSoftWood, LanguageManager.Instance.CurrentLanguage.hardWood, LanguageManager.Instance.CurrentLanguage.veryHardWood };
-
         [Obsolete]
         /// <summary>模块数据加载事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataLoadEvent;
@@ -62,17 +58,18 @@ namespace BlockEnhancementMod
                 if (isFirstFrame)
                 {
                     isFirstFrame = false;
-                    if (EnhancementEnabled) { OnSimulateStart(); }
+                    if (EnhancementEnabled) { OnSimulateStart_EnhancementEnabled(); }
                     
-                    if (!StatMaster.isClient) { ChangeParameter(); }
+                    if (!StatMaster.isClient) { OnSimulateStart_Client(); }
+                    OnSimulateStart();
                 }
-                SimulateUpdateAlways();
+                SimulateUpdate();
 
                 if (!EnhancementEnabled) return;
 
-                if (StatMaster.isHosting) { SimulateUpdateHost(); }
-                if (StatMaster.isClient) { SimulateUpdateClient(); }
-                SimulateUpdateEnhancementEnableAlways();
+                if (StatMaster.isHosting) { SimulateUpdate_Host(); }
+                if (StatMaster.isClient) { SimulateUpdate_Client(); }
+                SimulateUpdate_EnhancementEnable();
             }
             else
             {
@@ -188,19 +185,20 @@ namespace BlockEnhancementMod
         /// 在模拟开始的第一帧 要做的事
         /// </summary>
         public virtual void OnSimulateStart() { }
+        public virtual void OnSimulateStart_EnhancementEnabled() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdateHost() { }
+        public virtual void SimulateUpdate_Host() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdateClient() { }
+        public virtual void SimulateUpdate_Client() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdateEnhancementEnableAlways() { }
-        public virtual void SimulateUpdateAlways() { }
+        public virtual void SimulateUpdate_EnhancementEnable() { }
+        public virtual void SimulateUpdate() { }
         /// <summary>
         /// 在模拟模式下的FixedUpdate
         /// </summary>
@@ -226,60 +224,168 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 参数改变（联机模拟时主机对模块的一些参数初始化）
         /// </summary>
-        public virtual void ChangeParameter() { }
+        public virtual void OnSimulateStart_Client() { }
 
 
-        /// <summary>
-        /// 设置金属硬度
-        /// </summary>
-        /// <param name="Hardness">硬度</param>
-        /// <param name="CJ">关节</param>
-        internal static void SwitchMatalHardness(int Hardness, ConfigurableJoint CJ)
+        ///// <summary>
+        ///// 设置金属硬度
+        ///// </summary>
+        ///// <param name="Hardness">硬度</param>
+        ///// <param name="CJ">关节</param>
+        //internal static void SwitchMatalHardness(int Hardness, ConfigurableJoint CJ)
+        //{
+        //    switch (Hardness)
+        //    {
+        //        case 1:
+        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
+        //            CJ.projectionAngle = 0.5f; break;
+        //        case 2:
+        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
+        //            CJ.projectionAngle = 0; break;
+        //        default:
+        //            CJ.projectionMode = JointProjectionMode.None; break;
+
+        //    }
+        //}
+        ///// <summary>
+        ///// 设置木头硬度
+        ///// </summary>
+        ///// <param name="Hardness">硬度</param>
+        ///// <param name="CJ">关节</param>
+        //internal static void SwitchWoodHardness(int Hardness, ConfigurableJoint CJ)
+        //{
+        //    switch (Hardness)
+        //    {
+        //        case 0:
+        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
+        //            CJ.projectionAngle = 10f;
+        //            CJ.projectionDistance = 5; break;
+        //        case 2:
+        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
+        //            CJ.projectionAngle = 5f;
+        //            CJ.projectionDistance = 2.5f; break;
+        //        case 3:
+        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
+        //            CJ.projectionAngle = 0f;
+        //            CJ.projectionDistance = 0; break;
+        //        default:
+        //            CJ.projectionMode = JointProjectionMode.None;
+        //            CJ.projectionDistance = 0;
+        //            CJ.projectionAngle = 0; break;
+
+        //    }
+
+        //}
+
+        public struct Hardness
         {
-            switch (Hardness)
-            {
-                case 1:
-                    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 0.5f; break;
-                case 2:
-                    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 0; break;
-                default:
-                    CJ.projectionMode = JointProjectionMode.None; break;
+            JointProjectionMode projectionMode;
+            float projectionAngle;
+            float projectionDistance;
 
+            Material material;
+
+            public Hardness(JointProjectionMode mode, float angle, float distance, Material material = Material.None)
+            {
+                projectionMode = mode;
+                projectionAngle = angle;
+                projectionDistance = distance;
+
+                this.material = material;
+            }
+            public Hardness(ConfigurableJoint joint, Material material = Material.None)
+            {
+                projectionMode = joint.projectionMode;
+                projectionAngle = joint.projectionAngle;
+                projectionDistance = joint.projectionDistance;
+
+                this.material = material;
+            }
+
+            public ConfigurableJoint toConfigurableJoint(ConfigurableJoint joint)
+            {
+                joint.projectionMode = projectionMode;
+                joint.projectionAngle = projectionAngle;
+                joint.projectionDistance = projectionDistance;
+
+                return joint;
+            }
+
+            public enum Material
+            {
+                LowCarbonSteel, MedianSoftWood = 0,
+                MidCarbonSteel = 1,
+                HighCarbonSteel = 2,
+                SoftWood = 3,
+                HardWood = 4,
+                VeryHardWood = 5,
+                None = 6,
+            }
+
+            public static Hardness SwitchHardness(int index)
+            {
+                var hardness = new Hardness();
+
+                switch (index)
+                {
+                    case 1:
+                        hardness.projectionMode = JointProjectionMode.PositionAndRotation;
+                        hardness.projectionAngle = 0.5f; break;
+                    case 2:
+                        hardness.projectionMode = JointProjectionMode.PositionAndRotation;
+                        hardness.projectionAngle = 0; break;
+                    case 3:
+                        hardness.projectionMode = JointProjectionMode.PositionAndRotation;
+                        hardness.projectionAngle = 10f;
+                        hardness.projectionDistance = 5; break;
+                    case 4:
+                        hardness.projectionMode = JointProjectionMode.PositionAndRotation;
+                        hardness.projectionAngle = 5f;
+                        hardness.projectionDistance = 2.5f; break;
+                    case 5:
+                        hardness.projectionMode = JointProjectionMode.PositionAndRotation;
+                        hardness.projectionAngle = 0f;
+                        hardness.projectionDistance = 0; break;
+                    default:
+                        hardness.projectionMode = JointProjectionMode.None; break;
+                }
+                return hardness;
+            }
+            public static Hardness GetOrginHardness(ConfigurableJoint joint)
+            {
+                return new Hardness(joint.projectionMode, joint.projectionAngle, joint.projectionDistance);
+            }
+            public static ConfigurableJoint SwitchWoodHardness(int index, ConfigurableJoint joint)
+            {
+                switch (index)
+                {
+                    case 0:
+                        return SwitchHardness(index + 3).toConfigurableJoint(joint);
+                    case 2:
+                        return SwitchHardness(index + 2).toConfigurableJoint(joint);
+                    case 3:
+                        return SwitchHardness(index + 2).toConfigurableJoint(joint);
+                    default:
+                        return GetOrginHardness(joint).toConfigurableJoint(joint);
+                }
+            }
+            public static ConfigurableJoint SwitchMetalHardness(int index, ConfigurableJoint joint)
+            {
+                switch (index)
+                {
+                    case 1:
+                        return SwitchHardness(index).toConfigurableJoint(joint);
+                    case 2:
+                        return SwitchHardness(index).toConfigurableJoint(joint);
+                    default:
+                        return GetOrginHardness(joint).toConfigurableJoint(joint);
+                }
             }
         }
-        /// <summary>
-        /// 设置木头硬度
-        /// </summary>
-        /// <param name="Hardness">硬度</param>
-        /// <param name="CJ">关节</param>
-        internal static void SwitchWoodHardness(int Hardness, ConfigurableJoint CJ)
-        {
-            switch (Hardness)
-            {
-                case 0:
-                    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 10f;
-                    CJ.projectionDistance = 5; break;
-                case 2:
-                    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 5f;
-                    CJ.projectionDistance = 2.5f; break;
-                case 3:
-                    CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-                    CJ.projectionAngle = 0f;
-                    CJ.projectionDistance = 0; break;
-                default:
-                    CJ.projectionMode = JointProjectionMode.None;
-                    CJ.projectionDistance = 0;
-                    CJ.projectionAngle = 0; break;
 
-            }
 
-        }
-      
     }
 
+   
 }
 

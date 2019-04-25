@@ -14,8 +14,8 @@ namespace BlockEnhancementMod
         MMenu HardnessMenu;
         MSlider LimitSlider;
 
-        public int Hardness = 0;
-        private int orginHardness = 0;
+        public int HardnessIndex = 0;
+        private int orginHardnessIndex = 0;
         public float Limit = 1.1f;
         private float orginLimit = 1.1f;
 
@@ -25,8 +25,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
+            HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
             LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, orginLimit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
@@ -42,15 +42,15 @@ namespace BlockEnhancementMod
             LimitSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
             SC = GetComponent<SliderCompress>();
             CJ = GetComponent<ConfigurableJoint>();
 
-            if (!EnhancementEnabled) { Hardness = orginHardness; Limit = orginLimit; }
+            if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
             SC.newLimit = Limit * FlipToSign(SC.Flipped);
-            SwitchMatalHardness(Hardness, CJ);
+            Hardness.SwitchMetalHardness(HardnessIndex, CJ);
 
             int FlipToSign(bool value) { return value == true ? 1 : -1; }
         }   

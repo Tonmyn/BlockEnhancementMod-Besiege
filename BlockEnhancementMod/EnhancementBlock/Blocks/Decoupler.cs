@@ -41,20 +41,21 @@ namespace BlockEnhancementMod.Blocks
             ExplodeTorqueSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
-        {
-            EB = GetComponent<ExplosiveBolt>();
-
-            if (!EnhancementEnabled)
+        public override void OnSimulateStart_Client()
+        {         
+            if (EnhancementEnabled)
             {
-                ExplodeForce = orginExplodeForce;
-                ExplodeTorque = orginExplodeTorque;
+                EB = GetComponent<ExplosiveBolt>();
+
+                //if (!EnhancementEnabled)
+                //{
+                //    ExplodeForce = orginExplodeForce;
+                //    ExplodeTorque = orginExplodeTorque;
+                //}
+
+                EB.explodePower = ExplodeForce;
+                EB.explodeTorquePower = ExplodeTorque;
             }
-
-            EB.explodePower = ExplodeForce;
-            EB.explodeTorquePower = ExplodeTorque;
-
-
         }  
     }
 

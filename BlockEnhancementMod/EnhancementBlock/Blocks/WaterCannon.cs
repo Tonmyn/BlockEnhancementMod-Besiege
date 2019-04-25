@@ -31,7 +31,7 @@ namespace BlockEnhancementMod
             BoilingToggle.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
             WCC = GetComponent<WaterCannonController>();
             BVC = GetComponent<BlockVisualController>();
@@ -41,7 +41,7 @@ namespace BlockEnhancementMod
   
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 

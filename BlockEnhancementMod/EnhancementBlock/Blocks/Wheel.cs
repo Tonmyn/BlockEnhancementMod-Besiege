@@ -91,19 +91,15 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        Collider[] Colliders;
-
+        private Collider[] Colliders;
         private MeshFilter mFilter;
-
         private MeshRenderer mRenderer;
-
         private MeshCollider mCollider;
-
         private PhysicMaterial wheelPhysicMaterialOrgin;
 
         public GameObject WheelCollider;
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
 
             Colliders = GetComponentsInChildren<Collider>();
@@ -111,10 +107,9 @@ namespace BlockEnhancementMod.Blocks
 
             if (EnhancementEnabled)
             {
-                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Maximum);
+                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Average);
                 if (Collider)
                 {
-                    //if (StatMaster.isMP && StatMaster.isClient) return;
                     if (WheelCollider != null) return;
 
                     //禁用原有碰撞
@@ -158,9 +153,9 @@ namespace BlockEnhancementMod.Blocks
             else
             {
                 //启用原有碰撞
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.enabled = true; }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = false; }
                 //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = /*SetPhysicMaterial(PSaF.GetPositionScaleAndFriction(ID))*/wheelPhysicMaterialOrgin; }
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterialOrgin; }
 
                 Destroy(WheelCollider);
             }

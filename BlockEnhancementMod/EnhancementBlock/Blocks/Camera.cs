@@ -165,7 +165,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
             firstPerson = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson;
 
@@ -212,7 +212,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {

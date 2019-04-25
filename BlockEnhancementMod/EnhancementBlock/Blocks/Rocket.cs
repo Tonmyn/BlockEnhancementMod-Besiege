@@ -295,7 +295,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
             smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
             aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
@@ -350,7 +350,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             if (gameObject.activeInHierarchy)
             {

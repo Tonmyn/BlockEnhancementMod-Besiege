@@ -15,9 +15,9 @@ namespace BlockEnhancementMod.Blocks
         MMenu HardnessMenu;
 
         public float Friction = 1000;
-        public int Hardness = 1;
+        public int HardnessIndex = 1;
         private float orginFriction = 1000;
-        private int orginHardness = 1;
+        private int orginHardnessIndex = 1;
 
         private ConfigurableJoint CJ;
         private Collider[] colliders;
@@ -25,8 +25,8 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.friction, "Friction", Friction, 0f, 1000f);
             FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
@@ -45,7 +45,7 @@ namespace BlockEnhancementMod.Blocks
             FrictionSlider.DisplayInMapper = value;
         }
        
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
             colliders = GetComponentsInChildren<Collider>();
             CJ = GetComponent<ConfigurableJoint>();
@@ -53,7 +53,7 @@ namespace BlockEnhancementMod.Blocks
             if (!EnhancementEnabled)
             {
                 Friction = orginFriction;
-                Hardness = orginHardness;
+                HardnessIndex = orginHardnessIndex;
             }
 
             foreach (Collider c in colliders)
@@ -66,8 +66,7 @@ namespace BlockEnhancementMod.Blocks
                 }
 
             }
-
-            SwitchWoodHardness(Hardness, CJ);
+            Hardness.SwitchWoodHardness(HardnessIndex, CJ);
         }
     }
 

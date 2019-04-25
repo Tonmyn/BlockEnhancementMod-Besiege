@@ -35,22 +35,23 @@ namespace BlockEnhancementMod
             RotationToggle.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
-            CJ = GetComponent<ConfigurableJoint>();
-
-            if (!EnhancementEnabled) { Rotation = orginRotation; }
-
-            if (Rotation)
+            if (EnhancementEnabled)
             {
-                CJ.angularYMotion = ConfigurableJointMotion.Locked;
-                CJ.breakTorque = Mathf.Infinity;
-            }
-            else
-            {
-                CJ.angularYMotion = ConfigurableJointMotion.Free;
-                CJ.breakTorque = orginBreakTorque;
-            }
+                CJ = GetComponent<ConfigurableJoint>();
+
+                if (Rotation)
+                {
+                    CJ.angularYMotion = ConfigurableJointMotion.Locked;
+                    CJ.breakTorque = Mathf.Infinity;
+                }
+                else
+                {
+                    CJ.angularYMotion = ConfigurableJointMotion.Free;
+                    CJ.breakTorque = orginBreakTorque;
+                }
+            }        
         }
     }
 

@@ -171,7 +171,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
 
             BulletInit();
@@ -261,7 +261,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdateAlways()
+        public override void SimulateUpdate()
         {
             if (StatMaster.isClient) return;
 

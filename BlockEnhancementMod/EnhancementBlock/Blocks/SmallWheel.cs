@@ -36,7 +36,7 @@ namespace BlockEnhancementMod
             SpeedSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
             SW = GetComponent<SmallWheel>();
 

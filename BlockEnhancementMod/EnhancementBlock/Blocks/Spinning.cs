@@ -126,7 +126,7 @@ namespace BlockEnhancementMod
 
         //public float Lerp;
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
 
             //RotationKey = GetKey(Rotation);
@@ -147,7 +147,7 @@ namespace BlockEnhancementMod
 
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             MotorFreezeRotation(RotationKey.IsDown);
         }

@@ -14,7 +14,7 @@ namespace BlockEnhancementMod.Blocks
         MToggle ToggleToggle;
         MToggle LiftIndicatorToggle;
 
-        int Hardness = 1;
+        int HardnessIndex = 1;
         bool Effect = true,Toggle = true,LiftIndicator = false;
 
         public override void SafeAwake()
@@ -23,8 +23,8 @@ namespace BlockEnhancementMod.Blocks
             SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.enabled, "Switch", KeyCode.O);
             SwitchKey.KeysChanged += ChangedProperties;
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enabledOnAwake, "Effect", Effect);
             EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
@@ -38,16 +38,7 @@ namespace BlockEnhancementMod.Blocks
 #if DEBUG
             ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
-        }
-
-        private Dictionary<int, Vector3> Dic_AxisDrag = new Dictionary<int, Vector3>
-        {
-            { (int)BlockType.Propeller,new Vector3(0,0.015f,0) },
-            { (int)BlockType.SmallPropeller,new Vector3(0,0.015f,0) },
-            { (int)BlockType.Unused3,new Vector3(0,0.015f,0)},
-            { (int)BlockType.Wing , new Vector3(0,0.04f,0) },
-            { (int)BlockType.WingPanel , new Vector3(0,0.02f,0) },
-        };
+        } 
      
         public override void DisplayInMapper(bool value)
         {
@@ -62,18 +53,19 @@ namespace BlockEnhancementMod.Blocks
         private LineRenderer LR;
         private AxialDrag AD;
         
-        private int MyId;
         private Vector3 liftVector;
+        private Vector3 axisDragOrgin;
 
-        public override void OnSimulateStart()
-        {
-            MyId = GetComponent<BlockVisualController>().ID;
+        public override void OnSimulateStart_EnhancementEnabled()
+        { 
+
             CJ = GetComponent<ConfigurableJoint>();
             AD = GetComponent<AxialDrag>();
+            axisDragOrgin = AD.AxisDrag;
 
             SetVelocityCap(Effect);
                 
-            SwitchWoodHardness(Hardness, CJ);
+            Hardness.SwitchWoodHardness(HardnessIndex, CJ);
 
             
             if (LiftIndicator)
@@ -92,7 +84,7 @@ namespace BlockEnhancementMod.Blocks
                 if (LR != null) Destroy(LR);          
             }
         }
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
 
             if (SwitchKey.IsPressed)
@@ -132,7 +124,7 @@ namespace BlockEnhancementMod.Blocks
 
         private void SetVelocityCap(bool value)
         {
-            AD.AxisDrag = (value == false) ? Vector3.zero : Dic_AxisDrag[MyId];
+            AD.AxisDrag = (value == false) ? Vector3.zero : axisDragOrgin;
         }
     }
 }

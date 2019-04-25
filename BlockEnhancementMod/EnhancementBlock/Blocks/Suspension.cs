@@ -21,14 +21,14 @@ namespace BlockEnhancementMod
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
 
-        public int Hardness = 0;
+        public int HardnessIndex = 0;
         public bool Hydraulic = false;
         public bool R2C = false;
         public float Feed = 0.5f;
         public float ExtendLimit = 1f;
         public float RetractLimit = 1f;
 
-        private int orginHardness = 0;
+        private int orginHardnessIndex = 0;
         private float orginLimit = 1;
 
         ConfigurableJoint CJ;
@@ -37,8 +37,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.extend, "Extend", KeyCode.E);
             ShrinkKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.retract, "Shrink", KeyCode.F);           
@@ -78,7 +78,7 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
 
             CJ = GetComponent<ConfigurableJoint>();
@@ -88,7 +88,7 @@ namespace BlockEnhancementMod
 
             if (!EnhancementEnabled)
             {
-                Hardness = orginHardness;
+                HardnessIndex = orginHardnessIndex;
 
                 limit = orginLimit;
             }
@@ -97,11 +97,11 @@ namespace BlockEnhancementMod
             SJlimit.limit = limit;
             CJ.linearLimit = SJlimit;
 
-            SwitchMatalHardness(Hardness, CJ);
+            Hardness.SwitchMetalHardness(HardnessIndex, CJ);
 
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 

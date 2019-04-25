@@ -54,7 +54,7 @@ namespace BlockEnhancementMod
             NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
 
             rigidbody = GetComponent<Rigidbody>();
@@ -62,7 +62,7 @@ namespace BlockEnhancementMod
             if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdate_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 

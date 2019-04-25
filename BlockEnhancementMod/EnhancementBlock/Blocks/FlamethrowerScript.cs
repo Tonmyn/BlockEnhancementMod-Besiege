@@ -42,7 +42,7 @@ namespace BlockEnhancementMod
             flameColorSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
             flamethrowerController = GetComponent<FlamethrowerController>();
             rigidbody = GetComponent<Rigidbody>();

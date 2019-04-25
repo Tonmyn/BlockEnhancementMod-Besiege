@@ -34,7 +34,7 @@ namespace BlockEnhancementMod.Blocks
             DragSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStart_Client()
         {
 
             A = GameObject.Find("A").GetComponent<Rigidbody>();
