@@ -15,9 +15,9 @@ namespace BlockEnhancementMod
         MSlider LimitSlider;
 
         public int HardnessIndex = 0;
-        private int orginHardnessIndex = 0;
+        //private int orginHardnessIndex = 0;
         public float Limit = 1.1f;
-        private float orginLimit = 1.1f;
+        //private float orginLimit = 1.1f;
 
         private SliderCompress SC;
         private ConfigurableJoint CJ;
@@ -28,7 +28,7 @@ namespace BlockEnhancementMod
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
             HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, orginLimit);
+            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, Limit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
 #if DEBUG
@@ -42,17 +42,20 @@ namespace BlockEnhancementMod
             LimitSlider.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
-            SC = GetComponent<SliderCompress>();
-            CJ = GetComponent<ConfigurableJoint>();
+            if (EnhancementEnabled)
+            {
+                SC = GetComponent<SliderCompress>();
+                CJ = GetComponent<ConfigurableJoint>();
 
-            if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
+                //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
-            SC.newLimit = Limit * FlipToSign(SC.Flipped);
-            Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+                SC.newLimit = Limit * FlipToSign(SC.Flipped);
+                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
 
-            int FlipToSign(bool value) { return value == true ? 1 : -1; }
+                int FlipToSign(bool value) { return value == true ? 1 : -1; }
+            }     
         }   
     }
 }

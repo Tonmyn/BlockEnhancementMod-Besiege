@@ -16,8 +16,6 @@ namespace BlockEnhancementMod.Blocks
 
         public float Friction = 1000;
         public int HardnessIndex = 1;
-        private float orginFriction = 1000;
-        private int orginHardnessIndex = 1;
 
         private ConfigurableJoint CJ;
         private Collider[] colliders;
@@ -40,33 +38,28 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
             FrictionSlider.DisplayInMapper = value;
         }
        
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
-            colliders = GetComponentsInChildren<Collider>();
-            CJ = GetComponent<ConfigurableJoint>();
-
-            if (!EnhancementEnabled)
+            if (EnhancementEnabled)
             {
-                Friction = orginFriction;
-                HardnessIndex = orginHardnessIndex;
-            }
+                colliders = GetComponentsInChildren<Collider>();
+                CJ = GetComponent<ConfigurableJoint>();
 
-            foreach (Collider c in colliders)
-            {
-                if (c.name == "Collider")
+                foreach (Collider c in colliders)
                 {
-                    c.material.staticFriction = c.material.dynamicFriction = Friction;
+                    if (c.name == "Collider")
+                    {
+                        c.material.staticFriction = c.material.dynamicFriction = Friction;
 
-                    break;
+                        break;
+                    }
                 }
-
-            }
-            Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+            }        
         }
     }
 

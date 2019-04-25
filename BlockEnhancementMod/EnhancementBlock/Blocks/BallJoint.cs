@@ -13,10 +13,10 @@ namespace BlockEnhancementMod
 
         public MToggle RotationToggle;
         public bool Rotation = false;
-        private bool orginRotation = false;
+        //private bool orginRotation = false;
 
         private ConfigurableJoint CJ;
-        private float orginBreakTorque = 18000;
+        //private float orginBreakTorque = 18000;
 
         public override void SafeAwake()
         {
@@ -35,7 +35,7 @@ namespace BlockEnhancementMod
             RotationToggle.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
             {
@@ -46,11 +46,11 @@ namespace BlockEnhancementMod
                     CJ.angularYMotion = ConfigurableJointMotion.Locked;
                     CJ.breakTorque = Mathf.Infinity;
                 }
-                else
-                {
-                    CJ.angularYMotion = ConfigurableJointMotion.Free;
-                    CJ.breakTorque = orginBreakTorque;
-                }
+                //else
+                //{
+                //    CJ.angularYMotion = ConfigurableJointMotion.Free;
+                //    CJ.breakTorque = orginBreakTorque;
+                //}
             }        
         }
     }

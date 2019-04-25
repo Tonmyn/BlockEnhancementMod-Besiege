@@ -56,36 +56,38 @@ namespace BlockEnhancementMod.Blocks
         private Vector3 liftVector;
         private Vector3 axisDragOrgin;
 
-        public override void OnSimulateStart_EnhancementEnabled()
-        { 
-
-            CJ = GetComponent<ConfigurableJoint>();
-            AD = GetComponent<AxialDrag>();
-            axisDragOrgin = AD.AxisDrag;
-
-            SetVelocityCap(Effect);
-                
-            Hardness.SwitchWoodHardness(HardnessIndex, CJ);
-
-            
-            if (LiftIndicator)
-            {
-                LR = GetComponent<LineRenderer>() ?? gameObject.AddComponent<LineRenderer>();
-
-                LR.useWorldSpace = true;
-                LR.SetVertexCount(2);
-                LR.material = new Material(Shader.Find("Particles/Additive"));
-                LR.SetColors(Color.red, Color.yellow);
-                LR.SetWidth(0.5f, 0.5f);
-                LR.enabled = true;
-            }
-            else
-            {
-                if (LR != null) Destroy(LR);          
-            }
-        }
-        public override void SimulateUpdate_EnhancementEnable()
+        public override void OnSimulateStartClient()
         {
+            if (EnhancementEnabled)
+            {
+                CJ = GetComponent<ConfigurableJoint>();
+                AD = GetComponent<AxialDrag>();
+                axisDragOrgin = AD.AxisDrag;
+
+                SetVelocityCap(Effect);
+
+                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+
+                if (LiftIndicator)
+                {
+                    LR = GetComponent<LineRenderer>() ?? gameObject.AddComponent<LineRenderer>();
+
+                    LR.useWorldSpace = true;
+                    LR.SetVertexCount(2);
+                    LR.material = new Material(Shader.Find("Particles/Additive"));
+                    LR.SetColors(Color.red, Color.yellow);
+                    LR.SetWidth(0.5f, 0.5f);
+                    LR.enabled = true;
+                }
+                else
+                {
+                    if (LR != null) Destroy(LR);
+                }
+            }        
+        }
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            if (StatMaster.isClient) return;
 
             if (SwitchKey.IsPressed)
             {
@@ -101,7 +103,6 @@ namespace BlockEnhancementMod.Blocks
                     SetVelocityCap(Effect);
                 }
             }
-
 
             if (LiftIndicator)
             {

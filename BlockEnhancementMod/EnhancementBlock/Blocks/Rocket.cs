@@ -255,7 +255,7 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
 
-        public override void BuildingUpdate()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
             if (!rocketInBuildSent)
             {
@@ -350,7 +350,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdate_EnhancementEnable()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -468,7 +468,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -721,7 +721,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateLateUpdateAlways()
+        public override void SimulateLateUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {

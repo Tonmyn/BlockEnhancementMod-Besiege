@@ -9,7 +9,7 @@ namespace BlockEnhancementMod
     {
         MToggle BoilingToggle;
         public bool Boiling = false;
-        private bool orginBoiling = false;
+        //private bool orginBoiling = false;
 
         WaterCannonController WCC;
         BlockVisualController BVC;
@@ -31,17 +31,19 @@ namespace BlockEnhancementMod
             BoilingToggle.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
-            WCC = GetComponent<WaterCannonController>();
-            BVC = GetComponent<BlockVisualController>();
-            FT = GetComponent<FireTag>();
+            if (EnhancementEnabled)
+            {
+                WCC = GetComponent<WaterCannonController>();
+                BVC = GetComponent<BlockVisualController>();
+                FT = GetComponent<FireTag>();
 
-            if (!EnhancementEnabled) { Boiling = orginBoiling; }
-  
+                //if (!EnhancementEnabled) { Boiling = orginBoiling; }
+            } 
         }
 
-        public override void SimulateUpdate_EnhancementEnable()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 

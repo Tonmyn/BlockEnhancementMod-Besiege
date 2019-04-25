@@ -171,7 +171,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
 
             BulletInit();
@@ -239,7 +239,7 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void BuildingUpdate()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
             if (!EnhanceMore && StatMaster.isMP)
             {
@@ -261,7 +261,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdate()
+        public override void SimulateUpdateAlways()
         {
             if (StatMaster.isClient) return;
 

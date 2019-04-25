@@ -19,7 +19,7 @@ namespace BlockEnhancementMod
 
         public bool ReturnToCenter = false;
         public bool Near = true;
-        private bool orginReturnToCenter = false;
+        //private bool orginReturnToCenter = false;
 
 
 
@@ -54,15 +54,18 @@ namespace BlockEnhancementMod
             NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
+            if (EnhancementEnabled)
+            {
+                rigidbody = GetComponent<Rigidbody>();
 
-            rigidbody = GetComponent<Rigidbody>();
-
-            if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
+                //if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
+            }
+          
         }
 
-        public override void SimulateUpdate_EnhancementEnable()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 

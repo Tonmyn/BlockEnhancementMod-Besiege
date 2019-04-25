@@ -28,8 +28,8 @@ namespace BlockEnhancementMod
         public float ExtendLimit = 1f;
         public float RetractLimit = 1f;
 
-        private int orginHardnessIndex = 0;
-        private float orginLimit = 1;
+        //private int orginHardnessIndex = 0;
+        //private float orginLimit = 1;
 
         ConfigurableJoint CJ;
         Rigidbody RB;
@@ -78,30 +78,31 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
-
-            CJ = GetComponent<ConfigurableJoint>();
-            RB = GetComponent<Rigidbody>();
-
-            float limit = Mathf.Max(ExtendLimit, RetractLimit);
-
-            if (!EnhancementEnabled)
+            if (EnhancementEnabled)
             {
-                HardnessIndex = orginHardnessIndex;
+                CJ = GetComponent<ConfigurableJoint>();
+                RB = GetComponent<Rigidbody>();
 
-                limit = orginLimit;
-            }
+                float limit = Mathf.Max(ExtendLimit, RetractLimit);
 
-            SoftJointLimit SJlimit = CJ.linearLimit;
-            SJlimit.limit = limit;
-            CJ.linearLimit = SJlimit;
+                //if (!EnhancementEnabled)
+                //{
+                //    HardnessIndex = orginHardnessIndex;
 
-            Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+                //    limit = orginLimit;
+                //}
 
+                SoftJointLimit SJlimit = CJ.linearLimit;
+                SJlimit.limit = limit;
+                CJ.linearLimit = SJlimit;
+
+                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+            }        
         }
 
-        public override void SimulateUpdate_EnhancementEnable()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 
@@ -137,13 +138,13 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-        }
 
-        public void SuspensionMoveTowards(float target,float feed,float delta = 0.005f)
-        {
-            RB.WakeUp();
-            CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
-        }
+            void SuspensionMoveTowards(float target, float feed, float delta = 0.005f)
+            {
+                RB.WakeUp();
+                CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
+            }
+        }   
     }
 
   

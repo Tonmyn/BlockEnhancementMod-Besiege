@@ -60,20 +60,20 @@ namespace BlockEnhancementMod
                     isFirstFrame = false;
                     if (EnhancementEnabled) { OnSimulateStart_EnhancementEnabled(); }
                     
-                    if (!StatMaster.isClient) { OnSimulateStart_Client(); }
-                    OnSimulateStart();
+                    if (!StatMaster.isClient) { OnSimulateStartClient(); }
+                    OnSimulateStartAlways();
                 }
-                SimulateUpdate();
+                SimulateUpdateAlways();
 
                 if (!EnhancementEnabled) return;
 
-                if (StatMaster.isHosting) { SimulateUpdate_Host(); }
-                if (StatMaster.isClient) { SimulateUpdate_Client(); }
-                SimulateUpdate_EnhancementEnable();
+                if (StatMaster.isHosting) { SimulateUpdateHost_EnhancementEnabled(); }
+                if (StatMaster.isClient) { SimulateUpdateClient_EnhancementEnabled(); }
+                SimulateUpdateAlways_EnhancementEnable();
             }
             else
             {
-                if (EnhancementEnabled) { BuildingUpdate(); }
+                if (EnhancementEnabled) { BuildingUpdateAlways_EnhancementEnabled(); }
                 isFirstFrame = true;
             }
         }
@@ -82,14 +82,14 @@ namespace BlockEnhancementMod
         {
             if (!EnhancementEnabled) return;
 
-            if (BB.isSimulating && !isFirstFrame) { SimulateFixedUpdateAlways(); }
+            if (BB.isSimulating && !isFirstFrame) { SimulateFixedUpdate_EnhancementEnabled(); }
         }
 
         private void LateUpdate()
         {
             if (!EnhancementEnabled) return;
 
-            if (BB.isSimulating && !isFirstFrame) { SimulateLateUpdateAlways(); }
+            if (BB.isSimulating && !isFirstFrame) { SimulateLateUpdate_EnhancementEnabled(); }
         }
 
         [Obsolete]
@@ -184,33 +184,33 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>
-        public virtual void OnSimulateStart() { }
+        public virtual void OnSimulateStartAlways() { }
         public virtual void OnSimulateStart_EnhancementEnabled() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdate_Host() { }
+        public virtual void SimulateUpdateHost_EnhancementEnabled() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdate_Client() { }
+        public virtual void SimulateUpdateClient_EnhancementEnabled() { }
         /// <summary>
         /// 在模拟模式下的Update
         /// </summary>
-        public virtual void SimulateUpdate_EnhancementEnable() { }
-        public virtual void SimulateUpdate() { }
+        public virtual void SimulateUpdateAlways_EnhancementEnable() { }
+        public virtual void SimulateUpdateAlways() { }
         /// <summary>
         /// 在模拟模式下的FixedUpdate
         /// </summary>
-        public virtual void SimulateFixedUpdateAlways() { }
+        public virtual void SimulateFixedUpdate_EnhancementEnabled() { }
         /// <summary>
         /// 在模拟模式下的LateUpdate
         /// </summary>
-        public virtual void SimulateLateUpdateAlways() { }
+        public virtual void SimulateLateUpdate_EnhancementEnabled() { }
         /// <summary>
         /// 建造模式下的Update
         /// </summary>
-        public virtual void BuildingUpdate() { }
+        public virtual void BuildingUpdateAlways_EnhancementEnabled() { }
 
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 参数改变（联机模拟时主机对模块的一些参数初始化）
         /// </summary>
-        public virtual void OnSimulateStart_Client() { }
+        public virtual void OnSimulateStartClient() { }
 
 
         ///// <summary>
@@ -279,27 +279,27 @@ namespace BlockEnhancementMod
 
         public struct Hardness
         {
-            JointProjectionMode projectionMode;
-            float projectionAngle;
-            float projectionDistance;
+            public JointProjectionMode projectionMode;
+            public float projectionAngle;
+            public float projectionDistance;
 
-            Material material;
+            //Material material;
 
-            public Hardness(JointProjectionMode mode, float angle, float distance, Material material = Material.None)
+            public Hardness(JointProjectionMode mode, float angle, float distance/*, Material material = Material.None*/)
             {
                 projectionMode = mode;
                 projectionAngle = angle;
                 projectionDistance = distance;
 
-                this.material = material;
+                //this.material = material;
             }
-            public Hardness(ConfigurableJoint joint, Material material = Material.None)
+            public Hardness(ConfigurableJoint joint/*, Material material = Material.None*/)
             {
                 projectionMode = joint.projectionMode;
                 projectionAngle = joint.projectionAngle;
                 projectionDistance = joint.projectionDistance;
 
-                this.material = material;
+                //this.material = material;
             }
 
             public ConfigurableJoint toConfigurableJoint(ConfigurableJoint joint)
@@ -311,7 +311,7 @@ namespace BlockEnhancementMod
                 return joint;
             }
 
-            public enum Material
+            enum Material
             {
                 LowCarbonSteel, MedianSoftWood = 0,
                 MidCarbonSteel = 1,

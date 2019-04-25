@@ -17,7 +17,7 @@ namespace BlockEnhancementMod
         MMenu HardnessMenu;
 
         public int HardnessIndex = 1;
-        private int orginHardnessIndex = 1;
+        //private int orginHardnessIndex = 1;
 
         public override void SafeAwake()
         {        
@@ -36,13 +36,16 @@ namespace BlockEnhancementMod
             HardnessMenu.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
-            CJ = GetComponent<ConfigurableJoint>();
+            if (EnhancementEnabled)
+            {
+                CJ = GetComponent<ConfigurableJoint>();
 
-            if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; }
+                //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; }
 
-            Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+            }      
         }
     }
 }

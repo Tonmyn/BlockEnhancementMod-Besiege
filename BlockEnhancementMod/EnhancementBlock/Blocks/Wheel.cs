@@ -99,14 +99,16 @@ namespace BlockEnhancementMod.Blocks
 
         public GameObject WheelCollider;
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
 
-            Colliders = GetComponentsInChildren<Collider>();
-            wheelPhysicMaterialOrgin = Colliders[0].material;
+           
 
             if (EnhancementEnabled)
             {
+                Colliders = GetComponentsInChildren<Collider>();
+                wheelPhysicMaterialOrgin = Colliders[0].material;
+
                 PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Average);
                 if (Collider)
                 {
@@ -143,22 +145,20 @@ namespace BlockEnhancementMod.Blocks
                 }
                 else
                 {
-                    Destroy(WheelCollider);
-                }
-
-                //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
-
+                    //Destroy(WheelCollider);
+                    //设置原有碰撞的参数
+                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
+                }            
             }
-            else
-            {
-                //启用原有碰撞
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = false; }
-                //设置原有碰撞的参数
-                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterialOrgin; }
+            //else
+            //{
+            //    //启用原有碰撞
+            //    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = false; }
+            //    //设置原有碰撞的参数
+            //    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterialOrgin; }
 
-                Destroy(WheelCollider);
-            }
+            //    Destroy(WheelCollider);
+            //}
         }
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)

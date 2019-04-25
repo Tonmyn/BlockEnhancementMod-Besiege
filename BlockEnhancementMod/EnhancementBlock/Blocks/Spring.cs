@@ -15,7 +15,7 @@ namespace BlockEnhancementMod.Blocks
         MSlider DragSlider;
 
         public float Drag = 2;
-        private float orginDrag = 2;
+        //private float orginDrag = 2;
 
         Rigidbody A, B;
 
@@ -34,15 +34,18 @@ namespace BlockEnhancementMod.Blocks
             DragSlider.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStart_Client()
+        public override void OnSimulateStartClient()
         {
+            if(EnhancementEnabled)
+            {
+                A = GameObject.Find("A").GetComponent<Rigidbody>();
+                B = GameObject.Find("B").GetComponent<Rigidbody>();
 
-            A = GameObject.Find("A").GetComponent<Rigidbody>();
-            B = GameObject.Find("B").GetComponent<Rigidbody>();
+                //if (!EnhancementEnabled) { Drag = orginDrag; };
 
-            if (!EnhancementEnabled) { Drag = orginDrag; };
-
-            A.drag = B.drag = Drag;
+                A.drag = B.drag = Drag;
+            }
+          
         }
     }
 }
