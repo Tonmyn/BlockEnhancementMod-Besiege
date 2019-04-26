@@ -503,6 +503,8 @@ namespace BlockEnhancementMod
 
         //string highCarbonSteel { get; }
 
+        string damper { get; }
+
         string limit { get; }
 
         string extend { get; }
@@ -510,7 +512,7 @@ namespace BlockEnhancementMod
         string retract { get; }
 
         string hydraulicMode { get; }
-
+       
         string feedSpeed { get; }
 
         string extendLimit { get; }
@@ -675,6 +677,8 @@ namespace BlockEnhancementMod
         //public  string midCarbonSteel {get;}= "中碳钢" ;
 
         //public  string highCarbonSteel {get;}= "高碳钢" ;
+
+        public string damper { get; } = "阻尼";
 
         public  string limit {get;}= "限制" ;
 
@@ -848,6 +852,8 @@ namespace BlockEnhancementMod
         //public  string midCarbonSteel {get;}= "Mid Carbon Steel";
 
         //public  string highCarbonSteel {get;}= "High Carbon Steel";
+
+        public string damper { get; } = "Damper";
 
         public  string limit {get;}= "Limit";
 

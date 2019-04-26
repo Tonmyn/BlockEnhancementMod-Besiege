@@ -57,7 +57,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
     <Compile Include="EnhancementBlock\GenericScript\DelayCollision.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\SkinManager.cs" />
     <Compile Include="EnhancementEntity\EnhancementEventsController.cs" />
     <Compile Include="EnhancementBlock\GenericScript\RocketsController.cs" />
     <Compile Include="EnhancementBlock\Blocks\CrossBow.cs" />

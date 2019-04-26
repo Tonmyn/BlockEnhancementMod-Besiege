@@ -105,7 +105,7 @@ namespace BlockEnhancementMod
             {(int)BlockType.SmallPropeller,typeof(PropellerScript) },
             { (int)BlockType.Wing,typeof(PropellerScript)},
             { (int)BlockType.WingPanel,typeof(PropellerScript)},
-            { (int)BlockType.Unused3,typeof(PropellerScript)},
+            { (int)BlockType.Unused3,typeof(PropellerScript_52)},
             {(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
             ////{(int)BlockType.SpinningBlock,typeof(SpinningScript) },

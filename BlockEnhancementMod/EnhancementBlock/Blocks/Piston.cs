@@ -6,16 +6,18 @@ using UnityEngine;
 using Modding;
 using Modding.Blocks;
 
-namespace BlockEnhancementMod
+namespace BlockEnhancementMod.Blocks
 {
     class PistonScript : EnhancementBlock
     {
 
         MMenu HardnessMenu;
+        MSlider DamperSlider;
         MSlider LimitSlider;
 
         public int HardnessIndex = 0;
         //private int orginHardnessIndex = 0;
+        public float Damper = 1;
         public float Limit = 1.1f;
         //private float orginLimit = 1.1f;
 
@@ -28,6 +30,9 @@ namespace BlockEnhancementMod
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
             HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
+            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.damper, "Damper", Damper, 0f, 5f);
+            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
+
             LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, Limit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
@@ -39,6 +44,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             HardnessMenu.DisplayInMapper = value;
+            DamperSlider.DisplayInMapper = value;
             LimitSlider.DisplayInMapper = value;
         }
 
@@ -52,6 +58,11 @@ namespace BlockEnhancementMod
                 //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
                 SC.newLimit = Limit * FlipToSign(SC.Flipped);
+
+                var drive = CJ.xDrive;
+                drive.positionDamper *= Damper;
+                CJ.xDrive = drive;
+
                 Hardness.SwitchMetalHardness(HardnessIndex, CJ);
 
                 int FlipToSign(bool value) { return value == true ? 1 : -1; }

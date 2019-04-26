@@ -17,10 +17,12 @@ namespace BlockEnhancementMod
         MKey ShrinkKey;
         MToggle HydraulicToggle;
         MToggle R2CToggle;
+        MSlider DamperSlider;
         MSlider FeedSlider;
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
 
+        public float Damper = 1f;
         public int HardnessIndex = 0;
         public bool Hydraulic = false;
         public bool R2C = false;
@@ -49,6 +51,9 @@ namespace BlockEnhancementMod
             R2CToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.returnToCenter, "Return to center", R2C);
             R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
 
+            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.damper, "Damper", Damper, 0f, 5f);
+            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
+
             FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.feedSpeed, "feed", Feed, 0f, 2f);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
 
@@ -69,6 +74,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             HardnessMenu.DisplayInMapper = value;
+            DamperSlider.DisplayInMapper = value;
             ExtendKey.DisplayInMapper = value && Hydraulic;
             ShrinkKey.DisplayInMapper = value && Hydraulic;
             HydraulicToggle.DisplayInMapper = value;
@@ -95,8 +101,12 @@ namespace BlockEnhancementMod
                 //}
 
                 SoftJointLimit SJlimit = CJ.linearLimit;
-                SJlimit.limit = limit;
+                SJlimit.limit = limit;            
                 CJ.linearLimit = SJlimit;
+
+                var drive = CJ.xDrive;
+                drive.positionDamper *= Damper;
+                CJ.xDrive = drive;
 
                 Hardness.SwitchMetalHardness(HardnessIndex, CJ);
             }        
