@@ -98,7 +98,7 @@ A block enhancementmod <!-- FIX: Insert a short description here. -->
 	<!-- Any logic event types your mod adds to the game. -->
 	<!-- See the ModEvents class for info on how to handle your events being activated. -->
 	<Events>
-		<Event path="GroupEvent.xml"/>
+		<!--<Event path="GroupEvent.xml"/>-->
 	</Events>
 	
 	<!-- Access these keys using the ModKeys class. -->
