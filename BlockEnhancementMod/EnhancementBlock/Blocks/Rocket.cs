@@ -358,6 +358,7 @@ namespace BlockEnhancementMod.Blocks
 
                 var rs = Radar.AddComponent<RadarScript>();
                 rs.searchAngle = searchAngle;
+                rs.OnTarget += (value) => { Debug.Log("test target"); };
             }         
         }
 
@@ -1394,18 +1395,17 @@ namespace BlockEnhancementMod.Blocks
 
     class RadarScript : MonoBehaviour
     {
-        public float radius = 1000f;
+        public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
 
         public bool Switch { get; set; } = false;
         public searchMode SearchMode { get; set; } = searchMode.Auto;
-
-        public Target target;
-
+        public Target target { get; private set; }
 
 
-        public event VoidDel OnTarget;
+
+        public event Action<Target> OnTarget;
 
         public enum searchMode
         {
@@ -1415,18 +1415,18 @@ namespace BlockEnhancementMod.Blocks
 
         void Awake()
         {
-            OnTarget += () => { };
+            OnTarget += (value) => { };
         }
 
         void Start()
         {
-            createCone(searchAngle,safetyRadius,radius);
-#if DEBUG
-            var mr = gameObject.AddComponent<MeshRenderer>();
-            mr.material.color = Color.green;
-#endif
 
-            void createCone(float angle,float topRadius,float bottomRadius)
+            createFrustumCone(searchAngle, safetyRadius, radius);
+
+
+
+
+            void createFrustumCone(float angle,float topRadius,float bottomRadius)
             {            
                 float topHeight = topRadius;
                 float height = bottomRadius - topHeight;
@@ -1502,17 +1502,50 @@ namespace BlockEnhancementMod.Blocks
                 mc.sharedMesh = GetComponent<MeshFilter>().mesh;
                 mc.convex = true;
                 mc.isTrigger = true;
+#if DEBUG
+                var mr = gameObject.AddComponent<MeshRenderer>();
+                mr.material.color = Color.green;
+#endif
+            }
+        }
 
+        void Update()
+        {
+            if (SearchMode == searchMode.Manual)
+            {
+
+                //prepareTarget();
+                OnTarget.Invoke(target);
             }
 
+
         }
+
         void OnTriggerEnter(Collider other)
         {
-            Debug.Log("into");
+            if (SearchMode != searchMode.Auto) return;
 
-            OnTarget.Invoke();
+            prepareTarget(other);
+            OnTarget.Invoke(target);
         }
 
+        private void prepareTarget(Collider collider)
+        {
+
+        }
+        public void ChangeSearchMode()
+        {
+            if (SearchMode == searchMode.Auto)
+            {
+                SearchMode = searchMode.Manual;
+                //do something...
+            }
+            else
+            {
+                SearchMode = searchMode.Auto;
+                //do something...
+            }
+        }
     }
 
 
