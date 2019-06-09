@@ -350,6 +350,7 @@ namespace BlockEnhancementMod.Blocks
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
 
+                //init radar
                 Radar = new GameObject("Radar");
                 Radar.transform.SetParent(transform);
                 Radar.transform.position = transform.position;
