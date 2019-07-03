@@ -6,18 +6,20 @@ using UnityEngine;
 using Modding;
 using Modding.Blocks;
 
-namespace BlockEnhancementMod
+namespace BlockEnhancementMod.Blocks
 {
     class PistonScript : EnhancementBlock
     {
 
         MMenu HardnessMenu;
+        MSlider DamperSlider;
         MSlider LimitSlider;
 
-        public int Hardness = 0;
-        private int orginHardness = 0;
+        public int HardnessIndex = 0;
+        //private int orginHardnessIndex = 0;
+        public float Damper = 1;
         public float Limit = 1.1f;
-        private float orginLimit = 1.1f;
+        //private float orginLimit = 1.1f;
 
         private SliderCompress SC;
         private ConfigurableJoint CJ;
@@ -25,10 +27,13 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
+            HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, orginLimit);
+            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.damper, "Damper", Damper, 0f, 5f);
+            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
+
+            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, Limit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
 #if DEBUG
@@ -39,20 +44,29 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             HardnessMenu.DisplayInMapper = value;
+            DamperSlider.DisplayInMapper = value;
             LimitSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
-            SC = GetComponent<SliderCompress>();
-            CJ = GetComponent<ConfigurableJoint>();
+            if (EnhancementEnabled)
+            {
+                SC = GetComponent<SliderCompress>();
+                CJ = GetComponent<ConfigurableJoint>();
 
-            if (!EnhancementEnabled) { Hardness = orginHardness; Limit = orginLimit; }
+                //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
-            SC.newLimit = Limit * FlipToSign(SC.Flipped);
-            SwitchMatalHardness(Hardness, CJ);
+                SC.newLimit = Limit * FlipToSign(SC.Flipped);
 
-            int FlipToSign(bool value) { return value == true ? 1 : -1; }
+                var drive = CJ.xDrive;
+                drive.positionDamper *= Damper;
+                CJ.xDrive = drive;
+
+                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+
+                int FlipToSign(bool value) { return value == true ? 1 : -1; }
+            }     
         }   
     }
 }

@@ -16,14 +16,14 @@ namespace BlockEnhancementMod
 
         MMenu HardnessMenu;
 
-        public int Hardness = 1;
-        private int orginHardness = 1;
+        public int HardnessIndex = 1;
+        //private int orginHardnessIndex = 1;
 
         public override void SafeAwake()
         {        
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
 #if DEBUG
             ConsoleController.ShowMessage("木头组件添加进阶属性");
@@ -36,13 +36,16 @@ namespace BlockEnhancementMod
             HardnessMenu.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
-            CJ = GetComponent<ConfigurableJoint>();
+            if (EnhancementEnabled)
+            {
+                CJ = GetComponent<ConfigurableJoint>();
 
-            if (!EnhancementEnabled) { Hardness = orginHardness; }
+                //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; }
 
-            SwitchWoodHardness(Hardness, CJ);
+                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+            }      
         }
     }
 }

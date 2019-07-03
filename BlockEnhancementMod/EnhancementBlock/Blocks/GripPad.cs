@@ -15,9 +15,7 @@ namespace BlockEnhancementMod.Blocks
         MMenu HardnessMenu;
 
         public float Friction = 1000;
-        public int Hardness = 1;
-        private float orginFriction = 1000;
-        private int orginHardness = 1;
+        public int HardnessIndex = 1;
 
         private ConfigurableJoint CJ;
         private Collider[] colliders;
@@ -25,8 +23,8 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.friction, "Friction", Friction, 0f, 1000f);
             FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
@@ -40,34 +38,28 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
             FrictionSlider.DisplayInMapper = value;
         }
        
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
-            colliders = GetComponentsInChildren<Collider>();
-            CJ = GetComponent<ConfigurableJoint>();
-
-            if (!EnhancementEnabled)
+            if (EnhancementEnabled)
             {
-                Friction = orginFriction;
-                Hardness = orginHardness;
-            }
+                colliders = GetComponentsInChildren<Collider>();
+                CJ = GetComponent<ConfigurableJoint>();
 
-            foreach (Collider c in colliders)
-            {
-                if (c.name == "Collider")
+                foreach (Collider c in colliders)
                 {
-                    c.material.staticFriction = c.material.dynamicFriction = Friction;
+                    if (c.name == "Collider")
+                    {
+                        c.material.staticFriction = c.material.dynamicFriction = Friction;
 
-                    break;
+                        break;
+                    }
                 }
-
-            }
-
-            SwitchWoodHardness(Hardness, CJ);
+                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+            }        
         }
     }
 

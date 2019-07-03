@@ -15,8 +15,6 @@ namespace BlockEnhancementMod.Blocks
         MSlider ExplodeTorqueSlider;
         public float ExplodeForce;
         public float ExplodeTorque;
-        private float orginExplodeForce = 1000;
-        private float orginExplodeTorque = 2000;
 
         private ExplosiveBolt EB;
 
@@ -41,20 +39,15 @@ namespace BlockEnhancementMod.Blocks
             ExplodeTorqueSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
-        {
-            EB = GetComponent<ExplosiveBolt>();
-
-            if (!EnhancementEnabled)
+        public override void OnSimulateStartClient()
+        {         
+            if (EnhancementEnabled)
             {
-                ExplodeForce = orginExplodeForce;
-                ExplodeTorque = orginExplodeTorque;
+                EB = GetComponent<ExplosiveBolt>();
+ 
+                EB.explodePower = ExplodeForce;
+                EB.explodeTorquePower = ExplodeTorque;
             }
-
-            EB.explodePower = ExplodeForce;
-            EB.explodeTorquePower = ExplodeTorque;
-
-
         }  
     }
 

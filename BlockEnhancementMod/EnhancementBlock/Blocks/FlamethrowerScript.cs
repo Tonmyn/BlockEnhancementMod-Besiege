@@ -16,10 +16,10 @@ namespace BlockEnhancementMod
         MColourSlider flameColorSlider;
 
         public float ThrustForce = 0f;       
-        public Color FlameColor = Color.blue;
+        public Color FlameColor = Color.white;
         public string FlameShader = "Particles/Additive";
-        private Color orginFlameColor = Color.white;
-        private string orginShader = "Particles/Alpha Blended";
+        //private Color orginFlameColor = Color.white;
+        //private string orginShader = "Particles/Alpha Blended";
 
         Rigidbody rigidbody;
 
@@ -42,22 +42,19 @@ namespace BlockEnhancementMod
             flameColorSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
-        {
-            flamethrowerController = GetComponent<FlamethrowerController>();
-            rigidbody = GetComponent<Rigidbody>();
-
-            if (!EnhancementEnabled)
+        public override void OnSimulateStartClient()
+        {   
+            if (EnhancementEnabled)
             {
-                FlameColor = orginFlameColor;
-                FlameShader = orginShader;             
+                flamethrowerController = GetComponent<FlamethrowerController>();
+                rigidbody = GetComponent<Rigidbody>();
+
+                flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
+                flamethrowerController.fireParticles.startColor = FlameColor;
             }
-    
-            flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
-            flamethrowerController.fireParticles.startColor = FlameColor;
         }
 
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (StatMaster.isClient) return;
 

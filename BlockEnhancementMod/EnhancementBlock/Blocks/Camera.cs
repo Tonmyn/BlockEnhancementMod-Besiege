@@ -134,7 +134,7 @@ namespace BlockEnhancementMod
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
-        public override void BuildingUpdate()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
@@ -165,7 +165,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
             firstPerson = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson;
 
@@ -212,7 +212,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {
@@ -346,7 +346,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (cameraLookAtToggled)
             {
@@ -423,7 +423,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateLateUpdateAlways()
+        public override void SimulateLateUpdate_EnhancementEnabled()
         {
             if (cameraLookAtToggled)
             {

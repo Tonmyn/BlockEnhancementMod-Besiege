@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
         MSlider SpeedSlider;
 
         public float Speed = 5;
-        private float orginSpeed = 5;
+        //private float orginSpeed = 5;
 
         SmallWheel SW;
 
@@ -32,17 +32,19 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
             SpeedSlider.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
-            SW = GetComponent<SmallWheel>();
+            if (EnhancementEnabled)
+            {
+                SW = GetComponent<SmallWheel>();
 
-            if (!EnhancementEnabled) { Speed = orginSpeed; }
+                //if (!EnhancementEnabled) { Speed = orginSpeed; }
 
-            SW.speed = Speed;
+                SW.speed = Speed;
+            }          
         }
     }
 }

@@ -17,19 +17,21 @@ namespace BlockEnhancementMod
         MKey ShrinkKey;
         MToggle HydraulicToggle;
         MToggle R2CToggle;
+        MSlider DamperSlider;
         MSlider FeedSlider;
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
 
-        public int Hardness = 0;
+        public float Damper = 1f;
+        public int HardnessIndex = 0;
         public bool Hydraulic = false;
         public bool R2C = false;
         public float Feed = 0.5f;
         public float ExtendLimit = 1f;
         public float RetractLimit = 1f;
 
-        private int orginHardness = 0;
-        private float orginLimit = 1;
+        //private int orginHardnessIndex = 0;
+        //private float orginLimit = 1;
 
         ConfigurableJoint CJ;
         Rigidbody RB;
@@ -37,8 +39,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", Hardness, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
+            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.extend, "Extend", KeyCode.E);
             ShrinkKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.retract, "Shrink", KeyCode.F);           
@@ -48,6 +50,9 @@ namespace BlockEnhancementMod
 
             R2CToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.returnToCenter, "Return to center", R2C);
             R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
+
+            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.damper, "Damper", Damper, 0f, 5f);
+            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
             FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.feedSpeed, "feed", Feed, 0f, 2f);
             FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
@@ -69,6 +74,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             HardnessMenu.DisplayInMapper = value;
+            DamperSlider.DisplayInMapper = value;
             ExtendKey.DisplayInMapper = value && Hydraulic;
             ShrinkKey.DisplayInMapper = value && Hydraulic;
             HydraulicToggle.DisplayInMapper = value;
@@ -78,30 +84,35 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
-
-            CJ = GetComponent<ConfigurableJoint>();
-            RB = GetComponent<Rigidbody>();
-
-            float limit = Mathf.Max(ExtendLimit, RetractLimit);
-
-            if (!EnhancementEnabled)
+            if (EnhancementEnabled)
             {
-                Hardness = orginHardness;
+                CJ = GetComponent<ConfigurableJoint>();
+                RB = GetComponent<Rigidbody>();
 
-                limit = orginLimit;
-            }
+                float limit = Mathf.Max(ExtendLimit, RetractLimit);
 
-            SoftJointLimit SJlimit = CJ.linearLimit;
-            SJlimit.limit = limit;
-            CJ.linearLimit = SJlimit;
+                //if (!EnhancementEnabled)
+                //{
+                //    HardnessIndex = orginHardnessIndex;
 
-            SwitchMatalHardness(Hardness, CJ);
+                //    limit = orginLimit;
+                //}
 
+                SoftJointLimit SJlimit = CJ.linearLimit;
+                SJlimit.limit = limit;            
+                CJ.linearLimit = SJlimit;
+
+                var drive = CJ.xDrive;
+                drive.positionDamper *= Damper;
+                CJ.xDrive = drive;
+
+                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+            }        
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 
@@ -137,13 +148,13 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-        }
 
-        public void SuspensionMoveTowards(float target,float feed,float delta = 0.005f)
-        {
-            RB.WakeUp();
-            CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
-        }
+            void SuspensionMoveTowards(float target, float feed, float delta = 0.005f)
+            {
+                RB.WakeUp();
+                CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
+            }
+        }   
     }
 
   

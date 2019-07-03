@@ -228,7 +228,7 @@ namespace BlockEnhancementMod.Blocks
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
 #if DEBUG
-            //ConsoleController.ShowMessage("火箭添加进阶属性");
+            ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
 
         }
@@ -255,7 +255,7 @@ namespace BlockEnhancementMod.Blocks
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
 
-        public override void BuildingUpdate()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
             if (!rocketInBuildSent)
             {
@@ -295,7 +295,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
             smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
             aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
@@ -350,7 +350,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -468,7 +468,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -526,7 +526,7 @@ namespace BlockEnhancementMod.Blocks
                                         float angleDiff = Vector3.Angle(positionDiff, transform.up);
                                         if (proximityFuzeActivated && positionDiff.magnitude <= proximityRange && angleDiff >= proximityAngle)
                                         {
-                                            RocketExplode();
+                                            StartCoroutine(RocketExplode());
                                         }
                                     }
                                 }
@@ -721,7 +721,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        public override void SimulateLateUpdateAlways()
+        public override void SimulateLateUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
@@ -804,13 +804,13 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                     {
-                        RocketExplode();
+                        StartCoroutine(RocketExplode());
                     }
                 }
             }
         }
 
-        private void RocketExplode()
+        private IEnumerator RocketExplode()
         {
             //Reset some parameter and set the rocket to explode
             //Stop the search target coroutine
@@ -825,98 +825,111 @@ namespace BlockEnhancementMod.Blocks
             {
                 rocket.ExplodeMessage();
             }
-            if (highExploActivated)
+            if (!highExploActivated) yield break;
+
+            if (!bombHasExploded && explosiveCharge != 0)
             {
-                if (!bombHasExploded && explosiveCharge != 0)
+                if (StatMaster.isHosting)
                 {
-                    if (StatMaster.isHosting)
-                    {
-                        SendExplosionPositionToAll(position);
-                    }
-                    bombHasExploded = true;
-                    //Generate a bomb from level editor and let it explode
-                    try
-                    {
-                        GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, position, rotation);
-                        ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
-                        bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
-                        bombControl.radius = radius * bombExplosiveCharge;
-                        bombControl.power = power * bombExplosiveCharge;
-                        bombControl.torquePower = torquePower * bombExplosiveCharge;
-                        bombControl.upPower = upPower;
-                        bombControl.Explodey();
-                    }
-                    catch { }
-
-                    //Add explode and ignition effects to the affected objects
-                    try
-                    {
-                        Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
-                        foreach (var hit in hits)
-                        {
-                            if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
-                            {
-                                try
-                                {
-                                    hit.attachedRigidbody.WakeUp();
-                                    hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
-                                    hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                    hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().RocketExplode();
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>().Explode();
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>().Die();
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
-                                }
-                                catch { }
-                                try
-                                {
-                                    hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().activeType = InjuryType.Fire;
-                                    hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                    catch { }
+                    SendExplosionPositionToAll(position);
                 }
+                bombHasExploded = true;
+                //Generate a bomb from level editor and let it explode
+                try
+                {
+                    GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, position, rotation);
+                    ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
+                    bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
+                    bombControl.radius = radius * bombExplosiveCharge;
+                    bombControl.power = power * bombExplosiveCharge;
+                    bombControl.torquePower = torquePower * bombExplosiveCharge;
+                    bombControl.upPower = upPower;
+                    bombControl.Explodey();
+                }
+                catch { }
 
+                //Add explode and ignition effects to the affected objects
+
+                Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
+                int index = 0;
+                int rank = 60;
+
+                if (hits.Length <= 0) yield break;
+
+                foreach (var hit in hits)
+                {
+                    if (index > rank)
+                    {
+                        index = 0;
+                        yield return 0;
+                    }
+
+                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
+                    {
+                        try
+                        {
+                            hit.attachedRigidbody.WakeUp();
+                            hit.attachedRigidbody.constraints = RigidbodyConstraints.None;
+                            hit.attachedRigidbody.AddExplosionForce(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                            hit.attachedRigidbody.AddRelativeTorque(UnityEngine.Random.insideUnitSphere.normalized * torquePower * bombExplosiveCharge);
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().StartCoroutine(RocketExplode());
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<FireTag>().Ignite();
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<ExplodeMultiplier>().Explodey(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<SimpleBirdAI>().Explode();
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<EnemyAISimple>().Die();
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<CastleWallBreak>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<BreakOnForce>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<BreakOnForceNoSpawn>().BreakExplosion(power * bombExplosiveCharge, rocket.transform.position, radius * bombExplosiveCharge, upPower);
+                        }
+                        catch { }
+                        try
+                        {
+                            hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().activeType = InjuryType.Fire;
+                            hit.attachedRigidbody.gameObject.GetComponent<InjuryController>().Kill();
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    index++;
+                }
             }
+
+
         }
 
         private void RocketRadarSearch()
@@ -929,7 +942,7 @@ namespace BlockEnhancementMod.Blocks
             }
         }
 
-        IEnumerator SearchForTarget()
+        private IEnumerator SearchForTarget()
         {
             // First test the rockets that are fired
             Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
@@ -971,7 +984,6 @@ namespace BlockEnhancementMod.Blocks
                                     }
                                     shouldCheckRocket = count > 0 ? false : true;
                                 }
-
                             }
                             if (CheckInRange(targetRocket) && shouldCheckRocket)
                             {
@@ -1368,4 +1380,5 @@ namespace BlockEnhancementMod.Blocks
             }
         }
     }
+
 }
