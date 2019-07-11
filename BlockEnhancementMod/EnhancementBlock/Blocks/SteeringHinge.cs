@@ -71,7 +71,7 @@ namespace BlockEnhancementMod
 
             getLastKey();
 
-            if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
+            if (!(leftKey.IsHeld || rightKey.IsHeld) && ReturnToCenter && steeringWheel.AngleToBe != 0)
             {
                 rigidbody.WakeUp();
 

@@ -130,13 +130,13 @@ namespace BlockEnhancementMod
                 {
                     bool pressed = false;
 
-                    if (ExtendKey.IsDown)
+                    if (ExtendKey.IsHeld)
                     {
                         pressed = true;
                         target = -ExtendLimit;
                     }
 
-                    if (ShrinkKey.IsDown)
+                    if (ShrinkKey.IsHeld)
                     {
                         pressed = true;
                         target = RetractLimit;

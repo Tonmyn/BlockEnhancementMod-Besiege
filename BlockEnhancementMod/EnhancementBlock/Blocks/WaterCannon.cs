@@ -50,7 +50,7 @@ namespace BlockEnhancementMod
             if (Boiling)
             {
                 WCC.boiling = WCC.prevBoilingState = true;
-                BVC.heating.glowTimer = 1f;
+                //BVC.heating.glowTimer = 1f;
                 FT.burning = true;
             }
         }
