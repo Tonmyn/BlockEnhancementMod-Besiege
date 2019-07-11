@@ -6,7 +6,7 @@ using UnityEngine;
 using Modding;
 using Modding.Common;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
     class RocketScript : EnhancementBlock
     {
@@ -76,6 +76,8 @@ namespace BlockEnhancementMod.Blocks
         public bool activeGuide = true;
         public bool targetAquired = false;
         public bool searchStarted = false;
+        public GameObject Radar;
+
 
         //Cluster value multiplier
         private readonly float bombValue = 64;
@@ -347,7 +349,18 @@ namespace BlockEnhancementMod.Blocks
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
-            }
+
+                //init radar
+                Radar = new GameObject("Radar");
+                Radar.transform.SetParent(transform);
+                Radar.transform.position = transform.position;
+                Radar.transform.rotation = transform.rotation;
+                Radar.transform.localPosition = Vector3.forward * 0.5f;
+
+                var rs = Radar.AddComponent<RadarScript>();
+                rs.searchAngle = searchAngle;
+                rs.OnTarget += (value) => { Debug.Log("test target"); };
+            }         
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
@@ -1380,5 +1393,9 @@ namespace BlockEnhancementMod.Blocks
             }
         }
     }
+
+    
+
+
 
 }
