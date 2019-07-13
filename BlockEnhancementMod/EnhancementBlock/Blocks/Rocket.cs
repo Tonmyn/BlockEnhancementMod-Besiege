@@ -367,7 +367,7 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                if (GroupFireKey.IsDown && !StatMaster.isClient)
+                if (GroupFireKey.IsHeld && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
                     {
@@ -1059,7 +1059,7 @@ namespace BlockEnhancementMod
                         {
                             foreach (var block in cluster.Blocks)
                             {
-                                if (block.Type == BlockType.Rocket)
+                                if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
                                 {
                                     continue;
                                 }
@@ -1176,7 +1176,7 @@ namespace BlockEnhancementMod
             //Some blocks weights more than others
             GameObject targetObj = block.gameObject;
             //A bomb
-            if (block.Type == BlockType.Bomb)
+            if (/*block.Type*/block.BlockID == (int)BlockType.Bomb)
             {
                 if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                 {
@@ -1184,7 +1184,7 @@ namespace BlockEnhancementMod
                 }
             }
             ////A fired and unexploded rocket
-            //if (block.Type == BlockType.Rocket)
+            //if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
             //{
             //    if (targetObj.GetComponent<TimedRocket>().hasFired)
             //    {
@@ -1199,7 +1199,7 @@ namespace BlockEnhancementMod
             //    }
             //}
             //A watering watercannon
-            if (block.Type == BlockType.WaterCannon)
+            if (/*block.Type*/block.BlockID == (int)BlockType.WaterCannon)
             {
                 if (targetObj.GetComponent<WaterCannonController>().isActive)
                 {
@@ -1207,7 +1207,7 @@ namespace BlockEnhancementMod
                 }
             }
             //A flying flying-block
-            if (block.Type == BlockType.FlyingBlock)
+            if (/*block.Type*/block.BlockID == (int)BlockType.FlyingBlock)
             {
                 if (targetObj.GetComponent<FlyingController>().canFly)
                 {
@@ -1215,7 +1215,7 @@ namespace BlockEnhancementMod
                 }
             }
             //A flaming flamethrower
-            if (block.Type == BlockType.Flamethrower)
+            if (/*block.Type*/block.BlockID == (int)BlockType.Flamethrower)
             {
                 if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
                 {
@@ -1237,7 +1237,7 @@ namespace BlockEnhancementMod
         {
             try
             {
-                if (block.Type == BlockType.Rocket)
+                if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
                 {
                     if (!block.gameObject.activeInHierarchy)
                     {

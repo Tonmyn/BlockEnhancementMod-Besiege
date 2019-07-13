@@ -272,7 +272,7 @@ namespace BlockEnhancementMod.Blocks
                 StopCoroutine(Shoot());
             }
 
-            if (CB.ShootKey.IsDown && ShootEnabled)
+            if (CB.ShootKey.IsHeld && ShootEnabled)
             {
                 StartCoroutine(Shoot());
             }
@@ -298,14 +298,15 @@ namespace BlockEnhancementMod.Blocks
                     //炮身施加后坐力
                     //gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
 
-                    bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    //bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    bulletClone = (GameObject)Instantiate(bullet.bulletObject, transform.TransformPoint( CB.boltSpawnPos), CB.boltSpawnRot);
                     //bulletClone.SetActive(true);
                     //bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                 }
                 else if (CB.boltObject.gameObject.activeSelf == false)
                 {
-                    bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
-
+                    //bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, transform.TransformPoint(CB.boltSpawnPos), CB.boltSpawnRot);
                 }
             }
 
@@ -322,7 +323,9 @@ namespace BlockEnhancementMod.Blocks
 
             if (!firstShotFired)
             {
-                CB.Shoot();            
+                CB.Shoot();    
+                //CB.
+
             }
           
             BulletNumber--;
