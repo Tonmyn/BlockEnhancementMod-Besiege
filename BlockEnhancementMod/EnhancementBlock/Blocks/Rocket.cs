@@ -350,16 +350,16 @@ namespace BlockEnhancementMod
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
 
-                //init radar
-                Radar = new GameObject("Radar");
-                Radar.transform.SetParent(transform);
-                Radar.transform.position = transform.position;
-                Radar.transform.rotation = transform.rotation;
-                Radar.transform.localPosition = Vector3.forward * 0.5f;
+                ////init radar
+                //Radar = new GameObject("Radar");
+                //Radar.transform.SetParent(transform);
+                //Radar.transform.position = transform.position;
+                //Radar.transform.rotation = transform.rotation;
+                //Radar.transform.localPosition = Vector3.forward * 0.5f;
 
-                var rs = Radar.AddComponent<RadarScript>();
-                rs.searchAngle = searchAngle;
-                rs.OnTarget += (value) => { Debug.Log("test target"); };
+                //var rs = Radar.AddComponent<RadarScript>();
+                //rs.searchAngle = searchAngle;
+                //rs.OnTarget += (value) => {/* Debug.Log("test target");*/ };
             }         
         }
 

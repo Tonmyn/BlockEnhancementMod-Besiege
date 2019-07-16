@@ -33,10 +33,13 @@ namespace BlockEnhancementMod
 
         private void Update()
         {
-            if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
+            if (!StatMaster.levelSimulating)
             {
-                AddPiece.Instance.SetBlockType(BlockType.Unused3);
-                AddPiece.Instance.clickSound.Play();
+                if (AddPiece.Instance.CurrentType == BlockType.SmallPropeller && Input.GetKeyDown(KeyCode.LeftShift))
+                {
+                    AddPiece.Instance.SetBlockType(BlockType.Unused3);
+                    AddPiece.Instance.clickSound.Play();
+                }
             }
         }
 
