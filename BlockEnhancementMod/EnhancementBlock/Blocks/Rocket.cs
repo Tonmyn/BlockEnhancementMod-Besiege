@@ -72,11 +72,12 @@ namespace BlockEnhancementMod
         private readonly float safetyRadiusAuto = 50f;
         private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
-        private readonly float maxSearchAngleNo8 = 90f;
+        private readonly float maxSearchAngleNo8 = 89f;
         public bool activeGuide = true;
         public bool targetAquired = false;
         public bool searchStarted = false;
-        public GameObject Radar;
+        public GameObject radarObject;
+        public RadarScript radar;
 
 
         //Cluster value multiplier
@@ -229,6 +230,15 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
+            //Add radar
+            radarObject = new GameObject("RocketRadar");
+            radar = radarObject.AddComponent<RadarScript>();
+            radarObject.transform.SetParent(gameObject.transform);
+            radarObject.transform.position = transform.position;
+            radarObject.transform.rotation = transform.rotation;
+            radarObject.transform.localPosition = Vector3.forward * 0.5f;
+
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -349,17 +359,6 @@ namespace BlockEnhancementMod
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
-
-                ////init radar
-                //Radar = new GameObject("Radar");
-                //Radar.transform.SetParent(transform);
-                //Radar.transform.position = transform.position;
-                //Radar.transform.rotation = transform.rotation;
-                //Radar.transform.localPosition = Vector3.forward * 0.5f;
-
-                //var rs = Radar.AddComponent<RadarScript>();
-                //rs.searchAngle = searchAngle;
-                //rs.OnTarget += (value) => {/* Debug.Log("test target");*/ };
             }         
         }
 
