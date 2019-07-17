@@ -34,7 +34,7 @@ namespace BlockEnhancementMod
                 Vector3 leftTop = hudCamera.ScreenPointToRay(new Vector3(windowRect.xMin, hudCamera.pixelHeight - windowRect.yMin, 0)).origin;
                 Vector3 rightBottom = hudCamera.ScreenPointToRay(new Vector3(windowRect.xMax, hudCamera.pixelHeight - windowRect.yMax, 0)).origin;
 
-                Vector3 pos = (leftTop + rightBottom) / 2; pos.z += 0.3f;
+                Vector3 pos = (leftTop + rightBottom) * 0.5f; pos.z += 0.3f;
                 background.transform.position = pos;
                 Vector3 sca = rightBottom - leftTop; sca.z = 0.1f;
                 sca.x = Mathf.Abs(sca.x); sca.y = Mathf.Abs(sca.y);
