@@ -33,7 +33,7 @@ namespace BlockEnhancementMod
 
         void Start()
         {
-            CreateFrustumCone(searchAngle, safetyRadius, radius);
+            //CreateFrustumCone(searchAngle, safetyRadius, radius);
         }
 
         void Update()
@@ -74,7 +74,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        void CreateFrustumCone(float angle, float topRadius, float bottomRadius)
+        public void CreateFrustumCone(float angle, float topRadius, float bottomRadius)
         {
             float topHeight = topRadius;
             float height = bottomRadius - topHeight;

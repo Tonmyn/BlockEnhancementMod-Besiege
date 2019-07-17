@@ -73,6 +73,7 @@ namespace BlockEnhancementMod
         private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
         private readonly float maxSearchAngleNo8 = 89f;
+        private readonly float searchRange = 2000f;
         public bool activeGuide = true;
         public bool targetAquired = false;
         public bool searchStarted = false;
@@ -336,6 +337,7 @@ namespace BlockEnhancementMod
                 targetCollider = null;
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
+                radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
                 previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 if (!StatMaster.isMP)
@@ -359,7 +361,7 @@ namespace BlockEnhancementMod
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
-            }         
+            }
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
@@ -827,7 +829,7 @@ namespace BlockEnhancementMod
             //Reset some parameter and set the rocket to explode
             //Stop the search target coroutine
             searchStarted = targetHit = true;
-            StopCoroutine(SearchForTarget());
+            //StopCoroutine(SearchForTarget());
             SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
@@ -1393,7 +1395,7 @@ namespace BlockEnhancementMod
         }
     }
 
-    
+
 
 
 
