@@ -947,12 +947,12 @@ namespace BlockEnhancementMod
 
         private void RocketRadarSearch()
         {
-            if (!searchStarted && activeGuide)
-            {
-                searchStarted = true;
-                StopCoroutine(SearchForTarget());
-                StartCoroutine(SearchForTarget());
-            }
+            //if (!searchStarted && activeGuide)
+            //{
+            //    searchStarted = true;
+            //    StopCoroutine(SearchForTarget());
+            //    StartCoroutine(SearchForTarget());
+            //}
         }
 
         private IEnumerator SearchForTarget()
