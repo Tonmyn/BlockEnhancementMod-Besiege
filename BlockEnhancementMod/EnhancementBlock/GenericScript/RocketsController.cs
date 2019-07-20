@@ -246,7 +246,8 @@ namespace BlockEnhancementMod
                                 rocket.hasExploded = false;
                                 if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                                 {
-                                    foreach (var grabber in rocket.grabbers)
+                                    List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
+                                    foreach (var grabber in allGrabbers)
                                     {
                                         grabber?.StartCoroutine(grabber.IEBreakJoint());
                                     }

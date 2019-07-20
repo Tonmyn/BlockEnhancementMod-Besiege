@@ -72,11 +72,13 @@ namespace BlockEnhancementMod
         private readonly float safetyRadiusAuto = 50f;
         private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
-        private readonly float maxSearchAngleNo8 = 90f;
+        private readonly float maxSearchAngleNo8 = 89f;
+        private readonly float searchRange = 1400f;
         public bool activeGuide = true;
         public bool targetAquired = false;
-        public bool searchStarted = false;
-        public GameObject Radar;
+        //public bool searchStarted = false;
+        public GameObject radarObject;
+        public RadarScript radar;
 
 
         //Cluster value multiplier
@@ -229,6 +231,15 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
+            //Add radar
+            radarObject = new GameObject("RocketRadar");
+            radar = radarObject.AddComponent<RadarScript>();
+            radarObject.transform.SetParent(gameObject.transform);
+            radarObject.transform.position = transform.position;
+            radarObject.transform.rotation = transform.rotation;
+            radarObject.transform.localPosition = Vector3.forward * 0.5f;
+
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -320,12 +331,15 @@ namespace BlockEnhancementMod
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = targetAquired = searchStarted = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = rocketExploMsgSent = false;
+                launchTimeRecorded = canTrigger = targetAquired = targetHit = bombHasExploded = receivedRayFromClient = targetInitialCJOrHJ = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 target = null;
                 targetCollider = null;
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
+                radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
+                radar.ClearSavedSets();
+                radar.DeactivateDetectionZone();
                 previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 if (!StatMaster.isMP)
@@ -349,18 +363,7 @@ namespace BlockEnhancementMod
                 {
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
-
-                ////init radar
-                //Radar = new GameObject("Radar");
-                //Radar.transform.SetParent(transform);
-                //Radar.transform.position = transform.position;
-                //Radar.transform.rotation = transform.rotation;
-                //Radar.transform.localPosition = Vector3.forward * 0.5f;
-
-                //var rs = Radar.AddComponent<RadarScript>();
-                //rs.searchAngle = searchAngle;
-                //rs.OnTarget += (value) => {/* Debug.Log("test target");*/ };
-            }         
+            }
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
@@ -402,8 +405,8 @@ namespace BlockEnhancementMod
                         if (activeGuide)
                         {
                             //When launch key is released, reset target search
-                            targetAquired = searchStarted = false;
-                            RocketRadarSearch();
+                            targetAquired = false;
+                            radar.ActivateDetectionZone();
                         }
                         else
                         {
@@ -506,6 +509,9 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
+                            //Activate Detection Zone
+                            radar.ActivateDetectionZone();
+
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -713,7 +719,7 @@ namespace BlockEnhancementMod
                             //If no target when active guide, search for a new target
                             if (activeGuide && !targetAquired)
                             {
-                                RocketRadarSearch();
+                                radar.ActivateDetectionZone();
                             }
                         }
                     }
@@ -775,33 +781,38 @@ namespace BlockEnhancementMod
                                 bool forward = Vector3.Dot(transform.up, positionDiff) > 0;
                                 Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, transform.up);
 
+                                if (rocketRigidbody != null)
+                                {
+                                    rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                                }
+
                                 //Add torque to the rocket based on the angle difference
                                 //If in auto guide mode, the rocket will restart searching when target is out of sight
                                 //else, apply maximum torque to the rocket
-                                if (forward && angleDiff <= searchAngle)
-                                {
-                                    if (rocketRigidbody != null)
-                                    {
-                                        rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
-                                    }
-                                }
-                                else
-                                {
-                                    if (!activeGuide)
-                                    {
-                                        if (rocketRigidbody != null)
-                                        {
-                                            rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        target = null;
-                                        targetCollider = null;
-                                        targetAquired = false;
-                                        SendClientTargetNull();
-                                    }
-                                }
+                                //if (forward && angleDiff <= searchAngle)
+                                //{
+                                //    if (rocketRigidbody != null)
+                                //    {
+                                //        rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / maxSearchAngleNo8 - 1f, 2) + 1)) * rotatingAxis);
+                                //    }
+                                //}
+                                //else
+                                //{
+                                //    if (!activeGuide)
+                                //    {
+                                //        if (rocketRigidbody != null)
+                                //        {
+                                //            rocketRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * rotatingAxis);
+                                //        }
+                                //    }
+                                //    else
+                                //    {
+                                //        target = null;
+                                //        targetCollider = null;
+                                //        targetAquired = false;
+                                //        SendClientTargetNull();
+                                //    }
+                                //}
                             }
                         }
                     }
@@ -827,8 +838,8 @@ namespace BlockEnhancementMod
         {
             //Reset some parameter and set the rocket to explode
             //Stop the search target coroutine
-            searchStarted = targetHit = true;
-            StopCoroutine(SearchForTarget());
+            targetHit = true;
+            //StopCoroutine(SearchForTarget());
             SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
@@ -945,219 +956,219 @@ namespace BlockEnhancementMod
 
         }
 
-        private void RocketRadarSearch()
-        {
-            if (!searchStarted && activeGuide)
-            {
-                searchStarted = true;
-                StopCoroutine(SearchForTarget());
-                StartCoroutine(SearchForTarget());
-            }
-        }
+        //private void RocketRadarSearch()
+        //{
+        //    //if (!searchStarted && activeGuide)
+        //    //{
+        //    //    searchStarted = true;
+        //    //    StopCoroutine(SearchForTarget());
+        //    //    StartCoroutine(SearchForTarget());
+        //    //}
+        //}
 
-        private IEnumerator SearchForTarget()
-        {
-            // First test the rockets that are fired
-            Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
-            Transform rocketTarget = null;
-            Transform clusterTarget = null;
-            float rocketValue = 0;
-            float clusterValue = 0;
+        //private IEnumerator SearchForTarget()
+        //{
+        //    // First test the rockets that are fired
+        //    Dictionary<BlockBehaviour, int> rocketTargetDict = RocketsController.Instance.rocketTargetDict;
+        //    Transform rocketTarget = null;
+        //    Transform clusterTarget = null;
+        //    float rocketValue = 0;
+        //    float clusterValue = 0;
 
-            if (rocketTargetDict != null)
-            {
-                if (rocketTargetDict.Count > 0)
-                {
-                    float distance = Mathf.Infinity;
-                    foreach (var rocketTargetPair in rocketTargetDict)
-                    {
-                        BlockBehaviour targetRocket = rocketTargetPair.Key;
-                        if (targetRocket != null)
-                        {
-                            bool shouldCheckRocket = false;
-                            if (StatMaster.isMP)
-                            {
-                                shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
-                            }
-                            else
-                            {
-                                if (targetRocket.ClusterIndex == -1)
-                                {
-                                    shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
-                                }
-                                else
-                                {
-                                    int count = 0;
-                                    foreach (var cluster in clustersInSafetyRange)
-                                    {
-                                        if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
-                                        {
-                                            count++;
-                                        }
-                                    }
-                                    shouldCheckRocket = count > 0 ? false : true;
-                                }
-                            }
-                            if (CheckInRange(targetRocket) && shouldCheckRocket)
-                            {
-                                float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
-                                if (tempDistance <= distance)
-                                {
-                                    rocketTarget = targetRocket.transform;
-                                    distance = tempDistance;
-                                    rocketValue = guidedRocketValue;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        //    if (rocketTargetDict != null)
+        //    {
+        //        if (rocketTargetDict.Count > 0)
+        //        {
+        //            float distance = Mathf.Infinity;
+        //            foreach (var rocketTargetPair in rocketTargetDict)
+        //            {
+        //                BlockBehaviour targetRocket = rocketTargetPair.Key;
+        //                if (targetRocket != null)
+        //                {
+        //                    bool shouldCheckRocket = false;
+        //                    if (StatMaster.isMP)
+        //                    {
+        //                        shouldCheckRocket = (targetRocket.ParentMachine.PlayerID != rocket.ParentMachine.PlayerID) && (rocket.Team == MPTeam.None || rocket.Team != targetRocket.Team);
+        //                    }
+        //                    else
+        //                    {
+        //                        if (targetRocket.ClusterIndex == -1)
+        //                        {
+        //                            shouldCheckRocket = (targetRocket.transform.position - rocket.transform.position).magnitude > safetyRadiusAuto;
+        //                        }
+        //                        else
+        //                        {
+        //                            int count = 0;
+        //                            foreach (var cluster in clustersInSafetyRange)
+        //                            {
+        //                                if (cluster.Base.ClusterIndex == targetRocket.ClusterIndex)
+        //                                {
+        //                                    count++;
+        //                                }
+        //                            }
+        //                            shouldCheckRocket = count > 0 ? false : true;
+        //                        }
+        //                    }
+        //                    if (CheckInRange(targetRocket) && shouldCheckRocket)
+        //                    {
+        //                        float tempDistance = (targetRocket.transform.position - rocket.transform.position).magnitude;
+        //                        if (tempDistance <= distance)
+        //                        {
+        //                            rocketTarget = targetRocket.transform;
+        //                            distance = tempDistance;
+        //                            rocketValue = guidedRocketValue;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-            //Grab every machine block at the start of search
-            HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
+        //    //Grab every machine block at the start of search
+        //    HashSet<Machine.SimCluster> simClusters = new HashSet<Machine.SimCluster>();
 
-            if (StatMaster.isMP)
-            {
-                foreach (var player in Playerlist.Players)
-                {
-                    if (!player.isSpectator)
-                    {
-                        if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != rocket.ParentMachine.PlayerID)
-                        {
-                            if (rocket.Team == MPTeam.None || rocket.Team != player.team)
-                            {
-                                simClusters.UnionWith(player.machine.simClusters);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                simClusters.UnionWith(Machine.Active().simClusters);
-                simClusters.ExceptWith(clustersInSafetyRange);
-            }
+        //    if (StatMaster.isMP)
+        //    {
+        //        foreach (var player in Playerlist.Players)
+        //        {
+        //            if (!player.isSpectator)
+        //            {
+        //                if (player.machine.isSimulating && !player.machine.LocalSim && player.machine.PlayerID != rocket.ParentMachine.PlayerID)
+        //                {
+        //                    if (rocket.Team == MPTeam.None || rocket.Team != player.team)
+        //                    {
+        //                        simClusters.UnionWith(player.machine.simClusters);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        simClusters.UnionWith(Machine.Active().simClusters);
+        //        simClusters.ExceptWith(clustersInSafetyRange);
+        //    }
 
-            //Iternating the list to find the cluster that satisfy the conditions
-            if (!targetAquired && !targetHit && simClusters.Count > 0)
-            {
-                try
-                {
-                    // Remove any null cluster due to stopped simulation
-                    simClusters.RemoveWhere(cluster => cluster == null);
-                    simClusters.ExceptWith(explodedCluster);
+        //    //Iternating the list to find the cluster that satisfy the conditions
+        //    if (!targetAquired && !targetHit && simClusters.Count > 0)
+        //    {
+        //        try
+        //        {
+        //            // Remove any null cluster due to stopped simulation
+        //            simClusters.RemoveWhere(cluster => cluster == null);
+        //            simClusters.ExceptWith(explodedCluster);
 
-                    HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
-                    HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
+        //            HashSet<Machine.SimCluster> simClusterForSearch = new HashSet<Machine.SimCluster>(simClusters);
+        //            HashSet<Machine.SimCluster> unwantedClusters = new HashSet<Machine.SimCluster>();
 
-                    foreach (var cluster in simClusters)
-                    {
-                        bool inRange = CheckInRange(cluster.Base);
-                        bool skipCluster = !(inRange) || ShouldSkipCluster(cluster.Base);
+        //            foreach (var cluster in simClusters)
+        //            {
+        //                bool inRange = CheckInRange(cluster.Base);
+        //                bool skipCluster = !(inRange) || ShouldSkipCluster(cluster.Base);
 
-                        if (!skipCluster)
-                        {
-                            foreach (var block in cluster.Blocks)
-                            {
-                                if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
-                                {
-                                    continue;
-                                }
-                                skipCluster = ShouldSkipCluster(block);
-                                if (skipCluster)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                        if (skipCluster)
-                        {
-                            unwantedClusters.Add(cluster);
-                        }
-                    }
+        //                if (!skipCluster)
+        //                {
+        //                    foreach (var block in cluster.Blocks)
+        //                    {
+        //                        if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
+        //                        {
+        //                            continue;
+        //                        }
+        //                        skipCluster = ShouldSkipCluster(block);
+        //                        if (skipCluster)
+        //                        {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //                if (skipCluster)
+        //                {
+        //                    unwantedClusters.Add(cluster);
+        //                }
+        //            }
 
-                    simClusterForSearch.ExceptWith(unwantedClusters);
+        //            simClusterForSearch.ExceptWith(unwantedClusters);
 
-                    if (simClusterForSearch.Count > 0)
-                    {
-                        GetMostValuableCluster(simClusterForSearch, out clusterTarget, out clusterValue);
-                    }
-                }
-                catch { }
-            }
-            if (rocketTarget != null || clusterTarget != null)
-            {
-                target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
-                targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                targetAquired = true;
-                searchStarted = false;
-                previousVelocity = acceleration = Vector3.zero;
-                initialDistance = (target.position - rocket.transform.position).magnitude;
-                targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                SendTargetToClient();
-            }
-            yield return null;
-        }
+        //            if (simClusterForSearch.Count > 0)
+        //            {
+        //                GetMostValuableCluster(simClusterForSearch, out clusterTarget, out clusterValue);
+        //            }
+        //        }
+        //        catch { }
+        //    }
+        //    if (rocketTarget != null || clusterTarget != null)
+        //    {
+        //        target = rocketValue >= clusterValue ? rocketTarget : clusterTarget;
+        //        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
+        //        targetAquired = true;
+        //        searchStarted = false;
+        //        previousVelocity = acceleration = Vector3.zero;
+        //        initialDistance = (target.position - rocket.transform.position).magnitude;
+        //        targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
+        //        SendTargetToClient();
+        //    }
+        //    yield return null;
+        //}
 
-        private bool CheckInRange(BlockBehaviour target)
-        {
-            Vector3 positionDiff = target.gameObject.transform.position - rocket.transform.position;
-            float angleDiff = Vector3.Angle(positionDiff.normalized, rocket.transform.up);
-            bool forward = Vector3.Dot(positionDiff, rocket.transform.up) > 0;
-            return forward && angleDiff < searchAngle;
-        }
+        //private bool CheckInRange(BlockBehaviour target)
+        //{
+        //    Vector3 positionDiff = target.gameObject.transform.position - rocket.transform.position;
+        //    float angleDiff = Vector3.Angle(positionDiff.normalized, rocket.transform.up);
+        //    bool forward = Vector3.Dot(positionDiff, rocket.transform.up) > 0;
+        //    return forward && angleDiff < searchAngle;
+        //}
 
-        private void GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch, out Transform targetTransform, out float targetClusterValue)
-        {
-            //Remove any null cluster
-            simClusterForSearch.RemoveWhere(cluster => cluster == null);
+        //private void GetMostValuableCluster(HashSet<Machine.SimCluster> simClusterForSearch, out Transform targetTransform, out float targetClusterValue)
+        //{
+        //    //Remove any null cluster
+        //    simClusterForSearch.RemoveWhere(cluster => cluster == null);
 
-            //Search for any blocks within the search radius for every block in the hitlist
-            float[] targetValue = new float[simClusterForSearch.Count];
-            Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
-            List<Machine.SimCluster> maxClusters = new List<Machine.SimCluster>();
+        //    //Search for any blocks within the search radius for every block in the hitlist
+        //    float[] targetValue = new float[simClusterForSearch.Count];
+        //    Machine.SimCluster[] clusterArray = new Machine.SimCluster[simClusterForSearch.Count];
+        //    List<Machine.SimCluster> maxClusters = new List<Machine.SimCluster>();
 
-            //Start searching
-            int i = 0;
-            foreach (var simCluster in simClusterForSearch)
-            {
-                float clusterValue = simCluster.Blocks.Length + 1;
-                clusterValue = CalculateClusterValue(simCluster.Base, clusterValue);
-                foreach (var block in simCluster.Blocks)
-                {
-                    clusterValue = CalculateClusterValue(block, clusterValue);
-                }
-                targetValue[i] = clusterValue;
-                clusterArray[i] = simCluster;
-                i++;
-            }
-            //Find the block that has the max number of blocks around it
-            //If there are multiple withh the same highest value, randomly return one of them
-            float maxValue = targetValue.Max();
-            for (i = 0; i < targetValue.Length; i++)
-            {
-                if (targetValue[i] == maxValue)
-                {
-                    maxClusters.Add(clusterArray[i]);
-                }
-            }
+        //    //Start searching
+        //    int i = 0;
+        //    foreach (var simCluster in simClusterForSearch)
+        //    {
+        //        float clusterValue = simCluster.Blocks.Length + 1;
+        //        clusterValue = CalculateClusterValue(simCluster.Base, clusterValue);
+        //        foreach (var block in simCluster.Blocks)
+        //        {
+        //            clusterValue = CalculateClusterValue(block, clusterValue);
+        //        }
+        //        targetValue[i] = clusterValue;
+        //        clusterArray[i] = simCluster;
+        //        i++;
+        //    }
+        //    //Find the block that has the max number of blocks around it
+        //    //If there are multiple withh the same highest value, randomly return one of them
+        //    float maxValue = targetValue.Max();
+        //    for (i = 0; i < targetValue.Length; i++)
+        //    {
+        //        if (targetValue[i] == maxValue)
+        //        {
+        //            maxClusters.Add(clusterArray[i]);
+        //        }
+        //    }
 
-            int closestIndex = 0;
-            float distanceMin = Mathf.Infinity;
+        //    int closestIndex = 0;
+        //    float distanceMin = Mathf.Infinity;
 
-            for (i = 0; i < maxClusters.Count; i++)
-            {
-                float distanceCurrent = (maxClusters[i].Base.gameObject.transform.position - rocket.transform.position).magnitude;
-                if (distanceCurrent < distanceMin)
-                {
-                    closestIndex = i;
-                    distanceMin = distanceCurrent;
-                }
-            }
+        //    for (i = 0; i < maxClusters.Count; i++)
+        //    {
+        //        float distanceCurrent = (maxClusters[i].Base.gameObject.transform.position - rocket.transform.position).magnitude;
+        //        if (distanceCurrent < distanceMin)
+        //        {
+        //            closestIndex = i;
+        //            distanceMin = distanceCurrent;
+        //        }
+        //    }
 
-            targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
-            targetClusterValue = maxValue;
-        }
+        //    targetTransform = maxClusters[closestIndex].Base.gameObject.transform;
+        //    targetClusterValue = maxValue;
+        //}
 
         private void AddAerodynamicsToRocketVelocity()
         {
@@ -1171,110 +1182,95 @@ namespace BlockEnhancementMod
             rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         }
 
-        private float CalculateClusterValue(BlockBehaviour block, float clusterValue)
-        {
-            //Some blocks weights more than others
-            GameObject targetObj = block.gameObject;
-            //A bomb
-            if (/*block.Type*/block.BlockID == (int)BlockType.Bomb)
-            {
-                if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                {
-                    clusterValue *= bombValue;
-                }
-            }
-            ////A fired and unexploded rocket
-            //if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
-            //{
-            //    if (targetObj.GetComponent<TimedRocket>().hasFired)
-            //    {
-            //        if (targetObj.GetComponent<RocketScript>().targetAquired)
-            //        {
-            //            clusterValue *= guidedRocketValue;
-            //        }
-            //        else
-            //        {
-            //            clusterValue *= normalRocketValue;
-            //        }
-            //    }
-            //}
-            //A watering watercannon
-            if (/*block.Type*/block.BlockID == (int)BlockType.WaterCannon)
-            {
-                if (targetObj.GetComponent<WaterCannonController>().isActive)
-                {
-                    clusterValue *= waterCannonValue;
-                }
-            }
-            //A flying flying-block
-            if (/*block.Type*/block.BlockID == (int)BlockType.FlyingBlock)
-            {
-                if (targetObj.GetComponent<FlyingController>().canFly)
-                {
-                    clusterValue *= flyingBlockValue;
-                }
-            }
-            //A flaming flamethrower
-            if (/*block.Type*/block.BlockID == (int)BlockType.Flamethrower)
-            {
-                if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
-                {
-                    clusterValue *= flameThrowerValue;
-                }
-            }
-            //A spinning wheel/cog
-            if (targetObj.GetComponent<CogMotorControllerHinge>())
-            {
-                if (targetObj.GetComponent<CogMotorControllerHinge>().Velocity != 0)
-                {
-                    clusterValue *= cogMotorValue;
-                }
-            }
-            return clusterValue;
-        }
+        //private float CalculateClusterValue(BlockBehaviour block, float clusterValue)
+        //{
+        //    //Some blocks weights more than others
+        //    GameObject targetObj = block.gameObject;
+        //    //A bomb
+        //    if (/*block.Type*/block.BlockID == (int)BlockType.Bomb)
+        //    {
+        //        if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+        //        {
+        //            clusterValue *= bombValue;
+        //        }
+        //    }
+        //    //A watering watercannon
+        //    if (/*block.Type*/block.BlockID == (int)BlockType.WaterCannon)
+        //    {
+        //        if (targetObj.GetComponent<WaterCannonController>().isActive)
+        //        {
+        //            clusterValue *= waterCannonValue;
+        //        }
+        //    }
+        //    //A flying flying-block
+        //    if (/*block.Type*/block.BlockID == (int)BlockType.FlyingBlock)
+        //    {
+        //        if (targetObj.GetComponent<FlyingController>().canFly)
+        //        {
+        //            clusterValue *= flyingBlockValue;
+        //        }
+        //    }
+        //    //A flaming flamethrower
+        //    if (/*block.Type*/block.BlockID == (int)BlockType.Flamethrower)
+        //    {
+        //        if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
+        //        {
+        //            clusterValue *= flameThrowerValue;
+        //        }
+        //    }
+        //    //A spinning wheel/cog
+        //    if (targetObj.GetComponent<CogMotorControllerHinge>())
+        //    {
+        //        if (targetObj.GetComponent<CogMotorControllerHinge>().Velocity != 0)
+        //        {
+        //            clusterValue *= cogMotorValue;
+        //        }
+        //    }
+        //    return clusterValue;
+        //}
 
-        private bool ShouldSkipCluster(BlockBehaviour block)
-        {
-            try
-            {
-                if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
-                {
-                    if (!block.gameObject.activeInHierarchy)
-                    {
-                        return true;
-                    }
-                    if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (block.fireTag.burning)
-                    {
-                        return true;
-                    }
-                    try
-                    {
-                        if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
-                        {
-                            return true;
-                        }
-                    }
-                    catch { }
-                    try
-                    {
-                        if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
-                        {
-                            return true;
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-            return false;
-        }
+        //private bool ShouldSkipCluster(BlockBehaviour block)
+        //{
+        //    try
+        //    {
+        //        if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
+        //        {
+        //            if (!block.gameObject.activeInHierarchy)
+        //            {
+        //                return true;
+        //            }
+        //            if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (block.fireTag.burning)
+        //            {
+        //                return true;
+        //            }
+        //            try
+        //            {
+        //                if (block.gameObject.GetComponent<ExplodeOnCollideBlock>().hasExploded)
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //            catch { }
+        //            try
+        //            {
+        //                if (block.gameObject.GetComponent<ControllableBomb>().hasExploded)
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //            catch { }
+        //        }
+        //    }
+        //    catch { }
+        //    return false;
+        //}
 
         private void OnGUI()
         {
@@ -1394,7 +1390,7 @@ namespace BlockEnhancementMod
         }
     }
 
-    
+
 
 
 
