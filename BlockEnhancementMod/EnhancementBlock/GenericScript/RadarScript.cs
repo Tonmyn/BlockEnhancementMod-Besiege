@@ -15,12 +15,15 @@ namespace BlockEnhancementMod
         public float searchAngle = 20f;
 
         public bool Switch { get; set; } = false;
-        public searchMode SearchMode { get; set; } = searchMode.Auto;
+        public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
 
         public event Action<Target> OnTarget;
 
-        public enum searchMode
+        private HashSet<GameObject> checkedGameObject = new HashSet<GameObject>();
+        private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
+
+        public enum SearchModes
         {
             Auto = 0,
             Manual = 1
@@ -38,40 +41,105 @@ namespace BlockEnhancementMod
 
         void Update()
         {
-            if (SearchMode == searchMode.Manual)
+            if (SearchMode == SearchModes.Manual)
             {
                 //prepareTarget();
                 OnTarget.Invoke(target);
             }
-
-
         }
 
-        void OnTriggerEnter(Collider other)
+        void OnTriggerEnter(Collider collider)
         {
-            if (SearchMode != searchMode.Auto) return;
+            if (SearchMode != SearchModes.Auto) return;
 
-            PrepareTarget(other);
-            OnTarget.Invoke(target);
+            PrepareTarget(collider);
+            //OnTarget.Invoke(target);
         }
 
         void PrepareTarget(Collider collider)
         {
+            GameObject collidedObject = collider.transform.parent.gameObject;
 
+            //if (checkedGameObject.Contains(collidedObject)) return;
+            BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+            if (block == null)
+            {
+#if DEBUG
+                Debug.Log("block null");
+#endif
+                return;
+            }
+            else
+            {
+#if DEBUG
+                Debug.Log("Target aquired");
+                Debug.Log(collidedObject.name);
+#endif
+                Transform target = collidedObject.transform;
+                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
+                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetCollider = collider;
+                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetAquired = true;
+
+                DeactivateDetectionZone();
+                checkedGameObject.Add(collidedObject);
+
+                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                if (checkedCluster.Contains(cluster)) return;
+                checkedCluster.Add(cluster);
+            }
+        }
+
+        public void ClearSavedSets()
+        {
+            checkedGameObject.Clear();
+            checkedCluster.Clear();
+        }
+
+        public void ActivateDetectionZone()
+        {
+            MeshCollider collider = gameObject.GetComponent<MeshCollider>();
+#if DEBUG
+            MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
+#endif
+
+            if (collider != null)
+            {
+                collider.enabled = true;
+#if DEBUG
+                renderer.enabled = true;
+#endif
+            }
+        }
+
+        public void DeactivateDetectionZone()
+        {
+            MeshCollider collider = gameObject.GetComponent<MeshCollider>();
+#if DEBUG
+            MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
+#endif
+
+            if (collider != null)
+            {
+                collider.enabled = false;
+#if DEBUG
+                renderer.enabled = false;
+#endif
+            }
         }
 
         public void ChangeSearchMode()
         {
-            if (SearchMode == searchMode.Auto)
+            if (SearchMode == SearchModes.Auto)
             {
-                SearchMode = searchMode.Manual;
+                SearchMode = SearchModes.Manual;
                 //do something...
             }
             else
             {
-                SearchMode = searchMode.Auto;
+                SearchMode = SearchModes.Auto;
                 //do something...
             }
+            ClearSavedSets();
         }
 
         public void CreateFrustumCone(float angle, float topRadius, float bottomRadius)
@@ -83,7 +151,7 @@ namespace BlockEnhancementMod
             float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
-            int numVertices = 20;
+            int numVertices = 5;
 
             Vector3 myTopCenter = Vector3.up * topHeight;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
