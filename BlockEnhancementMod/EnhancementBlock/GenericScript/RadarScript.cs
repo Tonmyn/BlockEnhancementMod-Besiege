@@ -14,6 +14,8 @@ namespace BlockEnhancementMod
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
 
+        MeshCollider Collider;
+
         public bool Switch { get; set; } = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
@@ -22,6 +24,13 @@ namespace BlockEnhancementMod
 
         private HashSet<GameObject> checkedGameObject = new HashSet<GameObject>();
         private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
+
+        #region Networking Setting
+
+        public bool receivedRayFromClient = false;
+        public Ray rayFromClient;
+        
+        #endregion
 
         public enum SearchModes
         {
@@ -43,8 +52,83 @@ namespace BlockEnhancementMod
         {
             if (SearchMode == SearchModes.Manual)
             {
-                //prepareTarget();
+                PrepareTarget(getTarget());
                 OnTarget.Invoke(target);
+            }
+
+            Collider getTarget()
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (StatMaster.isClient)
+                {
+                    SendRayToHost(ray);
+                }
+                else
+                {
+                    //Find targets in the manual search mode by casting a sphere along the ray
+                    float manualSearchRadius = 1.25f;
+                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
+                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
+                    if (hits.Length > 0)
+                    {
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
+                            {
+                                if ((hits[i].transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
+                                {
+                                    target.transform = hits[i].transform;
+                                    target.collider = target.transform.GetComponentInChildren<Collider>(true);
+                                    target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
+                                    //previousVelocity = acceleration = Vector3.zero;
+                                    target.acceleration = 0;
+                                    //initialDistance = (hits[i].transform.position - transform.position).magnitude;
+                                    //targetAquired = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (target == null)
+                        {
+                            for (int i = 0; i < hits.Length; i++)
+                            {
+                                if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
+                                {
+                                    if ((hits[i].transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
+                                    {
+                                        target.transform = hits[i].transform;
+                                        target.collider = target.transform.GetComponentInChildren<Collider>(true);
+                                        target.initialCJOrHJ = false;
+                                        //previousVelocity = acceleration = Vector3.zero;
+                                        //initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
+                                        //targetAquired = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (target == null && rayHit.transform != null)
+                    {
+                        if ((rayHit.transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
+                        {
+                            target.transform = rayHit.transform;
+                            target.collider = target.transform.GetComponentInChildren<Collider>(true);
+                            target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
+                            //previousVelocity = acceleration = Vector3.zero;
+                            //initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
+                            //targetAquired = true;
+                        }
+
+                    }
+                    if (receivedRayFromClient)
+                    {
+                        SendTargetToClient();
+                    }
+                    receivedRayFromClient = false;
+                }
+
+                return target.collider;
             }
         }
 
@@ -52,8 +136,13 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
-            PrepareTarget(collider);
-            //OnTarget.Invoke(target);
+            if (target == null)
+            {
+                PrepareTarget(collider);
+                OnTarget.Invoke(target);
+
+            }
+
         }
 
         void PrepareTarget(Collider collider)
@@ -75,10 +164,10 @@ namespace BlockEnhancementMod
                 Debug.Log("Target aquired");
                 Debug.Log(collidedObject.name);
 #endif
-                Transform target = collidedObject.transform;
-                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
-                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetCollider = collider;
-                gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetAquired = true;
+                //Transform target = collidedObject.transform;
+                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
+                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetCollider = collider;
+                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetAquired = true;
 
                 DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
@@ -102,13 +191,13 @@ namespace BlockEnhancementMod
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
 #endif
 
-            if (collider != null)
-            {
+            //if (collider == null)
+            //{
                 collider.enabled = true;
 #if DEBUG
                 renderer.enabled = true;
 #endif
-            }
+            //}
         }
 
         public void DeactivateDetectionZone()
@@ -118,13 +207,13 @@ namespace BlockEnhancementMod
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
 #endif
 
-            if (collider != null)
-            {
+            //if (/*collider*/ != null)
+            //{
                 collider.enabled = false;
 #if DEBUG
                 renderer.enabled = false;
 #endif
-            }
+            //}
         }
 
         public void ChangeSearchMode()
@@ -151,7 +240,7 @@ namespace BlockEnhancementMod
             float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
-            int numVertices = 5;
+            int numVertices = 5+5;
 
             Vector3 myTopCenter = Vector3.up * topHeight;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
@@ -218,15 +307,77 @@ namespace BlockEnhancementMod
             mc.sharedMesh = GetComponent<MeshFilter>().mesh;
             mc.convex = true;
             mc.isTrigger = true;
+            Collider = mc;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
             mr.material.color = Color.green;
 #endif
         }
+
+        #region Networking Method
+        private void SendRayToHost(Ray ray)
+        {
+            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/transform.parent.GetComponent<BlockBehaviour>());
+            ModNetworking.SendToHost(rayToHostMsg);
+        }
+
+
+        public void SendTargetToClient()
+        {
+            if (StatMaster.isHosting)
+            {
+                if (target != null)
+                {
+                    var rocket = gameObject.GetComponent<TimedRocket>();
+                    var BB = transform.parent.GetComponent<BlockBehaviour>();
+
+                    if (target.transform.GetComponent<BlockBehaviour>())
+                    {
+                        BlockBehaviour targetBB = target.transform.GetComponent<BlockBehaviour>();
+                        int id = targetBB.ParentMachine.PlayerID;
+                        if (rocket.ParentMachine.PlayerID != 0)
+                        {
+                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                            foreach (var player in Player.GetAllPlayers())
+                            {
+                                if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                                {
+                                    ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+                                }
+                            }
+                        }
+                        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
+                        RocketsController.Instance.UpdateRocketTarget(BB, id);
+                    }
+                    if (target.transform.GetComponent<LevelEntity>())
+                    {
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.GetComponent<LevelEntity>(), BB);
+                        foreach (var player in Player.GetAllPlayers())
+                        {
+                            if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                            {
+                                ModNetworking.SendTo(player, targetEntityMsg);
+                            }
+                        }
+                        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+                        RocketsController.Instance.RemoveRocketTarget(BB);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
     }
 
-    class Target
+    class Target/*:Transform*/
     {
+
+        public Transform transform;
+        public Collider collider;
+        public bool initialCJOrHJ = false;
+
+        public float acceleration = 0;
 
     }
 }
