@@ -697,7 +697,7 @@ namespace BlockEnhancementMod
             {
                 if (targetObj.GetComponent<TimedRocket>().hasFired)
                 {
-                    if (targetObj.GetComponent<RocketScript>().targetAquired)
+                    if (targetObj.GetComponent<RocketScript>().radar != null)
                     {
                         clusterValue *= guidedRocketValue;
                     }

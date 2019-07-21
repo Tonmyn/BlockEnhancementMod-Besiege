@@ -74,49 +74,49 @@ namespace BlockEnhancementMod
                 RocketsController.Instance.UpdateRocketFiredStatus(rocket);
             };
 
-            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive block target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
-                rocket.target = ((Block)msg.GetData(0)).GameObject.transform;
-                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
+//            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
+//            {
+//#if DEBUG
+//                Debug.Log("Receive block target");
+//#endif
+//                Block rocketBlock = (Block)msg.GetData(1);
+//                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
+//                rocket.target = ((Block)msg.GetData(0)).GameObject.transform;
+//                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
 
-            };
+//            };
 
-            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive entity target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
-                rocket.target = ((Entity)msg.GetData(0)).GameObject.transform;
-                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
-            };
+//            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
+//            {
+//#if DEBUG
+//                Debug.Log("Receive entity target");
+//#endif
+//                Block rocketBlock = (Block)msg.GetData(1);
+//                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
+//                rocket.target = ((Entity)msg.GetData(0)).GameObject.transform;
+//                rocket.targetCollider = rocket.target.gameObject.GetComponentInChildren<Collider>(true);
+//            };
 
-            ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive entity target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(0);
-                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
-                rocket.target = null;
-                rocket.targetCollider = null;
+//            ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
+//            {
+//#if DEBUG
+//                Debug.Log("Receive entity target");
+//#endif
+//                Block rocketBlock = (Block)msg.GetData(0);
+//                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
+//                rocket.target = null;
+//                rocket.targetCollider = null;
 
-            };
+//            };
 
-            ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
-            {
-                Block rocketBlock = (Block)msg.GetData(2);
-                RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
-                rocket.rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
-                rocket.activeGuide = false;
-                rocket.receivedRayFromClient = true;
-            };
+            //ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
+            //{
+            //    Block rocketBlock = (Block)msg.GetData(2);
+            //    RocketScript rocket = rocketBlock.GameObject.GetComponent<RocketScript>();
+            //    rocket.rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
+            //    rocket.activeGuide = false;
+            //    rocket.receivedRayFromClient = true;
+            //};
 
             ModNetworking.Callbacks[Messages.rocketLockOnMeMsg] += (Message msg) =>
             {
