@@ -229,6 +229,13 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
+            //Add radar
+            radarObject = new GameObject("RocketRadar");
+            radar = radarObject.AddComponent<RadarScript>();
+            radarObject.transform.SetParent(gameObject.transform);
+            radarObject.transform.position = transform.position;
+            radarObject.transform.rotation = transform.rotation;
+            radarObject.transform.localPosition = Vector3.forward * 0.5f;
 
 
 
@@ -330,13 +337,7 @@ namespace BlockEnhancementMod
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
 
-                //Add radar
-                radarObject = new GameObject("RocketRadar");
-                radar = radarObject.AddComponent<RadarScript>();
-                radarObject.transform.SetParent(gameObject.transform);
-                radarObject.transform.position = transform.position;
-                radarObject.transform.rotation = transform.rotation;
-                radarObject.transform.localPosition = Vector3.forward * 0.5f;
+                //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
                 radar.ClearSavedSets();
                 radar.DeactivateDetectionZone();

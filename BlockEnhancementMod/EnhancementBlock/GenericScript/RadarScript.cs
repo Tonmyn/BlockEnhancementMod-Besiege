@@ -10,6 +10,7 @@ namespace BlockEnhancementMod
 {
     class RadarScript : MonoBehaviour
     {
+        private int radarLayer = 1;
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
@@ -41,6 +42,7 @@ namespace BlockEnhancementMod
         void Awake()
         {
             OnTarget += (value) => { };
+            gameObject.layer = radarLayer;
         }
 
         void Start()
@@ -135,6 +137,7 @@ namespace BlockEnhancementMod
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
+            if (collider.gameObject.layer == radarLayer) return;
 
             if (target == null)
             {
@@ -146,6 +149,7 @@ namespace BlockEnhancementMod
 
         void PrepareTarget(Collider collider)
         {
+
             GameObject collidedObject = collider.transform.parent.gameObject;
 
             //if (checkedGameObject.Contains(collidedObject)) return;
@@ -153,18 +157,19 @@ namespace BlockEnhancementMod
             if (block == null)
             {
 #if DEBUG
-                Debug.Log("block null");
+                //Debug.Log("block null");
 #endif
                 return;
             }
             else
             {
-                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                if (checkedCluster.Contains(cluster)) return;
-                checkedCluster.Add(cluster);
+                //Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                //if (checkedCluster.Contains(cluster)) return;
+                //checkedCluster.Add(cluster);
 #if DEBUG
                 Debug.Log("Target aquired");
                 Debug.Log(collidedObject.name);
+                Debug.Log(collider.transform.gameObject.layer);
 #endif
                 //Transform target = collidedObject.transform;
                 //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
