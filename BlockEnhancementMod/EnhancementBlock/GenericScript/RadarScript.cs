@@ -29,7 +29,7 @@ namespace BlockEnhancementMod
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
-        
+
         #endregion
 
         public enum SearchModes
@@ -142,7 +142,6 @@ namespace BlockEnhancementMod
                 OnTarget.Invoke(target);
 
             }
-
         }
 
         void PrepareTarget(Collider collider)
@@ -160,6 +159,9 @@ namespace BlockEnhancementMod
             }
             else
             {
+                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                if (checkedCluster.Contains(cluster)) return;
+                checkedCluster.Add(cluster);
 #if DEBUG
                 Debug.Log("Target aquired");
                 Debug.Log(collidedObject.name);
@@ -171,10 +173,6 @@ namespace BlockEnhancementMod
 
                 DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
-
-                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                if (checkedCluster.Contains(cluster)) return;
-                checkedCluster.Add(cluster);
             }
         }
 
@@ -193,9 +191,9 @@ namespace BlockEnhancementMod
 
             //if (collider == null)
             //{
-                collider.enabled = true;
+            collider.enabled = true;
 #if DEBUG
-                renderer.enabled = true;
+            renderer.enabled = true;
 #endif
             //}
         }
@@ -209,9 +207,9 @@ namespace BlockEnhancementMod
 
             //if (/*collider*/ != null)
             //{
-                collider.enabled = false;
+            collider.enabled = false;
 #if DEBUG
-                renderer.enabled = false;
+            renderer.enabled = false;
 #endif
             //}
         }
@@ -240,7 +238,7 @@ namespace BlockEnhancementMod
             float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
-            int numVertices = 5+5;
+            int numVertices = 5 + 5;
 
             Vector3 myTopCenter = Vector3.up * topHeight;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
@@ -321,7 +319,6 @@ namespace BlockEnhancementMod
             ModNetworking.SendToHost(rayToHostMsg);
         }
 
-
         public void SendTargetToClient()
         {
             if (StatMaster.isHosting)
@@ -366,8 +363,18 @@ namespace BlockEnhancementMod
             }
         }
 
+        public void SendClientTargetNull()
+        {
+            BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
+            if (StatMaster.isHosting)
+            {
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(timedRocket);
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == timedRocket.ParentMachine.PlayerID), rocketTargetNullMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(timedRocket));
+            }
+            RocketsController.Instance.RemoveRocketTarget(timedRocket);
+        }
         #endregion
-
     }
 
     class Target/*:Transform*/
