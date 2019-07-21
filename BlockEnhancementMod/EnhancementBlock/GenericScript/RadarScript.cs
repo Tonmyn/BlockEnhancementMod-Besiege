@@ -69,8 +69,8 @@ namespace BlockEnhancementMod
                 {
                     //Find targets in the manual search mode by casting a sphere along the ray
                     float manualSearchRadius = 1.25f;
-                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
-                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
+                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask);
+                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Game.BlockEntityLayerMask);
                     if (hits.Length > 0)
                     {
                         for (int i = 0; i < hits.Length; i++)
@@ -85,7 +85,6 @@ namespace BlockEnhancementMod
                                     //previousVelocity = acceleration = Vector3.zero;
                                     target.acceleration = 0;
                                     //initialDistance = (hits[i].transform.position - transform.position).magnitude;
-                                    //targetAquired = true;
                                     break;
                                 }
                             }
@@ -103,7 +102,6 @@ namespace BlockEnhancementMod
                                         target.initialCJOrHJ = false;
                                         //previousVelocity = acceleration = Vector3.zero;
                                         //initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                                        //targetAquired = true;
                                         break;
                                     }
                                 }
@@ -119,7 +117,6 @@ namespace BlockEnhancementMod
                             target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
                             //previousVelocity = acceleration = Vector3.zero;
                             //initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                            //targetAquired = true;
                         }
 
                     }
