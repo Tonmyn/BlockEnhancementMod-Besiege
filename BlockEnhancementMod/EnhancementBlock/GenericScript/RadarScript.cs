@@ -10,7 +10,8 @@ namespace BlockEnhancementMod
 {
     class RadarScript : MonoBehaviour
     {
-        private int radarLayer = 1;
+        public static int CollisionLayer = 10;
+
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
@@ -42,19 +43,14 @@ namespace BlockEnhancementMod
         void Awake()
         {
             OnTarget += (value) => { };
-            gameObject.layer = radarLayer;
-        }
-
-        void Start()
-        {
-            //CreateFrustumCone(searchAngle, safetyRadius, radius);
+            gameObject.layer = CollisionLayer;
         }
 
         void Update()
         {
             if (SearchMode == SearchModes.Manual)
             {
-                PrepareTarget(getTarget());
+                target = PrepareTarget(getTarget());
                 OnTarget.Invoke(target);
             }
 
@@ -134,18 +130,28 @@ namespace BlockEnhancementMod
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
-            if (collider.gameObject.layer == radarLayer) return;
 
             if (target == null)
             {
-                PrepareTarget(collider);
+                target = PrepareTarget(collider);
                 OnTarget.Invoke(target);
 
             }
+            else
+            {
+                var aim = PrepareTarget(collider);
+
+                if (aim.warningLevel > target.warningLevel)
+                {
+                    target = aim;
+                    OnTarget.Invoke(target);
+                }               
+            }
         }
 
-        void PrepareTarget(Collider collider)
+        Target PrepareTarget(Collider collider)
         {
+          
 
             GameObject collidedObject = collider.transform.parent.gameObject;
 
@@ -156,25 +162,27 @@ namespace BlockEnhancementMod
 #if DEBUG
                 //Debug.Log("block null");
 #endif
-                return;
+                return null;
             }
             else
             {
-                //Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                //if (checkedCluster.Contains(cluster)) return;
-                //checkedCluster.Add(cluster);
+                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                if (checkedCluster.Contains(cluster)) return null;
+                checkedCluster.Add(cluster);
 #if DEBUG
                 Debug.Log("Target aquired");
                 Debug.Log(collidedObject.name);
                 Debug.Log(collider.transform.gameObject.layer);
 #endif
-                //Transform target = collidedObject.transform;
-                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
-                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetCollider = collider;
-                //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().targetAquired = true;
 
-                DeactivateDetectionZone();
+                Target aim = new Target();
+                aim.collider = collider;
+                aim.transform = collider.gameObject.transform;
+
+                //DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
+
+                return aim;
             }
         }
 
@@ -240,7 +248,7 @@ namespace BlockEnhancementMod
             float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
-            int numVertices = 5 + 5;
+            int numVertices = 5 + 10;
 
             Vector3 myTopCenter = Vector3.up * topHeight;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
@@ -306,7 +314,7 @@ namespace BlockEnhancementMod
             var mc = gameObject.GetComponent<MeshCollider>() ?? gameObject.AddComponent<MeshCollider>();
             mc.sharedMesh = GetComponent<MeshFilter>().mesh;
             mc.convex = true;
-            mc.isTrigger = true;
+            mc.isTrigger = true;          
             Collider = mc;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
@@ -388,5 +396,14 @@ namespace BlockEnhancementMod
 
         public float acceleration = 0;
 
+        public WarningLevel warningLevel = 0;
+
+        public enum WarningLevel
+        {
+            low =0,
+            middle=1,
+            hight=2
+        }
+     
     }
 }

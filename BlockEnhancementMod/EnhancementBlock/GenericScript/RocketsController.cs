@@ -32,7 +32,7 @@ namespace BlockEnhancementMod
         private static Texture2D redTexture;
         private static Texture2D RedTexture
         {
-            get
+            get/**/
             {
                 if (redTexture == null)
                 {
@@ -51,6 +51,13 @@ namespace BlockEnhancementMod
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
             playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>>();
+
+            setRadarIgnoreCollosionLayer();
+
+            void setRadarIgnoreCollosionLayer()
+            {
+                Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, RadarScript.CollisionLayer, true);
+            }
         }
 
         void FixedUpdate()
