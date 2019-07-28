@@ -145,7 +145,18 @@ namespace BlockEnhancementMod
                 {
                     target = aim;
                     OnTarget.Invoke(target);
-                }               
+                }
+                else if (aim.warningLevel == target.warningLevel)
+                {
+                    float aimDistance = Vector3.Distance(aim.transform.position, transform.position);
+                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
+
+                    if (targetDistance > aimDistance)
+                    {
+                        target = aim;
+                        OnTarget.Invoke(target);
+                    }
+                }
             }
         }
 
