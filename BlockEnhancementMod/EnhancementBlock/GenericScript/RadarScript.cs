@@ -10,6 +10,7 @@ namespace BlockEnhancementMod
 {
     class RadarScript : MonoBehaviour
     {
+        private int radarLayer = 1;
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
@@ -29,7 +30,7 @@ namespace BlockEnhancementMod
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
-        
+
         #endregion
 
         public enum SearchModes
@@ -41,6 +42,7 @@ namespace BlockEnhancementMod
         void Awake()
         {
             OnTarget += (value) => { };
+            gameObject.layer = radarLayer;
         }
 
         void Start()
@@ -67,8 +69,8 @@ namespace BlockEnhancementMod
                 {
                     //Find targets in the manual search mode by casting a sphere along the ray
                     float manualSearchRadius = 1.25f;
-                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
-                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
+                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask);
+                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Game.BlockEntityLayerMask);
                     if (hits.Length > 0)
                     {
                         for (int i = 0; i < hits.Length; i++)
@@ -83,7 +85,6 @@ namespace BlockEnhancementMod
                                     //previousVelocity = acceleration = Vector3.zero;
                                     target.acceleration = 0;
                                     //initialDistance = (hits[i].transform.position - transform.position).magnitude;
-                                    //targetAquired = true;
                                     break;
                                 }
                             }
@@ -101,7 +102,6 @@ namespace BlockEnhancementMod
                                         target.initialCJOrHJ = false;
                                         //previousVelocity = acceleration = Vector3.zero;
                                         //initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                                        //targetAquired = true;
                                         break;
                                     }
                                 }
@@ -117,7 +117,6 @@ namespace BlockEnhancementMod
                             target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
                             //previousVelocity = acceleration = Vector3.zero;
                             //initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                            //targetAquired = true;
                         }
 
                     }
@@ -135,6 +134,7 @@ namespace BlockEnhancementMod
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
+            if (collider.gameObject.layer == radarLayer) return;
 
             if (target == null)
             {
@@ -142,11 +142,11 @@ namespace BlockEnhancementMod
                 OnTarget.Invoke(target);
 
             }
-
         }
 
         void PrepareTarget(Collider collider)
         {
+
             GameObject collidedObject = collider.transform.parent.gameObject;
 
             //if (checkedGameObject.Contains(collidedObject)) return;
@@ -154,15 +154,19 @@ namespace BlockEnhancementMod
             if (block == null)
             {
 #if DEBUG
-                Debug.Log("block null");
+                //Debug.Log("block null");
 #endif
                 return;
             }
             else
             {
+                //Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                //if (checkedCluster.Contains(cluster)) return;
+                //checkedCluster.Add(cluster);
 #if DEBUG
                 Debug.Log("Target aquired");
                 Debug.Log(collidedObject.name);
+                Debug.Log(collider.transform.gameObject.layer);
 #endif
                 //Transform target = collidedObject.transform;
                 //gameObject.transform.parent.gameObject.GetComponent<RocketScript>().target = target;
@@ -171,10 +175,6 @@ namespace BlockEnhancementMod
 
                 DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
-
-                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                if (checkedCluster.Contains(cluster)) return;
-                checkedCluster.Add(cluster);
             }
         }
 
@@ -193,9 +193,9 @@ namespace BlockEnhancementMod
 
             //if (collider == null)
             //{
-                collider.enabled = true;
+            collider.enabled = true;
 #if DEBUG
-                renderer.enabled = true;
+            renderer.enabled = true;
 #endif
             //}
         }
@@ -209,9 +209,9 @@ namespace BlockEnhancementMod
 
             //if (/*collider*/ != null)
             //{
-                collider.enabled = false;
+            collider.enabled = false;
 #if DEBUG
-                renderer.enabled = false;
+            renderer.enabled = false;
 #endif
             //}
         }
@@ -240,7 +240,7 @@ namespace BlockEnhancementMod
             float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
-            int numVertices = 5+5;
+            int numVertices = 5 + 5;
 
             Vector3 myTopCenter = Vector3.up * topHeight;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
@@ -321,7 +321,6 @@ namespace BlockEnhancementMod
             ModNetworking.SendToHost(rayToHostMsg);
         }
 
-
         public void SendTargetToClient()
         {
             if (StatMaster.isHosting)
@@ -366,8 +365,18 @@ namespace BlockEnhancementMod
             }
         }
 
+        public void SendClientTargetNull()
+        {
+            BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
+            if (StatMaster.isHosting)
+            {
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(timedRocket);
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == timedRocket.ParentMachine.PlayerID), rocketTargetNullMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(timedRocket));
+            }
+            RocketsController.Instance.RemoveRocketTarget(timedRocket);
+        }
         #endregion
-
     }
 
     class Target/*:Transform*/

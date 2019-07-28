@@ -27,7 +27,7 @@ namespace BlockEnhancementMod
         public bool noLongerActiveSent = false;
         public bool removedFromGroup = false;
 
- 
+
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -71,7 +71,7 @@ namespace BlockEnhancementMod
         private readonly float safetyRadiusManual = 15f;
         private readonly float maxSearchAngle = 25f;
         private readonly float maxSearchAngleNo8 = 89f;
-        private readonly float searchRange = 1400f-0f;
+        private readonly float searchRange = 1400f - 0f;
         public bool activeGuide = true;
         //public bool targetAquired = false;
         //public bool searchStarted = false;
@@ -189,7 +189,7 @@ namespace BlockEnhancementMod
             HighExploToggle.Toggled += (bool value) =>
             {
                 highExploActivated = value;
-                ChangedProperties();   
+                ChangedProperties();
             };
 
             ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
@@ -229,7 +229,14 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
-          
+            //Add radar
+            radarObject = new GameObject("RocketRadar");
+            radar = radarObject.AddComponent<RadarScript>();
+            radarObject.transform.SetParent(gameObject.transform);
+            radarObject.transform.position = transform.position;
+            radarObject.transform.rotation = transform.rotation;
+            radarObject.transform.localPosition = Vector3.forward * 0.5f;
+
 
 
 #if DEBUG
@@ -271,7 +278,7 @@ namespace BlockEnhancementMod
                         rockets.Remove(rocket);
                     }
                 }
-                SendClientTargetNull();
+                radar.SendClientTargetNull();
                 rocketInBuildSent = true;
             }
 
@@ -330,13 +337,7 @@ namespace BlockEnhancementMod
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
 
-                //Add radar
-                radarObject = new GameObject("RocketRadar");
-                radar = radarObject.AddComponent<RadarScript>();
-                radarObject.transform.SetParent(gameObject.transform);
-                radarObject.transform.position = transform.position;
-                radarObject.transform.rotation = transform.rotation;
-                radarObject.transform.localPosition = Vector3.forward * 0.5f;
+                //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
                 radar.ClearSavedSets();
                 radar.DeactivateDetectionZone();
@@ -389,7 +390,7 @@ namespace BlockEnhancementMod
                             //target = null;
                             //targetCollider = null;
                             previousVelocity = acceleration = Vector3.zero;
-                            SendClientTargetNull();
+                            radar.SendClientTargetNull();
                         }
                         else
                         {
@@ -402,7 +403,7 @@ namespace BlockEnhancementMod
                         //target = null;
                         //targetCollider = null;
                         previousVelocity = acceleration = Vector3.zero;
-                        SendClientTargetNull();
+                        radar.SendClientTargetNull();
                         if (activeGuide)
                         {
                             //When launch key is released, reset target search
@@ -727,7 +728,7 @@ namespace BlockEnhancementMod
                 }
                 if (rocket.hasExploded && !rocketExploMsgSent)
                 {
-                    SendClientTargetNull();
+                    radar.SendClientTargetNull();
                     rocketExploMsgSent = true;
                 }
             }
@@ -735,7 +736,7 @@ namespace BlockEnhancementMod
             {
                 if (!noLongerActiveSent)
                 {
-                    SendClientTargetNull();
+                    radar.SendClientTargetNull();
                     noLongerActiveSent = true;
                 }
             }
@@ -841,7 +842,7 @@ namespace BlockEnhancementMod
             //Stop the search target coroutine
             targetHit = true;
             //StopCoroutine(SearchForTarget());
-            SendClientTargetNull();
+            radar.SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
             Quaternion rotation = rocket.transform.rotation;
@@ -1323,63 +1324,54 @@ namespace BlockEnhancementMod
 
         }
 
-        public void SendTargetToClient()
-        {
-            if (StatMaster.isHosting)
-            {
-                //if (target != null)
-                //{
-                //    if (target.gameObject.GetComponent<BlockBehaviour>())
-                //    {
-                //        BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
-                //        int id = targetBB.ParentMachine.PlayerID;
-                //        if (rocket.ParentMachine.PlayerID != 0)
-                //        {
-                //            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
-                //            foreach (var player in Player.GetAllPlayers())
-                //            {
-                //                if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                //                {
-                //                    ModNetworking.SendTo(player, targetBlockBehaviourMsg);
-                //                }
-                //            }
-                //        }
-                //        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                //        RocketsController.Instance.UpdateRocketTarget(BB, id);
-                //    }
-                //    if (target.gameObject.GetComponent<LevelEntity>())
-                //    {
-                //        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
-                //        foreach (var player in Player.GetAllPlayers())
-                //        {
-                //            if (player.NetworkId == rocket.ParentMachine.PlayerID)
-                //            {
-                //                ModNetworking.SendTo(player, targetEntityMsg);
-                //            }
-                //        }
-                //        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                //        RocketsController.Instance.RemoveRocketTarget(BB);
-                //    }
-                //}
-            }
-        }
+        //public void SendTargetToClient()
+        //{
+        //    if (StatMaster.isHosting)
+        //    {
+        //        //if (target != null)
+        //        //{
+        //        //    if (target.gameObject.GetComponent<BlockBehaviour>())
+        //        //    {
+        //        //        BlockBehaviour targetBB = target.gameObject.GetComponent<BlockBehaviour>();
+        //        //        int id = targetBB.ParentMachine.PlayerID;
+        //        //        if (rocket.ParentMachine.PlayerID != 0)
+        //        //        {
+        //        //            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+        //        //            foreach (var player in Player.GetAllPlayers())
+        //        //            {
+        //        //                if (player.NetworkId == rocket.ParentMachine.PlayerID)
+        //        //                {
+        //        //                    ModNetworking.SendTo(player, targetBlockBehaviourMsg);
+        //        //                }
+        //        //            }
+        //        //        }
+        //        //        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
+        //        //        RocketsController.Instance.UpdateRocketTarget(BB, id);
+        //        //    }
+        //        //    if (target.gameObject.GetComponent<LevelEntity>())
+        //        //    {
+        //        //        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.gameObject.GetComponent<LevelEntity>(), BB);
+        //        //        foreach (var player in Player.GetAllPlayers())
+        //        //        {
+        //        //            if (player.NetworkId == rocket.ParentMachine.PlayerID)
+        //        //            {
+        //        //                ModNetworking.SendTo(player, targetEntityMsg);
+        //        //            }
+        //        //        }
+        //        //        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
+        //        //        RocketsController.Instance.RemoveRocketTarget(BB);
+        //        //    }
+        //        //}
+        //    }
+        //}
 
-        public void SendClientTargetNull()
-        {
-            if (StatMaster.isHosting)
-            {
-                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(BB);
-                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == rocket.ParentMachine.PlayerID), rocketTargetNullMsg);
-                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-            }
-            RocketsController.Instance.RemoveRocketTarget(BB);
-        }
 
-        private void SendRayToHost(Ray ray)
-        {
-            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, BB);
-            ModNetworking.SendToHost(rayToHostMsg);
-        }
+
+        //private void SendRayToHost(Ray ray)
+        //{
+        //    Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, BB);
+        //    ModNetworking.SendToHost(rayToHostMsg);
+        //}
 
         private void SendExplosionPositionToAll(Vector3 position)
         {
