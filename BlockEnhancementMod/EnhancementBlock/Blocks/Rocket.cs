@@ -23,7 +23,7 @@ namespace BlockEnhancementMod
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
-        public static bool MarkTarget { get; internal set; } = true;
+        
         public bool noLongerActiveSent = false;
         public bool removedFromGroup = false;
 
@@ -123,10 +123,6 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            //Load aim pic
-            rocketAim = new Texture2D(16, 16);
-            rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
-
             //Key mapper setup
             GuidedRocketToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.trackTarget, "TrackingRocket", guidedRocketActivated);
             GuidedRocketToggle.Toggled += (bool value) =>
@@ -229,7 +225,10 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
-
+            //Add radar
+            radarObject = new GameObject("RocketRadar");
+            radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
+            radarObject.transform.SetParent(gameObject.transform);
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -328,10 +327,6 @@ namespace BlockEnhancementMod
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
         
-                //Add radar
-                radarObject = new GameObject("RocketRadar");
-                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radarObject.transform.SetParent(gameObject.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
@@ -715,34 +710,34 @@ namespace BlockEnhancementMod
             rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         }
      
-        private void OnGUI()
-        {
-            if (StatMaster.isMP && StatMaster.isHosting)
-            {
-                if (rocket.ParentMachine.PlayerID != 0)
-                {
-                    return;
-                }
-            }
-            DrawTargetRedSquare();
-        }
+        //private void OnGUI()
+        //{
+        //    if (StatMaster.isMP && StatMaster.isHosting)
+        //    {
+        //        if (rocket.ParentMachine.PlayerID != 0)
+        //        {
+        //            return;
+        //        }
+        //    }
+        //    DrawTargetRedSquare();
+        //}
 
-        private void DrawTargetRedSquare()
-        {
-            if (MarkTarget)
-            {
-                //if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
-                //{
-                //    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
-                //    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
-                //    {
-                //        int squareWidth = 16;
-                //        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-                //        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
-                //    }
-                //}
-            }
-        }
+        //private void DrawTargetRedSquare()
+        //{
+        //    if (MarkTarget)
+        //    {
+        //        //if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
+        //        //{
+        //        //    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
+        //        //    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
+        //        //    {
+        //        //        int squareWidth = 16;
+        //        //        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
+        //        //        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+        //        //    }
+        //        //}
+        //    }
+        //}
 
         public void SendRocketFired()
         {

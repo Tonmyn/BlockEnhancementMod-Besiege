@@ -83,7 +83,7 @@ namespace BlockEnhancementMod
                     }
                 }
                 RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.displayWarning);
-                RocketScript.MarkTarget = GUILayout.Toggle(RocketScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.markTarget);
+                RadarScript.MarkTarget = GUILayout.Toggle(RadarScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.markTarget);
                 RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.displayRocketCount);
             }
             GUILayout.Space(2);
