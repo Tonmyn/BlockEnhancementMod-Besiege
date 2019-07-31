@@ -16,6 +16,9 @@ namespace BlockEnhancementMod
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
 
+        public static bool MarkTarget { get; internal set; } = true;
+        private Texture2D rocketAim;
+
         MeshCollider Collider;
 
         public bool Switch { get; set; } = false;
@@ -44,6 +47,10 @@ namespace BlockEnhancementMod
         {
             OnTarget += (value) => { };
             gameObject.layer = CollisionLayer;
+
+            //Load aim pic
+            rocketAim = new Texture2D(16, 16);
+            rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
         }
 
         void Update()
@@ -135,7 +142,6 @@ namespace BlockEnhancementMod
             {
                 target = PrepareTarget(collider);
                 OnTarget.Invoke(target);
-
             }
             else
             {
@@ -162,17 +168,12 @@ namespace BlockEnhancementMod
 
         Target PrepareTarget(Collider collider)
         {
-          
-
             GameObject collidedObject = collider.transform.parent.gameObject;
 
             //if (checkedGameObject.Contains(collidedObject)) return;
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
             if (block == null)
             {
-#if DEBUG
-                //Debug.Log("block null");
-#endif
                 return null;
             }
             else
@@ -186,11 +187,13 @@ namespace BlockEnhancementMod
                 Debug.Log(collider.transform.gameObject.layer);
 #endif
 
-                Target aim = new Target();
-                aim.collider = collider;
-                aim.transform = collider.gameObject.transform;
+                Target aim = new Target
+                {
+                    collider = collider,
+                    transform = collider.gameObject.transform
+                };
 
-                //DeactivateDetectionZone();
+                DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
 
                 return aim;
@@ -325,7 +328,7 @@ namespace BlockEnhancementMod
             var mc = gameObject.GetComponent<MeshCollider>() ?? gameObject.AddComponent<MeshCollider>();
             mc.sharedMesh = GetComponent<MeshFilter>().mesh;
             mc.convex = true;
-            mc.isTrigger = true;          
+            mc.isTrigger = true;
             Collider = mc;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
@@ -396,6 +399,35 @@ namespace BlockEnhancementMod
             RocketsController.Instance.RemoveRocketTarget(timedRocket);
         }
         #endregion
+
+        private void OnGUI()
+        {
+            if (StatMaster.isMP && StatMaster.isHosting)
+            {
+                //if (rocket.ParentMachine.PlayerID != 0)
+                //{
+                //    return;
+                //}
+            }
+            DrawTargetRedSquare();
+        }
+
+        private void DrawTargetRedSquare()
+        {
+            if (MarkTarget)
+            {
+                if (target != null)
+                {
+                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
+                    {
+                        int squareWidth = 16;
+                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
+                        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                    }
+                }
+            }
+        }
     }
 
     class Target/*:Transform*/
@@ -411,10 +443,10 @@ namespace BlockEnhancementMod
 
         public enum WarningLevel
         {
-            low =0,
-            middle=1,
-            hight=2
+            low = 0,
+            middle = 1,
+            hight = 2
         }
-     
+
     }
 }
