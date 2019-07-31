@@ -15,11 +15,9 @@ namespace BlockEnhancementMod
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
-
+        MeshCollider Collider;
         public static bool MarkTarget { get; internal set; } = true;
         private Texture2D rocketAim;
-
-        MeshCollider Collider;
 
         public bool Switch { get; set; } = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
@@ -53,8 +51,22 @@ namespace BlockEnhancementMod
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
         }
 
+        bool lastSwitchState = false;
         void Update()
         {
+            if (Switch != lastSwitchState)
+            {
+                lastSwitchState = Switch;
+                if (Switch)
+                {
+                    ActivateDetectionZone();
+                }
+                else
+                {
+                    DeactivateDetectionZone();
+                }
+            }
+
             if (SearchMode == SearchModes.Manual)
             {
                 target = PrepareTarget(getTarget());
@@ -193,7 +205,7 @@ namespace BlockEnhancementMod
                     transform = collider.gameObject.transform
                 };
 
-                DeactivateDetectionZone();
+                Switch = false; //DeactivateDetectionZone();
                 checkedGameObject.Add(collidedObject);
 
                 return aim;
@@ -206,36 +218,26 @@ namespace BlockEnhancementMod
             checkedCluster.Clear();
         }
 
-        public void ActivateDetectionZone()
+        private void ActivateDetectionZone()
         {
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
+            collider.enabled = true;
+
 #if DEBUG
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
-#endif
-
-            //if (collider == null)
-            //{
-            collider.enabled = true;
-#if DEBUG
             renderer.enabled = true;
 #endif
-            //}
         }
 
-        public void DeactivateDetectionZone()
+        private void DeactivateDetectionZone()
         {
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
+            collider.enabled = false;
+
 #if DEBUG
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
-#endif
-
-            //if (/*collider*/ != null)
-            //{
-            collider.enabled = false;
-#if DEBUG
             renderer.enabled = false;
 #endif
-            //}
         }
 
         public void ChangeSearchMode()
@@ -407,7 +409,7 @@ namespace BlockEnhancementMod
                 //if (rocket.ParentMachine.PlayerID != 0)
                 //{
                 //    return;
-                //}
+                //} 
             }
             DrawTargetRedSquare();
         }
