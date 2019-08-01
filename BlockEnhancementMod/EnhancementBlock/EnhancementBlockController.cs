@@ -121,6 +121,8 @@ namespace BlockEnhancementMod
             {(int)BlockType.LargeWheel,typeof(WheelScript) },
             {(int)BlockType.LargeWheelUnpowered,typeof(WheelScript) },
             {(int)BlockType.WheelUnpowered,typeof(WheelScript) },
+           //// { (int)BlockType.CogLargeUnpowered,typeof(UnpoweredCog)},
+           //// { (int)BlockType.CogMediumUnpowered,typeof(UnpoweredCog)},
             {(int)BlockType.Rocket,typeof(RocketScript)},
             {(int)BlockType.CameraBlock,typeof(CameraScript)},
             { (int)BlockType.SingleWoodenBlock,typeof(WoodenScript)},

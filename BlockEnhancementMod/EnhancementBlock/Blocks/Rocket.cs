@@ -225,10 +225,6 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
-            //Add radar
-            radarObject = new GameObject("RocketRadar");
-            radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-            radarObject.transform.SetParent(gameObject.transform);
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -259,19 +255,7 @@ namespace BlockEnhancementMod
 
         public override void BuildingUpdateAlways_EnhancementEnabled()
         {
-            if (!rocketInBuildSent)
-            {
-                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
-                {
-                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
-                    {
-                        rockets.Remove(rocket);
-                    }
-                }
-                radar.SendClientTargetNull();
-                rocketInBuildSent = true;
-            }
-
+          
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
                 if (AutoGrabberReleaseToggle.DisplayInMapper)
@@ -326,14 +310,17 @@ namespace BlockEnhancementMod
                 //targetCollider = null;
                 explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
-        
+                //Add radar
+                radarObject = new GameObject("RocketRadar");
+                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
+                radarObject.transform.SetParent(gameObject.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
                 radar.ClearSavedSets();
-                radar.DeactivateDetectionZone();
+                radar.Switch = false;
 
                 previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
@@ -401,7 +388,7 @@ namespace BlockEnhancementMod
                         {
                             //When launch key is released, reset target search
                             //targetAquired = false;
-                            radar.ActivateDetectionZone();
+                            radar.Switch = true;
                         }
                         else
                         {
@@ -571,6 +558,22 @@ namespace BlockEnhancementMod
                         StartCoroutine(RocketExplode());
                     }
                 }
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (!rocketInBuildSent)
+            {
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                {
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
+                }
+                radar.SendClientTargetNull();
+                rocketInBuildSent = true;
             }
         }
 
