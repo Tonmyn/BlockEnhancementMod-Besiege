@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        public bool noLongerActiveSent = false;
+        //public bool noLongerActiveSent = false;
         public bool removedFromGroup = false;
 
 
@@ -53,9 +53,9 @@ namespace BlockEnhancementMod
         public Vector3 previousVelocity;
         public Vector3 acceleration;
         //public Collider targetCollider;
-        private bool targetInitialCJOrHJ = false;
-        private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
-        private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
+        //private bool targetInitialCJOrHJ = false;
+        //private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
+        //private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -78,12 +78,12 @@ namespace BlockEnhancementMod
 
 
         //Cluster value multiplier
-        private readonly float bombValue = 64;
-        private readonly float guidedRocketValue = 1024;
-        private readonly float waterCannonValue = 16;
-        private readonly float flyingBlockValue = 2;
-        private readonly float flameThrowerValue = 8;
-        private readonly float cogMotorValue = 2;
+        //private readonly float bombValue = 64;
+        //private readonly float guidedRocketValue = 1024;
+        //private readonly float waterCannonValue = 16;
+        //private readonly float flyingBlockValue = 2;
+        //private readonly float flameThrowerValue = 8;
+        //private readonly float cogMotorValue = 2;
 
         //impact & proximity fuze related setting
         MToggle ImpactFuzeToggle;
@@ -281,7 +281,7 @@ namespace BlockEnhancementMod
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
+            smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
             aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
@@ -302,11 +302,11 @@ namespace BlockEnhancementMod
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = /*targetAquired =*/ targetHit = bombHasExploded/* = receivedRayFromClient*/ = targetInitialCJOrHJ = rocketExploMsgSent = false;
+                launchTimeRecorded = canTrigger = /*targetAquired =*/ targetHit = bombHasExploded/* = receivedRayFromClient*/ /*= targetInitialCJOrHJ*/ = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 //target = null;
                 //targetCollider = null;
-                explodedCluster.Clear();
+                //explodedCluster.Clear();
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
@@ -323,17 +323,17 @@ namespace BlockEnhancementMod
 
                 previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
-                if (!StatMaster.isMP)
-                {
-                    clustersInSafetyRange.Clear();
-                    foreach (var cluster in Machine.Active().simClusters)
-                    {
-                        if ((cluster.Base.transform.position - rocket.transform.position).magnitude < safetyRadiusAuto)
-                        {
-                            clustersInSafetyRange.Add(cluster);
-                        }
-                    }
-                }
+                //if (!StatMaster.isMP)
+                //{
+                //    clustersInSafetyRange.Clear();
+                //    foreach (var cluster in Machine.Active().simClusters)
+                //    {
+                //        if ((cluster.Base.transform.position - rocket.transform.position).magnitude < safetyRadiusAuto)
+                //        {
+                //            clustersInSafetyRange.Add(cluster);
+                //        }
+                //    }
+                //}
                 StopAllCoroutines();
 
                 // Read the charge from rocket
@@ -515,14 +515,14 @@ namespace BlockEnhancementMod
                     rocketExploMsgSent = true;
                 }
             }
-            else
-            {
-                if (!noLongerActiveSent)
-                {
-                    radar.SendClientTargetNull();
-                    noLongerActiveSent = true;
-                }
-            }
+            //else
+            //{
+            //    if (!noLongerActiveSent)
+            //    {
+            //        radar.SendClientTargetNull();
+            //        noLongerActiveSent = true;
+            //    }
+            //}
         }
 
         public override void SimulateLateUpdate_EnhancementEnabled()
@@ -562,18 +562,14 @@ namespace BlockEnhancementMod
 
         void OnDestroy()
         {
-            if (!rocketInBuildSent)
+            if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
             {
-                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
                 {
-                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
-                    {
-                        rockets.Remove(rocket);
-                    }
+                    rockets.Remove(rocket);
                 }
-                radar.SendClientTargetNull();
-                rocketInBuildSent = true;
             }
+            radar.SendClientTargetNull();
         }
 
         private IEnumerator RocketExplode()
