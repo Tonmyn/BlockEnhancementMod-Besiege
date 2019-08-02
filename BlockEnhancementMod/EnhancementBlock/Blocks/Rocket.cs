@@ -18,12 +18,10 @@ namespace BlockEnhancementMod
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
         public float groupFireRate = 0.25f;
-        private Texture2D rocketAim;
-        //public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
-        
+
         public bool noLongerActiveSent = false;
         public bool removedFromGroup = false;
 
@@ -255,7 +253,7 @@ namespace BlockEnhancementMod
 
         public override void BuildingUpdateAlways_EnhancementEnabled()
         {
-          
+
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
                 if (AutoGrabberReleaseToggle.DisplayInMapper)
@@ -317,6 +315,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
+
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
                 radar.ClearSavedSets();
@@ -387,7 +386,6 @@ namespace BlockEnhancementMod
                         if (activeGuide)
                         {
                             //When launch key is released, reset target search
-                            //targetAquired = false;
                             radar.Switch = true;
                         }
                         else
@@ -492,7 +490,8 @@ namespace BlockEnhancementMod
                         if (guidedRocketActivated)
                         {
                             //Activate Detection Zone
-                            //radar.ActivateDetectionZone();
+                            radar.Switch = (radar.target == null);
+
 
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
@@ -506,7 +505,7 @@ namespace BlockEnhancementMod
                             if (Time.time - launchTime >= guideDelay && !canTrigger)
                             {
                                 canTrigger = true;
-                            }                        
+                            }
                         }
                     }
                 }
@@ -541,7 +540,7 @@ namespace BlockEnhancementMod
                             {
                                 AddAerodynamicsToRocketVelocity();
                             }
-                        }                    
+                        }
                     }
                 }
             }
@@ -699,7 +698,7 @@ namespace BlockEnhancementMod
 
         }
 
-     
+
 
         private void AddAerodynamicsToRocketVelocity()
         {
@@ -712,7 +711,7 @@ namespace BlockEnhancementMod
             Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
             rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         }
-     
+
         //private void OnGUI()
         //{
         //    if (StatMaster.isMP && StatMaster.isHosting)
@@ -761,7 +760,7 @@ namespace BlockEnhancementMod
                 removedFromGroup = true;
             }
 
-        }   
+        }
 
         private void SendExplosionPositionToAll(Vector3 position)
         {

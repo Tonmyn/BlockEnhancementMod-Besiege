@@ -20,6 +20,7 @@ namespace BlockEnhancementMod
         private Texture2D rocketAim;
 
         public bool Switch { get; set; } = false;
+        bool lastSwitchState = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
 
@@ -51,7 +52,7 @@ namespace BlockEnhancementMod
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
         }
 
-        bool lastSwitchState = false;
+
         void Update()
         {
             if (Switch != lastSwitchState)
@@ -153,25 +154,26 @@ namespace BlockEnhancementMod
             if (target == null)
             {
                 target = PrepareTarget(collider);
+                if (target == null) return;
                 OnTarget.Invoke(target);
             }
             else
             {
-                var aim = PrepareTarget(collider);
-
-                if (aim.warningLevel > target.warningLevel)
+                var tempTarget = PrepareTarget(collider);
+                if (tempTarget == null) return;
+                if (tempTarget.warningLevel > target.warningLevel)
                 {
-                    target = aim;
+                    target = tempTarget;
                     OnTarget.Invoke(target);
-                }
-                else if (aim.warningLevel == target.warningLevel)
-                {
-                    float aimDistance = Vector3.Distance(aim.transform.position, transform.position);
-                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
 
+                }
+                else if (tempTarget.warningLevel == target.warningLevel)
+                {
+                    float aimDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
                     if (targetDistance > aimDistance)
                     {
-                        target = aim;
+                        target = tempTarget;
                         OnTarget.Invoke(target);
                     }
                 }
@@ -182,7 +184,7 @@ namespace BlockEnhancementMod
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
 
-            //if (checkedGameObject.Contains(collidedObject)) return;
+            if (checkedGameObject.Contains(collidedObject)) return null;
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
             if (block == null)
             {
@@ -199,16 +201,15 @@ namespace BlockEnhancementMod
                 Debug.Log(collider.transform.gameObject.layer);
 #endif
 
-                Target aim = new Target
+                Target tempTarget = new Target
                 {
                     collider = collider,
                     transform = collider.gameObject.transform
                 };
 
-                Switch = false; //DeactivateDetectionZone();
+                Switch = false;
                 checkedGameObject.Add(collidedObject);
-
-                return aim;
+                return tempTarget;
             }
         }
 
@@ -218,7 +219,7 @@ namespace BlockEnhancementMod
             checkedCluster.Clear();
         }
 
-        private void ActivateDetectionZone()
+        public void ActivateDetectionZone()
         {
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = true;
@@ -229,7 +230,7 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        private void DeactivateDetectionZone()
+        public void DeactivateDetectionZone()
         {
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = false;
@@ -238,6 +239,7 @@ namespace BlockEnhancementMod
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
             renderer.enabled = false;
 #endif
+            ClearSavedSets();
         }
 
         public void ChangeSearchMode()
@@ -354,9 +356,9 @@ namespace BlockEnhancementMod
                     var rocket = gameObject.GetComponent<TimedRocket>();
                     var BB = transform.parent.GetComponent<BlockBehaviour>();
 
-                    if (target.transform.GetComponent<BlockBehaviour>())
+                    if (target.transform.transform.GetComponent<BlockBehaviour>())
                     {
-                        BlockBehaviour targetBB = target.transform.GetComponent<BlockBehaviour>();
+                        BlockBehaviour targetBB = target.transform.transform.GetComponent<BlockBehaviour>();
                         int id = targetBB.ParentMachine.PlayerID;
                         if (rocket.ParentMachine.PlayerID != 0)
                         {
@@ -372,9 +374,9 @@ namespace BlockEnhancementMod
                         ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
                         RocketsController.Instance.UpdateRocketTarget(BB, id);
                     }
-                    if (target.transform.GetComponent<LevelEntity>())
+                    if (target.transform.transform.GetComponent<LevelEntity>())
                     {
-                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.GetComponent<LevelEntity>(), BB);
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.transform.GetComponent<LevelEntity>(), BB);
                         foreach (var player in Player.GetAllPlayers())
                         {
                             if (player.NetworkId == rocket.ParentMachine.PlayerID)
@@ -420,7 +422,7 @@ namespace BlockEnhancementMod
             {
                 if (target != null)
                 {
-                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.transform.position;
                     if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
@@ -432,9 +434,9 @@ namespace BlockEnhancementMod
         }
     }
 
-    class Target/*:Transform*/
+    class Target
     {
-
+        //Initialise transform will cause NRE
         public Transform transform;
         public Collider collider;
         public bool initialCJOrHJ = false;
@@ -447,8 +449,8 @@ namespace BlockEnhancementMod
         {
             low = 0,
             middle = 1,
-            hight = 2
+            hight = 2,
+            rocket = 1024
         }
-
     }
 }

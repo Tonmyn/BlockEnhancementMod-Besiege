@@ -82,7 +82,7 @@ namespace BlockEnhancementMod
                 Block rocketBlock = (Block)msg.GetData(1);
                 RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
                 radar.target.transform = ((Block)msg.GetData(0)).GameObject.transform;
-                radar.target.collider = radar.target.transform.gameObject.GetComponentInChildren<Collider>(true);
+                radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
 
             };
 
@@ -94,7 +94,7 @@ namespace BlockEnhancementMod
                 Block rocketBlock = (Block)msg.GetData(1);
                 RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
                 radar.target.transform = ((Entity)msg.GetData(0)).GameObject.transform;
-                radar.target.collider = radar.target.transform.gameObject.GetComponentInChildren<Collider>(true);
+                radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
             };
 
             ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
