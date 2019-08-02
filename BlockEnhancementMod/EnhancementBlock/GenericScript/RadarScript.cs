@@ -15,7 +15,7 @@ namespace BlockEnhancementMod
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
-        MeshCollider Collider;
+        MeshCollider meshCollider;
         public static bool MarkTarget { get; internal set; } = true;
         private Texture2D rocketAim;
 
@@ -183,8 +183,8 @@ namespace BlockEnhancementMod
         Target PrepareTarget(Collider collider)
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
-
             if (checkedGameObject.Contains(collidedObject)) return null;
+            
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
             if (block == null)
             {
@@ -195,11 +195,6 @@ namespace BlockEnhancementMod
                 Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
                 if (checkedCluster.Contains(cluster)) return null;
                 checkedCluster.Add(cluster);
-#if DEBUG
-                Debug.Log("Target aquired");
-                Debug.Log(collidedObject.name);
-                Debug.Log(collider.transform.gameObject.layer);
-#endif
 
                 Target tempTarget = new Target
                 {
@@ -207,6 +202,11 @@ namespace BlockEnhancementMod
                     transform = collider.gameObject.transform
                 };
 
+#if DEBUG
+                Debug.Log("Target aquired");
+                Debug.Log(collidedObject.name);
+                Debug.Log(collider.transform.gameObject.layer);
+#endif
                 Switch = false;
                 checkedGameObject.Add(collidedObject);
                 return tempTarget;
@@ -333,10 +333,12 @@ namespace BlockEnhancementMod
             mc.sharedMesh = GetComponent<MeshFilter>().mesh;
             mc.convex = true;
             mc.isTrigger = true;
-            Collider = mc;
+            meshCollider = mc;
+            meshCollider.enabled = false;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
             mr.material.color = Color.green;
+            mr.enabled = false;
 #endif
         }
 
