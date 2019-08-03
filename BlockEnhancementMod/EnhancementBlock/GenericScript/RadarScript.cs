@@ -98,9 +98,6 @@ namespace BlockEnhancementMod
                                     target.transform = hits[i].transform;
                                     target.collider = target.transform.GetComponentInChildren<Collider>(true);
                                     target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
-                                    //previousVelocity = acceleration = Vector3.zero;
-                                    target.acceleration = 0;
-                                    //initialDistance = (hits[i].transform.position - transform.position).magnitude;
                                     break;
                                 }
                             }
@@ -116,8 +113,6 @@ namespace BlockEnhancementMod
                                         target.transform = hits[i].transform;
                                         target.collider = target.transform.GetComponentInChildren<Collider>(true);
                                         target.initialCJOrHJ = false;
-                                        //previousVelocity = acceleration = Vector3.zero;
-                                        //initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                         break;
                                     }
                                 }
@@ -221,6 +216,10 @@ namespace BlockEnhancementMod
 
         public void ActivateDetectionZone()
         {
+            // Clear previous target
+            target = null;
+
+            // Enable collider
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = true;
 
@@ -254,12 +253,13 @@ namespace BlockEnhancementMod
                 SearchMode = SearchModes.Auto;
                 //do something...
             }
+            SendClientTargetNull();
             ClearSavedSets();
         }
 
-        public void CreateFrustumCone(float angle, float topRadius, float bottomRadius)
+        public void CreateFrustumCone(float angle, float bottomRadius)
         {
-            float topHeight = topRadius;
+            float topHeight = safetyRadius;
             float height = bottomRadius - topHeight;
 
             float radiusTop = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * topHeight;
@@ -395,6 +395,8 @@ namespace BlockEnhancementMod
 
         public void SendClientTargetNull()
         {
+            Switch = true;
+
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
             {
@@ -443,8 +445,6 @@ namespace BlockEnhancementMod
         public Collider collider;
         public bool initialCJOrHJ = false;
 
-        public float acceleration = 0;
-
         public WarningLevel warningLevel = 0;
 
         public enum WarningLevel
@@ -453,6 +453,12 @@ namespace BlockEnhancementMod
             middle = 1,
             hight = 2,
             rocket = 1024
+        }
+
+        public void RemoveCurrentTarget()
+        {
+            transform = null;
+            collider = null;
         }
     }
 }

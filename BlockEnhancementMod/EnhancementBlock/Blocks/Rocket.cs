@@ -54,9 +54,9 @@ namespace BlockEnhancementMod
         public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.defaultAuto, LanguageManager.Instance.CurrentLanguage.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         public float searchAngle = 60f;
-        private readonly float safetyRadiusAuto = 50f;
+        //private readonly float safetyRadiusAuto = 50f;
         private readonly float maxSearchAngleNormal = 90f;
-        private readonly float maxSearchAngleNo8 = 180-1f;
+        private readonly float maxSearchAngleNo8 = 180 - 1f;
         private readonly float searchRange = 1400f - 0f;
         public bool activeGuide = true;
         public GameObject radarObject;
@@ -302,7 +302,7 @@ namespace BlockEnhancementMod
 
 
                 //Initialise radar at the start of simulation
-                radar.CreateFrustumCone(searchAngle, safetyRadiusAuto, searchRange);
+                radar.CreateFrustumCone(searchAngle, searchRange);
                 radar.ClearSavedSets();
                 radar.Switch = false;
 
@@ -312,9 +312,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.position = transform.position;
                 guideObject.transform.rotation = transform.rotation;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupBlockAndRadar(rocket, rocketRigidbody, radar);
-                guideController.searchAngle = searchAngle;
-                guideController.torque = torque;
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, torque);
 
 
 
@@ -363,9 +361,6 @@ namespace BlockEnhancementMod
                         activeGuide = !activeGuide;
                         if (!activeGuide)
                         {
-                            //target = null;
-                            //targetCollider = null;
-                            //previousVelocity = acceleration = Vector3.zero;
                             radar.SendClientTargetNull();
                         }
                         else
@@ -376,86 +371,8 @@ namespace BlockEnhancementMod
 
                     if (LockTargetKey.IsPressed)
                     {
-                        //target = null;
-                        //targetCollider = null;
-                        //previousVelocity = acceleration = Vector3.zero;
                         radar.SendClientTargetNull();
-                        if (activeGuide)
-                        {
-                            //When launch key is released, reset target search
-                            radar.Switch = true;
-                        }
-                        else
-                        {
-                            //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                            //if (StatMaster.isClient)
-                            //{
-                            //    SendRayToHost(ray);
-                            //}
-                            //else
-                            //{
-                            //    //Find targets in the manual search mode by casting a sphere along the ray
-                            //    float manualSearchRadius = 1.25f;
-                            //    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
-                            //    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-                            //    if (hits.Length > 0)
-                            //    {
-                            //        for (int i = 0; i < hits.Length; i++)
-                            //        {
-                            //            if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                            //            {
-                            //                if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //                {
-                            //                    target = hits[i].transform;
-                            //                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                            //                    previousVelocity = acceleration = Vector3.zero;
-                            //                    initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                            //                    targetAquired = true;
-                            //                    break;
-                            //                }
-                            //            }
-                            //        }
-                            //        if (target == null)
-                            //        {
-                            //            for (int i = 0; i < hits.Length; i++)
-                            //            {
-                            //                if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-                            //                {
-                            //                    if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //                    {
-                            //                        target = hits[i].transform;
-                            //                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //                        targetInitialCJOrHJ = false;
-                            //                        previousVelocity = acceleration = Vector3.zero;
-                            //                        initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                            //                        targetAquired = true;
-                            //                        break;
-                            //                    }
-                            //                }
-                            //            }
-                            //        }
-                            //    }
-                            //    if (target == null && rayHit.transform != null)
-                            //    {
-                            //        if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //        {
-                            //            target = rayHit.transform;
-                            //            targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                            //            previousVelocity = acceleration = Vector3.zero;
-                            //            initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                            //            targetAquired = true;
-                            //        }
-
-                            //    }
-                            //    if (receivedRayFromClient)
-                            //    {
-                            //        SendTargetToClient();
-                            //    }
-                            //    receivedRayFromClient = false;
-                            //}
-                        }
+                        if (activeGuide) radar.Switch = true;
                     }
                 }
             }
@@ -522,26 +439,26 @@ namespace BlockEnhancementMod
             //}
         }
 
-        public override void SimulateLateUpdate_EnhancementEnabled()
-        {
-            if (gameObject.activeInHierarchy)
-            {
-                if (!StatMaster.isClient)
-                {
-                    if (rocket.hasFired && !rocket.hasExploded && canTrigger)
-                    {
-                        if (guidedRocketStabilityOn)
-                        {
-                            //Add aerodynamic force to rocket
-                            if (rocketRigidbody != null)
-                            {
-                                AddAerodynamicsToRocketVelocity();
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //public override void SimulateLateUpdate_EnhancementEnabled()
+        //{
+        //    if (gameObject.activeInHierarchy)
+        //    {
+        //        if (!StatMaster.isClient)
+        //        {
+        //            if (rocket.hasFired && !rocket.hasExploded && canTrigger)
+        //            {
+        //                if (guidedRocketStabilityOn)
+        //                {
+        //                    //Add aerodynamic force to rocket
+        //                    if (rocketRigidbody != null)
+        //                    {
+        //                        AddAerodynamicsToRocketVelocity();
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         void OnCollisionEnter(Collision collision)
         {
@@ -689,47 +606,16 @@ namespace BlockEnhancementMod
 
         }
 
-
-
-        private void AddAerodynamicsToRocketVelocity()
-        {
-            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
-            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
-
-            Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
-            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
-        }
-
-        //private void OnGUI()
+        //private void AddAerodynamicsToRocketVelocity()
         //{
-        //    if (StatMaster.isMP && StatMaster.isHosting)
-        //    {
-        //        if (rocket.ParentMachine.PlayerID != 0)
-        //        {
-        //            return;
-        //        }
-        //    }
-        //    DrawTargetRedSquare();
-        //}
+        //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+        //    Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
+        //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+        //    float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+        //    //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
 
-        //private void DrawTargetRedSquare()
-        //{
-        //    if (MarkTarget)
-        //    {
-        //        //if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
-        //        //{
-        //        //    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
-        //        //    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
-        //        //    {
-        //        //        int squareWidth = 16;
-        //        //        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-        //        //        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
-        //        //    }
-        //        //}
-        //    }
+        //    Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
+        //    rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         //}
 
         public void SendRocketFired()
