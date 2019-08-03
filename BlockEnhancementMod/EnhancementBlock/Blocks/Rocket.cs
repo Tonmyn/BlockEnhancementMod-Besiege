@@ -22,10 +22,7 @@ namespace BlockEnhancementMod
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
-        //public bool noLongerActiveSent = false;
         public bool removedFromGroup = false;
-
-
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -33,7 +30,7 @@ namespace BlockEnhancementMod
         private bool smokeStopped = false;
 
         //Firing record related setting
-        private bool targetHit = false;
+        //private bool targetHit = false;
         private float randomDelay = 0;
         private float launchTime = 0f;
         private bool launchTimeRecorded = false;
@@ -48,14 +45,6 @@ namespace BlockEnhancementMod
         public bool rocketInBuildSent = false;
         public float torque = 100f;
         public float prediction = 10f;
-        public float initialDistance = 0f;
-        private readonly float maxTorque = 10000;
-        public Vector3 previousVelocity;
-        public Vector3 acceleration;
-        //public Collider targetCollider;
-        //private bool targetInitialCJOrHJ = false;
-        //private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
-        //private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -64,18 +53,16 @@ namespace BlockEnhancementMod
         private int searchModeIndex = 0;
         public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.defaultAuto, LanguageManager.Instance.CurrentLanguage.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 10;
+        public float searchAngle = 60f;
         private readonly float safetyRadiusAuto = 50f;
-        private readonly float safetyRadiusManual = 15f;
-        private readonly float maxSearchAngle = 25f;
-        private readonly float maxSearchAngleNo8 = 89f;
+        private readonly float maxSearchAngleNormal = 90f;
+        private readonly float maxSearchAngleNo8 = 180-1f;
         private readonly float searchRange = 1400f - 0f;
         public bool activeGuide = true;
-        //public bool targetAquired = false;
-        //public bool searchStarted = false;
         public GameObject radarObject;
         public RadarScript radar;
-
+        public GameObject guideObject;
+        public GuideController guideController;
 
         //Cluster value multiplier
         //private readonly float bombValue = 64;
@@ -186,7 +173,7 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
+            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngleNormal);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
 
             GuidePredictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.prediction, "prediction", prediction, 0, 50);
@@ -302,26 +289,36 @@ namespace BlockEnhancementMod
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = /*targetAquired =*/ targetHit = bombHasExploded/* = receivedRayFromClient*/ /*= targetInitialCJOrHJ*/ = rocketExploMsgSent = false;
+                launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
-                //target = null;
-                //targetCollider = null;
-                //explodedCluster.Clear();
-                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
+                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
-                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radarObject.transform.SetParent(gameObject.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
+                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
+
 
                 //Initialise radar at the start of simulation
-                radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
+                radar.CreateFrustumCone(searchAngle, safetyRadiusAuto, searchRange);
                 radar.ClearSavedSets();
                 radar.Switch = false;
 
-                previousVelocity = acceleration = Vector3.zero;
+                //Set up Guide controller
+                guideObject = new GameObject("GuideController");
+                guideObject.transform.SetParent(gameObject.transform);
+                guideObject.transform.position = transform.position;
+                guideObject.transform.rotation = transform.rotation;
+                guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
+                guideController.SetupBlockAndRadar(rocket, rocketRigidbody, radar);
+                guideController.searchAngle = searchAngle;
+                guideController.torque = torque;
+
+
+
+                //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
                 //if (!StatMaster.isMP)
                 //{
@@ -368,7 +365,7 @@ namespace BlockEnhancementMod
                         {
                             //target = null;
                             //targetCollider = null;
-                            previousVelocity = acceleration = Vector3.zero;
+                            //previousVelocity = acceleration = Vector3.zero;
                             radar.SendClientTargetNull();
                         }
                         else
@@ -381,7 +378,7 @@ namespace BlockEnhancementMod
                     {
                         //target = null;
                         //targetCollider = null;
-                        previousVelocity = acceleration = Vector3.zero;
+                        //previousVelocity = acceleration = Vector3.zero;
                         radar.SendClientTargetNull();
                         if (activeGuide)
                         {
@@ -576,8 +573,6 @@ namespace BlockEnhancementMod
         {
             //Reset some parameter and set the rocket to explode
             //Stop the search target coroutine
-            targetHit = true;
-            //StopCoroutine(SearchForTarget());
             radar.SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
