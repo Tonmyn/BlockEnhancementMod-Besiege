@@ -97,7 +97,7 @@ namespace BlockEnhancementMod
                 else
                 {
 #if DEBUG
-                    //Debug.Log("target out of range");
+                    Debug.Log("target out of range");
 #endif
                     blockRadar.SendClientTargetNull();
                 }

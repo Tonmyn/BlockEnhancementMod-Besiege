@@ -61,12 +61,10 @@ namespace BlockEnhancementMod
                 if (Switch)
                 {
                     ActivateDetectionZone();
-
                 }
                 else
                 {
                     DeactivateDetectionZone();
-
                 }
             }
 
@@ -148,18 +146,24 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
-            //GameObject collidedObject = collider.transform.parent.gameObject;
-            if (checkedGameObject.Contains(collider.transform.parent.gameObject)) return;
-            checkedGameObject.Add(collider.transform.parent.gameObject);
+            GameObject collidedObject = collider.transform.parent.gameObject;
+            if (checkedGameObject.Contains(collidedObject)) return;
+            checkedGameObject.Add(collidedObject);
 
             if (target == null)
             {
+#if DEBUG
+                Debug.Log("Getting new target");
+#endif
                 target = PrepareTarget(collider);
                 if (target == null) return;
                 OnTarget.Invoke(target);
             }
             else
             {
+#if DEBUG
+                Debug.Log("Comparing new target to existing target");
+#endif
                 var tempTarget = PrepareTarget(collider);
                 if (tempTarget == null) return;
                 if (tempTarget.warningLevel > target.warningLevel)
@@ -190,6 +194,9 @@ namespace BlockEnhancementMod
 #endif
             if (block == null)
             {
+#if DEBUG
+                Debug.Log("No BB exist, return null");
+#endif
                 return null;
             }
             else
@@ -229,7 +236,7 @@ namespace BlockEnhancementMod
             Debug.Log("Detection zone activated");
 #endif
             // Clear previous target
-            //target = null;
+            target = null;
 
             // Enable collider
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
@@ -352,7 +359,7 @@ namespace BlockEnhancementMod
             meshCollider.enabled = false;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
-            mr.material.color = Color.green;
+            mr.material.color = new Color(0, 1, 0, 0.1f);
             mr.enabled = false;
 #endif
         }
@@ -411,7 +418,7 @@ namespace BlockEnhancementMod
         public void SendClientTargetNull()
         {
             Switch = true;
-
+            target = null;
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
             {
@@ -423,14 +430,15 @@ namespace BlockEnhancementMod
         }
         #endregion
 
+        #region Markers
         private void OnGUI()
         {
             if (StatMaster.isMP && StatMaster.isHosting)
             {
-                //if (rocket.ParentMachine.PlayerID != 0)
-                //{
-                //    return;
-                //} 
+                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
+                {
+                    return;
+                }
             }
             DrawTargetRedSquare();
         }
@@ -451,6 +459,7 @@ namespace BlockEnhancementMod
                 }
             }
         }
+        #endregion
     }
 
     class Target

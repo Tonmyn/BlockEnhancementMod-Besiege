@@ -52,11 +52,12 @@ namespace BlockEnhancementMod
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
             playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>>();
 
-            setRadarIgnoreCollosionLayer();
+            SetRadarIgnoreCollosionLayer();
 
-            void setRadarIgnoreCollosionLayer()
+            void SetRadarIgnoreCollosionLayer()
             {
                 Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, RadarScript.CollisionLayer, true);
+                Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, 29, true);
             }
         }
 

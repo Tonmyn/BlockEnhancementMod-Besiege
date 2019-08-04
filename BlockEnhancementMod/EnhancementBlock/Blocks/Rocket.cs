@@ -303,8 +303,7 @@ namespace BlockEnhancementMod
 
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
-                radar.ClearSavedSets();
-                radar.Switch = false;
+                radar.ClearSavedSets(); 
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -318,17 +317,7 @@ namespace BlockEnhancementMod
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
-                //if (!StatMaster.isMP)
-                //{
-                //    clustersInSafetyRange.Clear();
-                //    foreach (var cluster in Machine.Active().simClusters)
-                //    {
-                //        if ((cluster.Base.transform.position - rocket.transform.position).magnitude < safetyRadiusAuto)
-                //        {
-                //            clustersInSafetyRange.Add(cluster);
-                //        }
-                //    }
-                //}
+
                 StopAllCoroutines();
 
                 // Read the charge from rocket
@@ -362,10 +351,6 @@ namespace BlockEnhancementMod
                         if (!activeGuide)
                         {
                             radar.SendClientTargetNull();
-                        }
-                        else
-                        {
-                            //targetAquired = false;
                         }
                     }
 
@@ -429,36 +414,7 @@ namespace BlockEnhancementMod
                     rocketExploMsgSent = true;
                 }
             }
-            //else
-            //{
-            //    if (!noLongerActiveSent)
-            //    {
-            //        radar.SendClientTargetNull();
-            //        noLongerActiveSent = true;
-            //    }
-            //}
         }
-
-        //public override void SimulateLateUpdate_EnhancementEnabled()
-        //{
-        //    if (gameObject.activeInHierarchy)
-        //    {
-        //        if (!StatMaster.isClient)
-        //        {
-        //            if (rocket.hasFired && !rocket.hasExploded && canTrigger)
-        //            {
-        //                if (guidedRocketStabilityOn)
-        //                {
-        //                    //Add aerodynamic force to rocket
-        //                    if (rocketRigidbody != null)
-        //                    {
-        //                        AddAerodynamicsToRocketVelocity();
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
 
         void OnCollisionEnter(Collision collision)
         {
