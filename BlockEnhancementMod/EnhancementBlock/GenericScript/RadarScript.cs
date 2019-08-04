@@ -61,20 +61,22 @@ namespace BlockEnhancementMod
                 if (Switch)
                 {
                     ActivateDetectionZone();
+
                 }
                 else
                 {
                     DeactivateDetectionZone();
+
                 }
             }
 
             if (SearchMode == SearchModes.Manual)
             {
-                target = PrepareTarget(getTarget());
+                target = PrepareTarget(GetTarget());
                 OnTarget.Invoke(target);
             }
 
-            Collider getTarget()
+            Collider GetTarget()
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (StatMaster.isClient)
@@ -146,6 +148,10 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
+            //GameObject collidedObject = collider.transform.parent.gameObject;
+            if (checkedGameObject.Contains(collider.transform.parent.gameObject)) return;
+            checkedGameObject.Add(collider.transform.parent.gameObject);
+
             if (target == null)
             {
                 target = PrepareTarget(collider);
@@ -178,15 +184,19 @@ namespace BlockEnhancementMod
         Target PrepareTarget(Collider collider)
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
-            if (checkedGameObject.Contains(collidedObject)) return null;
-            
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+#if DEBUG
+            Debug.Log("Try to get BB");
+#endif
             if (block == null)
             {
                 return null;
             }
             else
             {
+#if DEBUG
+                Debug.Log("BB exist");
+#endif
                 Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
                 if (checkedCluster.Contains(cluster)) return null;
                 checkedCluster.Add(cluster);
@@ -203,7 +213,6 @@ namespace BlockEnhancementMod
                 Debug.Log(collider.transform.gameObject.layer);
 #endif
                 Switch = false;
-                checkedGameObject.Add(collidedObject);
                 return tempTarget;
             }
         }
@@ -216,8 +225,11 @@ namespace BlockEnhancementMod
 
         public void ActivateDetectionZone()
         {
+#if DEBUG
+            Debug.Log("Detection zone activated");
+#endif
             // Clear previous target
-            target = null;
+            //target = null;
 
             // Enable collider
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
@@ -231,6 +243,9 @@ namespace BlockEnhancementMod
 
         public void DeactivateDetectionZone()
         {
+#if DEBUG
+            Debug.Log("Detection zone deactivated");
+#endif
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = false;
 
