@@ -49,13 +49,13 @@ namespace BlockEnhancementMod
 
             //Load aim pic
             rocketAim = new Texture2D(16, 16);
-            rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
+            rocketAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
         }
 
 
         void Update()
         {
-            if (Switch != lastSwitchState)
+            if (lastSwitchState!= Switch)
             {
                 lastSwitchState = Switch;
                 if (Switch)
@@ -65,15 +65,21 @@ namespace BlockEnhancementMod
                 else
                 {
                     DeactivateDetectionZone();
+                    target = null;
                 }
             }
 
-            if (SearchMode == SearchModes.Manual)
+            if (Switch)
             {
-                target = PrepareTarget(GetTarget());
-                OnTarget.Invoke(target);
+                if (SearchMode == SearchModes.Manual)
+                {
+                    target = PrepareTarget(GetTarget());
+                    OnTarget.Invoke(target);
+                }
             }
+            
 
+            //--------------------------------------------------//
             Collider GetTarget()
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -185,6 +191,22 @@ namespace BlockEnhancementMod
             }
         }
 
+        void OnTriggerExit(Collider collider)
+        {
+            if (!Switch || target==null) return;
+
+            if (collider.Equals(target.collider))
+            {
+#if DEBUG
+                Debug.Log("target out of range");
+#endif
+
+                target = null;
+                ClearSavedSets();
+                SendClientTargetNull();
+            }
+        }
+
         Target PrepareTarget(Collider collider)
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
@@ -215,7 +237,7 @@ namespace BlockEnhancementMod
                 };
                 tempTarget.SetTargetWarningLevel();
 
-                Switch = false;
+                //Switch = false;
                 return tempTarget;
             }
         }

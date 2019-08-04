@@ -87,20 +87,22 @@ namespace BlockEnhancementMod
                 //Add torque to the rocket based on the angle difference
                 //If in auto guide mode, the rocket will restart searching when target is out of sight
                 //else, apply maximum torque to the rocket
-                if (forward && angleDiff <= searchAngle)
-                {
-#if DEBUG
-                    //Debug.Log("target in range");
-#endif
-                    blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
-                }
-                else
-                {
-#if DEBUG
-                    Debug.Log("target out of range");
-#endif
-                    blockRadar.SendClientTargetNull();
-                }
+                //                if (forward && angleDiff <= searchAngle)
+                //                {
+                //#if DEBUG
+                //                    //Debug.Log("target in range");
+                //#endif
+                //                    blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
+                //                }
+                //                else
+                //                {
+                //#if DEBUG
+                //                    Debug.Log("target out of range");
+                //#endif
+                //                    blockRadar.SendClientTargetNull();
+                //                }
+
+                blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
             }
         }
 
