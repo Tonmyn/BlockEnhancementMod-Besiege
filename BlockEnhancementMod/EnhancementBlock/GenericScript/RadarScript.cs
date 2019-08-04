@@ -153,7 +153,7 @@ namespace BlockEnhancementMod
             if (target == null)
             {
 #if DEBUG
-                Debug.Log("Getting new target");
+                //Debug.Log("Getting new target");
 #endif
                 target = PrepareTarget(collider);
                 if (target == null) return;
@@ -162,7 +162,7 @@ namespace BlockEnhancementMod
             else
             {
 #if DEBUG
-                Debug.Log("Comparing new target to existing target");
+                //Debug.Log("Comparing new target to existing target");
 #endif
                 var tempTarget = PrepareTarget(collider);
                 if (tempTarget == null) return;
@@ -190,19 +190,19 @@ namespace BlockEnhancementMod
             GameObject collidedObject = collider.transform.parent.gameObject;
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
 #if DEBUG
-            Debug.Log("Try to get BB");
+            //Debug.Log("Try to get BB");
 #endif
             if (block == null)
             {
 #if DEBUG
-                Debug.Log("No BB exist, return null");
+                //Debug.Log("No BB exist, return null");
 #endif
                 return null;
             }
             else
             {
 #if DEBUG
-                Debug.Log("BB exist");
+                //Debug.Log("BB exist");
 #endif
                 Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
                 if (checkedCluster.Contains(cluster)) return null;
@@ -214,11 +214,6 @@ namespace BlockEnhancementMod
                     transform = collider.gameObject.transform
                 };
 
-#if DEBUG
-                Debug.Log("Target aquired");
-                Debug.Log(collidedObject.name);
-                Debug.Log(collider.transform.gameObject.layer);
-#endif
                 Switch = false;
                 return tempTarget;
             }
@@ -235,9 +230,6 @@ namespace BlockEnhancementMod
 #if DEBUG
             Debug.Log("Detection zone activated");
 #endif
-            // Clear previous target
-            target = null;
-
             // Enable collider
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = true;
@@ -417,7 +409,6 @@ namespace BlockEnhancementMod
 
         public void SendClientTargetNull()
         {
-            Switch = true;
             target = null;
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)

@@ -357,7 +357,7 @@ namespace BlockEnhancementMod
                     if (LockTargetKey.IsPressed)
                     {
                         radar.SendClientTargetNull();
-                        if (activeGuide) radar.Switch = true;
+                        //if (activeGuide) radar.Switch = true;
                     }
                 }
             }
