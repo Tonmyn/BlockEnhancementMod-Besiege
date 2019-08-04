@@ -27,7 +27,7 @@ namespace BlockEnhancementMod
         public event Action<Target> OnTarget;
 
         private HashSet<GameObject> checkedGameObject = new HashSet<GameObject>();
-        private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
+        //private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
 
         #region Networking Setting
 
@@ -204,15 +204,16 @@ namespace BlockEnhancementMod
 #if DEBUG
                 //Debug.Log("BB exist");
 #endif
-                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                if (checkedCluster.Contains(cluster)) return null;
-                checkedCluster.Add(cluster);
+                //Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                //if (checkedCluster.Contains(cluster)) return null;
+                //checkedCluster.Add(cluster);
 
                 Target tempTarget = new Target
                 {
                     collider = collider,
                     transform = collider.gameObject.transform
                 };
+                tempTarget.SetTargetWarningLevel();
 
                 Switch = false;
                 return tempTarget;
@@ -222,7 +223,7 @@ namespace BlockEnhancementMod
         public void ClearSavedSets()
         {
             checkedGameObject.Clear();
-            checkedCluster.Clear();
+            //checkedCluster.Clear();
         }
 
         public void ActivateDetectionZone()
@@ -464,16 +465,56 @@ namespace BlockEnhancementMod
 
         public enum WarningLevel
         {
-            low = 0,
-            middle = 1,
-            hight = 2,
-            rocket = 1024
+            normalBlockValue = 0,
+            bombValue = 32,
+            guidedRocketValue = 1024,
+            waterCannonValue = 16,
+            flyingBlockValue = 2,
+            flameThrowerValue = 8,
+            cogMotorValue = 2
         }
 
-        public void RemoveCurrentTarget()
+        public void SetTargetWarningLevel()
         {
-            transform = null;
-            collider = null;
+            GameObject collidedObject = collider.transform.parent.gameObject;
+            BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+            if (block != null)
+            {
+                switch (block.BlockID)
+                {
+                    default:
+                        warningLevel = WarningLevel.normalBlockValue;
+                        break;
+                    case (int)BlockType.Rocket:
+                        warningLevel = WarningLevel.guidedRocketValue;
+                        break;
+                    case (int)BlockType.Bomb:
+                        warningLevel = WarningLevel.bombValue;
+                        break;
+                    case (int)BlockType.WaterCannon:
+                        warningLevel = WarningLevel.waterCannonValue;
+                        break;
+                    case (int)BlockType.FlyingBlock:
+                        warningLevel = WarningLevel.flyingBlockValue;
+                        break;
+                    case (int)BlockType.Flamethrower:
+                        warningLevel = WarningLevel.flameThrowerValue;
+                        break;
+                    case (int)BlockType.CogMediumPowered:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                    case (int)BlockType.LargeWheel:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                    case (int)BlockType.SmallWheel:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                }
+            }
+            else
+            {
+                warningLevel = WarningLevel.normalBlockValue;
+            }
         }
     }
 }
