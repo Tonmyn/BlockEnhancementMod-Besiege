@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
     <Compile Include="EnhancementBlock\Blocks\UnpoweredCog.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\GuideController.cs" />
     <Compile Include="EnhancementBlock\GenericScript\DelayCollision.cs" />
     <Compile Include="EnhancementBlock\GenericScript\RadarScript.cs" />
     <Compile Include="EnhancementBlock\GenericScript\SkinManager.cs" />

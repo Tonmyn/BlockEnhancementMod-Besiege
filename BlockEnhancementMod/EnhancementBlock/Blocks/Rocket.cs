@@ -18,16 +18,11 @@ namespace BlockEnhancementMod
         MToggle AutoGrabberReleaseToggle;
         public bool autoGrabberRelease = false;
         public float groupFireRate = 0.25f;
-        private Texture2D rocketAim;
-        //public Transform target;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
-        
-        public bool noLongerActiveSent = false;
+
         public bool removedFromGroup = false;
-
-
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -35,7 +30,7 @@ namespace BlockEnhancementMod
         private bool smokeStopped = false;
 
         //Firing record related setting
-        private bool targetHit = false;
+        //private bool targetHit = false;
         private float randomDelay = 0;
         private float launchTime = 0f;
         private bool launchTimeRecorded = false;
@@ -50,14 +45,6 @@ namespace BlockEnhancementMod
         public bool rocketInBuildSent = false;
         public float torque = 100f;
         public float prediction = 10f;
-        public float initialDistance = 0f;
-        private readonly float maxTorque = 10000;
-        public Vector3 previousVelocity;
-        public Vector3 acceleration;
-        //public Collider targetCollider;
-        private bool targetInitialCJOrHJ = false;
-        private HashSet<Machine.SimCluster> clustersInSafetyRange = new HashSet<Machine.SimCluster>();
-        private HashSet<Machine.SimCluster> explodedCluster = new HashSet<Machine.SimCluster>();
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
@@ -66,26 +53,24 @@ namespace BlockEnhancementMod
         private int searchModeIndex = 0;
         public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.defaultAuto, LanguageManager.Instance.CurrentLanguage.defaultManual };
         public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
-        public float searchAngle = 10;
-        private readonly float safetyRadiusAuto = 50f;
-        private readonly float safetyRadiusManual = 15f;
-        private readonly float maxSearchAngle = 25f;
-        private readonly float maxSearchAngleNo8 = 89f;
+        public float searchAngle = 60f;
+        //private readonly float safetyRadiusAuto = 50f;
+        private readonly float maxSearchAngleNormal = 90f;
+        private readonly float maxSearchAngleNo8 = 175f;
         private readonly float searchRange = 1400f - 0f;
         public bool activeGuide = true;
-        //public bool targetAquired = false;
-        //public bool searchStarted = false;
         public GameObject radarObject;
         public RadarScript radar;
-
+        public GameObject guideObject;
+        public GuideController guideController;
 
         //Cluster value multiplier
-        private readonly float bombValue = 64;
-        private readonly float guidedRocketValue = 1024;
-        private readonly float waterCannonValue = 16;
-        private readonly float flyingBlockValue = 2;
-        private readonly float flameThrowerValue = 8;
-        private readonly float cogMotorValue = 2;
+        //private readonly float bombValue = 64;
+        //private readonly float guidedRocketValue = 1024;
+        //private readonly float waterCannonValue = 16;
+        //private readonly float flyingBlockValue = 2;
+        //private readonly float flameThrowerValue = 8;
+        //private readonly float cogMotorValue = 2;
 
         //impact & proximity fuze related setting
         MToggle ImpactFuzeToggle;
@@ -188,7 +173,7 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngle);
+            ActiveGuideRocketSearchAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.searchAngle, "searchAngle", searchAngle, 0, maxSearchAngleNormal);
             ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
 
             GuidePredictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.prediction, "prediction", prediction, 0, 50);
@@ -255,7 +240,7 @@ namespace BlockEnhancementMod
 
         public override void BuildingUpdateAlways_EnhancementEnabled()
         {
-          
+
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
                 if (AutoGrabberReleaseToggle.DisplayInMapper)
@@ -283,7 +268,7 @@ namespace BlockEnhancementMod
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            smokeStopped = rocketInBuildSent = noLongerActiveSent = removedFromGroup = false;
+            smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
             aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
@@ -304,37 +289,35 @@ namespace BlockEnhancementMod
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = /*targetAquired =*/ targetHit = bombHasExploded/* = receivedRayFromClient*/ = targetInitialCJOrHJ = rocketExploMsgSent = false;
+                launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
-                //target = null;
-                //targetCollider = null;
-                explodedCluster.Clear();
-                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngle);
+                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
-                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radarObject.transform.SetParent(gameObject.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
-                //Initialise radar at the start of simulation
-                radar.CreateFrustumCone(searchAngle * 2, safetyRadiusAuto, searchRange);
-                radar.ClearSavedSets();
-                radar.Switch = false;
+                radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
 
-                previousVelocity = acceleration = Vector3.zero;
+
+                //Initialise radar at the start of simulation
+                radar.CreateFrustumCone(searchAngle, searchRange);
+                radar.ClearSavedSets(); 
+
+                //Set up Guide controller
+                guideObject = new GameObject("GuideController");
+                guideObject.transform.SetParent(gameObject.transform);
+                guideObject.transform.position = transform.position;
+                guideObject.transform.rotation = transform.rotation;
+                guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, torque);
+
+
+
+                //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
-                if (!StatMaster.isMP)
-                {
-                    clustersInSafetyRange.Clear();
-                    foreach (var cluster in Machine.Active().simClusters)
-                    {
-                        if ((cluster.Base.transform.position - rocket.transform.position).magnitude < safetyRadiusAuto)
-                        {
-                            clustersInSafetyRange.Add(cluster);
-                        }
-                    }
-                }
+
                 StopAllCoroutines();
 
                 // Read the charge from rocket
@@ -367,100 +350,14 @@ namespace BlockEnhancementMod
                         activeGuide = !activeGuide;
                         if (!activeGuide)
                         {
-                            //target = null;
-                            //targetCollider = null;
-                            previousVelocity = acceleration = Vector3.zero;
                             radar.SendClientTargetNull();
-                        }
-                        else
-                        {
-                            //targetAquired = false;
                         }
                     }
 
                     if (LockTargetKey.IsPressed)
                     {
-                        //target = null;
-                        //targetCollider = null;
-                        previousVelocity = acceleration = Vector3.zero;
                         radar.SendClientTargetNull();
-                        if (activeGuide)
-                        {
-                            //When launch key is released, reset target search
-                            //targetAquired = false;
-                            radar.Switch = true;
-                        }
-                        else
-                        {
-                            //Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                            //if (StatMaster.isClient)
-                            //{
-                            //    SendRayToHost(ray);
-                            //}
-                            //else
-                            //{
-                            //    //Find targets in the manual search mode by casting a sphere along the ray
-                            //    float manualSearchRadius = 1.25f;
-                            //    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity);
-                            //    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit);
-                            //    if (hits.Length > 0)
-                            //    {
-                            //        for (int i = 0; i < hits.Length; i++)
-                            //        {
-                            //            if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                            //            {
-                            //                if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //                {
-                            //                    target = hits[i].transform;
-                            //                    targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //                    targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                            //                    previousVelocity = acceleration = Vector3.zero;
-                            //                    initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                            //                    targetAquired = true;
-                            //                    break;
-                            //                }
-                            //            }
-                            //        }
-                            //        if (target == null)
-                            //        {
-                            //            for (int i = 0; i < hits.Length; i++)
-                            //            {
-                            //                if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-                            //                {
-                            //                    if ((hits[i].transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //                    {
-                            //                        target = hits[i].transform;
-                            //                        targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //                        targetInitialCJOrHJ = false;
-                            //                        previousVelocity = acceleration = Vector3.zero;
-                            //                        initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
-                            //                        targetAquired = true;
-                            //                        break;
-                            //                    }
-                            //                }
-                            //            }
-                            //        }
-                            //    }
-                            //    if (target == null && rayHit.transform != null)
-                            //    {
-                            //        if ((rayHit.transform.position - rocket.transform.position).magnitude >= safetyRadiusManual)
-                            //        {
-                            //            target = rayHit.transform;
-                            //            targetCollider = target.gameObject.GetComponentInChildren<Collider>(true);
-                            //            targetInitialCJOrHJ = target.gameObject.GetComponent<ConfigurableJoint>() != null || target.gameObject.GetComponent<HingeJoint>() != null;
-                            //            previousVelocity = acceleration = Vector3.zero;
-                            //            initialDistance = (rayHit.transform.position - rocket.transform.position).magnitude;
-                            //            targetAquired = true;
-                            //        }
-
-                            //    }
-                            //    if (receivedRayFromClient)
-                            //    {
-                            //        SendTargetToClient();
-                            //    }
-                            //    receivedRayFromClient = false;
-                            //}
-                        }
+                        //if (activeGuide) radar.Switch = true;
                     }
                 }
             }
@@ -492,7 +389,8 @@ namespace BlockEnhancementMod
                         if (guidedRocketActivated)
                         {
                             //Activate Detection Zone
-                            //radar.ActivateDetectionZone();
+                            radar.Switch = (radar.target == null);
+
 
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
@@ -506,7 +404,7 @@ namespace BlockEnhancementMod
                             if (Time.time - launchTime >= guideDelay && !canTrigger)
                             {
                                 canTrigger = true;
-                            }                        
+                            }
                         }
                     }
                 }
@@ -514,35 +412,6 @@ namespace BlockEnhancementMod
                 {
                     radar.SendClientTargetNull();
                     rocketExploMsgSent = true;
-                }
-            }
-            else
-            {
-                if (!noLongerActiveSent)
-                {
-                    radar.SendClientTargetNull();
-                    noLongerActiveSent = true;
-                }
-            }
-        }
-
-        public override void SimulateLateUpdate_EnhancementEnabled()
-        {
-            if (gameObject.activeInHierarchy)
-            {
-                if (!StatMaster.isClient)
-                {
-                    if (rocket.hasFired && !rocket.hasExploded && canTrigger)
-                    {
-                        if (guidedRocketStabilityOn)
-                        {
-                            //Add aerodynamic force to rocket
-                            if (rocketRigidbody != null)
-                            {
-                                AddAerodynamicsToRocketVelocity();
-                            }
-                        }                    
-                    }
                 }
             }
         }
@@ -563,26 +432,20 @@ namespace BlockEnhancementMod
 
         void OnDestroy()
         {
-            if (!rocketInBuildSent)
+            if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
             {
-                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+                if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
                 {
-                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
-                    {
-                        rockets.Remove(rocket);
-                    }
+                    rockets.Remove(rocket);
                 }
-                radar.SendClientTargetNull();
-                rocketInBuildSent = true;
             }
+            radar.SendClientTargetNull();
         }
 
         private IEnumerator RocketExplode()
         {
             //Reset some parameter and set the rocket to explode
             //Stop the search target coroutine
-            targetHit = true;
-            //StopCoroutine(SearchForTarget());
             radar.SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
@@ -699,47 +562,16 @@ namespace BlockEnhancementMod
 
         }
 
-     
-
-        private void AddAerodynamicsToRocketVelocity()
-        {
-            Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-            Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
-            float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-            float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-            //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
-
-            Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
-            rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
-        }
-     
-        //private void OnGUI()
+        //private void AddAerodynamicsToRocketVelocity()
         //{
-        //    if (StatMaster.isMP && StatMaster.isHosting)
-        //    {
-        //        if (rocket.ParentMachine.PlayerID != 0)
-        //        {
-        //            return;
-        //        }
-        //    }
-        //    DrawTargetRedSquare();
-        //}
+        //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
+        //    Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
+        //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
+        //    float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
+        //    //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
 
-        //private void DrawTargetRedSquare()
-        //{
-        //    if (MarkTarget)
-        //    {
-        //        //if (target != null && targetCollider != null && !rocket.hasExploded && rocket.isSimulating && rocket != null)
-        //        //{
-        //        //    Vector3 markerPosition = targetCollider.bounds != null ? targetCollider.bounds.center : target.position;
-        //        //    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
-        //        //    {
-        //        //        int squareWidth = 16;
-        //        //        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-        //        //        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
-        //        //    }
-        //        //}
-        //    }
+        //    Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
+        //    rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
         //}
 
         public void SendRocketFired()
@@ -761,7 +593,7 @@ namespace BlockEnhancementMod
                 removedFromGroup = true;
             }
 
-        }   
+        }
 
         private void SendExplosionPositionToAll(Vector3 position)
         {

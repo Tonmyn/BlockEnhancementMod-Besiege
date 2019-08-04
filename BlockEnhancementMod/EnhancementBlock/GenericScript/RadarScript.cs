@@ -15,18 +15,19 @@ namespace BlockEnhancementMod
         public float radius = 2000f;
         public float safetyRadius = 30f;
         public float searchAngle = 20f;
-        MeshCollider Collider;
+        MeshCollider meshCollider;
         public static bool MarkTarget { get; internal set; } = true;
         private Texture2D rocketAim;
 
         public bool Switch { get; set; } = false;
+        bool lastSwitchState = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
 
         public event Action<Target> OnTarget;
 
         private HashSet<GameObject> checkedGameObject = new HashSet<GameObject>();
-        private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
+        //private HashSet<Machine.SimCluster> checkedCluster = new HashSet<Machine.SimCluster>();
 
         #region Networking Setting
 
@@ -51,7 +52,7 @@ namespace BlockEnhancementMod
             rocketAim.LoadImage(ModIO.ReadAllBytes("Resources" + @"/" + "Square-Red.png"));
         }
 
-        bool lastSwitchState = false;
+
         void Update()
         {
             if (Switch != lastSwitchState)
@@ -69,11 +70,11 @@ namespace BlockEnhancementMod
 
             if (SearchMode == SearchModes.Manual)
             {
-                target = PrepareTarget(getTarget());
+                target = PrepareTarget(GetTarget());
                 OnTarget.Invoke(target);
             }
 
-            Collider getTarget()
+            Collider GetTarget()
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (StatMaster.isClient)
@@ -97,9 +98,6 @@ namespace BlockEnhancementMod
                                     target.transform = hits[i].transform;
                                     target.collider = target.transform.GetComponentInChildren<Collider>(true);
                                     target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
-                                    //previousVelocity = acceleration = Vector3.zero;
-                                    target.acceleration = 0;
-                                    //initialDistance = (hits[i].transform.position - transform.position).magnitude;
                                     break;
                                 }
                             }
@@ -115,8 +113,6 @@ namespace BlockEnhancementMod
                                         target.transform = hits[i].transform;
                                         target.collider = target.transform.GetComponentInChildren<Collider>(true);
                                         target.initialCJOrHJ = false;
-                                        //previousVelocity = acceleration = Vector3.zero;
-                                        //initialDistance = (hits[i].transform.position - rocket.transform.position).magnitude;
                                         break;
                                     }
                                 }
@@ -150,28 +146,39 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
+            GameObject collidedObject = collider.transform.parent.gameObject;
+            if (checkedGameObject.Contains(collidedObject)) return;
+            checkedGameObject.Add(collidedObject);
+
             if (target == null)
             {
+#if DEBUG
+                //Debug.Log("Getting new target");
+#endif
                 target = PrepareTarget(collider);
+                if (target == null) return;
                 OnTarget.Invoke(target);
             }
             else
             {
-                var aim = PrepareTarget(collider);
-
-                if (aim.warningLevel > target.warningLevel)
+#if DEBUG
+                //Debug.Log("Comparing new target to existing target");
+#endif
+                var tempTarget = PrepareTarget(collider);
+                if (tempTarget == null) return;
+                if (tempTarget.warningLevel > target.warningLevel)
                 {
-                    target = aim;
+                    target = tempTarget;
                     OnTarget.Invoke(target);
-                }
-                else if (aim.warningLevel == target.warningLevel)
-                {
-                    float aimDistance = Vector3.Distance(aim.transform.position, transform.position);
-                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
 
+                }
+                else if (tempTarget.warningLevel == target.warningLevel)
+                {
+                    float aimDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
                     if (targetDistance > aimDistance)
                     {
-                        target = aim;
+                        target = tempTarget;
                         OnTarget.Invoke(target);
                     }
                 }
@@ -181,45 +188,50 @@ namespace BlockEnhancementMod
         Target PrepareTarget(Collider collider)
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
-
-            //if (checkedGameObject.Contains(collidedObject)) return;
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+#if DEBUG
+            //Debug.Log("Try to get BB");
+#endif
             if (block == null)
             {
+#if DEBUG
+                //Debug.Log("No BB exist, return null");
+#endif
                 return null;
             }
             else
             {
-                Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
-                if (checkedCluster.Contains(cluster)) return null;
-                checkedCluster.Add(cluster);
 #if DEBUG
-                Debug.Log("Target aquired");
-                Debug.Log(collidedObject.name);
-                Debug.Log(collider.transform.gameObject.layer);
+                //Debug.Log("BB exist");
 #endif
+                //Machine.SimCluster cluster = block.ParentMachine.simClusters[block.ClusterIndex];
+                //if (checkedCluster.Contains(cluster)) return null;
+                //checkedCluster.Add(cluster);
 
-                Target aim = new Target
+                Target tempTarget = new Target
                 {
                     collider = collider,
                     transform = collider.gameObject.transform
                 };
+                tempTarget.SetTargetWarningLevel();
 
-                Switch = false; //DeactivateDetectionZone();
-                checkedGameObject.Add(collidedObject);
-
-                return aim;
+                Switch = false;
+                return tempTarget;
             }
         }
 
         public void ClearSavedSets()
         {
             checkedGameObject.Clear();
-            checkedCluster.Clear();
+            //checkedCluster.Clear();
         }
 
-        private void ActivateDetectionZone()
+        public void ActivateDetectionZone()
         {
+#if DEBUG
+            Debug.Log("Detection zone activated");
+#endif
+            // Enable collider
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = true;
 
@@ -229,8 +241,11 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        private void DeactivateDetectionZone()
+        public void DeactivateDetectionZone()
         {
+#if DEBUG
+            Debug.Log("Detection zone deactivated");
+#endif
             MeshCollider collider = gameObject.GetComponent<MeshCollider>();
             collider.enabled = false;
 
@@ -238,6 +253,7 @@ namespace BlockEnhancementMod
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
             renderer.enabled = false;
 #endif
+            ClearSavedSets();
         }
 
         public void ChangeSearchMode()
@@ -252,12 +268,13 @@ namespace BlockEnhancementMod
                 SearchMode = SearchModes.Auto;
                 //do something...
             }
+            SendClientTargetNull();
             ClearSavedSets();
         }
 
-        public void CreateFrustumCone(float angle, float topRadius, float bottomRadius)
+        public void CreateFrustumCone(float angle, float bottomRadius)
         {
-            float topHeight = topRadius;
+            float topHeight = safetyRadius;
             float height = bottomRadius - topHeight;
 
             float radiusTop = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * topHeight;
@@ -331,10 +348,12 @@ namespace BlockEnhancementMod
             mc.sharedMesh = GetComponent<MeshFilter>().mesh;
             mc.convex = true;
             mc.isTrigger = true;
-            Collider = mc;
+            meshCollider = mc;
+            meshCollider.enabled = false;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
-            mr.material.color = Color.green;
+            mr.material.color = new Color(0, 1, 0, 0.1f);
+            mr.enabled = false;
 #endif
         }
 
@@ -354,9 +373,9 @@ namespace BlockEnhancementMod
                     var rocket = gameObject.GetComponent<TimedRocket>();
                     var BB = transform.parent.GetComponent<BlockBehaviour>();
 
-                    if (target.transform.GetComponent<BlockBehaviour>())
+                    if (target.transform.transform.GetComponent<BlockBehaviour>())
                     {
-                        BlockBehaviour targetBB = target.transform.GetComponent<BlockBehaviour>();
+                        BlockBehaviour targetBB = target.transform.transform.GetComponent<BlockBehaviour>();
                         int id = targetBB.ParentMachine.PlayerID;
                         if (rocket.ParentMachine.PlayerID != 0)
                         {
@@ -372,9 +391,9 @@ namespace BlockEnhancementMod
                         ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
                         RocketsController.Instance.UpdateRocketTarget(BB, id);
                     }
-                    if (target.transform.GetComponent<LevelEntity>())
+                    if (target.transform.transform.GetComponent<LevelEntity>())
                     {
-                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.GetComponent<LevelEntity>(), BB);
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.transform.GetComponent<LevelEntity>(), BB);
                         foreach (var player in Player.GetAllPlayers())
                         {
                             if (player.NetworkId == rocket.ParentMachine.PlayerID)
@@ -391,6 +410,7 @@ namespace BlockEnhancementMod
 
         public void SendClientTargetNull()
         {
+            target = null;
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
             {
@@ -402,14 +422,15 @@ namespace BlockEnhancementMod
         }
         #endregion
 
+        #region Markers
         private void OnGUI()
         {
             if (StatMaster.isMP && StatMaster.isHosting)
             {
-                //if (rocket.ParentMachine.PlayerID != 0)
-                //{
-                //    return;
-                //} 
+                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
+                {
+                    return;
+                }
             }
             DrawTargetRedSquare();
         }
@@ -420,7 +441,7 @@ namespace BlockEnhancementMod
             {
                 if (target != null)
                 {
-                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.transform.position;
                     if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
@@ -430,25 +451,70 @@ namespace BlockEnhancementMod
                 }
             }
         }
+        #endregion
     }
 
-    class Target/*:Transform*/
+    class Target
     {
-
+        //Initialise transform will cause NRE
         public Transform transform;
         public Collider collider;
         public bool initialCJOrHJ = false;
-
-        public float acceleration = 0;
 
         public WarningLevel warningLevel = 0;
 
         public enum WarningLevel
         {
-            low = 0,
-            middle = 1,
-            hight = 2
+            normalBlockValue = 0,
+            bombValue = 32,
+            guidedRocketValue = 1024,
+            waterCannonValue = 16,
+            flyingBlockValue = 2,
+            flameThrowerValue = 8,
+            cogMotorValue = 2
         }
 
+        public void SetTargetWarningLevel()
+        {
+            GameObject collidedObject = collider.transform.parent.gameObject;
+            BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+            if (block != null)
+            {
+                switch (block.BlockID)
+                {
+                    default:
+                        warningLevel = WarningLevel.normalBlockValue;
+                        break;
+                    case (int)BlockType.Rocket:
+                        warningLevel = WarningLevel.guidedRocketValue;
+                        break;
+                    case (int)BlockType.Bomb:
+                        warningLevel = WarningLevel.bombValue;
+                        break;
+                    case (int)BlockType.WaterCannon:
+                        warningLevel = WarningLevel.waterCannonValue;
+                        break;
+                    case (int)BlockType.FlyingBlock:
+                        warningLevel = WarningLevel.flyingBlockValue;
+                        break;
+                    case (int)BlockType.Flamethrower:
+                        warningLevel = WarningLevel.flameThrowerValue;
+                        break;
+                    case (int)BlockType.CogMediumPowered:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                    case (int)BlockType.LargeWheel:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                    case (int)BlockType.SmallWheel:
+                        warningLevel = WarningLevel.cogMotorValue;
+                        break;
+                }
+            }
+            else
+            {
+                warningLevel = WarningLevel.normalBlockValue;
+            }
+        }
     }
 }
