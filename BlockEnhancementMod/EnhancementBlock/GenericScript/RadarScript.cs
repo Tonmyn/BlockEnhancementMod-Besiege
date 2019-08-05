@@ -55,7 +55,7 @@ namespace BlockEnhancementMod
 
         void Update()
         {
-            if (lastSwitchState!= Switch)
+            if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;
                 if (Switch)
@@ -77,7 +77,7 @@ namespace BlockEnhancementMod
                     OnTarget.Invoke(target);
                 }
             }
-            
+
 
             //--------------------------------------------------//
             Collider GetTarget()
@@ -193,7 +193,7 @@ namespace BlockEnhancementMod
 
         void OnTriggerExit(Collider collider)
         {
-            if (!Switch || target==null) return;
+            if (!Switch || target == null) return;
 
             if (collider.Equals(target.collider))
             {
@@ -201,8 +201,8 @@ namespace BlockEnhancementMod
                 Debug.Log("target out of range");
 #endif
 
-                target = null;
-                ClearSavedSets();
+                //target = null;
+                //ClearSavedSets();
                 SendClientTargetNull();
             }
         }
@@ -432,6 +432,7 @@ namespace BlockEnhancementMod
 
         public void SendClientTargetNull()
         {
+            Switch = true;
             target = null;
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)

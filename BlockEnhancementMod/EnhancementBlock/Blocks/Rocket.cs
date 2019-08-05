@@ -298,6 +298,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
+                radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
 
 
@@ -310,6 +311,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.SetParent(gameObject.transform);
                 guideObject.transform.position = transform.position;
                 guideObject.transform.rotation = transform.rotation;
+                guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
                 guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, torque);
 
@@ -357,7 +359,6 @@ namespace BlockEnhancementMod
                     if (LockTargetKey.IsPressed)
                     {
                         radar.SendClientTargetNull();
-                        //if (activeGuide) radar.Switch = true;
                     }
                 }
             }
@@ -400,7 +401,7 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
-                                 
+
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -419,25 +420,25 @@ namespace BlockEnhancementMod
                 }
                 if (rocket.hasExploded && !rocketExploMsgSent)
                 {
-                    radar.SendClientTargetNull();
+                    //radar.SendClientTargetNull();
                     rocketExploMsgSent = true;
                 }
             }
         }
 
-        void OnCollisionEnter(Collision collision)
-        {
-            if (canTrigger)
-            {
-                if (rocket.PowerSlider.Value > 0.1f)
-                {
-                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-                    {
-                        StartCoroutine(RocketExplode());
-                    }
-                }
-            }
-        }
+        //void OnCollisionEnter(Collision collision)
+        //{
+        //    if (canTrigger)
+        //    {
+        //        if (rocket.PowerSlider.Value > 0.1f)
+        //        {
+        //            if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+        //            {
+        //                StartCoroutine(RocketExplode());
+        //            }
+        //        }
+        //    }
+        //}
 
         void OnDestroy()
         {
@@ -457,8 +458,6 @@ namespace BlockEnhancementMod
 
         private IEnumerator RocketExplode()
         {
-            //Reset some parameter and set the rocket to explode
-            //Stop the search target coroutine
             radar.SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
@@ -493,7 +492,7 @@ namespace BlockEnhancementMod
 
                 //Add explode and ignition effects to the affected objects
 
-                Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
+                Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge, Game.BlockEntityLayerMask);
                 int index = 0;
                 int rank = 60;
 
@@ -507,7 +506,7 @@ namespace BlockEnhancementMod
                         yield return 0;
                     }
 
-                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
+                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
                     {
                         try
                         {
@@ -574,18 +573,6 @@ namespace BlockEnhancementMod
 
 
         }
-
-        //private void AddAerodynamicsToRocketVelocity()
-        //{
-        //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-        //    Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
-        //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-        //    float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-        //    //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
-
-        //    Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
-        //    rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
-        //}
 
         public void SendRocketFired()
         {

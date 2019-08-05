@@ -18,7 +18,7 @@ namespace BlockEnhancementMod
         public float searchAngle = 0f;
         public float initialDistance = 1f;
         public float torque = 0f;
-        public float maxTorque = 10000f;
+        public float maxTorque = 100f;
         private Vector3 previousVelocity = Vector3.zero;
         private Vector3 acceleration = Vector3.zero;
 
@@ -76,9 +76,10 @@ namespace BlockEnhancementMod
                 float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
                 float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
                 Vector3 forwardDirection = block.BlockID == (int)BlockType.Rocket ? block.transform.up : block.transform.forward;
+
                 Vector3 positionDiff = blockRadar.target.collider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - block.transform.position;
                 float angleDiff = Vector3.Angle(positionDiff, forwardDirection);
-                bool forward = Vector3.Dot(forwardDirection, positionDiff) > 0;
+                float dotProduct = Vector3.Dot(forwardDirection, positionDiff.normalized);
                 Vector3 rotatingAxis = -Vector3.Cross(positionDiff.normalized, forwardDirection);
 #if DEBUG
                 //Debug.Log("forward is " + forward);
@@ -101,8 +102,10 @@ namespace BlockEnhancementMod
                 //#endif
                 //                    blockRadar.SendClientTargetNull();
                 //                }
-
-                blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
+                Vector3 towardsPositionDiff = dotProduct * positionDiff.normalized - forwardDirection;
+                blockRigidbody.AddForceAtPosition(Mathf.Clamp(torque, 0, 100) * maxTorque * towardsPositionDiff, transform.position + forwardDirection);
+                blockRigidbody.AddForceAtPosition(Mathf.Clamp(torque, 0, 100) * maxTorque * (-towardsPositionDiff), transform.position - forwardDirection);
+                //blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
             }
         }
 
