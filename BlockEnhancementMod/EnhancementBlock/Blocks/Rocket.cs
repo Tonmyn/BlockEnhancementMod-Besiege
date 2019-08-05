@@ -303,7 +303,7 @@ namespace BlockEnhancementMod
 
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
-                radar.ClearSavedSets(); 
+                radar.ClearSavedSets();
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -363,10 +363,22 @@ namespace BlockEnhancementMod
             }
         }
 
+        bool lastFireState = false;
         public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
+                if (lastFireState != rocket.hasFired)
+                {
+                    lastFireState = rocket.hasFired;
+
+                    if (rocket.hasFired)
+                    {
+                        //Activate Detection Zone
+                        radar.Switch = true;
+                    }
+                }
+
                 if (rocket.hasFired)
                 {
                     SendRocketFired();
@@ -388,10 +400,7 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
-                            //Activate Detection Zone
-                            radar.Switch = (radar.target == null);
-
-
+                                 
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -432,14 +441,18 @@ namespace BlockEnhancementMod
 
         void OnDestroy()
         {
-            if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+            try
             {
-                if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
                 {
-                    rockets.Remove(rocket);
+                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+                    {
+                        rockets.Remove(rocket);
+                    }
                 }
+                radar.SendClientTargetNull();
             }
-            radar.SendClientTargetNull();
+            catch { }
         }
 
         private IEnumerator RocketExplode()
