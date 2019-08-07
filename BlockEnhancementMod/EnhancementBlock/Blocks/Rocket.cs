@@ -102,10 +102,6 @@ namespace BlockEnhancementMod
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
-        //Aerodynamics setting
-        private readonly float aeroEffectMultiplier = 5f;
-        private Vector3 aeroEffectPosition = Vector3.zero;
-
         public override void SafeAwake()
         {
             //Key mapper setup
@@ -269,7 +265,6 @@ namespace BlockEnhancementMod
         public override void OnSimulateStart_EnhancementEnabled()
         {
             smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
-            aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {

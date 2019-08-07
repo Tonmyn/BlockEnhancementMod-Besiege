@@ -65,7 +65,6 @@ namespace BlockEnhancementMod
                 else
                 {
                     DeactivateDetectionZone();
-                    target = null;
                 }
             }
 
@@ -148,27 +147,44 @@ namespace BlockEnhancementMod
             }
         }
 
+        void OnCollisionEnter(Collider collider)
+        {
+            if (collider.gameObject.CompareTag("LaunchIgnition"))
+            {
+                Physics.IgnoreCollision(meshCollider, collider, true);
+            }
+        }
+
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
 
             GameObject collidedObject = collider.transform.parent.gameObject;
-            if (checkedGameObject.Contains(collidedObject)) return;
+            if (checkedGameObject.Contains(collidedObject))
+            {
+#if DEBUG
+                Debug.Log("block ignored");
+#endif
+                return;
+            }
             checkedGameObject.Add(collidedObject);
 
             if (target == null)
             {
 #if DEBUG
-                //Debug.Log("Getting new target");
+                Debug.Log("Getting new target");
 #endif
                 target = PrepareTarget(collider);
                 if (target == null) return;
                 OnTarget.Invoke(target);
+#if DEBUG
+                Debug.Log("Getting new target done");
+#endif
             }
             else
             {
 #if DEBUG
-                //Debug.Log("Comparing new target to existing target");
+                Debug.Log("Comparing new target to existing target");
 #endif
                 var tempTarget = PrepareTarget(collider);
                 if (tempTarget == null) return;
@@ -188,24 +204,27 @@ namespace BlockEnhancementMod
                         OnTarget.Invoke(target);
                     }
                 }
-            }
-        }
-
-        void OnTriggerExit(Collider collider)
-        {
-            if (!Switch || target == null) return;
-
-            if (collider.Equals(target.collider))
-            {
 #if DEBUG
-                Debug.Log("target out of range");
+                Debug.Log("Comparing new target to existing target done");
 #endif
-
-                //target = null;
-                //ClearSavedSets();
-                SendClientTargetNull();
             }
+#if DEBUG
+            Debug.Log("On Trigger Enter done, no NRE");
+#endif
         }
+
+        //        void OnTriggerExit(Collider collider)
+        //        {
+        //            if (!Switch || target == null) return;
+
+        //            if (collider.Equals(target.collider))
+        //            {
+        //#if DEBUG
+        //                Debug.Log("target out of range");
+        //#endif
+        //                SendClientTargetNull();
+        //            }
+        //        }
 
         Target PrepareTarget(Collider collider)
         {
@@ -292,7 +311,7 @@ namespace BlockEnhancementMod
                 //do something...
             }
             SendClientTargetNull();
-            ClearSavedSets();
+
         }
 
         public void CreateFrustumCone(float angle, float bottomRadius)
@@ -375,7 +394,9 @@ namespace BlockEnhancementMod
             meshCollider.enabled = false;
 #if DEBUG
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
-            mr.material.color = new Color(0, 1, 0, 0.1f);
+            Material material = new Material(Shader.Find("Transparent/Diffuse"));
+            material.color = new Color(0, 1, 0, 0.1f);
+            mr.material = material;
             mr.enabled = false;
 #endif
         }
@@ -435,6 +456,8 @@ namespace BlockEnhancementMod
         {
             Switch = true;
             target = null;
+            ClearSavedSets();
+
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
             {
