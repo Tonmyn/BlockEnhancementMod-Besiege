@@ -210,6 +210,7 @@ namespace BlockEnhancementMod
         Target PrepareTarget(Collider collider)
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
+            if (collidedObject == null) return null;
             BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
 #if DEBUG
             //Debug.Log("Try to get BB");
@@ -250,6 +251,7 @@ namespace BlockEnhancementMod
 
         public void ActivateDetectionZone()
         {
+            ClearSavedSets();
 #if DEBUG
             Debug.Log("Detection zone activated");
 #endif
@@ -275,7 +277,6 @@ namespace BlockEnhancementMod
             MeshRenderer renderer = gameObject.GetComponent<MeshRenderer>();
             renderer.enabled = false;
 #endif
-            ClearSavedSets();
         }
 
         public void ChangeSearchMode()

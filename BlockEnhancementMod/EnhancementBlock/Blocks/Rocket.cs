@@ -426,19 +426,19 @@ namespace BlockEnhancementMod
             }
         }
 
-        //void OnCollisionEnter(Collision collision)
-        //{
-        //    if (canTrigger)
-        //    {
-        //        if (rocket.PowerSlider.Value > 0.1f)
-        //        {
-        //            if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-        //            {
-        //                StartCoroutine(RocketExplode());
-        //            }
-        //        }
-        //    }
-        //}
+        void OnCollisionEnter(Collision collision)
+        {
+            if (canTrigger)
+            {
+                if (rocket.PowerSlider.Value > 0.1f)
+                {
+                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+                    {
+                        StartCoroutine(RocketExplode());
+                    }
+                }
+            }
+        }
 
         void OnDestroy()
         {
