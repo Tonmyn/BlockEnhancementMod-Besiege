@@ -13,11 +13,11 @@ namespace BlockEnhancementMod
         public static int CollisionLayer = 10;
 
         public float radius = 2000f;
-        public float safetyRadius = 30f;
+        public float safetyRadius = 1f;
         public float searchAngle = 20f;
         MeshCollider meshCollider;
         public static bool MarkTarget { get; internal set; } = true;
-        private Texture2D rocketAim;
+        private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;
         bool lastSwitchState = false;
@@ -48,8 +48,8 @@ namespace BlockEnhancementMod
             gameObject.layer = CollisionLayer;
 
             //Load aim pic
-            rocketAim = new Texture2D(16, 16);
-            rocketAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+            redSquareAim = new Texture2D(16, 16);
+            redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
         }
 
 
@@ -385,6 +385,7 @@ namespace BlockEnhancementMod
             meshCollider = mc;
             meshCollider.enabled = false;
 #if DEBUG
+            Debug.Log(meshCollider.attachedRigidbody);
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
             Material material = new Material(Shader.Find("Transparent/Diffuse"));
             material.color = new Color(0, 1, 0, 0.1f);
@@ -485,7 +486,7 @@ namespace BlockEnhancementMod
                     {
                         int squareWidth = 16;
                         Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-                        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), rocketAim);
+                        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), redSquareAim);
                     }
                 }
             }

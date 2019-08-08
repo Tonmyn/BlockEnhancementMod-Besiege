@@ -290,7 +290,7 @@ namespace BlockEnhancementMod
                 
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
-                radarObject.transform.SetParent(gameObject.transform);
+                radarObject.transform.SetParent(rocket.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
@@ -304,7 +304,7 @@ namespace BlockEnhancementMod
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
-                guideObject.transform.SetParent(gameObject.transform);
+                guideObject.transform.SetParent(rocket.transform);
                 guideObject.transform.position = transform.position;
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
