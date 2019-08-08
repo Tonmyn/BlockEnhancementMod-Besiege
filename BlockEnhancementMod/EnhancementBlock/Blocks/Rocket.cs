@@ -287,6 +287,7 @@ namespace BlockEnhancementMod
                 launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
+                
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
                 radarObject.transform.SetParent(gameObject.transform);

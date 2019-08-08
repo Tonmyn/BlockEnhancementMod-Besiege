@@ -147,14 +147,6 @@ namespace BlockEnhancementMod
             }
         }
 
-        void OnCollisionEnter(Collider collider)
-        {
-            if (collider.gameObject.CompareTag("LaunchIgnition"))
-            {
-                Physics.IgnoreCollision(meshCollider, collider, true);
-            }
-        }
-
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
