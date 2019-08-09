@@ -76,11 +76,11 @@ namespace BlockEnhancementMod
         MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
-        MSlider ProximityFuzeAngleSlider;
+        //MSlider ProximityFuzeAngleSlider;
         public bool impactFuzeActivated = false;
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
-        public float proximityAngle = 0f;
+        //public float proximityAngle = 0f;
         public float triggerForceImpactFuzeOn = 50f;
         public float triggerForceImpactFuzeOff = 400f;
 
@@ -101,10 +101,6 @@ namespace BlockEnhancementMod
         private readonly float power = 3600f;
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
-
-        //Aerodynamics setting
-        private readonly float aeroEffectMultiplier = 5f;
-        private Vector3 aeroEffectPosition = Vector3.zero;
 
         public override void SafeAwake()
         {
@@ -154,7 +150,7 @@ namespace BlockEnhancementMod
             {
                 proximityFuzeActivated =
                 ProximityFuzeRangeSlider.DisplayInMapper =
-                ProximityFuzeAngleSlider.DisplayInMapper =
+                //ProximityFuzeAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -182,8 +178,8 @@ namespace BlockEnhancementMod
             ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
 
-            ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeAngle, "closeAngle", proximityAngle, 0, 90);
-            ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
+            //ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeAngle, "closeAngle", proximityAngle, 0, 90);
+            //ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
 
             GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
@@ -233,7 +229,7 @@ namespace BlockEnhancementMod
             ImpactFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
-            ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
+            //ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
@@ -269,7 +265,6 @@ namespace BlockEnhancementMod
         public override void OnSimulateStart_EnhancementEnabled()
         {
             smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
-            aeroEffectPosition = rocket.transform.up * rocket.transform.lossyScale.y / 3;
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
@@ -292,24 +287,45 @@ namespace BlockEnhancementMod
                 launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
+
                 //Add radar
+                Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
                 radarObject = new GameObject("RocketRadar");
-                radarObject.transform.SetParent(gameObject.transform);
+                radarObject.transform.SetParent(rocket.transform);
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
+                radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
 
+                //Workaround when radar can be ignited hence explode the rocket
+                FireTag fireTag = radarObject.AddComponent<FireTag>();
+                fireTag.enabled = true;
+                Rigidbody rigidbody = radarObject.AddComponent<Rigidbody>();
+                rigidbody.isKinematic = true;
 
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
                 radar.ClearSavedSets();
 
+                //Stop colliding with its own colliders
+#if DEBUG
+                Debug.Log(selfColliders.Length);
+#endif
+                if (selfColliders.Length > 0)
+                {
+                    foreach (var collider in selfColliders)
+                    {
+                        Physics.IgnoreCollision(collider, radar.meshCollider, true);
+                    }
+                }
+
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
-                guideObject.transform.SetParent(gameObject.transform);
+                guideObject.transform.SetParent(rocket.transform);
                 guideObject.transform.position = transform.position;
                 guideObject.transform.rotation = transform.rotation;
+                guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
                 guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, torque);
 
@@ -356,32 +372,27 @@ namespace BlockEnhancementMod
 
                     if (LockTargetKey.IsPressed)
                     {
-                        radar.SendClientTargetNull();
-                        //if (activeGuide) radar.Switch = true;
+                        //if (canTrigger) radar.SendClientTargetNull();
                     }
                 }
             }
         }
 
-        bool lastFireState = false;
         public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
-                if (lastFireState != rocket.hasFired)
-                {
-                    lastFireState = rocket.hasFired;
-
-                    if (rocket.hasFired)
-                    {
-                        //Activate Detection Zone
-                        radar.Switch = true;
-                    }
-                }
-
                 if (rocket.hasFired)
                 {
+                    //Activate Detection Zone
+                    if (canTrigger && !radar.Switch)
+                    {
+                        radar.Switch = true;
+                    }
+
+                    //Let rocket controller know the rocket is fired
                     SendRocketFired();
+
                     if (!rocket.hasExploded)
                     {
                         //If no smoke mode is enabled, stop all smoke
@@ -400,7 +411,6 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
-                                 
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -413,6 +423,19 @@ namespace BlockEnhancementMod
                             if (Time.time - launchTime >= guideDelay && !canTrigger)
                             {
                                 canTrigger = true;
+                            }
+
+                            //Proximity fuse behaviour
+                            if (proximityFuzeActivated && canTrigger)
+                            {
+                                if (radar.target != null)
+                                {
+                                    if (radar.target.positionDiff.magnitude < proximityRange)
+                                    {
+                                        StartCoroutine(RocketExplode());
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -457,8 +480,6 @@ namespace BlockEnhancementMod
 
         private IEnumerator RocketExplode()
         {
-            //Reset some parameter and set the rocket to explode
-            //Stop the search target coroutine
             radar.SendClientTargetNull();
 
             Vector3 position = rocket.transform.position;
@@ -493,7 +514,7 @@ namespace BlockEnhancementMod
 
                 //Add explode and ignition effects to the affected objects
 
-                Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge);
+                Collider[] hits = Physics.OverlapSphere(rocket.transform.position, radius * bombExplosiveCharge, Game.BlockEntityLayerMask);
                 int index = 0;
                 int rank = 60;
 
@@ -507,7 +528,7 @@ namespace BlockEnhancementMod
                         yield return 0;
                     }
 
-                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22)
+                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
                     {
                         try
                         {
@@ -574,18 +595,6 @@ namespace BlockEnhancementMod
 
 
         }
-
-        //private void AddAerodynamicsToRocketVelocity()
-        //{
-        //    Vector3 locVel = transform.InverseTransformDirection(rocketRigidbody.velocity);
-        //    Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
-        //    float velocitySqr = rocketRigidbody.velocity.sqrMagnitude;
-        //    float currentVelocitySqr = Mathf.Min(velocitySqr, 30f);
-        //    //rocketRigidbody.AddRelativeForce(Vector3.Scale(dir, -locVel) * currentVelocitySqr);
-
-        //    Vector3 force = transform.localToWorldMatrix * Vector3.Scale(dir, -locVel) * currentVelocitySqr;
-        //    rocketRigidbody.AddForceAtPosition(force, rocket.transform.position - aeroEffectPosition);
-        //}
 
         public void SendRocketFired()
         {

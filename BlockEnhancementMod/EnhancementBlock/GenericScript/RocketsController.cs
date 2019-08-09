@@ -249,9 +249,10 @@ namespace BlockEnhancementMod
                             RocketScript rocketScript = rocket.GetComponent<RocketScript>();
                             if (rocketScript != null)
                             {
-                                rocket.Fire(0f);
-                                rocket.hasFired = true;
-                                rocket.hasExploded = false;
+                                rocket.LaunchMessage();
+                                //rocket.Fire(0f);
+                                //rocket.hasFired = true;
+                                //rocket.hasExploded = false;
                                 if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                                 {
                                     List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
