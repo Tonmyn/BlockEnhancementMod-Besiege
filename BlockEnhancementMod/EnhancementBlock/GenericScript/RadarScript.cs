@@ -88,7 +88,7 @@ namespace BlockEnhancementMod
                 float tempAimdistance = Mathf.Infinity;
                 Target dummyTarget = new Target
                 {
-                    warningLevel = Target.WarningLevel.nullValue
+                    warningLevel = Target.WarningLevel.dummyValue
                 };
                 foreach (var tempTarget in checkedTarget)
                 {
@@ -107,7 +107,7 @@ namespace BlockEnhancementMod
                         }
                     }
                 }
-                if (dummyTarget != null)
+                if (dummyTarget.warningLevel != Target.WarningLevel.dummyValue)
                 {
                     target = dummyTarget;
                     OnTarget.Invoke(target);
@@ -524,7 +524,7 @@ namespace BlockEnhancementMod
             flyingBlockValue = 2,
             flameThrowerValue = 8,
             cogMotorValue = 2,
-            nullValue = -1
+            dummyValue = -1
         }
 
         public void SetTargetWarningLevel()
