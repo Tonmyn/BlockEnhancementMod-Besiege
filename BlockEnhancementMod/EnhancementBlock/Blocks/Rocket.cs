@@ -76,11 +76,11 @@ namespace BlockEnhancementMod
         MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
-        MSlider ProximityFuzeAngleSlider;
+        //MSlider ProximityFuzeAngleSlider;
         public bool impactFuzeActivated = false;
         public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
-        public float proximityAngle = 0f;
+        //public float proximityAngle = 0f;
         public float triggerForceImpactFuzeOn = 50f;
         public float triggerForceImpactFuzeOff = 400f;
 
@@ -150,7 +150,7 @@ namespace BlockEnhancementMod
             {
                 proximityFuzeActivated =
                 ProximityFuzeRangeSlider.DisplayInMapper =
-                ProximityFuzeAngleSlider.DisplayInMapper =
+                //ProximityFuzeAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -178,8 +178,8 @@ namespace BlockEnhancementMod
             ProximityFuzeRangeSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeRange, "closeRange", proximityRange, 0, 10);
             ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
 
-            ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeAngle, "closeAngle", proximityAngle, 0, 90);
-            ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
+            //ProximityFuzeAngleSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.closeAngle, "closeAngle", proximityAngle, 0, 90);
+            //ProximityFuzeAngleSlider.ValueChanged += (float value) => { proximityAngle = value; ChangedProperties(); };
 
             GuidedRocketTorqueSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.torqueOnRocket, "torqueOnRocket", torque, 0, 100);
             GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
@@ -229,7 +229,7 @@ namespace BlockEnhancementMod
             ImpactFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeToggle.DisplayInMapper = value && guidedRocketActivated;
             ProximityFuzeRangeSlider.DisplayInMapper = value && proximityFuzeActivated;
-            ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
+            //ProximityFuzeAngleSlider.DisplayInMapper = value && proximityFuzeActivated;
             GuideDelaySlider.DisplayInMapper = value && guidedRocketActivated;
             LockTargetKey.DisplayInMapper = value && guidedRocketActivated;
         }
@@ -289,6 +289,7 @@ namespace BlockEnhancementMod
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
 
                 //Add radar
+                Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
                 radarObject = new GameObject("RocketRadar");
                 radarObject.transform.SetParent(rocket.transform);
                 radarObject.transform.position = transform.position;
@@ -306,6 +307,18 @@ namespace BlockEnhancementMod
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
                 radar.ClearSavedSets();
+
+                //Stop colliding with its own colliders
+#if DEBUG
+                Debug.Log(selfColliders.Length);
+#endif
+                if (selfColliders.Length > 0)
+                {
+                    foreach (var collider in selfColliders)
+                    {
+                        Physics.IgnoreCollision(collider, radar.meshCollider, true);
+                    }
+                }
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -359,7 +372,7 @@ namespace BlockEnhancementMod
 
                     if (LockTargetKey.IsPressed)
                     {
-                        radar.SendClientTargetNull();
+                        //if (canTrigger) radar.SendClientTargetNull();
                     }
                 }
             }
@@ -377,7 +390,9 @@ namespace BlockEnhancementMod
                         radar.Switch = true;
                     }
 
+                    //Let rocket controller know the rocket is fired
                     SendRocketFired();
+
                     if (!rocket.hasExploded)
                     {
                         //If no smoke mode is enabled, stop all smoke
@@ -408,6 +423,19 @@ namespace BlockEnhancementMod
                             if (Time.time - launchTime >= guideDelay && !canTrigger)
                             {
                                 canTrigger = true;
+                            }
+
+                            //Proximity fuse behaviour
+                            if (proximityFuzeActivated && canTrigger)
+                            {
+                                if (radar.target != null)
+                                {
+                                    if (radar.target.positionDiff.magnitude < proximityRange)
+                                    {
+                                        StartCoroutine(RocketExplode());
+                                    }
+                                }
+
                             }
                         }
                     }
