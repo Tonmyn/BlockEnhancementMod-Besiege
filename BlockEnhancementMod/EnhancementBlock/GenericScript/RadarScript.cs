@@ -13,7 +13,7 @@ namespace BlockEnhancementMod
         public static int CollisionLayer = 10;
 
         public float radius = 2000f;
-        public float safetyRadius = 1f;
+        public float safetyRadius = 2.5f;
         public float searchAngle = 20f;
         MeshCollider meshCollider;
         public static bool MarkTarget { get; internal set; } = true;
@@ -385,7 +385,6 @@ namespace BlockEnhancementMod
             meshCollider = mc;
             meshCollider.enabled = false;
 #if DEBUG
-            Debug.Log(meshCollider.attachedRigidbody);
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
             Material material = new Material(Shader.Find("Transparent/Diffuse"));
             material.color = new Color(0, 1, 0, 0.1f);

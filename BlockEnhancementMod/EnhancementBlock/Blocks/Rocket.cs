@@ -287,7 +287,7 @@ namespace BlockEnhancementMod
                 launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
-                
+
                 //Add radar
                 radarObject = new GameObject("RocketRadar");
                 radarObject.transform.SetParent(rocket.transform);
@@ -297,6 +297,11 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
 
+                //Workaround when radar can be ignited hence explode the rocket
+                FireTag fireTag = radarObject.AddComponent<FireTag>();
+                fireTag.enabled = true;
+                Rigidbody rigidbody = radarObject.AddComponent<Rigidbody>();
+                rigidbody.isKinematic = true;
 
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
@@ -360,24 +365,18 @@ namespace BlockEnhancementMod
             }
         }
 
-        bool lastFireState = false;
         public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (gameObject.activeInHierarchy)
             {
-                if (lastFireState != rocket.hasFired)
-                {
-                    lastFireState = rocket.hasFired;
-
-                    if (rocket.hasFired)
-                    {
-                        //Activate Detection Zone
-                        radar.Switch = true;
-                    }
-                }
-
                 if (rocket.hasFired)
                 {
+                    //Activate Detection Zone
+                    if (canTrigger && !radar.Switch)
+                    {
+                        radar.Switch = true;
+                    }
+
                     SendRocketFired();
                     if (!rocket.hasExploded)
                     {
@@ -397,7 +396,6 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
-
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -416,7 +414,7 @@ namespace BlockEnhancementMod
                 }
                 if (rocket.hasExploded && !rocketExploMsgSent)
                 {
-                    //radar.SendClientTargetNull();
+                    radar.SendClientTargetNull();
                     rocketExploMsgSent = true;
                 }
             }
