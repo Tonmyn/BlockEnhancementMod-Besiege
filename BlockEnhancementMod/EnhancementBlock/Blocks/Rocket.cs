@@ -303,10 +303,8 @@ namespace BlockEnhancementMod
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
                 radar.showRadar = guidedRocketShowRadar;
-#if DEBUG
-                Debug.Log("clear sets at initialisation");
-#endif
                 radar.ClearSavedSets();
+
                 //Stop colliding with its own colliders
                 if (selfColliders.Length > 0)
                 {

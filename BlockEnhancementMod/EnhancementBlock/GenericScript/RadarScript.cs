@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using Modding;
+using Modding.Common;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Modding;
-using Modding.Common;
 
 namespace BlockEnhancementMod
 {
@@ -84,11 +82,19 @@ namespace BlockEnhancementMod
 
             if (target != null)
             {
+                bool removeFlag = false;
+                if (target.hasFireTag)
+                {
+                    if (target.fireTag.burning || target.fireTag.hasBeenBurned)
+                    {
+                        removeFlag = true;
+                    }
+                }
                 if (target.isBomb)
                 {
                     if (target.bomb.hasExploded)
                     {
-                        SendClientTargetNull();
+                        removeFlag = true;
                     }
                 }
 
@@ -96,8 +102,14 @@ namespace BlockEnhancementMod
                 {
                     if (target.rocket.hasExploded)
                     {
-                        SendClientTargetNull();
+                        removeFlag = true;
                     }
+                }
+
+                if (removeFlag)
+                {
+                    checkedTarget.Remove(target);
+                    SendClientTargetNull();
                 }
             }
 
@@ -118,6 +130,7 @@ namespace BlockEnhancementMod
                     {
 #if DEBUG
                         Debug.Log("temp target no problem");
+                        Debug.Log(tempTarget.warningLevel);
 #endif
                         if (tempTarget.warningLevel > dummyTarget.warningLevel)
                         {
@@ -253,7 +266,8 @@ namespace BlockEnhancementMod
             if (triggeredTarget == null) return;
             checkedTarget.Remove(triggeredTarget);
 
-            if (triggeredTarget == target)
+            if (target == null) return;
+            if (collider == target.collider)
             {
                 SendClientTargetNull();
             }
@@ -295,7 +309,9 @@ namespace BlockEnhancementMod
             {
                 collider = collider,
                 transform = collider.gameObject.transform,
-                block = block
+                block = block,
+                fireTag = fireTag,
+                hasFireTag = (fireTag == null)
             };
             tempTarget.SetTargetWarningLevel();
 
@@ -304,9 +320,6 @@ namespace BlockEnhancementMod
 
         public void ClearSavedSets()
         {
-#if DEBUG
-            Debug.Log("Sets cleared");
-#endif
             checkedTarget.Clear();
             blocksInSafetyRange.Clear();
         }
@@ -550,10 +563,11 @@ namespace BlockEnhancementMod
 
     class Target
     {
-        //Initialise transform will cause NRE
         public Transform transform;
         public Collider collider;
         public BlockBehaviour block;
+        public FireTag fireTag;
+        public bool hasFireTag = false;
         public bool isRocket = false;
         public bool isBomb = false;
         public TimedRocket rocket;
