@@ -303,8 +303,10 @@ namespace BlockEnhancementMod
                 //Initialise radar at the start of simulation
                 radar.CreateFrustumCone(searchAngle, searchRange);
                 radar.showRadar = guidedRocketShowRadar;
+#if DEBUG
+                Debug.Log("clear sets at initialisation");
+#endif
                 radar.ClearSavedSets();
-
                 //Stop colliding with its own colliders
                 if (selfColliders.Length > 0)
                 {
@@ -361,7 +363,6 @@ namespace BlockEnhancementMod
 
                     if (LockTargetKey.IsPressed)
                     {
-                        //radar.SendClientTargetNull();
                         radar.ResetTriggerState();
                     }
                 }
@@ -466,8 +467,6 @@ namespace BlockEnhancementMod
 
         private IEnumerator RocketExplode()
         {
-            radar.SendClientTargetNull();
-
             Vector3 position = rocket.transform.position;
             Quaternion rotation = rocket.transform.rotation;
 
@@ -600,7 +599,6 @@ namespace BlockEnhancementMod
                 }
                 removedFromGroup = true;
             }
-
         }
 
         private void SendExplosionPositionToAll(Vector3 position)

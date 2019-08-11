@@ -82,7 +82,26 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if ((target == null || target.transform.position == target.block.ParentMachine.transform.position) && checkedTarget.Count > 0)
+            if (target != null)
+            {
+                if (target.isBomb)
+                {
+                    if (target.bomb.hasExploded)
+                    {
+                        SendClientTargetNull();
+                    }
+                }
+
+                if (target.isRocket)
+                {
+                    if (target.rocket.hasExploded)
+                    {
+                        SendClientTargetNull();
+                    }
+                }
+            }
+
+            if (target == null && checkedTarget.Count > 0)
             {
                 float aimDistance = 0f;
                 float tempAimdistance = Mathf.Infinity;
@@ -90,20 +109,29 @@ namespace BlockEnhancementMod
                 {
                     warningLevel = Target.WarningLevel.dummyValue
                 };
+#if DEBUG
+                Debug.Log("Dummy no problem");
+#endif
                 foreach (var tempTarget in checkedTarget)
                 {
-                    if (tempTarget.warningLevel > dummyTarget.warningLevel)
+                    if (tempTarget != null)
                     {
-                        dummyTarget = tempTarget;
-                        tempAimdistance = Vector3.Distance(tempTarget.transform.position, transform.position);
-                    }
-                    else if (tempTarget.warningLevel == dummyTarget.warningLevel)
-                    {
-                        aimDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
-                        if (aimDistance < tempAimdistance)
+#if DEBUG
+                        Debug.Log("temp target no problem");
+#endif
+                        if (tempTarget.warningLevel > dummyTarget.warningLevel)
                         {
                             dummyTarget = tempTarget;
-                            tempAimdistance = aimDistance;
+                            tempAimdistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                        }
+                        else if (tempTarget.warningLevel == dummyTarget.warningLevel)
+                        {
+                            aimDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                            if (aimDistance < tempAimdistance)
+                            {
+                                dummyTarget = tempTarget;
+                                tempAimdistance = aimDistance;
+                            }
                         }
                     }
                 }
@@ -221,8 +249,8 @@ namespace BlockEnhancementMod
             if (SearchMode != SearchModes.Auto) return;
 
             Target triggeredTarget = ProcessTarget(collider);
-            if (triggeredTarget == null) return;
 
+            if (triggeredTarget == null) return;
             checkedTarget.Remove(triggeredTarget);
 
             if (triggeredTarget == target)
@@ -237,7 +265,6 @@ namespace BlockEnhancementMod
 
             // If not a block
             if (block == null) return null;
-            if (block.noRigidbody) return null;
 
             // if is own machine
             if (StatMaster.isMP)
@@ -268,9 +295,8 @@ namespace BlockEnhancementMod
             {
                 collider = collider,
                 transform = collider.gameObject.transform,
-                block = block,
+                block = block
             };
-
             tempTarget.SetTargetWarningLevel();
 
             return tempTarget;
@@ -278,6 +304,9 @@ namespace BlockEnhancementMod
 
         public void ClearSavedSets()
         {
+#if DEBUG
+            Debug.Log("Sets cleared");
+#endif
             checkedTarget.Clear();
             blocksInSafetyRange.Clear();
         }
@@ -303,7 +332,6 @@ namespace BlockEnhancementMod
 
         public void ActivateDetectionZone()
         {
-            ClearSavedSets();
             if (!StatMaster.isMP)
             {
                 GetBlocksInSafetyRange();
@@ -314,7 +342,6 @@ namespace BlockEnhancementMod
 
         public void DeactivateDetectionZone()
         {
-            ClearSavedSets();
             meshCollider.enabled = false;
             meshRenderer.enabled = false;
         }
@@ -333,7 +360,6 @@ namespace BlockEnhancementMod
                 //do something...
             }
             SendClientTargetNull();
-
         }
 
         public void CreateFrustumCone(float angle, float bottomRadius)
@@ -478,7 +504,6 @@ namespace BlockEnhancementMod
         {
             Switch = true;
             target = null;
-            ClearSavedSets();
 
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
@@ -529,6 +554,10 @@ namespace BlockEnhancementMod
         public Transform transform;
         public Collider collider;
         public BlockBehaviour block;
+        public bool isRocket = false;
+        public bool isBomb = false;
+        public TimedRocket rocket;
+        public ExplodeOnCollideBlock bomb;
         public bool initialCJOrHJ = false;
         public float initialDistance = 0f;
         public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
@@ -561,9 +590,13 @@ namespace BlockEnhancementMod
                         break;
                     case (int)BlockType.Rocket:
                         warningLevel = WarningLevel.guidedRocketValue;
+                        isRocket = true;
+                        rocket = block.GetComponentInParent<TimedRocket>();
                         break;
                     case (int)BlockType.Bomb:
                         warningLevel = WarningLevel.bombValue;
+                        isBomb = true;
+                        bomb = block.GetComponentInParent<ExplodeOnCollideBlock>();
                         break;
                     case (int)BlockType.WaterCannon:
                         warningLevel = WarningLevel.waterCannonValue;
