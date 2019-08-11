@@ -25,7 +25,7 @@ namespace BlockEnhancementMod
 
         //Aerodynamics setting
         private readonly float aeroEffectMultiplier = 5f;
-        private Vector3 aeroEffectPosition = Vector3.zero;
+        private Vector3 aeroEffectPosition = Vector3.up * 5f;
         public bool enableAerodynamicEffect = false;
         public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque)
         {
@@ -48,13 +48,22 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
         }
 
-        void LateUpdate()
+        void FixedUpdate()
         {
             if (block == null || blockRigidbody == null) return;
             if (enableAerodynamicEffect)
             {
                 AddAerodynamicsToRocketVelocity();
             }
+        }
+
+        void LateUpdate()
+        {
+            if (block == null || blockRigidbody == null) return;
+            //if (enableAerodynamicEffect)
+            //{
+            //    AddAerodynamicsToRocketVelocity();
+            //}
             if (blockRadar == null) return;
             if (!StatMaster.isClient)
             {

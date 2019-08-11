@@ -28,7 +28,7 @@ namespace BlockEnhancementMod
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0f, 2f);
+            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0f, 2f);
             LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
 
 #if DEBUG

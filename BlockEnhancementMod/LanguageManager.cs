@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public class LanguageManager: SingleInstance<LanguageManager>
+    public class LanguageManager : SingleInstance<LanguageManager>
     {
         public override string Name { get; } = "Language Manager";
 
@@ -385,109 +385,109 @@ namespace BlockEnhancementMod
     public interface ILanguage
     {
         //Game
-        string modSettings { get; }
-        string unifiedFriction { get; }
+        string ModSettings { get; }
+        string UnifiedFriction { get; }
 
         //Enhancement Block
-        string enhancement { get; }
-        string additionalFunction { get; }
+        string Enhancement { get; }
+        string AdditionalFunction { get; }
 
         //Rocket & Camera
-        string displayWarning { get; }
-        string markTarget { get; }
-        string displayRocketCount { get; }
-        string remainingRockets { get; }
-        string trackTarget { get; }
-        string groupedFire { get; }
-        string groupFireRate { get; }
-        string autoGrabberRelease { get; }
-        string searchMode { get; }
-        string defaultAuto { get; }
-        string defaultManual { get; }
-        string zoomControlMode { get; }
-        string mouseWheelZoomControl { get; }
+        string DisplayWarning { get; }
+        string MarkTarget { get; }
+        string DisplayRocketCount { get; }
+        string RemainingRockets { get; }
+        string TrackTarget { get; }
+        string GroupedFire { get; }
+        string GroupFireRate { get; }
+        string AutoGrabberRelease { get; }
+        string SearchMode { get; }
+        string DefaultAuto { get; }
+        string DefaultManual { get; }
+        string ZoomControlMode { get; }
+        string MouseWheelZoomControl { get; }
 
-        string keyboardZoomControl { get; }
+        string KeyboardZoomControl { get; }
 
-        string prediction { get; }
+        string Prediction { get; }
 
-        string impactFuze { get; }
+        string ImpactFuze { get; }
 
-        string proximityFuze { get; }
+        string ProximityFuze { get; }
 
-        string noSmoke { get; }
+        string NoSmoke { get; }
 
-        string highExplo { get; }
+        string HighExplo { get; }
 
-        string searchAngle { get; }
+        string SearchAngle { get; }
 
-        string closeRange { get; }
+        string CloseRange { get; }
 
-        string closeAngle { get; }
+        string ShowRadar { get; }
 
-        string torqueOnRocket { get; }
+        string TorqueOnRocket { get; }
 
-        string rocketStability { get; }
+        string RocketStability { get; }
 
-        string guideDelay { get; }
+        string GuideDelay { get; }
 
-        string lockTarget { get; }
+        string LockTarget { get; }
 
-        string switchGuideMode { get; }
+        string SwitchGuideMode { get; }
 
-        string recordTarget { get; }
+        string RecordTarget { get; }
 
-        string firstPersonSmooth { get; }
+        string FirstPersonSmooth { get; }
 
-        string zoomIn { get; }
+        string ZoomIn { get; }
 
-        string zoomOut { get; }
+        string ZoomOut { get; }
 
-        string zoomSpeed { get; }
+        string ZoomSpeed { get; }
 
-        string pauseTracking { get; }
+        string PauseTracking { get; }
 
         //CV Joint
-        string cvJoint { get; }
+        string CvJoint { get; }
 
         //Cannon
-        string fireInterval { get; }
+        string FireInterval { get; }
 
-        string randomDelay { get; }
+        string RandomDelay { get; }
 
-        string recoil { get; }
+        string Recoil { get; }
 
-        string customBullet { get; }
+        string CustomBullet { get; }
 
-        string inheritSize { get; }
+        string InheritSize { get; }
 
-        string bulletMass { get; }
+        string BulletMass { get; }
 
-        string bulletDrag { get; }
+        string BulletDrag { get; }
 
-        string bulletDelayCollision { get; }
+        string BulletDelayCollision { get; }
 
-        string trail { get; }
+        string Trail { get; }
 
-        string trailLength { get; }
+        string TrailLength { get; }
 
-        string trailColor { get; }
+        string TrailColor { get; }
 
         //Decoupler
-        string explodeForce { get; }
+        string ExplodeForce { get; }
 
-        string explodeTorque { get; }
+        string ExplodeTorque { get; }
 
 
         //Grip Pad & Piston & Slider & Suspension
 
-            List<string> MetalHardness { get; }
+        List<string> MetalHardness { get; }
         List<string> WoodenHardness { get; }
         //string hardness { get; }
 
-        string friction { get; }
+        string Friction { get; }
 
-        string bounciness { get; }
+        string Bounciness { get; }
 
         //string softWood { get; }
 
@@ -503,155 +503,155 @@ namespace BlockEnhancementMod
 
         //string highCarbonSteel { get; }
 
-        string damper { get; }
+        string Damper { get; }
 
-        string limit { get; }
+        string Limit { get; }
 
-        string extend { get; }
+        string Extend { get; }
 
-        string retract { get; }
+        string Retract { get; }
 
-        string hydraulicMode { get; }
-       
-        string feedSpeed { get; }
+        string HydraulicMode { get; }
 
-        string extendLimit { get; }
+        string FeedSpeed { get; }
 
-        string retractLimit { get; }
+        string ExtendLimit { get; }
+
+        string RetractLimit { get; }
 
         //Small Wheel
-        string rotatingSpeed { get; }
-        string customCollider { get; }
-        string showCollider { get; }
+        string RotatingSpeed { get; }
+        string CustomCollider { get; }
+        string ShowCollider { get; }
 
         //Spring 
-        string drag { get; }
+        string Drag { get; }
 
         //Steering
-        string returnToCenter { get; }
-        string near { get; }
+        string ReturnToCenter { get; }
+        string Near { get; }
 
         //FlameThrower
-        string thrustForce { get; }
-        string flameColor { get; }
+        string ThrustForce { get; }
+        string FlameColor { get; }
 
         //WaterCannon
-        string boiling { get; }
+        string Boiling { get; }
 
         //Propeller
-        string enabled { get; }
-        string enabledOnAwake { get; }
-        string toggleMode { get; }
-        string liftIndicator { get; }
+        string Enabled { get; }
+        string EnabledOnAwake { get; }
+        string ToggleMode { get; }
+        string LiftIndicator { get; }
     }
 
     public class Chinese : ILanguage
     {
         //Game
-        public  string modSettings {get;}= "扩展模组设置" ;
-        public  string unifiedFriction {get;}= " 统一摩擦" ;
+        public string ModSettings { get; } = "扩展模组设置";
+        public string UnifiedFriction { get; } = " 统一摩擦";
 
         //Enhancement Block
-        public  string enhancement {get;}= "进阶属性" ;
-        public  string additionalFunction {get;}= " 增强性能" ;
+        public string Enhancement { get; } = "进阶属性";
+        public string AdditionalFunction { get; } = " 增强性能";
 
         //Rocket & Camera
-        public  string displayWarning {get;}= " 第一人称下显示火箭警告" ;
+        public string DisplayWarning { get; } = " 第一人称下显示火箭警告";
 
-        public  string markTarget {get;}= " 标记火箭目标" ;
+        public string ShowRadar { get; } = " 显示雷达";
 
-        public  string displayRocketCount {get;}= " 显示剩余火箭量" ;
+        public string MarkTarget { get; } = " 标记火箭目标";
 
-        public  string remainingRockets {get;}= " 残余火箭" ;
+        public string DisplayRocketCount { get; } = " 显示剩余火箭量";
 
-        public  string trackTarget {get;}= "搜索目标" ;
+        public string RemainingRockets { get; } = " 残余火箭";
 
-        public  string groupedFire {get;}= "同组依次发射" ;
+        public string TrackTarget { get; } = "搜索目标";
 
-        public  string groupFireRate {get;}= "同组发射间隔" ;
+        public string GroupedFire { get; } = "同组依次发射";
 
-        public  string autoGrabberRelease {get;}= "自动释放钩爪" ;
+        public string GroupFireRate { get; } = "同组发射间隔";
 
-        public  string searchMode {get;}= "搜索模式" ;
+        public string AutoGrabberRelease { get; } = "自动释放钩爪";
 
-        public  string defaultAuto {get;}= "默认自动搜索" ;
+        public string SearchMode { get; } = "搜索模式";
 
-        public  string defaultManual {get;}= "默认手动搜索" ;
+        public string DefaultAuto { get; } = "默认自动搜索";
 
-        public  string zoomControlMode {get;}= "变焦控制" ;
+        public string DefaultManual { get; } = "默认手动搜索";
 
-        public  string mouseWheelZoomControl {get;}= "鼠标滚轮变焦" ;
+        public string ZoomControlMode { get; } = "变焦控制";
 
-        public  string keyboardZoomControl {get;}= "按键变焦" ;
+        public string MouseWheelZoomControl { get; } = "鼠标滚轮变焦";
 
-        public  string prediction {get;}= "预测" ;
+        public string KeyboardZoomControl { get; } = "按键变焦";
 
-        public  string impactFuze {get;}= "碰炸" ;
+        public string Prediction { get; } = "预测";
 
-        public  string proximityFuze {get;}= "近炸" ;
+        public string ImpactFuze { get; } = "碰炸";
 
-        public  string noSmoke {get;}= "无烟" ;
+        public string ProximityFuze { get; } = "近炸";
 
-        public  string highExplo {get;}= "高爆" ;
+        public string NoSmoke { get; } = "无烟";
 
-        public  string searchAngle {get;}= "搜索角度" ;
+        public string HighExplo { get; } = "高爆";
 
-        public  string closeRange {get;}= "近炸距离" ;
+        public string SearchAngle { get; } = "搜索角度";
 
-        public  string closeAngle {get;}= "近炸角度" ;
+        public string CloseRange { get; } = "近炸距离";
 
-        public  string torqueOnRocket {get;}= "扭转力度" ;
+        public string TorqueOnRocket { get; } = "扭转力度";
 
-        public  string rocketStability {get;}= "发射后气动" ;
+        public string RocketStability { get; } = "发射后气动";
 
-        public  string guideDelay {get;}= "追踪延迟" ;
+        public string GuideDelay { get; } = "追踪延迟";
 
-        public  string lockTarget {get;}= "锁定目标" ;
+        public string LockTarget { get; } = "锁定目标";
 
-        public  string switchGuideMode {get;}= "自动/手动切换" ;
+        public string SwitchGuideMode { get; } = "自动/手动切换";
 
-        public  string recordTarget {get;}= "记录目标" ;
+        public string RecordTarget { get; } = "记录目标";
 
-        public  string firstPersonSmooth {get;}= "第一人称" + Environment.NewLine + "平滑" ;
+        public string FirstPersonSmooth { get; } = "第一人称" + Environment.NewLine + "平滑";
 
-        public  string zoomIn {get;}= "增加焦距" ;
+        public string ZoomIn { get; } = "增加焦距";
 
-        public  string zoomOut {get;}= "减小焦距" ;
+        public string ZoomOut { get; } = "减小焦距";
 
-        public  string zoomSpeed {get;}= "变焦速度" ;
+        public string ZoomSpeed { get; } = "变焦速度";
 
-        public  string pauseTracking {get;}= "暂停/恢复追踪" ;
+        public string PauseTracking { get; } = "暂停/恢复追踪";
 
         //CV Joint
-        public  string cvJoint {get;}= "万向节" ;
+        public string CvJoint { get; } = "万向节";
 
         //Cannon
-        public  string fireInterval {get;}= "发射间隔" ;
+        public string FireInterval { get; } = "发射间隔";
 
-        public  string randomDelay {get;}= "随机延迟" ;
+        public string RandomDelay { get; } = "随机延迟";
 
-        public  string recoil {get;}= "后坐力" ;
+        public string Recoil { get; } = "后坐力";
 
-        public  string customBullet {get;}= "自定子弹" ;
+        public string CustomBullet { get; } = "自定子弹";
 
-        public  string inheritSize {get;}= "继承尺寸" ;
+        public string InheritSize { get; } = "继承尺寸";
 
-        public  string bulletMass {get;}= "炮弹质量" ;
+        public string BulletMass { get; } = "炮弹质量";
 
-        public  string bulletDrag {get;}= "炮弹阻力" ;
+        public string BulletDrag { get; } = "炮弹阻力";
 
-        public string bulletDelayCollision { get; } = "碰撞延时";
+        public string BulletDelayCollision { get; } = "碰撞延时";
 
-        public  string trail {get;}= "显示尾迹" ;
+        public string Trail { get; } = "显示尾迹";
 
-        public  string trailLength {get;}= "尾迹长度" ;
+        public string TrailLength { get; } = "尾迹长度";
 
-        public  string trailColor {get;}= "尾迹颜色" ;
+        public string TrailColor { get; } = "尾迹颜色";
 
         //Decoupler
-        public  string explodeForce {get;}= "爆炸力" ;
+        public string ExplodeForce { get; } = "爆炸力";
 
-        public  string explodeTorque {get;}= "爆炸扭矩" ;
+        public string ExplodeTorque { get; } = "爆炸扭矩";
 
 
         //Grip Pad & Piston & Slider & Suspension
@@ -660,9 +660,9 @@ namespace BlockEnhancementMod
 
         //public  string hardness {get;}= "硬度" ;
 
-        public  string friction {get;}= "摩擦力" ;
+        public string Friction { get; } = "摩擦力";
 
-        public  string bounciness {get;}= "弹力" ;
+        public string Bounciness { get; } = "弹力";
 
         //public  string softWood {get;}= "朽木" ;
 
@@ -678,155 +678,155 @@ namespace BlockEnhancementMod
 
         //public  string highCarbonSteel {get;}= "高碳钢" ;
 
-        public string damper { get; } = "阻尼";
+        public string Damper { get; } = "阻尼";
 
-        public  string limit {get;}= "限制" ;
+        public string Limit { get; } = "限制";
 
-        public  string extend {get;}= "伸出" ;
+        public string Extend { get; } = "伸出";
 
-        public  string retract {get;}= "收缩" ;
+        public string Retract { get; } = "收缩";
 
-        public  string hydraulicMode {get;}= "液压模式" ;
+        public string HydraulicMode { get; } = "液压模式";
 
-        public  string feedSpeed {get;}= "进给速度" ;
+        public string FeedSpeed { get; } = "进给速度";
 
-        public  string extendLimit {get;}= "伸出限制" ;
+        public string ExtendLimit { get; } = "伸出限制";
 
-        public  string retractLimit {get;}= "收缩限制" ;
+        public string RetractLimit { get; } = "收缩限制";
 
         //Small Wheel
-        public  string rotatingSpeed {get;}= "旋转速度" ;
-        public  string customCollider {get;}= "自定碰撞" ;
-        public  string showCollider {get;}= "显示碰撞" ;
+        public string RotatingSpeed { get; } = "旋转速度";
+        public string CustomCollider { get; } = "自定碰撞";
+        public string ShowCollider { get; } = "显示碰撞";
 
         //Spring 
-        public  string drag {get;}= "阻力" ;
+        public string Drag { get; } = "阻力";
 
         //Steering
-        public  string returnToCenter {get;}= "自动回正" ;
-        public  string near {get;}= "就近" ;
+        public string ReturnToCenter { get; } = "自动回正";
+        public string Near { get; } = "就近";
 
         //FlameThrower
-        public  string thrustForce {get;}= "推力" ;
-        public  string flameColor {get;}= "火焰颜色" ;
+        public string ThrustForce { get; } = "推力";
+        public string FlameColor { get; } = "火焰颜色";
 
         //WaterCannon
-        public  string boiling {get;}= "沸腾" ;
+        public string Boiling { get; } = "沸腾";
 
         //Propeller
-        public string enabled { get; } = "气动开关";
-        public string enabledOnAwake { get; } = "初始生效";
-        public string toggleMode { get; } = "持续生效模式";
-        public string liftIndicator { get; } = "升力指示";
+        public string Enabled { get; } = "气动开关";
+        public string EnabledOnAwake { get; } = "初始生效";
+        public string ToggleMode { get; } = "持续生效模式";
+        public string LiftIndicator { get; } = "升力指示";
     }
 
     public class English : ILanguage
     {
         //Game
-        public  string modSettings {get;}= "Enhancement Mod";
-        public  string unifiedFriction {get;}= "Unified Friction";
+        public string ModSettings { get; } = "Enhancement Mod";
+        public string UnifiedFriction { get; } = "Unified Friction";
 
         //Enhancement Block
-        public  string enhancement {get;}= "Enhancement";
-        public  string additionalFunction {get;}= " Enhance More";
+        public string Enhancement { get; } = "Enhancement";
+        public string AdditionalFunction { get; } = " Enhance More";
 
         //Rocket & Camera
-        public  string displayWarning {get;}= " Rocket Warning in First Person Camera";
+        public string DisplayWarning { get; } = " Rocket Warning in First Person Camera";
 
-        public  string markTarget {get;}= " Mark Rocket Target";
+        public string ShowRadar { get; } = " Display Radar";
 
-        public  string displayRocketCount {get;}= " Display Rocket Count";
+        public string MarkTarget { get; } = " Mark Rocket Target";
 
-        public  string remainingRockets {get;}= " Rocket Count";
+        public string DisplayRocketCount { get; } = " Display Rocket Count";
 
-        public  string trackTarget {get;}= "Search Target";
+        public string RemainingRockets { get; } = " Rocket Count";
 
-        public  string groupedFire {get;}= "Grouped Launch";
+        public string TrackTarget { get; } = "Search Target";
 
-        public  string groupFireRate {get;}= "Goruped Launch Rate";
+        public string GroupedFire { get; } = "Grouped Launch";
 
-        public  string autoGrabberRelease {get;}= "Auto Grabber Release";
+        public string GroupFireRate { get; } = "Goruped Launch Rate";
 
-        public  string searchMode {get;}= "Search Mode";
+        public string AutoGrabberRelease { get; } = "Auto Grabber Release";
 
-        public  string defaultAuto {get;}= "Default " + Environment.NewLine + "Auto Search";
+        public string SearchMode { get; } = "Search Mode";
 
-        public  string defaultManual {get;}= "Default " + Environment.NewLine + " Manual Search";
+        public string DefaultAuto { get; } = "Default " + Environment.NewLine + "Auto Search";
 
-        public  string zoomControlMode {get;}= "Zoom Contorol";
+        public string DefaultManual { get; } = "Default " + Environment.NewLine + " Manual Search";
 
-        public  string mouseWheelZoomControl {get;}= "Zoom" + Environment.NewLine + "Mouse Wheel";
+        public string ZoomControlMode { get; } = "Zoom Contorol";
 
-        public  string keyboardZoomControl {get;}= "Zoom" + Environment.NewLine + "Keyboard";
+        public string MouseWheelZoomControl { get; } = "Zoom" + Environment.NewLine + "Mouse Wheel";
 
-        public  string prediction {get;}= "Prediction";
+        public string KeyboardZoomControl { get; } = "Zoom" + Environment.NewLine + "Keyboard";
 
-        public  string impactFuze {get;}= "Impact Fuze";
+        public string Prediction { get; } = "Prediction";
 
-        public  string proximityFuze {get;}= "Proximity Fuze";
+        public string ImpactFuze { get; } = "Impact Fuze";
 
-        public  string noSmoke {get;}= "No Smoke";
+        public string ProximityFuze { get; } = "Proximity Fuze";
 
-        public  string highExplo {get;}= "High-Explosive";
+        public string NoSmoke { get; } = "No Smoke";
 
-        public  string searchAngle {get;}= "Search Angle";
+        public string HighExplo { get; } = "High-Explosive";
 
-        public  string closeRange {get;}= "Proximity" + Environment.NewLine + "Range";
+        public string SearchAngle { get; } = "Search Angle";
 
-        public  string closeAngle {get;}= "Proximity" + Environment.NewLine + "Angle";
+        public string CloseRange { get; } = "Proximity" + Environment.NewLine + "Range";
 
-        public  string torqueOnRocket {get;}= "Turning" + Environment.NewLine + "Torque";
+        public string TorqueOnRocket { get; } = "Turning" + Environment.NewLine + "Torque";
 
-        public  string rocketStability {get;}= "Aerodynamics" + Environment.NewLine + "After Launch";
+        public string RocketStability { get; } = "Aerodynamics" + Environment.NewLine + "After Launch";
 
-        public  string guideDelay {get;}= "Guide Delay";
+        public string GuideDelay { get; } = "Guide Delay";
 
-        public  string lockTarget {get;}= "Lock Target";
+        public string LockTarget { get; } = "Lock Target";
 
-        public  string switchGuideMode {get;}= "Switch" + Environment.NewLine + "Auto/Manual";
+        public string SwitchGuideMode { get; } = "Switch" + Environment.NewLine + "Auto/Manual";
 
-        public  string recordTarget {get;}= "Save Target";
+        public string RecordTarget { get; } = "Save Target";
 
-        public  string firstPersonSmooth {get;}= "FP Smooth";
+        public string FirstPersonSmooth { get; } = "FP Smooth";
 
-        public  string zoomIn {get;}= "Zoom In";
+        public string ZoomIn { get; } = "Zoom In";
 
-        public  string zoomOut {get;}= "Zoom Out";
+        public string ZoomOut { get; } = "Zoom Out";
 
-        public  string zoomSpeed {get;}= "Zoom Speed";
+        public string ZoomSpeed { get; } = "Zoom Speed";
 
-        public  string pauseTracking {get;}= "Pause/Resume" + Environment.NewLine + "Tracking";
+        public string PauseTracking { get; } = "Pause/Resume" + Environment.NewLine + "Tracking";
 
         //CV Joint
-        public  string cvJoint {get;}= "Universal Joint";
+        public string CvJoint { get; } = "Universal Joint";
 
         //Cannon
-        public  string fireInterval {get;}= "Fire Interval";
+        public string FireInterval { get; } = "Fire Interval";
 
-        public  string randomDelay {get;}= "Random Delay";
+        public string RandomDelay { get; } = "Random Delay";
 
-        public  string recoil {get;}= "Recoil";
+        public string Recoil { get; } = "Recoil";
 
-        public  string customBullet {get;}= "Custom Cannonball";
+        public string CustomBullet { get; } = "Custom Cannonball";
 
-        public  string inheritSize {get;}= "Inherit Size";
+        public string InheritSize { get; } = "Inherit Size";
 
-        public  string bulletMass {get;}= "Cannonball Mass";
+        public string BulletMass { get; } = "Cannonball Mass";
 
-        public  string bulletDrag {get;}= "Cannonball Drag";
+        public string BulletDrag { get; } = "Cannonball Drag";
 
-        public string bulletDelayCollision { get; } = "Delay Collision";
+        public string BulletDelayCollision { get; } = "Delay Collision";
 
-        public  string trail {get;}= "Trail";
+        public string Trail { get; } = "Trail";
 
-        public  string trailLength {get;}= "Trail Length";
+        public string TrailLength { get; } = "Trail Length";
 
-        public  string trailColor {get;}= "Trail Color";
+        public string TrailColor { get; } = "Trail Color";
 
         //Decoupler
-        public  string explodeForce {get;}= "Exploding" + Environment.NewLine + "Force";
+        public string ExplodeForce { get; } = "Exploding" + Environment.NewLine + "Force";
 
-        public  string explodeTorque {get;}= "Exploding" + Environment.NewLine + "Torque";
+        public string ExplodeTorque { get; } = "Exploding" + Environment.NewLine + "Torque";
 
 
         //Grip Pad & Piston & Slider & Suspension
@@ -835,9 +835,9 @@ namespace BlockEnhancementMod
 
         //public  string hardness {get;}= "Hardness";
 
-        public  string friction {get;}= "Friction";
+        public string Friction { get; } = "Friction";
 
-        public  string bounciness {get;}= "Bounciness";
+        public string Bounciness { get; } = "Bounciness";
 
         //public  string softWood {get;}= "Soft Wood";
 
@@ -853,45 +853,45 @@ namespace BlockEnhancementMod
 
         //public  string highCarbonSteel {get;}= "High Carbon Steel";
 
-        public string damper { get; } = "Damper";
+        public string Damper { get; } = "Damper";
 
-        public  string limit {get;}= "Limit";
+        public string Limit { get; } = "Limit";
 
-        public  string extend {get;}= "Extend";
+        public string Extend { get; } = "Extend";
 
-        public  string retract {get;}= "Retract";
+        public string Retract { get; } = "Retract";
 
-        public  string hydraulicMode {get;}= "Hydraulic Mode ";
+        public string HydraulicMode { get; } = "Hydraulic Mode ";
 
-        public  string feedSpeed {get;}= "Feed Speed";
+        public string FeedSpeed { get; } = "Feed Speed";
 
-        public  string extendLimit {get;}= "Extension" + Environment.NewLine + "Limit";
+        public string ExtendLimit { get; } = "Extension" + Environment.NewLine + "Limit";
 
-        public  string retractLimit {get;}= "Retraction" + Environment.NewLine + "Limit";
+        public string RetractLimit { get; } = "Retraction" + Environment.NewLine + "Limit";
 
         //Small Wheel
-        public  string rotatingSpeed {get;}= "Rotating" + Environment.NewLine + "Speed";
-        public  string customCollider {get;}= "Custom Collider";
-        public  string showCollider {get;}= "Show Collider";
+        public string RotatingSpeed { get; } = "Rotating" + Environment.NewLine + "Speed";
+        public string CustomCollider { get; } = "Custom Collider";
+        public string ShowCollider { get; } = "Show Collider";
 
         //Spring 
-        public  string drag {get;}= "Drag";
+        public string Drag { get; } = "Drag";
 
         //Steering
-        public  string returnToCenter {get;}= "ReturnToCenter";
-        public  string near {get;}= "Near";
+        public string ReturnToCenter { get; } = "ReturnToCenter";
+        public string Near { get; } = "Near";
 
         //FlameThrower
-        public  string thrustForce {get;}= "Thrust Force";
-        public  string flameColor {get;}= "Flame Color";
+        public string ThrustForce { get; } = "Thrust Force";
+        public string FlameColor { get; } = "Flame Color";
 
         //WaterCannon
-        public  string boiling {get;}= "Boiling";
+        public string Boiling { get; } = "Boiling";
 
         //Propeller
-        public string enabled { get; } = "Switch";
-        public string enabledOnAwake { get; } = "Enabled On Awake";
-        public string toggleMode { get; } = "Toggle Mode";
-        public string liftIndicator { get; } = "Lift Indicator";
+        public string Enabled { get; } = "Switch";
+        public string EnabledOnAwake { get; } = "Enabled On Awake";
+        public string ToggleMode { get; } = "Toggle Mode";
+        public string LiftIndicator { get; } = "Lift Indicator";
     }
 }

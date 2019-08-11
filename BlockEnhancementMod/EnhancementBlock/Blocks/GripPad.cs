@@ -26,7 +26,7 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.friction, "Friction", Friction, 0f, 1000f);
+            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0f, 1000f);
             FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
 
 

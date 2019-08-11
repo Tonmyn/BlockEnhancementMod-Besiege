@@ -30,10 +30,10 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
             HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
-            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.damper, "Damper", Damper, 0f, 5f);
+            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", Damper, 0f, 5f);
             DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.limit, "Limit", Limit, 0, Limit);
+            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0, Limit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
 #if DEBUG

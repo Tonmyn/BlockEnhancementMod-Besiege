@@ -39,7 +39,7 @@ namespace BlockEnhancementMod
 
             //if (BB.isSimulating ) { return; }        
 
-            Enhancement = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enhancement, "Enhancement", EnhancementEnabled);
+            Enhancement = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Enhancement, "Enhancement", EnhancementEnabled);
             Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; DisplayInMapper(value); };
 
             //LoadConfiguration();    

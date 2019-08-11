@@ -29,16 +29,16 @@ namespace BlockEnhancementMod.Blocks
             ID = GetComponent<BlockVisualController>().ID;
             Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
 
-            ColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.customCollider, "Custom Collider", Collider);
+            ColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", Collider);
             ColliderToggle.Toggled += (value) => { Collider = ShowColliderToggle.DisplayInMapper = value; ChangedProperties(); };
 
-            ShowColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.showCollider, "Show Collider", ShowCollider);
+            ShowColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", ShowCollider);
             ShowColliderToggle.Toggled += (value) => { ShowCollider = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.friction, "Friction", Friction, 0.1f, 3f);
+            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
             FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
 
-            BouncinessSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bounciness, "Bounciness", Bounciness, 0f, 1f);
+            BouncinessSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", Bounciness, 0f, 1f);
             BouncinessSlider.ValueChanged += (float value) => { Bounciness = value; ChangedProperties(); };
 
             if (WheelColliderOrgin == null)
