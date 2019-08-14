@@ -16,7 +16,7 @@ namespace BlockEnhancementMod
         public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        public HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
         public static bool MarkTarget { get; internal set; } = true;
         private Texture2D redSquareAim;
 
@@ -28,6 +28,7 @@ namespace BlockEnhancementMod
         public event Action<Target> OnTarget;
 
         private HashSet<Target> checkedTarget = new HashSet<Target>();
+        private Dictionary<BlockBehaviour, Collider> checkedTargetDic = new Dictionary<BlockBehaviour, Collider>();
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
@@ -80,6 +81,17 @@ namespace BlockEnhancementMod
                 }
             }
 
+            if (checkedTargetDic.Count > 0 && Switch)
+            {
+                if (target != null && !checkedTargetDic.ContainsKey(target.block))
+                {
+                    checkedTarget.Remove(target);
+                    checkedTargetDic.Remove(target.block);
+                    SendClientTargetNull();
+                }
+            }
+
+
             if (target != null)
             {
                 bool removeFlag = false;
@@ -121,17 +133,10 @@ namespace BlockEnhancementMod
                 {
                     warningLevel = Target.WarningLevel.dummyValue
                 };
-#if DEBUG
-                Debug.Log("Dummy no problem");
-#endif
                 foreach (var tempTarget in checkedTarget)
                 {
                     if (tempTarget != null)
                     {
-#if DEBUG
-                        Debug.Log("temp target no problem");
-                        Debug.Log(tempTarget.warningLevel);
-#endif
                         if (tempTarget.warningLevel > dummyTarget.warningLevel)
                         {
                             dummyTarget = tempTarget;
@@ -231,6 +236,7 @@ namespace BlockEnhancementMod
 
             if (checkedTarget.Contains(triggeredTarget)) return;
             checkedTarget.Add(triggeredTarget);
+            checkedTargetDic.Add(triggeredTarget.block, triggeredTarget.collider);
 
             if (target == null)
             {
@@ -262,13 +268,12 @@ namespace BlockEnhancementMod
             if (SearchMode != SearchModes.Auto) return;
 
             Target triggeredTarget = ProcessTarget(collider);
-
             if (triggeredTarget == null) return;
-            checkedTarget.Remove(triggeredTarget);
 
-            if (target == null) return;
-            if (collider == target.collider)
+            if (checkedTargetDic.ContainsKey(triggeredTarget.block))
             {
+                checkedTarget.Remove(triggeredTarget);
+                checkedTargetDic.Remove(triggeredTarget.block);
                 SendClientTargetNull();
             }
         }
