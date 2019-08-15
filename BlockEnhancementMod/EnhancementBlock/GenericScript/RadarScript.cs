@@ -28,7 +28,7 @@ namespace BlockEnhancementMod
         public event Action<Target> OnTarget;
 
         private HashSet<Target> checkedTarget = new HashSet<Target>();
-        private Dictionary<BlockBehaviour, Collider> checkedTargetDic = new Dictionary<BlockBehaviour, Collider>();
+        private Dictionary<BlockBehaviour, Target> checkedTargetDic = new Dictionary<BlockBehaviour, Target>();
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
@@ -74,23 +74,20 @@ namespace BlockEnhancementMod
 
             if (Switch)
             {
+                if (target != null)
+                {
+                    if ((checkedTargetDic.Count > 0 && !checkedTargetDic.ContainsKey(target.block)) || checkedTargetDic.Count == 0)
+                    {
+                        SendClientTargetNull();
+                    }
+                }
+
                 if (SearchMode == SearchModes.Manual)
                 {
                     target = ProcessTarget(GetTargetManual());
                     OnTarget.Invoke(target);
                 }
             }
-
-            if (checkedTargetDic.Count > 0 && Switch)
-            {
-                if (target != null && !checkedTargetDic.ContainsKey(target.block))
-                {
-                    checkedTarget.Remove(target);
-                    checkedTargetDic.Remove(target.block);
-                    SendClientTargetNull();
-                }
-            }
-
 
             if (target != null)
             {
@@ -234,30 +231,32 @@ namespace BlockEnhancementMod
             Target triggeredTarget = ProcessTarget(collider);
             if (triggeredTarget == null) return;
 
-            if (checkedTarget.Contains(triggeredTarget)) return;
-            checkedTarget.Add(triggeredTarget);
-            checkedTargetDic.Add(triggeredTarget.block, triggeredTarget.collider);
+            if (!checkedTargetDic.ContainsKey(triggeredTarget.block))
+            {
+                checkedTarget.Add(triggeredTarget);
+                checkedTargetDic.Add(triggeredTarget.block, triggeredTarget);
 
-            if (target == null)
-            {
-                target = triggeredTarget;
-                OnTarget.Invoke(target);
-            }
-            else
-            {
-                if (triggeredTarget.warningLevel > target.warningLevel)
+                if (target == null)
                 {
                     target = triggeredTarget;
                     OnTarget.Invoke(target);
                 }
-                else if (triggeredTarget.warningLevel == target.warningLevel)
+                else
                 {
-                    float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
-                    float targetDistance = Vector3.Distance(target.transform.position, transform.position);
-                    if (aimDistance < targetDistance)
+                    if (triggeredTarget.warningLevel > target.warningLevel)
                     {
                         target = triggeredTarget;
                         OnTarget.Invoke(target);
+                    }
+                    else if (triggeredTarget.warningLevel == target.warningLevel)
+                    {
+                        float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
+                        float targetDistance = Vector3.Distance(target.transform.position, transform.position);
+                        if (aimDistance < targetDistance)
+                        {
+                            target = triggeredTarget;
+                            OnTarget.Invoke(target);
+                        }
                     }
                 }
             }
@@ -267,14 +266,13 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
-            Target triggeredTarget = ProcessTarget(collider);
-            if (triggeredTarget == null) return;
+            BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+            if (triggeredBB == null) return;
 
-            if (checkedTargetDic.ContainsKey(triggeredTarget.block))
+            if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
             {
-                checkedTarget.Remove(triggeredTarget);
-                checkedTargetDic.Remove(triggeredTarget.block);
-                SendClientTargetNull();
+                checkedTargetDic.Remove(triggeredBB);
+                checkedTarget.Remove(targetInDict);
             }
         }
 
@@ -553,7 +551,7 @@ namespace BlockEnhancementMod
             {
                 if (target != null)
                 {
-                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.transform.position;
+                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
                     if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                     {
                         int squareWidth = 16;
