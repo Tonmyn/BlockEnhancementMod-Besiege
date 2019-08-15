@@ -293,6 +293,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
+                radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
@@ -361,7 +362,7 @@ namespace BlockEnhancementMod
 
                     if (LockTargetKey.IsPressed)
                     {
-                        radar.ResetTriggerState();
+                        radar.SendClientTargetNull();
                     }
                 }
             }

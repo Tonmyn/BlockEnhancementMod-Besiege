@@ -9,6 +9,7 @@ namespace BlockEnhancementMod
     class RadarScript : MonoBehaviour
     {
         public static int CollisionLayer = 10;
+        public BlockBehaviour parentBlock;
         public bool showRadar = false;
         public float radius = 2000f;
         public float safetyRadius = 1f;
@@ -17,6 +18,7 @@ namespace BlockEnhancementMod
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
         private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        private Vector3 forwardDirection = Vector3.zero;
         public static bool MarkTarget { get; internal set; } = true;
         private Texture2D redSquareAim;
 
@@ -47,13 +49,26 @@ namespace BlockEnhancementMod
             //Load aim pic
             redSquareAim = new Texture2D(16, 16);
             redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+
+
         }
 
         void FixedUpdate()
         {
+            if (forwardDirection == Vector3.zero)
+            {
+                forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+            }
+
             if (target != null)
             {
                 target.positionDiff = target.transform.position - transform.position;
+                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+                bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
+                if (!forward || target.angleDiff > searchAngle / 2)
+                {
+                    SendClientTargetNull();
+                }
             }
         }
 
@@ -74,14 +89,6 @@ namespace BlockEnhancementMod
 
             if (Switch)
             {
-                if (target != null)
-                {
-                    if ((checkedTargetDic.Count > 0 && !checkedTargetDic.ContainsKey(target.block)) || checkedTargetDic.Count == 0)
-                    {
-                        SendClientTargetNull();
-                    }
-                }
-
                 if (SearchMode == SearchModes.Manual)
                 {
                     target = ProcessTarget(GetTargetManual());
@@ -109,7 +116,7 @@ namespace BlockEnhancementMod
 
                 if (target.isRocket)
                 {
-                    if (target.rocket.hasExploded)
+                    if (target.rocket == null)
                     {
                         removeFlag = true;
                     }
@@ -324,6 +331,7 @@ namespace BlockEnhancementMod
         public void ClearSavedSets()
         {
             checkedTarget.Clear();
+            checkedTargetDic.Clear();
             blocksInSafetyRange.Clear();
         }
 
@@ -335,7 +343,7 @@ namespace BlockEnhancementMod
 
         private void GetBlocksInSafetyRange()
         {
-            Collider[] overlappedColliders = Physics.OverlapSphere(transform.position, minSearchRadiusWhenLaunch, Game.BlockEntityLayerMask);
+            Collider[] overlappedColliders = Physics.OverlapSphere(transform.position, minSearchRadiusWhenLaunch);
             foreach (var collider in overlappedColliders)
             {
                 BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
@@ -577,7 +585,9 @@ namespace BlockEnhancementMod
         public ExplodeOnCollideBlock bomb;
         public bool initialCJOrHJ = false;
         public float initialDistance = 0f;
+
         public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+        public float angleDiff = 0f;
         public Vector3 acceleration = Vector3.zero;
 
         public WarningLevel warningLevel = 0;
