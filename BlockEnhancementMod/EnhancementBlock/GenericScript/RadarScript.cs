@@ -98,6 +98,10 @@ namespace BlockEnhancementMod
             if (target != null)
             {
                 bool removeFlag = false;
+                if (target.rigidbody == null)
+                {
+                    removeFlag = true;
+                }
                 if (target.hasFireTag)
                 {
                     if (target.fireTag.burning || target.fireTag.hasBeenBurned)
@@ -115,8 +119,8 @@ namespace BlockEnhancementMod
 
                 if (target.isRocket)
                 {
-                    Debug.Log("rocket exploded: " + target.rocket.hasExploded);
-                    if (target.rocket.hasExploded)
+                    Debug.Log("rocket exploded: " + target.rocket == null);
+                    if (target.rocket == null)
                     {
                         removeFlag = true;
                     }
@@ -316,11 +320,15 @@ namespace BlockEnhancementMod
                 }
             }
 
+            Rigidbody rigidbody = collider.gameObject.GetComponentInParent<Rigidbody>();
+            if (rigidbody == null) return null;
+
             Target tempTarget = new Target
             {
                 collider = collider,
                 transform = collider.gameObject.transform,
                 block = block,
+                rigidbody = rigidbody,
                 fireTag = fireTag,
                 hasFireTag = (fireTag == null)
             };
@@ -577,6 +585,7 @@ namespace BlockEnhancementMod
         public Transform transform;
         public Collider collider;
         public BlockBehaviour block;
+        public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;
         public bool isRocket = false;
@@ -618,19 +627,19 @@ namespace BlockEnhancementMod
                     case (int)BlockType.Rocket:
                         warningLevel = WarningLevel.guidedRocketValue;
                         isRocket = true;
-                        rocket = block.gameObject.GetComponentInParent<TimedRocket>();
+                        rocket = collidedObject.GetComponentInParent<TimedRocket>();
                         if (rocket == null)
                         {
-                            rocket = block.gameObject.GetComponentInChildren<TimedRocket>();
+                            rocket = collidedObject.GetComponentInChildren<TimedRocket>();
                         }
                         break;
                     case (int)BlockType.Bomb:
                         warningLevel = WarningLevel.bombValue;
                         isBomb = true;
-                        bomb = block.gameObject.GetComponentInParent<ExplodeOnCollideBlock>();
+                        bomb = collidedObject.GetComponentInParent<ExplodeOnCollideBlock>();
                         if (bomb == null)
                         {
-                            bomb = block.gameObject.GetComponentInChildren<ExplodeOnCollideBlock>();
+                            bomb = collidedObject.GetComponentInChildren<ExplodeOnCollideBlock>();
                         }
                         break;
                     case (int)BlockType.WaterCannon:
