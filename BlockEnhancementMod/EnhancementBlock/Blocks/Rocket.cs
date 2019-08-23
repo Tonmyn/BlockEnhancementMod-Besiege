@@ -432,8 +432,8 @@ namespace BlockEnhancementMod
                 }
                 if (rocket.hasExploded && !rocketExploMsgSent)
                 {
-                    DestroyImmediate(radarObject);
-                    DestroyImmediate(guideObject);
+                    Destroy(radarObject);
+                    Destroy(guideObject);
                     try
                     {
                         if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))

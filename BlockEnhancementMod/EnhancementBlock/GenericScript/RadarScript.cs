@@ -87,13 +87,12 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (Switch)
+            if (!Switch) return;
+
+            if (SearchMode == SearchModes.Manual)
             {
-                if (SearchMode == SearchModes.Manual)
-                {
-                    target = ProcessTarget(GetTargetManual());
-                    OnTarget.Invoke(target);
-                }
+                target = ProcessTarget(GetTargetManual());
+                OnTarget.Invoke(target);
             }
 
             if (target != null)
@@ -116,7 +115,8 @@ namespace BlockEnhancementMod
 
                 if (target.isRocket)
                 {
-                    if (target.rocket == null)
+                    Debug.Log("rocket exploded: " + target.rocket.hasExploded);
+                    if (target.rocket.hasExploded)
                     {
                         removeFlag = true;
                     }
@@ -124,7 +124,8 @@ namespace BlockEnhancementMod
 
                 if (removeFlag)
                 {
-                    checkedTarget.Remove(target);
+                    checkedTarget.Remove(checkedTargetDic[target.block]);
+                    checkedTargetDic.Remove(target.block);
                     SendClientTargetNull();
                 }
             }
@@ -540,7 +541,6 @@ namespace BlockEnhancementMod
         }
         #endregion
 
-        #region Markers
         private void OnGUI()
         {
             if (StatMaster.isMP && StatMaster.isHosting)
@@ -550,6 +550,7 @@ namespace BlockEnhancementMod
                     return;
                 }
             }
+            if (!Switch) return;
             DrawTargetRedSquare();
         }
 
@@ -569,7 +570,6 @@ namespace BlockEnhancementMod
                 }
             }
         }
-        #endregion
     }
 
     class Target
@@ -618,12 +618,20 @@ namespace BlockEnhancementMod
                     case (int)BlockType.Rocket:
                         warningLevel = WarningLevel.guidedRocketValue;
                         isRocket = true;
-                        rocket = block.GetComponentInParent<TimedRocket>();
+                        rocket = block.gameObject.GetComponentInParent<TimedRocket>();
+                        if (rocket == null)
+                        {
+                            rocket = block.gameObject.GetComponentInChildren<TimedRocket>();
+                        }
                         break;
                     case (int)BlockType.Bomb:
                         warningLevel = WarningLevel.bombValue;
                         isBomb = true;
-                        bomb = block.GetComponentInParent<ExplodeOnCollideBlock>();
+                        bomb = block.gameObject.GetComponentInParent<ExplodeOnCollideBlock>();
+                        if (bomb == null)
+                        {
+                            bomb = block.gameObject.GetComponentInChildren<ExplodeOnCollideBlock>();
+                        }
                         break;
                     case (int)BlockType.WaterCannon:
                         warningLevel = WarningLevel.waterCannonValue;
