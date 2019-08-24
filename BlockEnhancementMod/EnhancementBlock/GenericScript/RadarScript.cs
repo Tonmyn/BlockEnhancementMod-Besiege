@@ -13,7 +13,7 @@ namespace BlockEnhancementMod
         public bool showRadar = false;
         public float radius = 2000f;
         public float safetyRadius = 1f;
-        public float searchAngle = 20f;
+        public float searchAngle = 0f;
         public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
@@ -146,6 +146,7 @@ namespace BlockEnhancementMod
                 if (dummyTarget.warningLevel != Target.WarningLevel.dummyValue)
                 {
                     target = dummyTarget;
+                    target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
                     OnTarget.Invoke(target);
                 }
             }
@@ -220,7 +221,6 @@ namespace BlockEnhancementMod
         void OnTriggerEnter(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
-
             if (collider.isTrigger) return;
 
             Target triggeredTarget = ProcessTarget(collider);
@@ -234,6 +234,7 @@ namespace BlockEnhancementMod
                 if (target == null)
                 {
                     target = triggeredTarget;
+                    target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
                     OnTarget.Invoke(target);
                 }
                 else
@@ -241,6 +242,7 @@ namespace BlockEnhancementMod
                     if (triggeredTarget.warningLevel > target.warningLevel)
                     {
                         target = triggeredTarget;
+                        target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
                         OnTarget.Invoke(target);
                     }
                     else if (triggeredTarget.warningLevel == target.warningLevel)
@@ -250,6 +252,7 @@ namespace BlockEnhancementMod
                         if (aimDistance < targetDistance)
                         {
                             target = triggeredTarget;
+                            target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
                             OnTarget.Invoke(target);
                         }
                     }
@@ -257,19 +260,20 @@ namespace BlockEnhancementMod
             }
         }
 
-        //void OnTriggerExit(Collider collider)
-        //{
-        //    if (SearchMode != SearchModes.Auto) return;
+        void OnTriggerExit(Collider collider)
+        {
+            if (SearchMode != SearchModes.Auto) return;
+            if (collider.isTrigger) return;
 
-        //    BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-        //    if (triggeredBB == null) return;
+            BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+            if (triggeredBB == null) return;
 
-        //    if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
-        //    {
-        //        checkedTargetDic.Remove(triggeredBB);
-        //        checkedTarget.Remove(targetInDict);
-        //    }
-        //}
+            if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
+            {
+                checkedTargetDic.Remove(triggeredBB);
+                checkedTarget.Remove(targetInDict);
+            }
+        }
 
         Target ProcessTarget(Collider collider)
         {
@@ -305,13 +309,13 @@ namespace BlockEnhancementMod
                 block = block,
                 rigidbody = rigidbody,
                 fireTag = fireTag,
-                hasFireTag = (fireTag == null)
+                hasFireTag = (fireTag != null)
             };
             tempTarget.SetTargetWarningLevel();
 
-            if (fireTag != null)
+            if (tempTarget.hasFireTag)
             {
-                if ((fireTag.burning || fireTag.hasBeenBurned) && !tempTarget.isRocket)
+                if ((tempTarget.fireTag.burning || tempTarget.fireTag.hasBeenBurned) && !tempTarget.isRocket)
                 {
                     return null;
                 }
@@ -378,13 +382,13 @@ namespace BlockEnhancementMod
             SendClientTargetNull();
         }
 
-        public void CreateFrustumCone(float angle, float bottomRadius)
+        public void CreateFrustumCone(float bottomRadius)
         {
             float topHeight = safetyRadius;
             float height = bottomRadius - topHeight;
 
-            float radiusTop = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * topHeight;
-            float radiusBottom = Mathf.Tan(angle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
+            float radiusTop = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * topHeight;
+            float radiusBottom = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
             int numVertices = 5 + 10;
@@ -520,6 +524,7 @@ namespace BlockEnhancementMod
         {
             Switch = true;
             target = null;
+            OnTarget.Invoke(target);
 
             BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)

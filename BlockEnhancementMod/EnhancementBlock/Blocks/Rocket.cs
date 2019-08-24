@@ -302,7 +302,8 @@ namespace BlockEnhancementMod
                 rigidbody.isKinematic = true;
 
                 //Initialise radar at the start of simulation
-                radar.CreateFrustumCone(searchAngle, searchRange);
+                radar.searchAngle = searchAngle;
+                radar.CreateFrustumCone(searchRange);
                 radar.showRadar = guidedRocketShowRadar;
                 radar.ClearSavedSets();
 
@@ -322,7 +323,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, torque);
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, Mathf.Clamp(torque, 0, 100));
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);

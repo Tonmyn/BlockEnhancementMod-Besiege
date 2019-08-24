@@ -16,7 +16,6 @@ namespace BlockEnhancementMod
         private RadarScript blockRadar;
         public float prediction = 10f;
         public float searchAngle = 0f;
-        public float initialDistance = 1f;
         public float torque = 0f;
         public float maxTorque = 1500f;
         private Vector3 previousVelocity = Vector3.zero;
@@ -59,15 +58,13 @@ namespace BlockEnhancementMod
 
         void LateUpdate()
         {
-            if (parentBlock == null || parentBlockRigidbody == null) return;
-            //if (enableAerodynamicEffect)
-            //{
-            //    AddAerodynamicsToRocketVelocity();
-            //}
-            if (blockRadar == null) return;
+            if (parentBlock == null || parentBlockRigidbody == null || blockRadar == null) return;
+
             if (!StatMaster.isClient)
             {
                 if (blockRadar.target == null) return;
+                if (blockRadar.target.positionDiff.magnitude <= 3) return;
+
                 // Calculating the rotating axis
                 Vector3 velocity = Vector3.zero;
                 try
@@ -80,8 +77,9 @@ namespace BlockEnhancementMod
                     previousVelocity = velocity;
                 }
                 catch { }
+
                 //Add position prediction
-                float ratio = (blockRadar.target.collider.bounds.center - parentBlock.transform.position).magnitude / initialDistance;
+                float ratio = (blockRadar.target.collider.bounds.center - parentBlock.transform.position).magnitude / blockRadar.target.initialDistance;
                 float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
                 float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
 
@@ -90,8 +88,10 @@ namespace BlockEnhancementMod
                 float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
 
                 Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
-                parentBlockRigidbody.AddForceAtPosition(Mathf.Clamp(torque, 0, 100) * maxTorque * towardsPositionDiff, transform.position + forwardDirection);
-                parentBlockRigidbody.AddForceAtPosition(Mathf.Clamp(torque, 0, 100) * maxTorque * (-towardsPositionDiff), transform.position - forwardDirection);
+                parentBlockRigidbody.AddForceAtPosition(torque * maxTorque * ((-Mathf.Pow(blockRadar.target.angleDiff / searchAngle - 1f, 2) + 1))
+                    * towardsPositionDiff, transform.position + forwardDirection);
+                parentBlockRigidbody.AddForceAtPosition(torque * maxTorque * ((-Mathf.Pow(blockRadar.target.angleDiff / searchAngle - 1f, 2) + 1))
+                    * (-towardsPositionDiff), transform.position - forwardDirection);
 
                 //Vector3 rotatingAxis = -Vector3.Cross(blockRadar.target.positionDiff.normalized, forwardDirection);
                 //blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
