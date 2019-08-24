@@ -60,13 +60,33 @@ namespace BlockEnhancementMod
                 forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
             }
 
-            if (target != null)
+            if (Switch && target != null)
             {
-                target.positionDiff = target.transform.position - transform.position;
-                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
-                bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
-                if (!forward || target.angleDiff > searchAngle / 2)
+                bool removeFlag = !target.collider.enabled;
+                bool inSight = false;
+
+                if (!removeFlag)
                 {
+                    if (target.hasFireTag)
+                    {
+                        if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
+                        {
+                            removeFlag = true;
+                        }
+                    }
+                    target.positionDiff = target.collider.bounds.center - transform.position;
+                    target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+                    bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
+                    inSight = forward && target.angleDiff < searchAngle / 2;
+                }
+
+                if (removeFlag || !inSight)
+                {
+                    if (checkedTargetDic.TryGetValue(target.block, out Target targetInDict))
+                    {
+                        checkedTargetDic.Remove(target.block);
+                        checkedTarget.Remove(targetInDict);
+                    }
                     SendClientTargetNull();
                 }
             }
@@ -93,45 +113,6 @@ namespace BlockEnhancementMod
             {
                 target = ProcessTarget(GetTargetManual());
                 OnTarget.Invoke(target);
-            }
-
-            if (target != null)
-            {
-                bool removeFlag = false;
-                if (target.rigidbody == null)
-                {
-                    removeFlag = true;
-                }
-                if (target.hasFireTag)
-                {
-                    if (target.fireTag.burning || target.fireTag.hasBeenBurned)
-                    {
-                        removeFlag = true;
-                    }
-                }
-                if (target.isBomb)
-                {
-                    if (target.bomb.hasExploded)
-                    {
-                        removeFlag = true;
-                    }
-                }
-
-                if (target.isRocket)
-                {
-                    Debug.Log("rocket exploded: " + target.rocket == null);
-                    if (target.rocket == null)
-                    {
-                        removeFlag = true;
-                    }
-                }
-
-                if (removeFlag)
-                {
-                    checkedTarget.Remove(checkedTargetDic[target.block]);
-                    checkedTargetDic.Remove(target.block);
-                    SendClientTargetNull();
-                }
             }
 
             if (target == null && checkedTarget.Count > 0)
@@ -240,6 +221,8 @@ namespace BlockEnhancementMod
         {
             if (SearchMode != SearchModes.Auto) return;
 
+            if (collider.isTrigger) return;
+
             Target triggeredTarget = ProcessTarget(collider);
             if (triggeredTarget == null) return;
 
@@ -274,19 +257,19 @@ namespace BlockEnhancementMod
             }
         }
 
-        void OnTriggerExit(Collider collider)
-        {
-            if (SearchMode != SearchModes.Auto) return;
+        //void OnTriggerExit(Collider collider)
+        //{
+        //    if (SearchMode != SearchModes.Auto) return;
 
-            BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-            if (triggeredBB == null) return;
+        //    BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+        //    if (triggeredBB == null) return;
 
-            if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
-            {
-                checkedTargetDic.Remove(triggeredBB);
-                checkedTarget.Remove(targetInDict);
-            }
-        }
+        //    if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
+        //    {
+        //        checkedTargetDic.Remove(triggeredBB);
+        //        checkedTarget.Remove(targetInDict);
+        //    }
+        //}
 
         Target ProcessTarget(Collider collider)
         {
@@ -312,14 +295,6 @@ namespace BlockEnhancementMod
             }
 
             FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();
-            if (fireTag != null)
-            {
-                if (fireTag.burning || fireTag.hasBeenBurned)
-                {
-                    return null;
-                }
-            }
-
             Rigidbody rigidbody = collider.gameObject.GetComponentInParent<Rigidbody>();
             if (rigidbody == null) return null;
 
@@ -333,6 +308,14 @@ namespace BlockEnhancementMod
                 hasFireTag = (fireTag == null)
             };
             tempTarget.SetTargetWarningLevel();
+
+            if (fireTag != null)
+            {
+                if ((fireTag.burning || fireTag.hasBeenBurned) && !tempTarget.isRocket)
+                {
+                    return null;
+                }
+            }
 
             return tempTarget;
         }
