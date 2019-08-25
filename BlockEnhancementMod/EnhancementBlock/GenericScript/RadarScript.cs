@@ -279,6 +279,13 @@ namespace BlockEnhancementMod
                     {
                         return null;
                     }
+                    else if (block.Team != MPTeam.None)
+                    {
+                        if (block.Team == GetComponentInParent<BlockBehaviour>().Team)
+                        {
+                            return null;
+                        }                       
+                    }
                 }
                 else
                 {
