@@ -336,7 +336,7 @@ namespace BlockEnhancementMod
 
         private void GetBlocksInSafetyRange()
         {
-            Collider[] overlappedColliders = Physics.OverlapSphere(transform.position, minSearchRadiusWhenLaunch);
+            Collider[] overlappedColliders = Physics.OverlapSphere(transform.parent.position, minSearchRadiusWhenLaunch, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
             foreach (var collider in overlappedColliders)
             {
                 BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
