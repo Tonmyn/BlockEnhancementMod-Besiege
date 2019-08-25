@@ -364,6 +364,12 @@ namespace BlockEnhancementMod
                     if (LockTargetKey.IsPressed && radar.Switch)
                     {
                         radar.SendClientTargetNull();
+                        if (radar.SearchMode == RadarScript.SearchModes.Manual)
+                        {
+                            Collider tempCollider = radar.GetTargetManual();
+                            Target tempTarget = radar.ProcessTarget(tempCollider);
+                            radar.SetTarget(tempTarget);
+                        }
                     }
                 }
             }

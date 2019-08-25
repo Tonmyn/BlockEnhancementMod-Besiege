@@ -107,12 +107,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch) return;
-
-            if (SearchMode == SearchModes.Manual)
-            {
-                SetTarget(ProcessTarget(GetTargetManual()));
-            }
+            if (!Switch || SearchMode == SearchModes.Manual) return;
 
             if (target == null && checkedTarget.Count > 0)
             {
@@ -148,70 +143,71 @@ namespace BlockEnhancementMod
             }
 
             //--------------------------------------------------//
-            Collider GetTargetManual()
+
+        }
+
+        public Collider GetTargetManual()
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (StatMaster.isClient)
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (StatMaster.isClient)
-                {
-                    SendRayToHost(ray);
-                }
-                else
-                {
-                    //Find targets in the manual search mode by casting a sphere along the ray
-                    float manualSearchRadius = 1.25f;
-                    RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask);
-                    Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Game.BlockEntityLayerMask);
-                    if (hits.Length > 0)
-                    {
-                        for (int i = 0; i < hits.Length; i++)
-                        {
-                            if (hits[i].transform.gameObject.GetComponent<BlockBehaviour>())
-                            {
-                                if ((hits[i].transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
-                                {
-                                    target.transform = hits[i].transform;
-                                    target.collider = target.transform.GetComponentInChildren<Collider>(true);
-                                    target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
-                                    break;
-                                }
-                            }
-                        }
-                        if (target == null)
-                        {
-                            for (int i = 0; i < hits.Length; i++)
-                            {
-                                if (hits[i].transform.gameObject.GetComponent<LevelEntity>())
-                                {
-                                    if ((hits[i].transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
-                                    {
-                                        target.transform = hits[i].transform;
-                                        target.collider = target.transform.GetComponentInChildren<Collider>(true);
-                                        target.initialCJOrHJ = false;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (target == null && rayHit.transform != null)
-                    {
-                        if ((rayHit.transform.position - transform.position).magnitude >= /*safetyRadiusManual*/safetyRadius)
-                        {
-                            target.transform = rayHit.transform;
-                            target.collider = target.transform.GetComponentInChildren<Collider>(true);
-                            target.initialCJOrHJ = target.transform.GetComponent<ConfigurableJoint>() != null || target.transform.GetComponent<HingeJoint>() != null;
-                        }
-
-                    }
-                    if (receivedRayFromClient)
-                    {
-                        SendTargetToClient();
-                    }
-                    receivedRayFromClient = false;
-                }
-
-                return target.collider;
+                SendRayToHost(ray);
+                return null;
             }
+            else
+            {
+                //Find targets in the manual search mode by casting a sphere along the ray
+                float manualSearchRadius = 1.25f;
+                Collider tempCollider = new Collider();
+
+                RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+
+                if (hits.Length > 0)
+                {
+                    for (int i = 0; i < hits.Length; i++)
+                    {
+                        if (hits[i].collider.gameObject.layer == 29) continue;
+                        LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
+                        BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                        if (levelEntity != null || blockBehaviour != null)
+                        {
+                            if ((hits[i].transform.position - transform.position).magnitude >= minSearchRadiusWhenLaunch)
+                            {
+                                tempCollider = hits[i].collider;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (tempCollider == null && Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
+                {
+                    if (rayHit.collider.gameObject.layer != 29)
+                    {
+                        LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
+                        BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                        if (levelEntity != null || blockBehaviour != null)
+                        {
+                            if ((rayHit.transform.position - transform.position).magnitude >= minSearchRadiusWhenLaunch)
+                            {
+                                tempCollider = rayHit.collider;
+                            }
+                        }
+                    }
+                }
+                return tempCollider;
+            }
+        }
+        public void SetTarget(Target tempTarget)
+        {
+            if (tempTarget == null) return;
+
+            target = tempTarget;
+            target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
+
+            if (receivedRayFromClient) SendTargetToClient();
+            receivedRayFromClient = false;
+
+            OnTarget.Invoke(target);
         }
 
         void OnTriggerEnter(Collider collider)
@@ -250,13 +246,6 @@ namespace BlockEnhancementMod
             }
         }
 
-        void SetTarget(Target tempTarget)
-        {
-            target = tempTarget;
-            target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
-            OnTarget.Invoke(target);
-        }
-
         void OnTriggerExit(Collider collider)
         {
             if (SearchMode != SearchModes.Auto) return;
@@ -272,26 +261,31 @@ namespace BlockEnhancementMod
             }
         }
 
-        Target ProcessTarget(Collider collider)
+        public Target ProcessTarget(Collider collider)
         {
+            if (collider == null) return null;
+
             BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
             // If not a block
-            if (block == null) return null;
+            if (block == null && SearchMode == SearchModes.Auto) return null;
 
             // if is own machine
-            if (StatMaster.isMP)
+            if (block != null)
             {
-                if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                if (StatMaster.isMP)
                 {
-                    return null;
+                    if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                    {
+                        return null;
+                    }
                 }
-            }
-            else
-            {
-                if (blocksInSafetyRange.Contains(block))
+                else
                 {
-                    return null;
+                    if (blocksInSafetyRange.Contains(block))
+                    {
+                        return null;
+                    }
                 }
             }
 
@@ -326,12 +320,6 @@ namespace BlockEnhancementMod
             checkedTarget.Clear();
             checkedTargetDic.Clear();
             blocksInSafetyRange.Clear();
-        }
-
-        public void ResetTriggerState()
-        {
-            meshCollider.enabled = false;
-            meshCollider.enabled = true;
         }
 
         private void GetBlocksInSafetyRange()
@@ -458,6 +446,8 @@ namespace BlockEnhancementMod
             meshCollider = mc;
             meshCollider.enabled = false;
 
+            Physics.IgnoreLayerCollision(CollisionLayer, 29);
+
             var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
             Material material = new Material(Shader.Find("Transparent/Diffuse"));
             material.color = new Color(0, 1, 0, 0.1f);
@@ -577,7 +567,6 @@ namespace BlockEnhancementMod
         public bool isBomb = false;
         public TimedRocket rocket;
         public ExplodeOnCollideBlock bomb;
-        public bool initialCJOrHJ = false;
         public float initialDistance = 0f;
 
         public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
