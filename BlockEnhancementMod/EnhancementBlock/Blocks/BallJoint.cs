@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            RotationToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.cvJoint, "Rotation", Rotation);
+            RotationToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CvJoint, "Rotation", Rotation);
             RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
 
 

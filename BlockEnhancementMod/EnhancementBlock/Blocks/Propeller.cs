@@ -20,19 +20,19 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.enabled, "Switch", KeyCode.O);
+            SwitchKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.Enabled, "Switch", KeyCode.O);
             SwitchKey.KeysChanged += ChangedProperties;
 
             HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
             HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.enabledOnAwake, "Effect", Effect);
+            EffectToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.EnabledOnAwake, "Effect", Effect);
             EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
 
-            ToggleToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.toggleMode, "Toggle Mode", Toggle);
+            ToggleToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ToggleMode, "Toggle Mode", Toggle);
             ToggleToggle.Toggled += (value) => { Toggle = value; ChangedProperties(); };
 
-            LiftIndicatorToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.liftIndicator, "Lift Indicator", LiftIndicator);
+            LiftIndicatorToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.LiftIndicator, "Lift Indicator", LiftIndicator);
             LiftIndicatorToggle.Toggled += (value) => { LiftIndicator = value; ChangedProperties(); };
 
 #if DEBUG

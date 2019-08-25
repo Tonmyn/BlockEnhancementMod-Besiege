@@ -111,39 +111,39 @@ namespace BlockEnhancementMod.Blocks
             bullet = new Bullet(CB);
 
 
-            IntervalSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.fireInterval, "Interval", Interval, intervalMin, 0.5f);
+            IntervalSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FireInterval, "Interval", Interval, intervalMin, 0.5f);
             IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
 
-            RandomDelaySlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.randomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
+            RandomDelaySlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.RandomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
             RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
 
-            KnockBackSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
+            KnockBackSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
             KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
 
             #region 子弹控件初始化
 
-            BullerCustomBulletToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.customBullet, "Bullet", false);
+            BullerCustomBulletToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CustomBullet, "Bullet", false);
             BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper =BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = BulletDelayCollisionSlider.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
 
-            BulletInheritSizeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.inheritSize, "InheritSize", false);
+            BulletInheritSizeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.InheritSize, "InheritSize", false);
             BulletInheritSizeToggle.Toggled += (bool value) => { bullet.InheritSize = value; ChangedProperties(); };
 
-            BulletMassSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletMass, "BulletMass", 2f, 0.1f, 2f);
+            BulletMassSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletMass, "BulletMass", 2f, 0.1f, 2f);
             BulletMassSlider.ValueChanged += (float value) => { bullet.Mass = value; ChangedProperties(); };
 
-            BulletDragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
+            BulletDragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
             BulletDragSlider.ValueChanged += (float value) => { bullet.Drag = value; ChangedProperties(); };
 
-            BulletDelayCollisionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.bulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
+            BulletDelayCollisionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
             BulletDelayCollisionSlider.ValueChanged += (value) => { bullet.DelayCollision = value; ChangedProperties(); };
 
-            BulletTrailToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.trail, "Trail", false);
+            BulletTrailToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Trail, "Trail", false);
             BulletTrailToggle.Toggled += (bool value) => { bullet.TrailEnable = BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
 
-            BulletTrailLengthSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.trailLength, "trail length", 1f, 0.2f, 2f);
+            BulletTrailLengthSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.TrailLength, "trail length", 1f, 0.2f, 2f);
             BulletTrailLengthSlider.ValueChanged += (float value) => { bullet.TrailLength = value; ChangedProperties(); };
 
-            BulletTrailColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.trailColor, "trail color", Color.yellow, false);
+            BulletTrailColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.TrailColor, "trail color", Color.yellow, false);
             BulletTrailColorSlider.ValueChanged += (Color value) => { bullet.TrailColor = value; ChangedProperties(); };
 
             #endregion

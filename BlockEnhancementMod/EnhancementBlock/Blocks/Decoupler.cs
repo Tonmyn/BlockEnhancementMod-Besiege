@@ -21,10 +21,10 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            ExplodeForceSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.explodeForce, "ExplodeForce", ExplodeForce, 0, 3000f);
+            ExplodeForceSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ExplodeForce, "ExplodeForce", ExplodeForce, 0, 3000f);
             ExplodeForceSlider.ValueChanged += (float value) => { ExplodeForce = value; ChangedProperties(); };
 
-            ExplodeTorqueSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.explodeTorque, "ExplodeTorque", ExplodeTorque, 0, 2500f);
+            ExplodeTorqueSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ExplodeTorque, "ExplodeTorque", ExplodeTorque, 0, 2500f);
             ExplodeTorqueSlider.ValueChanged += (float value) => { ExplodeTorque = value; ChangedProperties(); };
 
 #if DEBUG

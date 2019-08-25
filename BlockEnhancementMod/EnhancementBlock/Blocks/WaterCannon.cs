@@ -17,7 +17,7 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            BoilingToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.boiling, "Boiling", Boiling);
+            BoilingToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Boiling, "Boiling", Boiling);
             BoilingToggle.Toggled += (bool value) => { Boiling = value; ChangedProperties(); };
 
 

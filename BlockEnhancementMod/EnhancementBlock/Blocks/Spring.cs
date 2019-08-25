@@ -21,7 +21,7 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SafeAwake()
         {
-            DragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.drag, "Drag", Drag, 0f, 3f);
+            DragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Drag, "Drag", Drag, 0f, 3f);
             DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
 
 #if DEBUG

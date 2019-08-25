@@ -38,8 +38,8 @@ namespace BlockEnhancementMod
             OnFrictionToggle += FrictionToggle;
 
             windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
-            windowName = LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F9";
-            LanguageManager.Instance.OnLanguageChanged += (value) => { windowName = LanguageManager.Instance.CurrentLanguage.modSettings + "  Ctrl+F9"; };
+            windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9";
+            LanguageManager.Instance.OnLanguageChanged += (value) => { windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9"; };
         }
         private void Update()
         {
@@ -74,17 +74,17 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.additionalFunction);
+                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.AdditionalFunction);
 
-                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.unifiedFriction)))
+                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
                     {
                         Friction = !Friction;
                         OnFrictionToggle(Friction);
                     }
                 }
-                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.displayWarning);
-                RadarScript.MarkTarget = GUILayout.Toggle(RadarScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.markTarget);
-                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.displayRocketCount);
+                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.DisplayWarning);
+                RadarScript.MarkTarget = GUILayout.Toggle(RadarScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.MarkTarget);
+                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.DisplayRocketCount);
             }
             GUILayout.Space(2);
             GUILayout.EndVertical();
