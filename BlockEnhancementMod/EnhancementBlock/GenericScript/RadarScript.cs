@@ -47,9 +47,9 @@ namespace BlockEnhancementMod
             gameObject.layer = CollisionLayer;
 
             //Load aim pic
-            redSquareAim = new Texture2D(16, 16);
-            redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
-
+            //redSquareAim = new Texture2D(16, 16);
+            //redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+            redSquareAim = RocketsController.redSquareAim;
 
         }
 
