@@ -361,7 +361,7 @@ namespace BlockEnhancementMod
                         radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
                     }
 
-                    if (LockTargetKey.IsPressed)
+                    if (LockTargetKey.IsPressed && radar.Switch)
                     {
                         radar.SendClientTargetNull();
                     }

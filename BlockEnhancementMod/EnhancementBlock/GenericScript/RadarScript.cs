@@ -111,17 +111,15 @@ namespace BlockEnhancementMod
 
             if (SearchMode == SearchModes.Manual)
             {
-                target = ProcessTarget(GetTargetManual());
-                OnTarget.Invoke(target);
+                SetTarget(ProcessTarget(GetTargetManual()));
             }
 
             if (target == null && checkedTarget.Count > 0)
             {
-                float aimDistance = 0f;
-                float tempAimdistance = Mathf.Infinity;
+                float currentDistance = Mathf.Infinity;
                 Target dummyTarget = new Target
                 {
-                    warningLevel = Target.WarningLevel.dummyValue
+                    warningLevel = Target.WarningLevel.dummyValue,
                 };
                 foreach (var tempTarget in checkedTarget)
                 {
@@ -130,24 +128,22 @@ namespace BlockEnhancementMod
                         if (tempTarget.warningLevel > dummyTarget.warningLevel)
                         {
                             dummyTarget = tempTarget;
-                            tempAimdistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                            currentDistance = Vector3.Distance(tempTarget.collider.bounds.center, transform.position);
                         }
                         else if (tempTarget.warningLevel == dummyTarget.warningLevel)
                         {
-                            aimDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
-                            if (aimDistance < tempAimdistance)
+                            float tempDistance = Vector3.Distance(tempTarget.collider.bounds.center, transform.position);
+                            if (tempDistance < currentDistance)
                             {
                                 dummyTarget = tempTarget;
-                                tempAimdistance = aimDistance;
+                                currentDistance = tempDistance;
                             }
                         }
                     }
                 }
                 if (dummyTarget.warningLevel != Target.WarningLevel.dummyValue)
                 {
-                    target = dummyTarget;
-                    target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
-                    OnTarget.Invoke(target);
+                    SetTarget(dummyTarget);
                 }
             }
 
@@ -233,17 +229,13 @@ namespace BlockEnhancementMod
 
                 if (target == null)
                 {
-                    target = triggeredTarget;
-                    target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
-                    OnTarget.Invoke(target);
+                    SetTarget(triggeredTarget);
                 }
                 else
                 {
                     if (triggeredTarget.warningLevel > target.warningLevel)
                     {
-                        target = triggeredTarget;
-                        target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
-                        OnTarget.Invoke(target);
+                        SetTarget(triggeredTarget);
                     }
                     else if (triggeredTarget.warningLevel == target.warningLevel)
                     {
@@ -251,13 +243,18 @@ namespace BlockEnhancementMod
                         float targetDistance = Vector3.Distance(target.transform.position, transform.position);
                         if (aimDistance < targetDistance)
                         {
-                            target = triggeredTarget;
-                            target.initialDistance = (target.collider.bounds.center - transform.position).magnitude;
-                            OnTarget.Invoke(target);
+                            SetTarget(triggeredTarget);
                         }
                     }
                 }
             }
+        }
+
+        void SetTarget(Target tempTarget)
+        {
+            target = tempTarget;
+            target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
+            OnTarget.Invoke(target);
         }
 
         void OnTriggerExit(Collider collider)
