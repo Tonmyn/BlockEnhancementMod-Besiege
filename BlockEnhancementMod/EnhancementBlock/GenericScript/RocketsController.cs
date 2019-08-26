@@ -30,6 +30,8 @@ namespace BlockEnhancementMod
         private static readonly Color warningBorderColor = new Color(1, 0, 0, transparancy);
         private static readonly Rect warningRect = new Rect(Screen.width - screenOffset - warningWidth, Screen.height - screenOffset - warningHeight, warningWidth, warningHeight);
         private static Texture2D redTexture;
+        public static Texture2D redSquareAim = new Texture2D(16, 16);
+
         private static Texture2D RedTexture
         {
             get/**/
@@ -52,13 +54,21 @@ namespace BlockEnhancementMod
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
             playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>>();
 
-            SetRadarIgnoreCollosionLayer();
+            initRadarSomething();
 
-            void SetRadarIgnoreCollosionLayer()
+     
+            void initRadarSomething()
             {
-                Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, RadarScript.CollisionLayer, true);
-                Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, 29, true);
+                redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+                SetRadarIgnoreCollosionLayer();
+
+                void SetRadarIgnoreCollosionLayer()
+                {
+                    Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, RadarScript.CollisionLayer, true);
+                    Physics.IgnoreLayerCollision(RadarScript.CollisionLayer, 29, true);
+                }
             }
+
         }
 
         void FixedUpdate()

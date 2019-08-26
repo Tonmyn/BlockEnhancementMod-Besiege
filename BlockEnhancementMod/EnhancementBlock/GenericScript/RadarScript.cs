@@ -47,9 +47,9 @@ namespace BlockEnhancementMod
             gameObject.layer = CollisionLayer;
 
             //Load aim pic
-            redSquareAim = new Texture2D(16, 16);
-            redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
-
+            //redSquareAim = new Texture2D(16, 16);
+            //redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+            redSquareAim = RocketsController.redSquareAim;
 
         }
 
@@ -278,6 +278,13 @@ namespace BlockEnhancementMod
                     if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
                     {
                         return null;
+                    }
+                    else if (block.Team != MPTeam.None)
+                    {
+                        if (block.Team == GetComponentInParent<BlockBehaviour>().Team)
+                        {
+                            return null;
+                        }                       
                     }
                 }
                 else
