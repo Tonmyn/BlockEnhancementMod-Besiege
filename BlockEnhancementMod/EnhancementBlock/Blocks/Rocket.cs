@@ -59,7 +59,7 @@ namespace BlockEnhancementMod
         //private readonly float safetyRadiusAuto = 50f;
         private readonly float maxSearchAngleNormal = 90f;
         private readonly float maxSearchAngleNo8 = 175f;
-        private readonly float searchRange = 1400f - 0f;
+        private readonly float searchRange = 100000f - 0f;
         public bool activeGuide = true;
         public GameObject radarObject;
         public RadarScript radar;
