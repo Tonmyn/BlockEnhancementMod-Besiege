@@ -104,6 +104,7 @@ namespace BlockEnhancementMod
                 DefaultSearchModeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
+                GuidedRocketShowRadar.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
