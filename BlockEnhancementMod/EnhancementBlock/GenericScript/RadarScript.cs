@@ -275,16 +275,19 @@ namespace BlockEnhancementMod
             {
                 if (StatMaster.isMP)
                 {
-                    if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                    if (block.Team == MPTeam.None)
                     {
-                        return null;
+                        if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                        {
+                            return null;
+                        }
                     }
-                    else if (block.Team != MPTeam.None)
+                    else
                     {
                         if (block.Team == GetComponentInParent<BlockBehaviour>().Team)
                         {
                             return null;
-                        }                       
+                        }
                     }
                 }
                 else

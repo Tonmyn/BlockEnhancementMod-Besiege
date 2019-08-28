@@ -59,7 +59,7 @@ namespace BlockEnhancementMod
         //private readonly float safetyRadiusAuto = 50f;
         private readonly float maxSearchAngleNormal = 90f;
         private readonly float maxSearchAngleNo8 = 175f;
-        private readonly float searchRange = 1400f - 0f;
+        private float searchRange = 0;
         public bool activeGuide = true;
         public GameObject radarObject;
         public RadarScript radar;
@@ -104,6 +104,7 @@ namespace BlockEnhancementMod
                 DefaultSearchModeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
+                GuidedRocketShowRadar.DisplayInMapper =
                 ImpactFuzeToggle.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
@@ -283,6 +284,7 @@ namespace BlockEnhancementMod
                 launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
                 activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
+                searchRange = EnhanceMore ? 100000f : 5000f;
 
                 //Add radar
                 Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
