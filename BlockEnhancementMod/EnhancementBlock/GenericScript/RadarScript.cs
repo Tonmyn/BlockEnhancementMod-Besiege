@@ -332,7 +332,7 @@ namespace BlockEnhancementMod
             blocksInSafetyRange.Clear();
         }
 
-        private void GetBlocksInSafetyRange()
+        public void GetBlocksInSafetyRange()
         {
             Collider[] overlappedColliders = Physics.OverlapSphere(transform.parent.position, minSearchRadiusWhenLaunch, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
             foreach (var collider in overlappedColliders)
@@ -347,10 +347,6 @@ namespace BlockEnhancementMod
 
         public void ActivateDetectionZone()
         {
-            if (!StatMaster.isMP)
-            {
-                GetBlocksInSafetyRange();
-            }
             meshCollider.enabled = true;
             meshRenderer.enabled = showRadar;
         }

@@ -296,6 +296,10 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.parentBlock = BB;
+                if (!StatMaster.isMP)
+                {
+                   radar.GetBlocksInSafetyRange();
+                }
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
