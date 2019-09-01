@@ -296,10 +296,6 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.parentBlock = BB;
-                if (!StatMaster.isMP)
-                {
-                   radar.GetBlocksInSafetyRange();
-                }
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
@@ -320,6 +316,12 @@ namespace BlockEnhancementMod
                     {
                         Physics.IgnoreCollision(collider, radar.meshCollider, true);
                     }
+                }
+
+                //If Local play, get blocks in the safety range.
+                if (!StatMaster.isMP)
+                {
+                    radar.GetBlocksInSafetyRange();
                 }
 
                 //Set up Guide controller
