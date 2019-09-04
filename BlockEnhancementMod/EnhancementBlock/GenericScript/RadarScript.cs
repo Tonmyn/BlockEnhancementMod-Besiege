@@ -45,10 +45,6 @@ namespace BlockEnhancementMod
         {
             OnTarget += (value) => { };
             gameObject.layer = CollisionLayer;
-
-            //Load aim pic
-            //redSquareAim = new Texture2D(16, 16);
-            //redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
             redSquareAim = RocketsController.redSquareAim;
 
         }
@@ -111,8 +107,7 @@ namespace BlockEnhancementMod
 
             if (target == null && checkedTarget.Count > 0)
             {
-                float currentDistance = Mathf.Infinity;
-                Target dummyTarget = new Target
+                target = new Target
                 {
                     warningLevel = Target.WarningLevel.dummyValue,
                 };
@@ -120,30 +115,23 @@ namespace BlockEnhancementMod
                 {
                     if (tempTarget != null)
                     {
-                        if (tempTarget.warningLevel > dummyTarget.warningLevel)
+                        if (tempTarget.warningLevel > target.warningLevel)
                         {
-                            dummyTarget = tempTarget;
-                            currentDistance = Vector3.Distance(tempTarget.collider.bounds.center, transform.position);
+                            SetTarget(tempTarget);
                         }
-                        else if (tempTarget.warningLevel == dummyTarget.warningLevel)
+                        else if (tempTarget.warningLevel == target.warningLevel)
                         {
-                            float tempDistance = Vector3.Distance(tempTarget.collider.bounds.center, transform.position);
-                            if (tempDistance < currentDistance)
+                            float tempDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
+                            float targetDistance = Vector3.Distance(target.transform.position, transform.position);
+                            Debug.Log(tempTarget.transform.name +" "+ tempDistance + " vs " + target.transform.name + " " + targetDistance);
+                            if (tempDistance < targetDistance)
                             {
-                                dummyTarget = tempTarget;
-                                currentDistance = tempDistance;
+                                SetTarget(tempTarget);
                             }
                         }
                     }
                 }
-                if (dummyTarget.warningLevel != Target.WarningLevel.dummyValue)
-                {
-                    SetTarget(dummyTarget);
-                }
             }
-
-            //--------------------------------------------------//
-
         }
 
         public Collider GetTargetManual()
@@ -236,7 +224,8 @@ namespace BlockEnhancementMod
                     else if (triggeredTarget.warningLevel == target.warningLevel)
                     {
                         float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
-                        if (aimDistance < target.positionDiff.magnitude)
+                        float targetDistance = Vector3.Distance(target.transform.position, transform.position);
+                        if (aimDistance < targetDistance)
                         {
                             SetTarget(triggeredTarget);
                         }
