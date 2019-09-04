@@ -236,8 +236,7 @@ namespace BlockEnhancementMod
                     else if (triggeredTarget.warningLevel == target.warningLevel)
                     {
                         float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
-                        float targetDistance = Vector3.Distance(target.transform.position, transform.position);
-                        if (aimDistance < targetDistance)
+                        if (aimDistance < target.positionDiff.magnitude)
                         {
                             SetTarget(triggeredTarget);
                         }
