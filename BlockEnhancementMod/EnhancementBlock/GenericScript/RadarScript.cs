@@ -121,9 +121,8 @@ namespace BlockEnhancementMod
                         }
                         else if (tempTarget.warningLevel == target.warningLevel)
                         {
-                            float tempDistance = Vector3.Distance(tempTarget.transform.position, transform.position);
-                            float targetDistance = Vector3.Distance(target.transform.position, transform.position);
-                            Debug.Log(tempTarget.transform.name +" "+ tempDistance + " vs " + target.transform.name + " " + targetDistance);
+                            float tempDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+                            float targetDistance = Vector3.Distance(target.transform.position, parentBlock.transform.position);
                             if (tempDistance < targetDistance)
                             {
                                 SetTarget(tempTarget);
