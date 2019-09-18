@@ -318,6 +318,12 @@ namespace BlockEnhancementMod
                     }
                 }
 
+                //If Local play, get blocks in the safety range.
+                if (!StatMaster.isMP)
+                {
+                    radar.GetBlocksInSafetyRange();
+                }
+
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
                 guideObject.transform.SetParent(rocket.transform);
