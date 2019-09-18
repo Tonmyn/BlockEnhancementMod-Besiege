@@ -58,7 +58,7 @@ namespace BlockEnhancementMod
 
             if (Switch && target != null)
             {
-                bool removeFlag = !target.collider.enabled;
+                bool removeFlag = !target.collider.enabled || target.block.blockJoint == null;
                 bool inSight = false;
 
                 if (!removeFlag)
@@ -256,6 +256,10 @@ namespace BlockEnhancementMod
 
             // If not a block
             if (block == null && SearchMode == SearchModes.Auto) return null;
+
+            // if not a rocket and have nothing connected to
+            if (block.BlockID != (int)BlockType.Rocket && 
+                (block.iJointTo == null || (block.iJointTo != null && block.iJointTo.Count == 0))) return null;
 
             // if is own machine
             if (block != null)
