@@ -58,11 +58,15 @@ namespace BlockEnhancementMod
 
             if (Switch && target != null)
             {
-                bool removeFlag = !target.collider.enabled || target.block.blockJoint == null;
+                bool removeFlag = !target.collider.enabled;
                 bool inSight = false;
 
                 if (!removeFlag)
                 {
+                    if (!target.isRocket && target.block.blockJoint == null)
+                    {
+                        removeFlag = true;
+                    }
                     if (target.hasFireTag)
                     {
                         if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
@@ -258,8 +262,30 @@ namespace BlockEnhancementMod
             if (block == null && SearchMode == SearchModes.Auto) return null;
 
             // if not a rocket and have nothing connected to
-            if (block.BlockID != (int)BlockType.Rocket && 
-                (block.iJointTo == null || (block.iJointTo != null && block.iJointTo.Count == 0))) return null;
+            if (block.BlockID != (int)BlockType.Rocket)
+            {
+                if (block.blockJoint == null)
+                {
+                    return null;
+                }
+                else if (block.blockJoint.connectedBody == null)
+                {
+                    return null;
+                }
+                
+                //if (block.iJointTo == null && block.jointsToMe == null)
+                //{
+                //    return null;
+                //}
+                //if (block.iJointTo != null && block.iJointTo.Count == 0)
+                //{
+                //    return null;
+                //}
+                //if (block.jointsToMe != null && block.jointsToMe.Count == 0)
+                //{
+                //    return null;
+                //}
+            }
 
             // if is own machine
             if (block != null)
@@ -510,7 +536,7 @@ namespace BlockEnhancementMod
             target = null;
             OnTarget.Invoke(target);
 
-            BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
+            BlockBehaviour timedRocket = parentBlock;
             if (StatMaster.isHosting)
             {
                 Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(timedRocket);

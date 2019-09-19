@@ -302,6 +302,8 @@ namespace BlockEnhancementMod
                 fireTag.enabled = true;
                 Rigidbody rigidbody = radarObject.AddComponent<Rigidbody>();
                 rigidbody.isKinematic = true;
+                rigidbody.mass = 0.0001f;
+                rigidbody.drag = 0f;
 
                 //Initialise radar at the start of simulation
                 radar.searchAngle = searchAngle;
@@ -331,7 +333,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, Mathf.Clamp(torque, 0, 100));
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100));
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
@@ -394,6 +396,9 @@ namespace BlockEnhancementMod
                     {
                         radar.Switch = true;
                     }
+
+                    //Activate aerodynamic effect
+                    guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
 
                     //Let rocket controller know the rocket is fired
                     SendRocketFired();

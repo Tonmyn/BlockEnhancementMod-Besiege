@@ -20,29 +20,19 @@ namespace BlockEnhancementMod
         public float maxTorque = 1500f;
         private Vector3 previousVelocity = Vector3.zero;
         private Vector3 acceleration = Vector3.zero;
-
+        private Vector3 forwardDirection = Vector3.zero;
 
         //Aerodynamics setting
         private readonly float aeroEffectMultiplier = 5f;
         private Vector3 aeroEffectPosition = Vector3.up * 5f;
         public bool enableAerodynamicEffect = false;
+
         public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque)
         {
             parentBlock = sourceBlock;
             parentBlockRigidbody = sourceRigidbody;
             blockRadar = sourceRadar;
             enableAerodynamicEffect = false;
-            searchAngle = sourceSearchAngle;
-            torque = sourceTorque;
-        }
-
-        public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar,
-            bool sourceEnableAerodynamicEffect, float sourceSearchAngle, float sourceTorque)
-        {
-            parentBlock = sourceBlock;
-            parentBlockRigidbody = sourceRigidbody;
-            blockRadar = sourceRadar;
-            enableAerodynamicEffect = sourceEnableAerodynamicEffect;
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
         }
@@ -82,11 +72,10 @@ namespace BlockEnhancementMod
                 float ratio = (blockRadar.target.collider.bounds.center - parentBlock.transform.position).magnitude / blockRadar.target.initialDistance;
                 float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
                 float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
-
-                Vector3 forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
                 Vector3 positionDiffPredicted = blockRadar.target.collider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - parentBlock.transform.position;
-                float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
 
+                forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+                float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
                 Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
                 parentBlockRigidbody.AddForceAtPosition(torque * maxTorque * ((-Mathf.Pow(blockRadar.target.angleDiff / searchAngle - 1f, 2) + 1))
                     * towardsPositionDiff, transform.position + forwardDirection);
