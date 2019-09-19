@@ -27,7 +27,7 @@ namespace BlockEnhancementMod
         private Vector3 aeroEffectPosition = Vector3.up * 5f;
         public bool enableAerodynamicEffect = false;
 
-        public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque)
+        public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
         {
             parentBlock = sourceBlock;
             parentBlockRigidbody = sourceRigidbody;
@@ -35,6 +35,7 @@ namespace BlockEnhancementMod
             enableAerodynamicEffect = false;
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
+            prediction = sourcePrediction;
         }
 
         void FixedUpdate()

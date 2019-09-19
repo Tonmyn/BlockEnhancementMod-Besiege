@@ -333,7 +333,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupGuideController(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100));
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100), prediction);
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
