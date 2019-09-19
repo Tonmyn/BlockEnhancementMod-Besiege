@@ -536,14 +536,13 @@ namespace BlockEnhancementMod
             target = null;
             OnTarget.Invoke(target);
 
-            BlockBehaviour timedRocket = parentBlock;
             if (StatMaster.isHosting)
             {
-                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(timedRocket);
-                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == timedRocket.ParentMachine.PlayerID), rocketTargetNullMsg);
-                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(timedRocket));
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(parentBlock);
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == parentBlock.ParentMachine.PlayerID), rocketTargetNullMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(parentBlock));
             }
-            RocketsController.Instance.RemoveRocketTarget(timedRocket);
+            RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
         #endregion
 
