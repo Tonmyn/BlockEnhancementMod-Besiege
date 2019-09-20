@@ -61,6 +61,9 @@ namespace BlockEnhancementMod
                 bool removeFlag = !target.collider.enabled;
                 bool inSight = false;
 
+                target.positionDiff = target.collider.bounds.center - transform.position;
+                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+
                 if (!removeFlag)
                 {
                     if (!target.isRocket && target.block.blockJoint == null)
@@ -74,8 +77,6 @@ namespace BlockEnhancementMod
                             removeFlag = true;
                         }
                     }
-                    target.positionDiff = target.collider.bounds.center - transform.position;
-                    target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
                     bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
                     inSight = forward && target.angleDiff < searchAngle / 2;
                 }
