@@ -19,6 +19,7 @@ namespace BlockEnhancementMod
         public float torque = 0f;
         public float maxTorque = 1500f;
         private Vector3 previousVelocity = Vector3.zero;
+        private Vector3 previousPosition = Vector3.zero;
         private Vector3 acceleration = Vector3.zero;
         private Vector3 forwardDirection = Vector3.zero;
         private Target preTarget = null;
@@ -42,9 +43,9 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
             prediction = sourcePrediction;
             preTarget = new Target();
-            pFactor = 5f;
-            iFactor = 0.1f;
-            dFactor = 0.05f;
+            pFactor = 10f;
+            iFactor = 15f;
+            dFactor = 1.25f;
         }
 
         void FixedUpdate()
@@ -66,6 +67,8 @@ namespace BlockEnhancementMod
                 if (blockRadar.target == null) return;
                 if (blockRadar.target != preTarget)
                 {
+                    previousVelocity = Vector3.zero;
+                    previousPosition = Vector3.zero;
                     preTarget = blockRadar.target;
                     integral = 0;
                     lastError = 0;
@@ -73,17 +76,11 @@ namespace BlockEnhancementMod
                 if (blockRadar.target.positionDiff.magnitude <= 3) return;
 
                 // Calculating the rotating axis
-                Vector3 velocity = Vector3.zero;
-                try
-                {
-                    velocity = blockRadar.target.collider.attachedRigidbody.velocity - parentBlock.Rigidbody.velocity;
-                    if (previousVelocity != Vector3.zero)
-                    {
-                        acceleration = (velocity - previousVelocity) / Time.deltaTime;
-                    }
-                    previousVelocity = velocity;
-                }
-                catch { }
+                Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
+                //velocity = blockRadar.target.block.Rigidbody.velocity - parentBlock.Rigidbody.velocity;
+                //acceleration = (velocity - previousVelocity) / Time.deltaTime;
+                previousVelocity = velocity;
+                previousPosition = blockRadar.target.transform.position;
 
                 //Add position prediction
                 //float ratio = (blockRadar.target.collider.bounds.center - parentBlock.CenterOfBounds).magnitude / blockRadar.target.initialDistance;
@@ -100,25 +97,27 @@ namespace BlockEnhancementMod
                 //    * (-towardsPositionDiff), parentBlock.CenterOfBounds - forwardDirection);
 
                 // Get the set point
-                float ratio = (blockRadar.target.collider.bounds.center - parentBlock.CenterOfBounds).magnitude / blockRadar.target.initialDistance;
-                float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
-                float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
-                Vector3 positionDiffPredicted = blockRadar.target.collider.bounds.center + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime - parentBlock.CenterOfBounds;
+                //float ratio = (blockRadar.target.collider.bounds.center - parentBlock.CenterOfBounds).magnitude / blockRadar.target.initialDistance;
+                //float actualPrediction = prediction * Mathf.Clamp(Mathf.Pow(ratio, 2), 0f, 1.5f);
+                //float pathPredictionTime = Time.fixedDeltaTime * actualPrediction;
+                float pathPredictionTime = Time.fixedDeltaTime * prediction;
+                Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
+                Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+                //Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime + 0.5f * acceleration * pathPredictionTime * pathPredictionTime;
 
                 // Get the angle difference
                 forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-                float angleDiff = Vector3.Angle(forwardDirection, positionDiffPredicted);
+
+                float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
+                float angleDiff = Vector3.Angle(forwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
                 integral += angleDiff * Time.deltaTime;
                 float derivitive = (angleDiff - lastError) / Time.deltaTime;
                 lastError = angleDiff;
                 float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
 
-                Debug.Log(coefficient);
-
-                float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
                 Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
-                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.CenterOfBounds + forwardDirection);
-                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.CenterOfBounds - forwardDirection);
+                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
+                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
 
                 //Vector3 rotatingAxis = -Vector3.Cross(blockRadar.target.positionDiff.normalized, forwardDirection);
                 //blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
