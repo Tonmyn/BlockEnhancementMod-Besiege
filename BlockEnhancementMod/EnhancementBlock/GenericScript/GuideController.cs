@@ -56,6 +56,46 @@ namespace BlockEnhancementMod
             {
                 AddAerodynamicsToRocketVelocity();
             }
+
+            //if (blockRadar == null) return;
+
+            //if (!StatMaster.isClient)
+            //{
+            //    if (blockRadar.target == null) return;
+            //    if (blockRadar.target != preTarget)
+            //    {
+            //        previousVelocity = Vector3.zero;
+            //        previousPosition = Vector3.zero;
+            //        preTarget = blockRadar.target;
+            //        integral = 0;
+            //        lastError = 0;
+            //    }
+            //    if (blockRadar.target.positionDiff.magnitude <= 3) return;
+
+            //    // Calculating the rotating axis
+            //    Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
+            //    previousVelocity = velocity;
+            //    previousPosition = blockRadar.target.transform.position;
+
+            //    // Get the set point
+            //    float pathPredictionTime = Time.fixedDeltaTime * prediction;
+            //    Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
+            //    Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+
+            //    // Get the angle difference
+            //    forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+
+            //    float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
+            //    float angleDiff = Vector3.Angle(forwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
+            //    integral += angleDiff * Time.fixedDeltaTime;
+            //    float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
+            //    lastError = angleDiff;
+            //    float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
+
+            //    Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
+            //    parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
+            //    parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
+            //}
         }
 
         void LateUpdate()
@@ -119,8 +159,8 @@ namespace BlockEnhancementMod
                 parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
                 parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
 
-                //Vector3 rotatingAxis = -Vector3.Cross(blockRadar.target.positionDiff.normalized, forwardDirection);
-                //blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
+                //    //Vector3 rotatingAxis = -Vector3.Cross(blockRadar.target.positionDiff.normalized, forwardDirection);
+                //    //blockRigidbody.AddTorque(Mathf.Clamp(torque, 0, 100) * maxTorque * ((-Mathf.Pow(angleDiff / searchAngle - 1f, 2) + 1)) * rotatingAxis);
             }
         }
 
