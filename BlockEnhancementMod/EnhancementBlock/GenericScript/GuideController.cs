@@ -18,11 +18,9 @@ namespace BlockEnhancementMod
         public float searchAngle = 0f;
         public float torque = 0f;
         public float maxTorque = 1500f;
-        private Vector3 previousVelocity = Vector3.zero;
         private Vector3 previousPosition = Vector3.zero;
-        private Vector3 acceleration = Vector3.zero;
         private Vector3 forwardDirection = Vector3.zero;
-        private Target preTarget = null;
+        private BlockBehaviour preTargetBlock = null;
 
         public float pFactor, iFactor, dFactor;
         public float integral = 0;
@@ -42,7 +40,7 @@ namespace BlockEnhancementMod
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
             prediction = sourcePrediction;
-            preTarget = new Target();
+            preTargetBlock = new BlockBehaviour();
             pFactor = 1.25f;
             iFactor = 10f;
             dFactor = 0f;
@@ -62,18 +60,16 @@ namespace BlockEnhancementMod
             if (!StatMaster.isClient)
             {
                 if (blockRadar.target == null) return;
-                if (blockRadar.target != preTarget)
+                if (blockRadar.target.block != preTargetBlock)
                 {
-                    previousVelocity = Vector3.zero;
                     previousPosition = Vector3.zero;
-                    preTarget = blockRadar.target;
+                    preTargetBlock = blockRadar.target.block;
                     integral = 0;
                     lastError = 0;
                 }
 
                 // Calculating the rotating axis
                 Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
-                previousVelocity = velocity;
                 previousPosition = blockRadar.target.transform.position;
 
                 // Get the set point
