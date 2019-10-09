@@ -369,13 +369,13 @@ namespace BlockEnhancementMod
             float topHeight = safetyRadius;
             float height = bottomRadius - topHeight;
 
-            float radiusTop = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * topHeight;
+            float radiusTop = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * topHeight + 0.5f;
             float radiusBottom = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
             int numVertices = 5 + 10;
 
-            Vector3 myTopCenter = Vector3.up * topHeight;
+            Vector3 myTopCenter = Vector3.up * topHeight - Vector3.up;
             Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
             //构建顶点数组和UV数组
             Vector3[] vertices = new Vector3[numVertices * 2 + 2];
