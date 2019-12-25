@@ -259,10 +259,6 @@ namespace BlockEnhancementMod
                             RocketScript rocketScript = rocket.GetComponent<RocketScript>();
                             if (rocketScript != null)
                             {
-                                rocket.LaunchMessage();
-                                //rocket.Fire(0f);
-                                //rocket.hasFired = true;
-                                //rocket.hasExploded = false;
                                 if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                                 {
                                     List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
@@ -272,6 +268,7 @@ namespace BlockEnhancementMod
                                     }
                                 }
                                 defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                                rocket.LaunchMessage();
                             }
                         }
                     }
