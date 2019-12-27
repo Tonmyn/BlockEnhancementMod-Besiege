@@ -246,14 +246,24 @@ namespace BlockEnhancementMod
         {
             if (!playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
             {
+#if DEBUG
+                Debug.Log("Cannot get rocket dict");
+#endif
                 launchStarted = false;
                 yield return null;
             }
             if (!timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
             {
+#if DEBUG
+                Debug.Log("Cannot get rocket list");
+#endif
                 launchStarted = false;
                 yield return null;
             }
+
+#if DEBUG
+            Debug.Log("Rocket count: " + timedRockets.Count);
+#endif
 
             launchStarted = true;
             float defaultDelay = 0.25f;
@@ -272,7 +282,7 @@ namespace BlockEnhancementMod
                             List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
                             foreach (var grabber in allGrabbers)
                             {
-                                StartCoroutine(grabber?.IEBreakJoint());
+                                grabber?.OnKeyPressed();
                             }
                         }
                         defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
@@ -280,11 +290,14 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-
-            yield return new WaitForSeconds(defaultDelay);
-
-            launchStarted = false;
+            StartCoroutine(ResetLaunchState(defaultDelay));
             yield return null;
+        }
+
+        public IEnumerator ResetLaunchState(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            launchStarted = false;
         }
     }
 }
