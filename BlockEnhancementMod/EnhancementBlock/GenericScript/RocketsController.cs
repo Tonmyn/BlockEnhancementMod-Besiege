@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
 
             initRadarSomething();
 
-     
+
             void initRadarSomething()
             {
                 redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
@@ -244,40 +244,44 @@ namespace BlockEnhancementMod
 
         public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
+            if (!playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
+            {
+                launchStarted = false;
+                yield return null;
+            }
+            if (!timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
+            {
+                launchStarted = false;
+                yield return null;
+            }
+
             launchStarted = true;
             float defaultDelay = 0.25f;
-            if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
+
+            if (timedRockets.Count > 0)
             {
-                if (timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
+                TimedRocket rocket = timedRockets.First();
+                timedRockets.Remove(rocket);
+                if (rocket != null)
                 {
-                    if (timedRockets.Count > 0)
+                    RocketScript rocketScript = rocket.GetComponent<RocketScript>();
+                    if (rocketScript != null)
                     {
-                        TimedRocket rocket = timedRockets.First();
-                        timedRockets.Remove(rocket);
-                        if (rocket != null)
+                        if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                         {
-                            RocketScript rocketScript = rocket.GetComponent<RocketScript>();
-                            if (rocketScript != null)
+                            List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
+                            foreach (var grabber in allGrabbers)
                             {
-                                if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
-                                {
-                                    List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
-                                    foreach (var grabber in allGrabbers)
-                                    {
-                                        grabber?.StartCoroutine(grabber.IEBreakJoint());
-                                    }
-                                }
-                                defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
-                                rocket.LaunchMessage();
+                                StartCoroutine(grabber?.IEBreakJoint());
                             }
                         }
+                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                        rocket.LaunchMessage();
                     }
                 }
             }
-            for (int i = 0; i < defaultDelay * 100; i++)
-            {
-                yield return new WaitForFixedUpdate();
-            }
+
+            yield return new WaitForSeconds(defaultDelay);
 
             launchStarted = false;
             yield return null;
