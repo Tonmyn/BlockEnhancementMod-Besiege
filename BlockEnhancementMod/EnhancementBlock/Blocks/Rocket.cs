@@ -392,10 +392,7 @@ namespace BlockEnhancementMod
                 if (rocket.hasFired)
                 {
                     //Activate Detection Zone
-                    if (canTrigger && !radar.Switch)
-                    {
-                        radar.Switch = true;
-                    }
+                    if (!radar.Switch && canTrigger) radar.Switch = true;
 
                     //Activate aerodynamic effect
                     guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
@@ -440,10 +437,7 @@ namespace BlockEnhancementMod
                             {
                                 if (radar.target != null)
                                 {
-                                    if (radar.target.positionDiff.magnitude < proximityRange)
-                                    {
-                                        StartCoroutine(RocketExplode());
-                                    }
+                                    if (radar.target.positionDiff.magnitude <= proximityRange) StartCoroutine(RocketExplode());
                                 }
 
                             }
@@ -472,14 +466,12 @@ namespace BlockEnhancementMod
 
         void OnCollisionEnter(Collision collision)
         {
-            if (canTrigger)
+            if (!canTrigger) return;
+            if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (rocket.PowerSlider.Value > 0.1f)
+                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                 {
-                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-                    {
-                        StartCoroutine(RocketExplode());
-                    }
+                    StartCoroutine(RocketExplode());
                 }
             }
         }
