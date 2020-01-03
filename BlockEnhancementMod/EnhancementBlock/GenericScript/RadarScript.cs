@@ -58,11 +58,18 @@ namespace BlockEnhancementMod
 
             if (Switch && target != null)
             {
-                bool removeFlag = !target.collider.enabled || target.block.blockJoint == null;
+                bool removeFlag = !target.collider.enabled;
                 bool inSight = false;
+
+                target.positionDiff = target.collider.bounds.center - transform.position;
+                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
 
                 if (!removeFlag)
                 {
+                    if (!target.isRocket && target.block.blockJoint == null)
+                    {
+                        removeFlag = true;
+                    }
                     if (target.hasFireTag)
                     {
                         if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
@@ -70,8 +77,6 @@ namespace BlockEnhancementMod
                             removeFlag = true;
                         }
                     }
-                    target.positionDiff = target.collider.bounds.center - transform.position;
-                    target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
                     bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
                     inSight = forward && target.angleDiff < searchAngle / 2;
                 }
@@ -258,8 +263,30 @@ namespace BlockEnhancementMod
             if (block == null && SearchMode == SearchModes.Auto) return null;
 
             // if not a rocket and have nothing connected to
-            if (block.BlockID != (int)BlockType.Rocket && 
-                (block.iJointTo == null || (block.iJointTo != null && block.iJointTo.Count == 0))) return null;
+            if (block.BlockID != (int)BlockType.Rocket)
+            {
+                if (block.blockJoint == null)
+                {
+                    return null;
+                }
+                else if (block.blockJoint.connectedBody == null)
+                {
+                    return null;
+                }
+                
+                //if (block.iJointTo == null && block.jointsToMe == null)
+                //{
+                //    return null;
+                //}
+                //if (block.iJointTo != null && block.iJointTo.Count == 0)
+                //{
+                //    return null;
+                //}
+                //if (block.jointsToMe != null && block.jointsToMe.Count == 0)
+                //{
+                //    return null;
+                //}
+            }
 
             // if is own machine
             if (block != null)
@@ -466,39 +493,36 @@ namespace BlockEnhancementMod
             {
                 if (target != null)
                 {
-                    var rocket = gameObject.GetComponent<TimedRocket>();
-                    var BB = transform.parent.GetComponent<BlockBehaviour>();
-
                     if (target.transform.transform.GetComponent<BlockBehaviour>())
                     {
                         BlockBehaviour targetBB = target.transform.transform.GetComponent<BlockBehaviour>();
                         int id = targetBB.ParentMachine.PlayerID;
-                        if (rocket.ParentMachine.PlayerID != 0)
+                        if (parentBlock.ParentMachine.PlayerID != 0)
                         {
-                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, BB);
+                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, parentBlock);
                             foreach (var player in Player.GetAllPlayers())
                             {
-                                if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                                if (player.NetworkId == parentBlock.ParentMachine.PlayerID)
                                 {
                                     ModNetworking.SendTo(player, targetBlockBehaviourMsg);
                                 }
                             }
                         }
-                        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(BB, id));
-                        RocketsController.Instance.UpdateRocketTarget(BB, id);
+                        ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(parentBlock, id));
+                        RocketsController.Instance.UpdateRocketTarget(parentBlock, id);
                     }
                     if (target.transform.transform.GetComponent<LevelEntity>())
                     {
-                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.transform.GetComponent<LevelEntity>(), BB);
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.transform.GetComponent<LevelEntity>(), parentBlock);
                         foreach (var player in Player.GetAllPlayers())
                         {
-                            if (player.NetworkId == rocket.ParentMachine.PlayerID)
+                            if (player.NetworkId == parentBlock.ParentMachine.PlayerID)
                             {
                                 ModNetworking.SendTo(player, targetEntityMsg);
                             }
                         }
-                        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(BB));
-                        RocketsController.Instance.RemoveRocketTarget(BB);
+                        ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(parentBlock));
+                        RocketsController.Instance.RemoveRocketTarget(parentBlock);
                     }
                 }
             }
@@ -510,14 +534,13 @@ namespace BlockEnhancementMod
             target = null;
             OnTarget.Invoke(target);
 
-            BlockBehaviour timedRocket = transform.parent.gameObject.GetComponent<BlockBehaviour>();
             if (StatMaster.isHosting)
             {
-                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(timedRocket);
-                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == timedRocket.ParentMachine.PlayerID), rocketTargetNullMsg);
-                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(timedRocket));
+                Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(parentBlock);
+                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == parentBlock.ParentMachine.PlayerID), rocketTargetNullMsg);
+                ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(parentBlock));
             }
-            RocketsController.Instance.RemoveRocketTarget(timedRocket);
+            RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
         #endregion
 

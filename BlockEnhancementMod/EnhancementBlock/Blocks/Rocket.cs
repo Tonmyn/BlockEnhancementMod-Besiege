@@ -302,6 +302,8 @@ namespace BlockEnhancementMod
                 fireTag.enabled = true;
                 Rigidbody rigidbody = radarObject.AddComponent<Rigidbody>();
                 rigidbody.isKinematic = true;
+                rigidbody.mass = 0.0001f;
+                rigidbody.drag = 0f;
 
                 //Initialise radar at the start of simulation
                 radar.searchAngle = searchAngle;
@@ -331,7 +333,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupGuideController(rocket, rocketRigidbody, radar, guidedRocketStabilityOn, searchAngle, Mathf.Clamp(torque, 0, 100));
+                guideController.SetupGuideController(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100), prediction);
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
@@ -390,10 +392,10 @@ namespace BlockEnhancementMod
                 if (rocket.hasFired)
                 {
                     //Activate Detection Zone
-                    if (canTrigger && !radar.Switch)
-                    {
-                        radar.Switch = true;
-                    }
+                    if (!radar.Switch && canTrigger) radar.Switch = true;
+
+                    //Activate aerodynamic effect
+                    guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
 
                     //Let rocket controller know the rocket is fired
                     SendRocketFired();
@@ -435,10 +437,7 @@ namespace BlockEnhancementMod
                             {
                                 if (radar.target != null)
                                 {
-                                    if (radar.target.positionDiff.magnitude < proximityRange)
-                                    {
-                                        StartCoroutine(RocketExplode());
-                                    }
+                                    if (radar.target.positionDiff.magnitude <= proximityRange) StartCoroutine(RocketExplode());
                                 }
 
                             }
@@ -467,14 +466,12 @@ namespace BlockEnhancementMod
 
         void OnCollisionEnter(Collision collision)
         {
-            if (canTrigger)
+            if (!canTrigger) return;
+            if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (rocket.PowerSlider.Value > 0.1f)
+                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                 {
-                    if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
-                    {
-                        StartCoroutine(RocketExplode());
-                    }
+                    StartCoroutine(RocketExplode());
                 }
             }
         }

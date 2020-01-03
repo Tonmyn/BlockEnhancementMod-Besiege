@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
 
             initRadarSomething();
 
-     
+
             void initRadarSomething()
             {
                 redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
@@ -244,46 +244,60 @@ namespace BlockEnhancementMod
 
         public IEnumerator LaunchRocketFromGroup(int id, KeyCode key)
         {
+            if (!playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
+            {
+#if DEBUG
+                Debug.Log("Cannot get rocket dict");
+#endif
+                launchStarted = false;
+                yield return null;
+            }
+            if (!timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
+            {
+#if DEBUG
+                Debug.Log("Cannot get rocket list");
+#endif
+                launchStarted = false;
+                yield return null;
+            }
+
+#if DEBUG
+            Debug.Log("Rocket count: " + timedRockets.Count);
+#endif
+
             launchStarted = true;
             float defaultDelay = 0.25f;
-            if (playerGroupedRockets.TryGetValue(id, out Dictionary<KeyCode, HashSet<TimedRocket>> timedRocketDict))
+
+            if (timedRockets.Count > 0)
             {
-                if (timedRocketDict.TryGetValue(key, out HashSet<TimedRocket> timedRockets))
+                TimedRocket rocket = timedRockets.First();
+                timedRockets.Remove(rocket);
+                if (rocket != null)
                 {
-                    if (timedRockets.Count > 0)
+                    RocketScript rocketScript = rocket.GetComponent<RocketScript>();
+                    if (rocketScript != null)
                     {
-                        TimedRocket rocket = timedRockets.First();
-                        timedRockets.Remove(rocket);
-                        if (rocket != null)
+                        if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
                         {
-                            RocketScript rocketScript = rocket.GetComponent<RocketScript>();
-                            if (rocketScript != null)
+                            List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
+                            foreach (var grabber in allGrabbers)
                             {
-                                rocket.LaunchMessage();
-                                //rocket.Fire(0f);
-                                //rocket.hasFired = true;
-                                //rocket.hasExploded = false;
-                                if (rocketScript.autoGrabberRelease && rocket.grabbers.Count > 0)
-                                {
-                                    List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
-                                    foreach (var grabber in allGrabbers)
-                                    {
-                                        grabber?.StartCoroutine(grabber.IEBreakJoint());
-                                    }
-                                }
-                                defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                                grabber?.OnKeyPressed();
                             }
                         }
+                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                        rocket.LaunchMessage();
                     }
                 }
             }
-            for (int i = 0; i < defaultDelay * 100; i++)
-            {
-                yield return new WaitForFixedUpdate();
-            }
-
-            launchStarted = false;
+            StartCoroutine(ResetLaunchState(defaultDelay));
             yield return null;
+        }
+
+        public IEnumerator ResetLaunchState(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            launchStarted = false;
         }
     }
 }

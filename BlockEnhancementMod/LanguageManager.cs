@@ -724,7 +724,7 @@ namespace BlockEnhancementMod
     {
         //Game
         public string ModSettings { get; } = "Enhancement Mod";
-        public string UnifiedFriction { get; } = "Unified Friction";
+        public string UnifiedFriction { get; } = " Unified Friction";
 
         //Enhancement Block
         public string Enhancement { get; } = "Enhancement";
