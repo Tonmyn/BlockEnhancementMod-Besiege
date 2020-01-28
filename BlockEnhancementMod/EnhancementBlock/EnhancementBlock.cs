@@ -8,7 +8,7 @@ namespace BlockEnhancementMod
 {
     public  class EnhancementBlock : MonoBehaviour
     {
-        public static bool EnhanceMore { get; internal set; } = false;
+        public static bool EnhanceMore { get; internal set; } =BlockEnhancementMod.Configuration.EnhanceMore;
 
         /// <summary>模块行为</summary>
         public BlockBehaviour BB { get; internal set; } 

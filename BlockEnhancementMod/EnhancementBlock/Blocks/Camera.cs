@@ -358,6 +358,7 @@ namespace BlockEnhancementMod
                     }
                     if (target != null)
                     {
+                        Debug.Log("??");
                         try
                         {
                             if (targetInitialCJOrHJ)

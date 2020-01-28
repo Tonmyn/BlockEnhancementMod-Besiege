@@ -23,6 +23,7 @@ namespace BlockEnhancementMod
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         public bool removedFromGroup = false;
+        public event Action OnExplod;
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -60,7 +61,7 @@ namespace BlockEnhancementMod
         private readonly float maxSearchAngleNormal = 90f;
         private readonly float maxSearchAngleNo8 = 175f;
         private float searchRange = 0;
-        public bool activeGuide = true;
+        //public bool activeGuide = true;
         public GameObject radarObject;
         public RadarScript radar;
         public GameObject guideObject;
@@ -79,7 +80,7 @@ namespace BlockEnhancementMod
         //Guide delay related setting
         MSlider GuideDelaySlider;
         public float guideDelay = 0f;
-        private bool canTrigger = false;
+        //private bool canTrigger = false;
 
         //High power explosion related setting
         MToggle HighExploToggle;
@@ -281,8 +282,8 @@ namespace BlockEnhancementMod
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
-                launchTimeRecorded = canTrigger = bombHasExploded = rocketExploMsgSent = false;
-                activeGuide = (searchModeIndex == 0);
+                launchTimeRecorded /*= canTrigger*/  = bombHasExploded = rocketExploMsgSent = false;
+                //activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
                 searchRange = EnhanceMore ? 100000f : 5000f;
 
@@ -295,7 +296,8 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radar.parentBlock = BB;
+                radar.Setup(BB, searchRange, searchAngle, guidedRocketShowRadar);
+                //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
@@ -306,10 +308,10 @@ namespace BlockEnhancementMod
                 rigidbody.drag = 0f;
 
                 //Initialise radar at the start of simulation
-                radar.searchAngle = searchAngle;
-                radar.CreateFrustumCone(searchRange);
-                radar.showRadar = guidedRocketShowRadar;
-                radar.ClearSavedSets();
+                //radar.searchAngle = searchAngle;
+                //radar.CreateFrustumCone(searchRange);
+                //radar.showRadar = guidedRocketShowRadar;
+                //radar.ClearSavedSets();
 
                 //Stop colliding with its own colliders
                 if (selfColliders.Length > 0)
@@ -321,10 +323,10 @@ namespace BlockEnhancementMod
                 }
 
                 //If Local play, get blocks in the safety range.
-                if (!StatMaster.isMP)
-                {
-                    radar.GetBlocksInSafetyRange();
-                }
+                //if (!StatMaster.isMP)
+                //{
+                //    radar.GetBlocksInSafetyRange();
+                //}
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -333,7 +335,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.SetupGuideController(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100), prediction);
+                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100), prediction);
 
                 //previousVelocity = acceleration = Vector3.zero;
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
@@ -355,6 +357,8 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
+                radar.Switch = rocket.hasFired;
+
                 if (GroupFireKey.IsHeld && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
@@ -367,32 +371,29 @@ namespace BlockEnhancementMod
                     //When toggle auto aim key is released, change the auto aim status
                     if (SwitchGuideModeKey.IsReleased)
                     {
-                        activeGuide = !activeGuide;
-                        radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
+                        //activeGuide = !activeGuide;
+                        //radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
+                        radar.ChangeSearchMode();
                     }
 
-                    if (LockTargetKey.IsPressed && radar.Switch)
+                    if (LockTargetKey.IsPressed/* && radar.Switch*/)
                     {
-                        radar.SendClientTargetNull();
-                        if (radar.SearchMode == RadarScript.SearchModes.Manual)
-                        {
-                            Collider tempCollider = radar.GetTargetManual();
-                            Target tempTarget = radar.ProcessTarget(tempCollider);
-                            radar.SetTarget(tempTarget);
-                        }
+                        //radar.SendClientTargetNull();
+                        //radar.ClearTarget();
+                        //if (radar.SearchMode == RadarScript.SearchModes.Manual)
+                        //{
+                        //    radar.SetTargetManual();
+                        //}
+                        radar.SetTargetManual();
                     }
                 }
-            }
-        }
 
-        public override void SimulateFixedUpdate_EnhancementEnabled()
-        {
-            if (gameObject.activeInHierarchy)
-            {
                 if (rocket.hasFired)
                 {
                     //Activate Detection Zone
-                    if (!radar.Switch && canTrigger) radar.Switch = true;
+                    //if (!radar.Switch /*&& canTrigger*/) /*radar.Switch = true*/;
+                    //if (radar.SearchMode == RadarScript.SearchModes.Auto && radar.target == null) radar.Switch = true;
+                   
 
                     //Activate aerodynamic effect
                     guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
@@ -427,19 +428,23 @@ namespace BlockEnhancementMod
                             }
 
                             //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                            if (Time.time - launchTime >= guideDelay && !canTrigger)
+                            if (Time.time - launchTime >= guideDelay/* && !canTrigger*/)
                             {
-                                canTrigger = true;
+                                //canTrigger = true;
+                                guideController.Switch = true;
                             }
 
                             //Proximity fuse behaviour
-                            if (proximityFuzeActivated && canTrigger)
+                            if (proximityFuzeActivated /*&& canTrigger*/)
                             {
-                                if (radar.target != null)
-                                {
-                                    if (radar.target.positionDiff.magnitude <= proximityRange) StartCoroutine(RocketExplode());
-                                }
-
+                                //if (radar.target != null)
+                                //{
+                                    //if (radar.target.positionDiff.magnitude <= proximityRange+1f) StartCoroutine(RocketExplode());
+                                    if (radar.TargetDistance <= proximityRange + 1f)
+                                    {
+                                        StartCoroutine(RocketExplode());
+                                    }
+                                //}
                             }
                         }
                     }
@@ -464,9 +469,88 @@ namespace BlockEnhancementMod
             }
         }
 
-        void OnCollisionEnter(Collision collision)
+        //public override void SimulateFixedUpdate_EnhancementEnabled()
+        //{
+        //    if (gameObject.activeInHierarchy)
+        //    {
+        //        if (rocket.hasFired)
+        //        {
+        //            //Activate Detection Zone
+        //            if (!radar.Switch && canTrigger) radar.Switch = true;
+
+        //            //Activate aerodynamic effect
+        //            guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
+
+        //            //Let rocket controller know the rocket is fired
+        //            SendRocketFired();
+
+        //            if (!rocket.hasExploded)
+        //            {
+        //                //If no smoke mode is enabled, stop all smoke
+        //                if (noSmoke && !smokeStopped)
+        //                {
+        //                    try
+        //                    {
+        //                        foreach (var smoke in rocket.trail)
+        //                        {
+        //                            smoke.Stop();
+        //                        }
+        //                        smokeStopped = true;
+        //                    }
+        //                    catch { }
+        //                }
+
+        //                if (guidedRocketActivated)
+        //                {
+        //                    //Record the launch time for the guide delay
+        //                    if (!launchTimeRecorded)
+        //                    {
+        //                        launchTimeRecorded = true;
+        //                        launchTime = Time.time;
+
+        //                    }
+
+        //                    //Rocket can be triggered after the time elapsed after firing is greater than guide delay
+        //                    if (Time.time - launchTime >= guideDelay && !canTrigger)
+        //                    {
+        //                        canTrigger = true;
+        //                    }
+
+        //                    //Proximity fuse behaviour
+        //                    if (proximityFuzeActivated && canTrigger)
+        //                    {
+        //                        if (radar.target != null)
+        //                        {
+        //                            if (radar.target.positionDiff.magnitude <= proximityRange) StartCoroutine(RocketExplode());
+        //                        }
+
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        if (rocket.hasExploded && !rocketExploMsgSent)
+        //        {
+        //            Destroy(radarObject);
+        //            Destroy(guideObject);
+        //            try
+        //            {
+        //                if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
+        //                {
+        //                    if (groupedRockets.TryGetValue(GroupFireKey.GetKey(0), out HashSet<TimedRocket> rockets))
+        //                    {
+        //                        rockets.Remove(rocket);
+        //                    }
+        //                }
+        //            }
+        //            catch { }
+        //            rocketExploMsgSent = true;
+        //        }
+        //    }
+        //}
+
+        private void OnCollisionEnter(Collision collision)
         {
-            if (!canTrigger) return;
+            if (/*!canTrigger*/!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
                 if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
@@ -484,6 +568,7 @@ namespace BlockEnhancementMod
             if (!rocket.hasExploded)
             {
                 rocket.ExplodeMessage();
+                OnExplod?.Invoke();
             }
             if (!highExploActivated) yield break;
 

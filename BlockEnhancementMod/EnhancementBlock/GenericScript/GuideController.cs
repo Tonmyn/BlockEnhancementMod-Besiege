@@ -21,6 +21,7 @@ namespace BlockEnhancementMod
         private Vector3 previousPosition = Vector3.zero;
         private Vector3 forwardDirection = Vector3.zero;
         private BlockBehaviour preTargetBlock = null;
+        public bool Switch { get; set; } = false;
 
         public float pFactor, iFactor, dFactor;
         public float integral = 0;
@@ -31,7 +32,7 @@ namespace BlockEnhancementMod
         private Vector3 aeroEffectPosition = Vector3.zero;
         public bool enableAerodynamicEffect = false;
 
-        public void SetupGuideController(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
+        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
         {
             parentBlock = sourceBlock;
             parentRigidbody = sourceRigidbody;
@@ -41,9 +42,9 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
             prediction = sourcePrediction;
             preTargetBlock = new BlockBehaviour();
-            pFactor = 1.25f;
-            iFactor = 10f;
-            dFactor = 0f;
+            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GuideControl_PFactor;
+            iFactor = /*10f*/BlockEnhancementMod.Configuration.GuideControl_IFactor;
+            dFactor =/*5f*/BlockEnhancementMod.Configuration.GuideControl_DFactor;
         }
 
         void FixedUpdate()
@@ -52,6 +53,7 @@ namespace BlockEnhancementMod
             if (parentBlock == null || parentRigidbody == null) return;
             if (blockRadar == null) return;
             if (blockRadar.target == null) return;
+            if (Switch == false) return;
 
             if (enableAerodynamicEffect) AddAerodynamicsToRocketVelocity();
             if (blockRadar.target.block != preTargetBlock)
@@ -84,6 +86,7 @@ namespace BlockEnhancementMod
             // Add force to rotate rocket
             parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
             parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
+
         }
 
         private void AddAerodynamicsToRocketVelocity()
