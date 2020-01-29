@@ -51,7 +51,6 @@ namespace BlockEnhancementMod
             }
 
             ShouldShowGUI = showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu;
-
         }
         private bool IsBuilding()
         {
@@ -76,17 +75,17 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    BlockEnhancementMod.Configuration.EnhanceMore = EnhancementBlock.EnhanceMore = AddToggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.AdditionalFunction);
+                    BlockEnhancementMod.Configuration.EnhanceMore = EnhancementBlock.EnhanceMore = AddToggle(EnhancementBlock.EnhanceMore, new GUIContent(LanguageManager.Instance.CurrentLanguage.AdditionalFunction));
 
-                    if (Friction != AddToggle (Friction, /*new GUIContent*/(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
+                    if (Friction != AddToggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
                     {
                         BlockEnhancementMod.Configuration.Friction = Friction = !Friction;
                         OnFrictionToggle(Friction);
                     }
                 }
-                BlockEnhancementMod.Configuration.DisplayWaring = RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.DisplayWarning);
-                BlockEnhancementMod.Configuration.MarkTarget = RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.MarkTarget);
-                BlockEnhancementMod.Configuration.DisplayRocketCount = RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.DisplayRocketCount);
+                BlockEnhancementMod.Configuration.DisplayWaring = RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
+                BlockEnhancementMod.Configuration.MarkTarget = RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, new GUIContent(LanguageManager.Instance.CurrentLanguage.MarkTarget));
+                BlockEnhancementMod.Configuration.DisplayRocketCount = RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayRocketCount));
             }
             GUILayout.Space(2);
             GUILayout.EndVertical();
@@ -102,10 +101,18 @@ namespace BlockEnhancementMod
             return value;
         }
 
+        private bool AddToggle(bool value, GUIContent content)
+        {
+            var _value = GUILayout.Toggle(value,content);
+            if (_value != value) StartCoroutine(SaveConfig());
+            return _value;
+        }
+
         private IEnumerator SaveConfig()
         {
             yield return new WaitForSeconds(0.3f);
-            Configuration.FormatXDataToConfig(/*Modding.Configuration.GetData(),*/ BlockEnhancementMod.Configuration);
+            Configuration.FormatXDataToConfig(BlockEnhancementMod.Configuration);
+            yield break;
         }
     }
 }

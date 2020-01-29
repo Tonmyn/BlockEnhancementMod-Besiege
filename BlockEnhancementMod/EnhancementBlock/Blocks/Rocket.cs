@@ -23,7 +23,6 @@ namespace BlockEnhancementMod
         public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         public bool removedFromGroup = false;
-        public event Action OnExplod;
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -568,7 +567,6 @@ namespace BlockEnhancementMod
             if (!rocket.hasExploded)
             {
                 rocket.ExplodeMessage();
-                OnExplod?.Invoke();
             }
             if (!highExploActivated) yield break;
 

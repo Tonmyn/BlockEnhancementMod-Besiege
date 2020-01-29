@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
 
         public override void OnLoad()
         {
-            Configuration = Configuration.FormatXDataToConfig(/*Modding.Configuration.GetData()*/);
+            Configuration = Configuration.FormatXDataToConfig();
 
             mod = new GameObject("Block Enhancement Mod");
             UnityEngine.Object.DontDestroyOnLoad(mod);
@@ -35,28 +35,19 @@ namespace BlockEnhancementMod
 
     public class Configuration
     {
-        [Modding.Serialization.CanBeEmpty]
         public bool EnhanceMore = false;
-        [Modding.Serialization.CanBeEmpty]
         public bool ShowUI = true;
-        [Modding.Serialization.CanBeEmpty]
         public bool Friction = false;
-        [Modding.Serialization.CanBeEmpty]
         public bool DisplayWaring = true;
-        [Modding.Serialization.CanBeEmpty]
         public bool MarkTarget = true;
-        [Modding.Serialization.CanBeEmpty]
         public bool DisplayRocketCount = true;
 
-        [Modding.Serialization.CanBeEmpty]
         public float GuideControl_PFactor = 1.25f;
-        [Modding.Serialization.CanBeEmpty]
         public float GuideControl_IFactor = 10f;
-        [Modding.Serialization.CanBeEmpty]
         public float GuideControl_DFactor = 0f;
 
 
-        public static Configuration FormatXDataToConfig(/*XDataHolder xDataHolder,*/Configuration config = null)
+        public static Configuration FormatXDataToConfig(Configuration config = null)
         {
             XDataHolder xDataHolder = Modding.Configuration.GetData();
             bool reWrite = true;
