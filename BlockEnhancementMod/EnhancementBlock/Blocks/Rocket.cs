@@ -284,7 +284,7 @@ namespace BlockEnhancementMod
                 launchTimeRecorded /*= canTrigger*/  = bombHasExploded = rocketExploMsgSent = false;
                 //activeGuide = (searchModeIndex == 0);
                 searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
-                searchRange = EnhanceMore ? 100000f : 5000f;
+                searchRange = EnhanceMore ? 5000f : 2000f;
 
                 //Add radar
                 Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
@@ -356,7 +356,7 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                radar.Switch = rocket.hasFired;
+     
 
                 if (GroupFireKey.IsHeld && !StatMaster.isClient)
                 {
@@ -365,27 +365,33 @@ namespace BlockEnhancementMod
                         StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
                     }
                 }
-                if (guidedRocketActivated)
-                {
-                    //When toggle auto aim key is released, change the auto aim status
-                    if (SwitchGuideModeKey.IsReleased)
-                    {
-                        //activeGuide = !activeGuide;
-                        //radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
-                        radar.ChangeSearchMode();
-                    }
 
-                    if (LockTargetKey.IsPressed/* && radar.Switch*/)
+                if (radar != null)
+                {
+                    radar.Switch = rocket.hasFired;
+
+                    if (guidedRocketActivated)
                     {
-                        //radar.SendClientTargetNull();
-                        //radar.ClearTarget();
-                        //if (radar.SearchMode == RadarScript.SearchModes.Manual)
-                        //{
-                        //    radar.SetTargetManual();
-                        //}
-                        radar.SetTargetManual();
+                        //When toggle auto aim key is released, change the auto aim status
+                        if (SwitchGuideModeKey.IsReleased)
+                        {
+                            //activeGuide = !activeGuide;
+                            //radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
+                            radar.ChangeSearchMode();
+                        }
+
+                        if (LockTargetKey.IsPressed/* && radar.Switch*/)
+                        {            
+                            //radar.SendClientTargetNull();
+                            //radar.ClearTarget();
+                            //if (radar.SearchMode == RadarScript.SearchModes.Manual)
+                            //{
+                            //    radar.SetTargetManual();
+                            //}
+                            radar.SetTargetManual();
+                        }
                     }
-                }
+                }           
 
                 if (rocket.hasFired)
                 {

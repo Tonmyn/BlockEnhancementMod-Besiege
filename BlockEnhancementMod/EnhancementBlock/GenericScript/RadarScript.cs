@@ -31,7 +31,7 @@ namespace BlockEnhancementMod
         //public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        [Obsolete]private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
         //private Vector3 forwardDirection = Vector3.zero;
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         private Texture2D redSquareAim;
@@ -143,8 +143,8 @@ namespace BlockEnhancementMod
                         else if (tempTarget.WarningLevel == target.WarningLevel)
                         {
                             float tempDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
-                            float targetDistance = Vector3.Distance(target.transform.position, parentBlock.transform.position);
-                            if (tempDistance < targetDistance)
+
+                            if (tempDistance < TargetDistance)
                             {
                                 SetTarget(tempTarget);
                             }
@@ -279,7 +279,7 @@ namespace BlockEnhancementMod
 
             target = tempTarget;
             target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
-            meshCollider.enabled = false;
+            //DeactivateDetectionZone();
 
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
@@ -301,10 +301,9 @@ namespace BlockEnhancementMod
 
         private void OnTriggerEnter(Collider collider)
         {
-
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
             if (collider.isTrigger) return;
-
+    
             Target triggeredTarget = ProcessTarget(collider);
             if (triggeredTarget == null) return;
 
@@ -336,20 +335,23 @@ namespace BlockEnhancementMod
             }
         }
 
-        //void OnTriggerExit(Collider collider)
-        //{
-        //    if (SearchMode != SearchModes.Auto) return;
-        //    if (collider.isTrigger) return;
+        void OnTriggerExit(Collider collider)
+        {
+            if (SearchMode != SearchModes.Auto) return;
+            if (collider.isTrigger) return;
 
-        //    BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-        //    if (triggeredBB == null) return;
+            BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+            if (triggeredBB == null) return;
 
-        //    if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
-        //    {
-        //        checkedTargetDic.Remove(triggeredBB);
-        //        checkedTarget.Remove(targetInDict);
-        //    }
-        //}
+            if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
+            {
+                if (inRadarArea(triggeredBB.transform.position))
+                {
+                    checkedTargetDic.Remove(triggeredBB);
+                    checkedTarget.Remove(targetInDict);
+                }
+            }
+        }
 
         private Target ProcessTarget(Collider collider)
         {
@@ -444,7 +446,7 @@ namespace BlockEnhancementMod
         {
             checkedTarget.Clear();
             checkedTargetDic.Clear();
-            blocksInSafetyRange.Clear();
+            blocksInSafetyRange.Clear(); 
         }
         [Obsolete]
         public void GetBlocksInSafetyRange()
@@ -472,6 +474,8 @@ namespace BlockEnhancementMod
 
         public void ChangeSearchMode()
         {
+            //if (!Switch) return;
+            
             ClearTarget();
             if (SearchMode == SearchModes.Auto)
             {
@@ -485,6 +489,30 @@ namespace BlockEnhancementMod
                 //do something...
                 if (Switch) ActivateDetectionZone();
             }
+        }
+        public bool inRadarArea(Vector3 position_In_World)
+        {
+            var value = false;
+            if (Vector3.Dot(position_In_World - transform.position, ForwardDirection) > 0)
+            {
+                var distance = position_In_World - transform.position;
+
+                if (distance.magnitude < SearchRadius)
+                {
+                    if (distance.magnitude > 5f)
+                    {
+                        if (Vector3.Angle(position_In_World - transform.position, ForwardDirection) < (SearchAngle / 2f))
+                        {
+                            value = true;
+                        }
+                    }
+                    else
+                    {
+                        value = true;
+                    }
+                }
+            }
+            return value;
         }
 
         private void CreateFrustumCone(float topRadius, float bottomRadius)
