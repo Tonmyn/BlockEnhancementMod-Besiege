@@ -295,7 +295,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radar.Setup(BB, searchRange, searchAngle, guidedRocketShowRadar);
+                radar.Setup(BB, searchRange, searchAngle, searchModeIndex,guidedRocketShowRadar);
                 //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket

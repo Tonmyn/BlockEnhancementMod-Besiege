@@ -69,7 +69,8 @@ namespace BlockEnhancementMod
             previousPosition = blockRadar.target.transform.position;
 
             // Get the predicted point
-            float pathPredictionTime = Time.fixedDeltaTime * prediction;
+            float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
+            float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
             Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
             Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
 

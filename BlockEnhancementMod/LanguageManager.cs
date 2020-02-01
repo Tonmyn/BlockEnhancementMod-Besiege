@@ -917,7 +917,7 @@ namespace BlockEnhancementMod
 
         public string RemainingRockets { get; } = " ロケット残弾数";
 
-        public string TrackTarget { get; } = "ターゲットを注視";
+        public string TrackTarget { get; } = "ロックオン";
 
         public string GroupedFire { get; } = "同一キーで個別発射";
 
@@ -925,7 +925,7 @@ namespace BlockEnhancementMod
 
         public string AutoGrabberRelease { get; } = "グラバー動作対応";
 
-        public string SearchMode { get; } = "ロックオン";
+        public string SearchMode { get; } = "ロックオンモード";
 
         public string DefaultAuto { get; } = "デフォルト " + Environment.NewLine + "自動ロックオン";
 
@@ -974,7 +974,7 @@ namespace BlockEnhancementMod
         public string PauseTracking { get; } = "注視の" + Environment.NewLine + "停止/再開";
 
         //CV Joint
-        public string CvJoint { get; } = "ユニバーサルジョイント";
+        public string CvJoint { get; } = "ﾕﾆﾊﾞｰｻﾙｼﾞｮｲﾝﾄ";
 
         //Cannon
         public string FireInterval { get; } = "反応速度";
@@ -985,7 +985,7 @@ namespace BlockEnhancementMod
 
         public string CustomBullet { get; } = "砲弾のカスタム";
 
-        public string InheritSize { get; } = "本体スケール";
+        public string InheritSize { get; } = "スケーリング反映";
 
         public string BulletMass { get; } = "砲弾の重さ";
 
@@ -1002,12 +1002,12 @@ namespace BlockEnhancementMod
         //Decoupler
         public string ExplodeForce { get; } = "切り離し時の" + Environment.NewLine + "初速";
 
-        public string ExplodeTorque { get; } = "切り離し時の" + Environment.NewLine + "トルク";
+        public string ExplodeTorque { get; } = "切り離し時の" + Environment.NewLine + "ひねり";
 
 
         //Grip Pad & Piston & Slider & Suspension
-        public List<string> MetalHardness { get; } = new List<string> { "軟質鋼", "中硬鋼", "硬質鋼" };
-        public List<string> WoodenHardness { get; } = new List<string> { "軟質木材", "中硬木材", "硬質木材", "超硬質木材" };
+        public List<string> MetalHardness { get; } = new List<string> { "軟質", "中硬", "硬質" };
+        public List<string> WoodenHardness { get; } = new List<string> { "軟質", "中硬", "硬質", "超硬質" };
 
         //public  string hardness {get;}= "硬さ";
 
@@ -1015,21 +1015,21 @@ namespace BlockEnhancementMod
 
         public string Bounciness { get; } = "弾性";
 
-        //public  string softWood {get;}= "軟質木材";
+        //public  string softWood {get;}= "軟質";
 
-        //public  string midSoftWood {get;}= "中硬木材";
+        //public  string midSoftWood {get;}= "中硬";
 
-        //public  string hardWood {get;}= "硬質木材";
+        //public  string hardWood {get;}= "硬質";
 
-        //public  string veryHardWood {get;}= "超硬質木材";
+        //public  string veryHardWood {get;}= "超硬質";
 
-        //public  string lowCarbonSteel {get;}= "軟質鋼";
+        //public  string lowCarbonSteel {get;}= "軟質";
 
-        //public  string midCarbonSteel {get;}= "中硬鋼";
+        //public  string midCarbonSteel {get;}= "中硬";
 
-        //public  string highCarbonSteel {get;}= "超硬質鋼";
+        //public  string highCarbonSteel {get;}= "超硬質";
 
-        public string Damper { get; } = "バネの反発";
+        public string Damper { get; } = "バネの重さ";
 
         public string Limit { get; } = "距離";
 

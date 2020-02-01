@@ -15,17 +15,24 @@ namespace BlockEnhancementMod
         public float SafetyRadius { get; set; } = 30f;
         public float SearchAngle { get; set; } = 0f;
 
+        public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
+        public Vector3 TargetPosition { get { return target.collider.bounds.center - transform.position; } }
         /// <summary>
         /// Distance of StartPoint to Target
         /// </summary>
         /// <returns>Distance value</returns>
         public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.transform.position); } }
+        /// <summary>
+        /// Angle of StartPoint to Target
+        /// </summary>
+        /// <returns>Angle value</returns>
+        public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
 
         //public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
         private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
-        private Vector3 forwardDirection = Vector3.zero;
+        //private Vector3 forwardDirection = Vector3.zero;
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         private Texture2D redSquareAim;
 
@@ -54,6 +61,7 @@ namespace BlockEnhancementMod
             redSquareAim = RocketsController.redSquareAim;
 
         }
+
 
         //private void FixedUpdate()
         //{
@@ -150,9 +158,9 @@ namespace BlockEnhancementMod
                 bool removeFlag = !target.collider.enabled;
                 bool inSight = false;
 
-                forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-                target.positionDiff = target.collider.bounds.center - transform.position;
-                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+                //forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+                //target.positionDiff = target.collider.bounds.center - transform.position;
+                //target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
 
                 if (!removeFlag)
                 {
@@ -167,11 +175,12 @@ namespace BlockEnhancementMod
                             removeFlag = true;
                         }
                     }
-                    bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
-
-                    if (target.positionDiff.magnitude > 5f)
+                    
+                    //bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
+                    bool forward = Vector3.Dot(/*target.positionDiff*/TargetPosition, ForwardDirection) > 0;
+                    if (/*target.positionDiff.magnitude*/TargetDistance > 5f)
                     {
-                        inSight = forward && target.angleDiff < SearchAngle / 2;
+                        inSight = forward && /*target.angleDiff*/TargetAngle < SearchAngle / 2;
                     }
                     else
                     {
@@ -192,13 +201,14 @@ namespace BlockEnhancementMod
             }
         }
 
-        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, bool showRadar,float safetyRadius = 30f)
+        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar,float safetyRadius = 30f)
         {
             this.parentBlock = parentBlock;
             this.SearchAngle = searchAngle;
             this.ShowRadar = showRadar;
             this.SearchRadius = searchRadius;
             this.SafetyRadius = safetyRadius;
+            this.SearchMode = (SearchModes)searchMode;
             CreateFrustumCone(safetyRadius, searchRadius);
             ClearSavedSets();
         }
@@ -377,7 +387,7 @@ namespace BlockEnhancementMod
             // if is own machine
             if (block != null)
             {
-                if (StatMaster.isMP)
+                if (StatMaster.isMP && StatMaster.isClient)
                 {
                     if (block.Team == MPTeam.None)
                     {
@@ -669,7 +679,7 @@ namespace BlockEnhancementMod
     {
         public Transform transform;
         public Collider collider;
-        public BlockBehaviour block;
+        public BlockBehaviour block; 
         public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;
