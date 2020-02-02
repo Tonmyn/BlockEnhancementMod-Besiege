@@ -22,6 +22,7 @@ namespace BlockEnhancementMod
     {
         { "简体中文",new Chinese()},
         { "English",new English()},
+            { "日本語",new Japanese()},
     };
 
         void Awake()
@@ -893,5 +894,180 @@ namespace BlockEnhancementMod
         public string EnabledOnAwake { get; } = "Enabled On Awake";
         public string ToggleMode { get; } = "Toggle Mode";
         public string LiftIndicator { get; } = "Lift Indicator";
+    }
+
+    public class Japanese : ILanguage
+    {
+        //Game
+        public string ModSettings { get; } = "ブロック エンハンスメントMod";
+        public string UnifiedFriction { get; } = " 摩擦を統一する";
+
+        //Enhancement Block
+        public string Enhancement { get; } = "機能拡張";
+        public string AdditionalFunction { get; } = " さらに拡張する";
+
+        //Rocket & Camera
+        public string DisplayWarning { get; } = " 一人称カメラでロケット警告表示";
+
+        public string ShowRadar { get; } = " レーダー表示";
+
+        public string MarkTarget { get; } = " ロケットのターゲット枠表示";
+
+        public string DisplayRocketCount { get; } = " ロケットの残数表示";
+
+        public string RemainingRockets { get; } = " ロケット残弾数";
+
+        public string TrackTarget { get; } = "ロックオン";
+
+        public string GroupedFire { get; } = "同一キーで個別発射";
+
+        public string GroupFireRate { get; } = "発射間隔";
+
+        public string AutoGrabberRelease { get; } = "グラバー動作対応";
+
+        public string SearchMode { get; } = "ロックオンモード";
+
+        public string DefaultAuto { get; } = "デフォルト " + Environment.NewLine + "自動ロックオン";
+
+        public string DefaultManual { get; } = "デフォルト " + Environment.NewLine + " 手動ロックオン";
+
+        public string ZoomControlMode { get; } = "Zoom Contorol";
+
+        public string MouseWheelZoomControl { get; } = "ズーム" + Environment.NewLine + "マウスホイール";
+
+        public string KeyboardZoomControl { get; } = "ズーム" + Environment.NewLine + "キーボード";
+
+        public string Prediction { get; } = "予測誘導";
+
+        public string ImpactFuze { get; } = "衝撃起爆";
+
+        public string ProximityFuze { get; } = "近接起爆";
+
+        public string NoSmoke { get; } = "煙なし";
+
+        public string HighExplo { get; } = "ボムの爆発";
+
+        public string SearchAngle { get; } = "索敵角度";
+
+        public string CloseRange { get; } = "起爆" + Environment.NewLine + "距離";
+
+        public string TorqueOnRocket { get; } = "索敵時の" + Environment.NewLine + "旋回トルク";
+
+        public string RocketStability { get; } = "発射後に" + Environment.NewLine + "空力ブロック化";
+
+        public string GuideDelay { get; } = "誘導遅延";
+
+        public string LockTarget { get; } = "手動ロックオン";
+
+        public string SwitchGuideMode { get; } = "自動/手動" + Environment.NewLine + "切り換え";
+
+        public string RecordTarget { get; } = "ターゲット記憶";
+
+        public string FirstPersonSmooth { get; } = "一人称時スムース";
+
+        public string ZoomIn { get; } = "ズームイン";
+
+        public string ZoomOut { get; } = "ズームアウト";
+
+        public string ZoomSpeed { get; } = "ズームスピード";
+
+        public string PauseTracking { get; } = "注視の" + Environment.NewLine + "停止/再開";
+
+        //CV Joint
+        public string CvJoint { get; } = "ﾕﾆﾊﾞｰｻﾙｼﾞｮｲﾝﾄ";
+
+        //Cannon
+        public string FireInterval { get; } = "反応速度";
+
+        public string RandomDelay { get; } = "ランダム遅延";
+
+        public string Recoil { get; } = "反動";
+
+        public string CustomBullet { get; } = "砲弾のカスタム";
+
+        public string InheritSize { get; } = "スケーリング反映";
+
+        public string BulletMass { get; } = "砲弾の重さ";
+
+        public string BulletDrag { get; } = "砲弾の抗力";
+
+        public string BulletDelayCollision { get; } = "衝突の遅延";
+
+        public string Trail { get; } = "軌跡";
+
+        public string TrailLength { get; } = "軌跡の長さ";
+
+        public string TrailColor { get; } = "軌跡の色";
+
+        //Decoupler
+        public string ExplodeForce { get; } = "切り離し時の" + Environment.NewLine + "初速";
+
+        public string ExplodeTorque { get; } = "切り離し時の" + Environment.NewLine + "ひねり";
+
+
+        //Grip Pad & Piston & Slider & Suspension
+        public List<string> MetalHardness { get; } = new List<string> { "軟質", "中硬", "硬質" };
+        public List<string> WoodenHardness { get; } = new List<string> { "軟質", "中硬", "硬質", "超硬質" };
+
+        //public  string hardness {get;}= "硬さ";
+
+        public string Friction { get; } = "摩擦";
+
+        public string Bounciness { get; } = "弾性";
+
+        //public  string softWood {get;}= "軟質";
+
+        //public  string midSoftWood {get;}= "中硬";
+
+        //public  string hardWood {get;}= "硬質";
+
+        //public  string veryHardWood {get;}= "超硬質";
+
+        //public  string lowCarbonSteel {get;}= "軟質";
+
+        //public  string midCarbonSteel {get;}= "中硬";
+
+        //public  string highCarbonSteel {get;}= "超硬質";
+
+        public string Damper { get; } = "バネの重さ";
+
+        public string Limit { get; } = "距離";
+
+        public string Extend { get; } = "伸長";
+
+        public string Retract { get; } = "収縮";
+
+        public string HydraulicMode { get; } = "油圧モード ";
+
+        public string FeedSpeed { get; } = "油圧の強さ";
+
+        public string ExtendLimit { get; } = "伸長" + Environment.NewLine + "距離";
+
+        public string RetractLimit { get; } = "収縮" + Environment.NewLine + "距離";
+
+        //Small Wheel
+        public string RotatingSpeed { get; } = "軸の" + Environment.NewLine + "回転速度";
+        public string CustomCollider { get; } = "カスタムコライダー";
+        public string ShowCollider { get; } = "コライダー表示";
+
+        //Spring 
+        public string Drag { get; } = "抗力";
+
+        //Steering
+        public string ReturnToCenter { get; } = "自動で戻る";
+        public string Near { get; } = "最短距離";
+
+        //FlameThrower
+        public string ThrustForce { get; } = "推進力";
+        public string FlameColor { get; } = "炎の色";
+
+        //WaterCannon
+        public string Boiling { get; } = "常に加熱";
+
+        //Propeller
+        public string Enabled { get; } = "有効/無効化";
+        public string EnabledOnAwake { get; } = "開始時に有効化";
+        public string ToggleMode { get; } = "トグルモード";
+        public string LiftIndicator { get; } = "揚力方向表示";
     }
 }

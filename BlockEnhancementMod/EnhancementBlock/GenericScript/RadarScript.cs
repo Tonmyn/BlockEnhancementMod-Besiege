@@ -10,16 +10,30 @@ namespace BlockEnhancementMod
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
-        public bool showRadar = false;
-        public float radius = 2000f;
-        public float safetyRadius = 1f;
-        public float searchAngle = 0f;
-        public float minSearchRadiusWhenLaunch = 30;
+        public bool ShowRadar { get; set; } = false;
+        public float SearchRadius { get; set; } = 2000f;
+        public float SafetyRadius { get; set; } = 30f;
+        public float SearchAngle { get; set; } = 0f;
+
+        public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
+        public Vector3 TargetPosition { get { return target.collider.bounds.center - transform.position; } }
+        /// <summary>
+        /// Distance of StartPoint to Target
+        /// </summary>
+        /// <returns>Distance value</returns>
+        public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.transform.position); } }
+        /// <summary>
+        /// Angle of StartPoint to Target
+        /// </summary>
+        /// <returns>Angle value</returns>
+        public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
+
+        //public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
-        private Vector3 forwardDirection = Vector3.zero;
-        public static bool MarkTarget { get; internal set; } = true;
+        [Obsolete]private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        //private Vector3 forwardDirection = Vector3.zero;
+        public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;
@@ -41,19 +55,102 @@ namespace BlockEnhancementMod
             Manual = 1
         }
 
-        void Awake()
+        private void Awake()
         {
-            OnTarget += (value) => { };
             gameObject.layer = CollisionLayer;
             redSquareAim = RocketsController.redSquareAim;
 
         }
 
-        void FixedUpdate()
+
+        //private void FixedUpdate()
+        //{
+            //if (forwardDirection == Vector3.zero)
+            //{
+            //forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+            //}
+
+            //if (Switch && target != null)
+            //{
+            //    bool removeFlag = !target.collider.enabled;
+            //    bool inSight = false;
+
+            //    //target.positionDiff = target.collider.bounds.center - transform.position;
+            //    //target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+
+            //    if (!removeFlag)
+            //    {
+            //        if (!target.isRocket && target.block.blockJoint == null)
+            //        {
+            //            removeFlag = true;
+            //        }
+            //        if (target.hasFireTag)
+            //        {
+            //            if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
+            //            {
+            //                removeFlag = true;
+            //            }
+            //        }
+            //        bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
+            //        inSight = forward && target.angleDiff < searchAngle / 2;
+            //    }
+
+            //    if (removeFlag || !inSight)
+            //    {
+            //        if (checkedTargetDic.TryGetValue(target.block, out Target targetInDict))
+            //        {
+            //            checkedTargetDic.Remove(target.block);
+            //            checkedTarget.Remove(targetInDict);
+            //            //target = null;
+            //        }
+            //        SendClientTargetNull();
+            //    }
+            //}
+        //}
+
+        private void Update()
         {
-            if (forwardDirection == Vector3.zero)
+            if (lastSwitchState != Switch)
             {
-                forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+                lastSwitchState = Switch;
+                if (Switch)
+                {
+                    if (SearchMode == SearchModes.Auto)
+                    {
+                        ActivateDetectionZone();
+                    }
+                }
+                else
+                {
+                    DeactivateDetectionZone();
+                }
+            }
+
+            if (!Switch || SearchMode == SearchModes.Manual) return;
+
+            if (target == null && checkedTarget.Count > 0)
+            {
+                target = new Target(Target.warningLevel.dummyValue);
+
+                foreach (var tempTarget in checkedTarget)
+                {
+                    if (tempTarget != null)
+                    {
+                        if (tempTarget.WarningLevel > target.WarningLevel)
+                        {
+                            SetTarget(tempTarget);
+                        }
+                        else if (tempTarget.WarningLevel == target.WarningLevel)
+                        {
+                            float tempDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+
+                            if (tempDistance < TargetDistance)
+                            {
+                                SetTarget(tempTarget);
+                            }
+                        }
+                    }
+                }
             }
 
             if (Switch && target != null)
@@ -61,8 +158,9 @@ namespace BlockEnhancementMod
                 bool removeFlag = !target.collider.enabled;
                 bool inSight = false;
 
-                target.positionDiff = target.collider.bounds.center - transform.position;
-                target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
+                //forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+                //target.positionDiff = target.collider.bounds.center - transform.position;
+                //target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
 
                 if (!removeFlag)
                 {
@@ -77,8 +175,17 @@ namespace BlockEnhancementMod
                             removeFlag = true;
                         }
                     }
-                    bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
-                    inSight = forward && target.angleDiff < searchAngle / 2;
+                    
+                    //bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
+                    bool forward = Vector3.Dot(/*target.positionDiff*/TargetPosition, ForwardDirection) > 0;
+                    if (/*target.positionDiff.magnitude*/TargetDistance > 5f)
+                    {
+                        inSight = forward && /*target.angleDiff*/TargetAngle < SearchAngle / 2;
+                    }
+                    else
+                    {
+                        inSight = forward;
+                    }
                 }
 
                 if (removeFlag || !inSight)
@@ -87,58 +194,33 @@ namespace BlockEnhancementMod
                     {
                         checkedTargetDic.Remove(target.block);
                         checkedTarget.Remove(targetInDict);
+                        target = null;
                     }
                     SendClientTargetNull();
                 }
             }
         }
 
-        void Update()
+        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar,float safetyRadius = 30f)
         {
-            if (lastSwitchState != Switch)
+            this.parentBlock = parentBlock;
+            this.SearchAngle = searchAngle;
+            this.ShowRadar = showRadar;
+            this.SearchRadius = searchRadius;
+            this.SafetyRadius = safetyRadius;
+            this.SearchMode = (SearchModes)searchMode;
+            CreateFrustumCone(safetyRadius, searchRadius);
+            ClearSavedSets();
+        }
+        public void SetTargetManual()
+        {
+            if (SearchMode == SearchModes.Manual)
             {
-                lastSwitchState = Switch;
-                if (Switch)
-                {
-                    ActivateDetectionZone();
-                }
-                else
-                {
-                    DeactivateDetectionZone();
-                }
-            }
-
-            if (!Switch || SearchMode == SearchModes.Manual) return;
-
-            if (target == null && checkedTarget.Count > 0)
-            {
-                target = new Target
-                {
-                    warningLevel = Target.WarningLevel.dummyValue,
-                };
-                foreach (var tempTarget in checkedTarget)
-                {
-                    if (tempTarget != null)
-                    {
-                        if (tempTarget.warningLevel > target.warningLevel)
-                        {
-                            SetTarget(tempTarget);
-                        }
-                        else if (tempTarget.warningLevel == target.warningLevel)
-                        {
-                            float tempDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
-                            float targetDistance = Vector3.Distance(target.transform.position, parentBlock.transform.position);
-                            if (tempDistance < targetDistance)
-                            {
-                                SetTarget(tempTarget);
-                            }
-                        }
-                    }
-                }
+                ClearTarget();
+                SetTarget(ProcessTarget(getTargetManual()));
             }
         }
-
-        public Collider GetTargetManual()
+        private Collider getTargetManual()
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (StatMaster.isClient)
@@ -163,11 +245,13 @@ namespace BlockEnhancementMod
                         BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
                         if (levelEntity != null || blockBehaviour != null)
                         {
-                            if ((hits[i].transform.position - transform.position).magnitude >= minSearchRadiusWhenLaunch)
-                            {
-                                tempCollider = hits[i].collider;
-                                break;
-                            }
+                            tempCollider = hits[i].collider;
+                            break;
+                            //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
+                            //{
+                            //    tempCollider = hits[i].collider;
+                            //    break;
+                            //}
                         }
                     }
                 }
@@ -179,7 +263,7 @@ namespace BlockEnhancementMod
                         BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
                         if (levelEntity != null || blockBehaviour != null)
                         {
-                            if ((rayHit.transform.position - transform.position).magnitude >= minSearchRadiusWhenLaunch)
+                            if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
                             {
                                 tempCollider = rayHit.collider;
                             }
@@ -195,18 +279,31 @@ namespace BlockEnhancementMod
 
             target = tempTarget;
             target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
+            //DeactivateDetectionZone();
 
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            OnTarget.Invoke(target);
+            //try
+            //{
+            //    checkedTargetDic.Remove(target.block);
+            //    checkedTarget.Remove(target);
+            //}
+            //catch{ }
+            OnTarget?.Invoke(target);
+        }
+        public void ClearTarget()
+        {
+            target = null;
+            ClearSavedSets();
+            SendClientTargetNull();
         }
 
-        void OnTriggerEnter(Collider collider)
+        private void OnTriggerEnter(Collider collider)
         {
-            if (SearchMode != SearchModes.Auto) return;
+            if ((SearchMode != SearchModes.Auto) || !Switch) return;
             if (collider.isTrigger) return;
-
+    
             Target triggeredTarget = ProcessTarget(collider);
             if (triggeredTarget == null) return;
 
@@ -221,15 +318,15 @@ namespace BlockEnhancementMod
                 }
                 else
                 {
-                    if (triggeredTarget.warningLevel > target.warningLevel)
+                    if (triggeredTarget.WarningLevel > target.WarningLevel)
                     {
                         SetTarget(triggeredTarget);
                     }
-                    else if (triggeredTarget.warningLevel == target.warningLevel)
+                    else if (triggeredTarget.WarningLevel == target.WarningLevel)
                     {
                         float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
-                        float targetDistance = Vector3.Distance(target.transform.position, transform.position);
-                        if (aimDistance < targetDistance)
+
+                        if (aimDistance < TargetDistance)
                         {
                             SetTarget(triggeredTarget);
                         }
@@ -248,12 +345,15 @@ namespace BlockEnhancementMod
 
             if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
             {
-                checkedTargetDic.Remove(triggeredBB);
-                checkedTarget.Remove(targetInDict);
+                if (inRadarArea(triggeredBB.transform.position))
+                {
+                    checkedTargetDic.Remove(triggeredBB);
+                    checkedTarget.Remove(targetInDict);
+                }
             }
         }
 
-        public Target ProcessTarget(Collider collider)
+        private Target ProcessTarget(Collider collider)
         {
             if (collider == null) return null;
 
@@ -261,7 +361,6 @@ namespace BlockEnhancementMod
 
             // If not a block
             if (block == null && SearchMode == SearchModes.Auto) return null;
-
             // if not a rocket and have nothing connected to
             if (block.BlockID != (int)BlockType.Rocket)
             {
@@ -273,7 +372,6 @@ namespace BlockEnhancementMod
                 {
                     return null;
                 }
-                
                 //if (block.iJointTo == null && block.jointsToMe == null)
                 //{
                 //    return null;
@@ -291,7 +389,7 @@ namespace BlockEnhancementMod
             // if is own machine
             if (block != null)
             {
-                if (StatMaster.isMP)
+                if (StatMaster.isMP && StatMaster.isClient)
                 {
                     if (block.Team == MPTeam.None)
                     {
@@ -308,17 +406,19 @@ namespace BlockEnhancementMod
                         }
                     }
                 }
-                else
-                {
-                    if (blocksInSafetyRange.Contains(block))
-                    {
-                        return null;
-                    }
-                }
+                //else
+                //{
+                //    if (blocksInSafetyRange.Contains(block))
+                //    {
+                //        return null;
+                //    }
+                //}
+
             }
 
             FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();
             Rigidbody rigidbody = collider.gameObject.GetComponentInParent<Rigidbody>();
+
             if (rigidbody == null) return null;
 
             Target tempTarget = new Target
@@ -339,20 +439,19 @@ namespace BlockEnhancementMod
                     return null;
                 }
             }
-
             return tempTarget;
         }
 
-        public void ClearSavedSets()
+        private void ClearSavedSets()
         {
             checkedTarget.Clear();
             checkedTargetDic.Clear();
-            blocksInSafetyRange.Clear();
+            blocksInSafetyRange.Clear(); 
         }
-
+        [Obsolete]
         public void GetBlocksInSafetyRange()
         {
-            Collider[] overlappedColliders = Physics.OverlapSphere(transform.parent.position, minSearchRadiusWhenLaunch, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+            Collider[] overlappedColliders = Physics.OverlapSphere(transform.parent.position,/* minSearchRadiusWhenLaunch*/0, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
             foreach (var collider in overlappedColliders)
             {
                 BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
@@ -362,14 +461,12 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
-        public void ActivateDetectionZone()
+        private void ActivateDetectionZone()
         {
             meshCollider.enabled = true;
-            meshRenderer.enabled = showRadar;
+            meshRenderer.enabled = ShowRadar;
         }
-
-        public void DeactivateDetectionZone()
+        private void DeactivateDetectionZone()
         {
             meshCollider.enabled = false;
             meshRenderer.enabled = false;
@@ -377,6 +474,9 @@ namespace BlockEnhancementMod
 
         public void ChangeSearchMode()
         {
+            //if (!Switch) return;
+            
+            ClearTarget();
             if (SearchMode == SearchModes.Auto)
             {
                 SearchMode = SearchModes.Manual;
@@ -387,17 +487,41 @@ namespace BlockEnhancementMod
             {
                 SearchMode = SearchModes.Auto;
                 //do something...
+                if (Switch) ActivateDetectionZone();
             }
-            SendClientTargetNull();
+        }
+        public bool inRadarArea(Vector3 position_In_World)
+        {
+            var value = false;
+            if (Vector3.Dot(position_In_World - transform.position, ForwardDirection) > 0)
+            {
+                var distance = position_In_World - transform.position;
+
+                if (distance.magnitude < SearchRadius)
+                {
+                    if (distance.magnitude > 5f)
+                    {
+                        if (Vector3.Angle(position_In_World - transform.position, ForwardDirection) < (SearchAngle / 2f))
+                        {
+                            value = true;
+                        }
+                    }
+                    else
+                    {
+                        value = true;
+                    }
+                }
+            }
+            return value;
         }
 
-        public void CreateFrustumCone(float bottomRadius)
+        private void CreateFrustumCone(float topRadius, float bottomRadius)
         {
-            float topHeight = safetyRadius;
+            float topHeight = topRadius;
             float height = bottomRadius - topHeight;
 
-            float radiusTop = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * topHeight + 0.5f;
-            float radiusBottom = Mathf.Tan(searchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
+            float radiusTop = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * topHeight + 0.5f;
+            float radiusBottom = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
 
             //越高越精细
             int numVertices = 5 + 10;
@@ -486,8 +610,7 @@ namespace BlockEnhancementMod
             Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/transform.parent.GetComponent<BlockBehaviour>());
             ModNetworking.SendToHost(rayToHostMsg);
         }
-
-        public void SendTargetToClient()
+        private void SendTargetToClient()
         {
             if (StatMaster.isHosting)
             {
@@ -527,12 +650,11 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
-        public void SendClientTargetNull()
+        private void SendClientTargetNull()
         {
-            Switch = true;
-            target = null;
-            OnTarget.Invoke(target);
+            //Switch = true;
+            //target = null;
+            //OnTarget?.Invoke(target);
 
             if (StatMaster.isHosting)
             {
@@ -553,25 +675,31 @@ namespace BlockEnhancementMod
                     return;
                 }
             }
-            if (!Switch) return;
+            //if (!Switch) return;
             DrawTargetRedSquare();
-        }
 
-        private void DrawTargetRedSquare()
-        {
-            if (MarkTarget)
+            void DrawTargetRedSquare()
             {
-                if (target != null)
+                if (MarkTarget)
                 {
-                    Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
-                    if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
+                    if (target != null)
                     {
-                        int squareWidth = 16;
-                        Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-                        GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), redSquareAim);
+                        Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                        if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
+                        {
+                            int squareWidth = 16;
+                            Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
+                            GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), redSquareAim);
+                        }
                     }
                 }
             }
+        }
+        private void OnDestroy()
+        {
+            Switch = false;
+            ClearTarget();
+            ClearSavedSets();
         }
     }
 
@@ -579,7 +707,7 @@ namespace BlockEnhancementMod
     {
         public Transform transform;
         public Collider collider;
-        public BlockBehaviour block;
+        public BlockBehaviour block; 
         public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;
@@ -593,9 +721,9 @@ namespace BlockEnhancementMod
         public float angleDiff = 0f;
         public Vector3 acceleration = Vector3.zero;
 
-        public WarningLevel warningLevel = 0;
+        public warningLevel WarningLevel { get; private set; } = 0;
 
-        public enum WarningLevel
+        public enum warningLevel
         {
             normalBlockValue = 0,
             bombValue = 32,
@@ -607,6 +735,12 @@ namespace BlockEnhancementMod
             dummyValue = -1
         }
 
+        public Target() { }
+        public Target(warningLevel warningLevel)
+        {
+            WarningLevel = warningLevel;
+        }
+
         public void SetTargetWarningLevel()
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
@@ -616,10 +750,10 @@ namespace BlockEnhancementMod
                 switch (block.BlockID)
                 {
                     default:
-                        warningLevel = WarningLevel.normalBlockValue;
+                        WarningLevel = warningLevel.normalBlockValue;
                         break;
                     case (int)BlockType.Rocket:
-                        warningLevel = WarningLevel.guidedRocketValue;
+                        WarningLevel = warningLevel.guidedRocketValue;
                         isRocket = true;
                         rocket = collidedObject.GetComponentInParent<TimedRocket>();
                         if (rocket == null)
@@ -628,7 +762,7 @@ namespace BlockEnhancementMod
                         }
                         break;
                     case (int)BlockType.Bomb:
-                        warningLevel = WarningLevel.bombValue;
+                        WarningLevel = warningLevel.bombValue;
                         isBomb = true;
                         bomb = collidedObject.GetComponentInParent<ExplodeOnCollideBlock>();
                         if (bomb == null)
@@ -637,28 +771,28 @@ namespace BlockEnhancementMod
                         }
                         break;
                     case (int)BlockType.WaterCannon:
-                        warningLevel = WarningLevel.waterCannonValue;
+                        WarningLevel = warningLevel.waterCannonValue;
                         break;
                     case (int)BlockType.FlyingBlock:
-                        warningLevel = WarningLevel.flyingBlockValue;
+                        WarningLevel = warningLevel.flyingBlockValue;
                         break;
                     case (int)BlockType.Flamethrower:
-                        warningLevel = WarningLevel.flameThrowerValue;
+                        WarningLevel = warningLevel.flameThrowerValue;
                         break;
                     case (int)BlockType.CogMediumPowered:
-                        warningLevel = WarningLevel.cogMotorValue;
+                        WarningLevel = warningLevel.cogMotorValue;
                         break;
                     case (int)BlockType.LargeWheel:
-                        warningLevel = WarningLevel.cogMotorValue;
+                        WarningLevel = warningLevel.cogMotorValue;
                         break;
                     case (int)BlockType.SmallWheel:
-                        warningLevel = WarningLevel.cogMotorValue;
+                        WarningLevel = warningLevel.cogMotorValue;
                         break;
                 }
             }
             else
             {
-                warningLevel = WarningLevel.normalBlockValue;
+                WarningLevel = warningLevel.normalBlockValue;
             }
         }
     }

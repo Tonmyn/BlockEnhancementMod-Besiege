@@ -1,6 +1,7 @@
 ﻿using BlockEnhancementMod.Blocks;
 using Modding;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,8 @@ namespace BlockEnhancementMod
     {
 
         public override bool ShouldShowGUI { get; set; } = true;
-        public bool showGUI = true;
-        public bool Friction = false;
+        public bool showGUI = BlockEnhancementMod.Configuration.ShowUI;
+        public bool Friction = BlockEnhancementMod.Configuration.Friction;
 
         public Action<bool> OnFrictionToggle;
         private void FrictionToggle(bool value)
@@ -45,11 +46,11 @@ namespace BlockEnhancementMod
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
             {
-                showGUI = !showGUI;
+                BlockEnhancementMod.Configuration.ShowUI = showGUI = !showGUI;
+                StartCoroutine(SaveConfig());
             }
 
             ShouldShowGUI = showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu;
-
         }
         private bool IsBuilding()
         {
@@ -74,23 +75,44 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    EnhancementBlock.EnhanceMore = GUILayout.Toggle(EnhancementBlock.EnhanceMore, LanguageManager.Instance.CurrentLanguage.AdditionalFunction);
+                    BlockEnhancementMod.Configuration.EnhanceMore = EnhancementBlock.EnhanceMore = AddToggle(EnhancementBlock.EnhanceMore, new GUIContent(LanguageManager.Instance.CurrentLanguage.AdditionalFunction));
 
-                    if (Friction != GUILayout.Toggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
+                    if (Friction != AddToggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
                     {
-                        Friction = !Friction;
+                        BlockEnhancementMod.Configuration.Friction = Friction = !Friction;
                         OnFrictionToggle(Friction);
                     }
                 }
-                RocketsController.DisplayWarning = GUILayout.Toggle(RocketsController.DisplayWarning, LanguageManager.Instance.CurrentLanguage.DisplayWarning);
-                RadarScript.MarkTarget = GUILayout.Toggle(RadarScript.MarkTarget, LanguageManager.Instance.CurrentLanguage.MarkTarget);
-                RocketsController.DisplayRocketCount = GUILayout.Toggle(RocketsController.DisplayRocketCount, LanguageManager.Instance.CurrentLanguage.DisplayRocketCount);
+                BlockEnhancementMod.Configuration.DisplayWaring = RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
+                BlockEnhancementMod.Configuration.MarkTarget = RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, new GUIContent(LanguageManager.Instance.CurrentLanguage.MarkTarget));
+                BlockEnhancementMod.Configuration.DisplayRocketCount = RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayRocketCount));
             }
             GUILayout.Space(2);
             GUILayout.EndVertical();
             GUILayout.Space(10);
             GUILayout.EndHorizontal();
             GUI.DragWindow();
+        }
+
+        private bool AddToggle(bool value,string text)
+        {
+            value = GUILayout.Toggle(value, text);
+            StartCoroutine(SaveConfig());
+            return value;
+        }
+
+        private bool AddToggle(bool value, GUIContent content)
+        {
+            var _value = GUILayout.Toggle(value,content);
+            if (_value != value) StartCoroutine(SaveConfig());
+            return _value;
+        }
+
+        private IEnumerator SaveConfig()
+        {
+            yield return new WaitForSeconds(0.3f);
+            Configuration.FormatXDataToConfig(BlockEnhancementMod.Configuration);
+            yield break;
         }
     }
 }
