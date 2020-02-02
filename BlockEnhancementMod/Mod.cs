@@ -46,6 +46,7 @@ namespace BlockEnhancementMod
         public float GuideControl_IFactor = 10f;
         public float GuideControl_DFactor = 0f;
 
+        public int RadarFequency = 50;
 
         public static Configuration FormatXDataToConfig(Configuration config = null)
         {
@@ -58,7 +59,7 @@ namespace BlockEnhancementMod
                 config = new Configuration();
             }
    
-            string[] keys = new string[] { "Enhance More", "ShowUI", "Friction", "Display Waring", "Mark Target", "Display Rocket Count", "PFactor", "IFactor", "DFactor" };
+            string[] keys = new string[] { "Enhance More", "ShowUI", "Friction", "Display Waring", "Mark Target", "Display Rocket Count", "PFactor", "IFactor", "DFactor" ,"RadarFequency"};
 
             config.EnhanceMore = getValue(keys[0], config.EnhanceMore);
             config.ShowUI = getValue(keys[1], config.ShowUI);
@@ -71,6 +72,7 @@ namespace BlockEnhancementMod
             config.GuideControl_IFactor = getValue(keys[7],config.GuideControl_IFactor);
             config.GuideControl_DFactor = getValue(keys[8],config.GuideControl_DFactor);
 
+            config.RadarFequency = getValue(keys[9], config.RadarFequency);
 
             Modding.Configuration.Save();
             return config;
