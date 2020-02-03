@@ -593,17 +593,31 @@ namespace BlockEnhancementMod
             var value = false;
             if (InRadarRange(target.collider))
             {
-                if (!target.isRocket && target.block.blockJoint == null)
+                if (target.isRocket)
                 {
-                    value = false;
+                    value = target.rocket.hasExploded;
+                }
+                else if (target.isBomb)
+                {
+                    value = target.bomb.hasExploded;
                 }
                 else
                 {
-                    value = true;
+                    value = target.block.blockJoint == null;
                 }
+
+                //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
+                //{
+                //    value = false;
+                //}
+                //else
+                //{
+                //    value = true;
+                //}
+
                 if (target.hasFireTag)
                 {
-                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
+                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket && !target.isBomb)
                     {
                         value = false;
                     }
