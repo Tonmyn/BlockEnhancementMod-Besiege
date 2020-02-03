@@ -587,15 +587,15 @@ namespace BlockEnhancementMod
             {
                 if (target.isRocket)
                 {
-                    value = target.rocket.hasExploded;
+                    value = !target.rocket.hasExploded;
                 }
                 else if (target.isBomb)
                 {
-                    value = target.bomb.hasExploded;
+                    value = !target.bomb.hasExploded;
                 }
                 else
                 {
-                    value = target.block.blockJoint == null;
+                    value = !(target.block.blockJoint == null);
                 }
 
                 //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
