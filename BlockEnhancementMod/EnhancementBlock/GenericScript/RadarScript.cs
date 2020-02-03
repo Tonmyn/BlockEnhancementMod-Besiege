@@ -493,7 +493,7 @@ namespace BlockEnhancementMod
             }
             else
             {
-                if (!StatMaster.isMP && parentBlock.BlockID == (int)BlockType.Rocket)
+                if (Playerlist.Players.Count < 2 && parentBlock.BlockID == (int)BlockType.Rocket)
                 {
                     RocketScript targetRocketScript = block.GetComponent<RocketScript>();
                     RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
@@ -507,7 +507,7 @@ namespace BlockEnhancementMod
             // if is own machine
             if (block != null)
             {
-                if (StatMaster.isMP && !StatMaster.isClient)
+                if (StatMaster.isMP && !StatMaster.isClient && Playerlist.Players.Count > 1)
                 {
                     if (block.Team == MPTeam.None)
                     {
@@ -607,9 +607,9 @@ namespace BlockEnhancementMod
                 //    value = true;
                 //}
 
-                if (target.hasFireTag)
+                if (target.hasFireTag && !target.isRocket && !target.isBomb)
                 {
-                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket && !target.isBomb)
+                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned))
                     {
                         value = false;
                     }
