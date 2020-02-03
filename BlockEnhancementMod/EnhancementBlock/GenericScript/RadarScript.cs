@@ -45,12 +45,14 @@ namespace BlockEnhancementMod
         public event Action<Target> OnTarget;
 
         private HashSet<Target> targetList = new HashSet<Target>();
+        private HashSet<Target> lastTargetList = new HashSet<Target>();
         private bool isChoosingTarget = false;
         private int chooseTargetIndex = 0;
 
-        private List<Collider> colliderList = new List<Collider>();
-        private int processColliderIndex = 0;
-        private bool colliderListChanged = false;
+
+        //private List<Collider> colliderList = new List<Collider>();
+        //private int processColliderIndex = 0;
+        //private bool colliderListChanged = false;
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
@@ -97,28 +99,24 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (target == null && targetList.Count > 0)
+            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList)||target==null))
             {
-                if (!isChoosingTarget && colliderListChanged == false)
+                if (!isChoosingTarget/*&& colliderListChanged == false*/)
                 {
 #if DEBUG
                     Debug.Log("choose target");
 #endif
                     isChoosingTarget = true;
+                    lastTargetList = targetList;
 
-                    var tempTarget = new Target(Target.warningLevel.dummyValue);
+                    var tempTarget = target ?? new Target(Target.warningLevel.dummyValue);
                     var removeTargetList = new HashSet<Target>();
 
-                    StartCoroutine(ChooseTargetInTargetList());
+                    StartCoroutine(chooseTargetInTargetList(lastTargetList));
 
-                    IEnumerator ChooseTargetInTargetList()
+                    IEnumerator chooseTargetInTargetList(HashSet<Target> targets)
                     {
-                        HashSet<Target> targetListCopy = new HashSet<Target>(targetList);
-                        foreach (var itemTarget in targetListCopy)
-                        {
-                            //Debug.Log("target");
-                            chooseTargetIndex++;
-                            if (itemTarget != null && InRadarRange(itemTarget))
+                            foreach (var itemTarget in targets)
                             {
                                 if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                                 {
@@ -151,7 +149,16 @@ namespace BlockEnhancementMod
                             SetTarget(tempTarget);
                         }
 
-                        try { if (removeTargetList.Count > 0) targetList.ExceptWith(removeTargetList); } catch (Exception e) { Debug.Log(e.Message); }
+                        try
+                        {
+                            if (removeTargetList.Count > 0)
+                            {
+                                lastTargetList.ExceptWith(removeTargetList);
+                                targetList.ExceptWith(removeTargetList);
+                            }
+
+                        }
+                        catch (Exception e) { Debug.Log(e.Message); }
 
                         isChoosingTarget = false;
 
@@ -160,30 +167,36 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (colliderList.Count > 0 && colliderListChanged)
-            {
-                for (int i = 0; i < RadarFrequency * 3; i++)
-                {
-                    //Debug.Log("collider" + processColliderIndex);
-                    var colliderTarget = ProcessTarget(colliderList[processColliderIndex++]);
-                    try { if (colliderTarget != null) targetList.Add(colliderTarget); } catch (Exception e) { Debug.Log(e.Message); }
-                    if (processColliderIndex >= colliderList.Count)
-                    {
-                        colliderListChanged = false;
-                        processColliderIndex = 0;
-                        colliderList.Clear();
-                        break;
-                    }
-                }
-            }
+            //if (colliderList.Count > 0 && colliderListChanged)
+            //{
+            //    for (int i = 0; i < RadarFrequency * 3; i++)
+            //    {
+            //        //Debug.Log("collider" + processColliderIndex);
+            //        var colliderTarget = ProcessTarget(colliderList[processColliderIndex++]);
+            //        try { if (colliderTarget != null) targetList.Add(colliderTarget); } catch (Exception e) { Debug.Log(e.Message); }
+            //        if (processColliderIndex >= colliderList.Count)
+            //        {
+            //            colliderListChanged = false;
+            //            processColliderIndex = 0;
+            //            colliderList.Clear();
+            //            break;
+            //        }
+            //    }
+            //}
         }
         private void OnTriggerEnter(Collider collider)
         {
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
             if (collider.isTrigger || !collider.enabled || collider.gameObject.isStatic) return;
 
-            colliderList.Add(collider);
-            colliderListChanged = true;
+            var triggerTarger = ProcessTarget(collider);
+            if (triggerTarger != null)
+            {
+                targetList.Add(triggerTarger);
+                //targetListChanged = true;
+            }
+            //colliderList.Add(collider);
+            //colliderListChanged = true;
         }
         private void OnGUI()
         {
@@ -449,7 +462,7 @@ namespace BlockEnhancementMod
                     meshCollider.enabled = true;
                     yield return new WaitForSeconds(workTime);
                     meshCollider.enabled = false;
-                    colliderListChanged = false;
+                    //colliderListChanged = false;
                     yield return new WaitForSeconds(stopTime);
                 }
                 yield break;
