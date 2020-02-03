@@ -31,7 +31,7 @@ namespace BlockEnhancementMod
 
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        [Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        //[Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
 
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
@@ -62,8 +62,6 @@ namespace BlockEnhancementMod
             Auto = 0,
             Manual = 1
         }
-
-
 
         private void Awake()
         {
@@ -99,7 +97,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList)||target==null))
+            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList) || target == null))
             {
                 if (!isChoosingTarget/*&& colliderListChanged == false*/)
                 {
@@ -116,21 +114,20 @@ namespace BlockEnhancementMod
 
                     IEnumerator chooseTargetInTargetList(HashSet<Target> targets)
                     {
-                            foreach (var itemTarget in targets)
+                        foreach (var itemTarget in targets)
+                        {
+                            if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                             {
-                                if (itemTarget.WarningLevel > tempTarget.WarningLevel)
+                                tempTarget = itemTarget;
+                            }
+                            else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
+                            {
+                                float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
+                                float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+
+                                if (itemTargetDistance < tempTargetDistance)
                                 {
                                     tempTarget = itemTarget;
-                                }
-                                else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
-                                {
-                                    float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
-                                    float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
-
-                                    if (itemTargetDistance < tempTargetDistance)
-                                    {
-                                        tempTarget = itemTarget;
-                                    }
                                 }
                             }
                             else
@@ -189,10 +186,10 @@ namespace BlockEnhancementMod
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
             if (collider.isTrigger || !collider.enabled || collider.gameObject.isStatic) return;
 
-            var triggerTarger = ProcessTarget(collider);
-            if (triggerTarger != null)
+            var triggeredTarget = ProcessTarget(collider);
+            if (triggeredTarget != null)
             {
-                targetList.Add(triggerTarger);
+                targetList.Add(triggeredTarget);
                 //targetListChanged = true;
             }
             //colliderList.Add(collider);
@@ -334,6 +331,7 @@ namespace BlockEnhancementMod
                 meshRenderer.enabled = false;
             }
         }
+
         public void SetTarget(Target tempTarget)
         {
             if (tempTarget == null) return;
@@ -492,48 +490,40 @@ namespace BlockEnhancementMod
                 {
                     return null;
                 }
-                //if (block.iJointTo == null && block.jointsToMe == null)
-                //{
-                //    return null;
-                //}
-                //if (block.iJointTo != null && block.iJointTo.Count == 0)
-                //{
-                //    return null;
-                //}
-                //if (block.jointsToMe != null && block.jointsToMe.Count == 0)
-                //{
-                //    return null;
-                //}
+            }
+            else
+            {
+                if (!StatMaster.isMP && parentBlock.BlockID == (int)BlockType.Rocket)
+                {
+                    RocketScript targetRocketScript = block.GetComponent<RocketScript>();
+                    RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
+                    if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
+                    {
+                        if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return null;
+                    }
+                }
             }
 
             // if is own machine
             if (block != null)
             {
-                if (StatMaster.isMP && StatMaster.isClient)
+                if (StatMaster.isMP && !StatMaster.isClient)
                 {
                     if (block.Team == MPTeam.None)
                     {
-                        if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                        if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
                         {
                             return null;
                         }
                     }
                     else
                     {
-                        if (block.Team == GetComponentInParent<BlockBehaviour>().Team)
+                        if (block.Team == parentBlock.Team)
                         {
                             return null;
                         }
                     }
                 }
-                //else
-                //{
-                //    if (blocksInSafetyRange.Contains(block))
-                //    {
-                //        return null;
-                //    }
-                //}
-
             }
 
             FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();
@@ -595,17 +585,31 @@ namespace BlockEnhancementMod
             var value = false;
             if (InRadarRange(target.collider))
             {
-                if (!target.isRocket && target.block.blockJoint == null)
+                if (target.isRocket)
                 {
-                    value = false;
+                    value = target.rocket.hasExploded;
+                }
+                else if (target.isBomb)
+                {
+                    value = target.bomb.hasExploded;
                 }
                 else
                 {
-                    value = true;
+                    value = target.block.blockJoint == null;
                 }
+
+                //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
+                //{
+                //    value = false;
+                //}
+                //else
+                //{
+                //    value = true;
+                //}
+
                 if (target.hasFireTag)
                 {
-                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
+                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket && !target.isBomb)
                     {
                         value = false;
                     }

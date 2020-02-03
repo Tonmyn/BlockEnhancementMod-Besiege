@@ -18,7 +18,7 @@ namespace BlockEnhancementMod
         public float groupFireRate = 0.25f;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
-        public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
+        //public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         public bool removedFromGroup = false;
 
@@ -48,10 +48,12 @@ namespace BlockEnhancementMod
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
         MKey SwitchGuideModeKey;
+        public MKey SPTeamKey;
         MMenu DefaultSearchModeMenu;
         private int searchModeIndex = 0;
         public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.DefaultAuto, LanguageManager.Instance.CurrentLanguage.DefaultManual };
-        public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
+        //public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
+        //public List<KeyCode> singlePlayerTeamKey = new List<KeyCode> { KeyCode.None };
         public float searchAngle = 60f;
 
         //private readonly float safetyRadiusAuto = 50f;
@@ -107,6 +109,7 @@ namespace BlockEnhancementMod
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
                 SwitchGuideModeKey.DisplayInMapper =
+                SPTeamKey.DisplayInMapper =
                 ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
                 GuideDelaySlider.DisplayInMapper =
                 GuidedRocketStabilityToggle.DisplayInMapper =
@@ -148,7 +151,6 @@ namespace BlockEnhancementMod
             {
                 proximityFuzeActivated =
                 ProximityFuzeRangeSlider.DisplayInMapper =
-                //ProximityFuzeAngleSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
@@ -197,6 +199,9 @@ namespace BlockEnhancementMod
             SwitchGuideModeKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.SwitchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
             SwitchGuideModeKey.InvokeKeysChanged();
 
+            SPTeamKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.SinglePlayerTeam, "SinglePlayerTeam", KeyCode.None);
+            SPTeamKey.InvokeKeysChanged();
+
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
@@ -216,6 +221,7 @@ namespace BlockEnhancementMod
             GroupFireRateSlider.DisplayInMapper = value;
             AutoGrabberReleaseToggle.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
+            SPTeamKey.DisplayInMapper = value && guidedRocketActivated && !StatMaster.isMP;
             DefaultSearchModeMenu.DisplayInMapper = value && guidedRocketActivated;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = value && guidedRocketActivated;
             GuidePredictionSlider.DisplayInMapper = value && guidedRocketActivated;
