@@ -42,9 +42,9 @@ namespace BlockEnhancementMod
         public bool MarkTarget = true;
         public bool DisplayRocketCount = true;
 
-        public float GuideControl_PFactor = 1.25f;
-        public float GuideControl_IFactor = 10f;
-        public float GuideControl_DFactor = 0f;
+        public float GuideControlPFactor = 1.25f;
+        public float GuideControlIFactor = 10f;
+        public float GuideControlDFactor = 0f;
 
         public int RadarFequency = 50;
 
@@ -68,9 +68,9 @@ namespace BlockEnhancementMod
             config.MarkTarget = getValue(keys[4], config.MarkTarget);
             config.DisplayRocketCount = getValue(keys[5], config.DisplayRocketCount);
 
-            config.GuideControl_PFactor = getValue(keys[6],config.GuideControl_PFactor);
-            config.GuideControl_IFactor = getValue(keys[7],config.GuideControl_IFactor);
-            config.GuideControl_DFactor = getValue(keys[8],config.GuideControl_DFactor);
+            config.GuideControlPFactor = getValue(keys[6],config.GuideControlPFactor);
+            config.GuideControlIFactor = getValue(keys[7],config.GuideControlIFactor);
+            config.GuideControlDFactor = getValue(keys[8],config.GuideControlDFactor);
 
             config.RadarFequency = getValue(keys[9], config.RadarFequency);
 

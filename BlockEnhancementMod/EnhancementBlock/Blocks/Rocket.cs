@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using Modding;
+using Modding.Common;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Modding;
-using Modding.Common;
 
 namespace BlockEnhancementMod
 {
@@ -381,14 +379,22 @@ namespace BlockEnhancementMod
                         }
 
                         if (LockTargetKey.IsPressed/* && radar.Switch*/)
-                        {            
+                        {
+                            if (radar.SearchMode == RadarScript.SearchModes.Auto)
+                            {
+                                radar.ClearTargetNoRemoval();
+                            }
+                            else
+                            {
+                                radar.SetTargetManual();
+                            }
                             //radar.SendClientTargetNull();
                             //radar.ClearTarget();
                             //if (radar.SearchMode == RadarScript.SearchModes.Manual)
                             //{
                             //    radar.SetTargetManual();
                             //}
-                            radar.SetTarget_Manual();
+                            //radar.SetTargetManual();
                         }
                     }
                 }           

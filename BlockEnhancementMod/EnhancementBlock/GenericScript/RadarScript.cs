@@ -31,7 +31,7 @@ namespace BlockEnhancementMod
 
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        [Obsolete]private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        [Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
 
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
@@ -45,7 +45,7 @@ namespace BlockEnhancementMod
         public event Action<Target> OnTarget;
 
         private HashSet<Target> targetList = new HashSet<Target>();
-        private bool isChooseingTarget = false;
+        private bool isChoosingTarget = false;
         private int chooseTargetIndex = 0;
 
         private List<Collider> colliderList = new List<Collider>();
@@ -91,7 +91,7 @@ namespace BlockEnhancementMod
 
             if (Switch && target != null)
             {
-                if (!inRadarArea(target))
+                if (!InRadarRange(target))
                 {
                     ClearTarget();
                 }
@@ -99,52 +99,53 @@ namespace BlockEnhancementMod
 
             if (target == null && targetList.Count > 0)
             {
-                if (!isChooseingTarget&& colliderListChanged == false)
+                if (!isChoosingTarget && colliderListChanged == false)
                 {
 #if DEBUG
                     Debug.Log("choose target");
 #endif
-                    isChooseingTarget = true;
+                    isChoosingTarget = true;
 
                     var tempTarget = new Target(Target.warningLevel.dummyValue);
                     var removeTargetList = new HashSet<Target>();
 
-                    StartCoroutine(chooseTargetInTargetList());
+                    StartCoroutine(ChooseTargetInTargetList());
 
-                    IEnumerator chooseTargetInTargetList()
+                    IEnumerator ChooseTargetInTargetList()
                     {
-                            foreach (var itemTarget in targetList)
+                        HashSet<Target> targetListCopy = new HashSet<Target>(targetList);
+                        foreach (var itemTarget in targetListCopy)
+                        {
+                            //Debug.Log("target");
+                            chooseTargetIndex++;
+                            if (itemTarget != null && InRadarRange(itemTarget))
                             {
-                                //Debug.Log("target");
-                                chooseTargetIndex++;
-                                if (itemTarget != null && inRadarArea(itemTarget))
+                                if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                                 {
-                                    if (itemTarget.WarningLevel > tempTarget.WarningLevel)
+                                    tempTarget = itemTarget;
+                                }
+                                else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
+                                {
+                                    float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
+                                    float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+
+                                    if (itemTargetDistance < tempTargetDistance)
                                     {
                                         tempTarget = itemTarget;
                                     }
-                                    else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
-                                    {
-                                        float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
-                                        float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
-
-                                        if (itemTargetDistance < tempTargetDistance)
-                                        {
-                                            tempTarget = itemTarget;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
-                                }
-                                if (chooseTargetIndex >= RadarFrequency)
-                                {
-                                    chooseTargetIndex = 0;
-                                    yield return 0;
                                 }
                             }
-        
+                            else
+                            {
+                                try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
+                            }
+                            if (chooseTargetIndex >= RadarFrequency)
+                            {
+                                chooseTargetIndex = 0;
+                                yield return 0;
+                            }
+                        }
+
                         if (tempTarget != null && tempTarget.transform != null)
                         {
                             SetTarget(tempTarget);
@@ -152,7 +153,7 @@ namespace BlockEnhancementMod
 
                         try { if (removeTargetList.Count > 0) targetList.ExceptWith(removeTargetList); } catch (Exception e) { Debug.Log(e.Message); }
 
-                        isChooseingTarget = false;
+                        isChoosingTarget = false;
 
                         yield break;
                     }
@@ -179,7 +180,7 @@ namespace BlockEnhancementMod
         private void OnTriggerEnter(Collider collider)
         {
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
-            if (collider.isTrigger || !collider.enabled|| collider.gameObject.isStatic) return;
+            if (collider.isTrigger || !collider.enabled || collider.gameObject.isStatic) return;
 
             colliderList.Add(collider);
             colliderListChanged = true;
@@ -220,7 +221,7 @@ namespace BlockEnhancementMod
             targetList.Clear();
         }
 
-        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar,float safetyRadius = 30f)
+        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar, float safetyRadius = 30f)
         {
             this.parentBlock = parentBlock;
             this.SearchAngle = searchAngle;
@@ -333,15 +334,15 @@ namespace BlockEnhancementMod
 
             OnTarget?.Invoke(target);
         }
-        public void SetTarget_Manual()
+        public void SetTargetManual()
         {
             if (SearchMode == SearchModes.Manual)
             {
                 ClearTarget();
-                SetTarget(ProcessTarget(getTargetManual()));
+                SetTarget(ProcessTarget(GetTargetManual()));
             }
 
-            Collider getTargetManual()
+            Collider GetTargetManual()
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (StatMaster.isClient)
@@ -429,13 +430,19 @@ namespace BlockEnhancementMod
 #endif
         }
 
+        public void ClearTargetNoRemoval()
+        {
+            SendClientTargetNull();
+            target = null;
+        }
+
         private void ActivateDetectionZone()
         {
             meshRenderer.enabled = ShowRadar;
             StopCoroutine("intervalActivateDetectionZone");
             StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 8f, Time.deltaTime * 4f));
 
-            IEnumerator intervalActivateDetectionZone(float stopTime,float workTime)
+            IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             {
                 while (Switch && SearchMode == SearchModes.Auto)
                 {
@@ -542,44 +549,38 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        public bool inRadarArea(Vector3 position_in_world)
+        public bool InRadarRange(Vector3 positionInWorld)
         {
-            var value = false;
-            var position_In_World = position_in_world;
-
-            if (Vector3.Dot(position_In_World - transform.position, ForwardDirection) > 0)
+            if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
             {
-                var distance = position_In_World - transform.position;
+                var distance = positionInWorld - transform.position;
 
                 if (distance.magnitude < SearchRadius)
                 {
                     if (distance.magnitude > 5f)
                     {
-                        if (Vector3.Angle(position_In_World - transform.position, ForwardDirection) < (SearchAngle / 2f))
+                        if (Vector3.Angle(positionInWorld - transform.position, ForwardDirection) < (SearchAngle / 2f))
                         {
-                            value = true;
+                            return true;
                         }
                     }
                     else
                     {
-                        value = true;
+                        return true;
                     }
                 }
             }
-            return value;
+            return false;
         }
-        public bool inRadarArea(Collider collider)
+        public bool InRadarRange(Collider collider)
+        {
+            if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return false;
+            return InRadarRange(collider.bounds.center);
+        }
+        public bool InRadarRange(Target target)
         {
             var value = false;
-            if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return value;
-
-            var position_In_World = collider.bounds.center;
-            return inRadarArea(position_In_World);
-        }
-        public bool inRadarArea(Target target)
-        {
-            var value = false;
-            if (inRadarArea(target.collider))
+            if (InRadarRange(target.collider))
             {
                 if (!target.isRocket && target.block.blockJoint == null)
                 {
@@ -603,7 +604,7 @@ namespace BlockEnhancementMod
             }
             return value;
         }
-   
+
         #region Networking Method
         private void SendRayToHost(Ray ray)
         {
@@ -664,7 +665,7 @@ namespace BlockEnhancementMod
             }
             RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
-#endregion
+        #endregion
 
     }
 
@@ -672,7 +673,7 @@ namespace BlockEnhancementMod
     {
         public Transform transform;
         public Collider collider;
-        public BlockBehaviour block; 
+        public BlockBehaviour block;
         public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;

@@ -42,9 +42,9 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
             prediction = sourcePrediction;
             preTargetBlock = new BlockBehaviour();
-            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GuideControl_PFactor;
-            iFactor = /*10f*/BlockEnhancementMod.Configuration.GuideControl_IFactor;
-            dFactor =/*5f*/BlockEnhancementMod.Configuration.GuideControl_DFactor;
+            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GuideControlPFactor;
+            iFactor = /*10f*/BlockEnhancementMod.Configuration.GuideControlIFactor;
+            dFactor =/*5f*/BlockEnhancementMod.Configuration.GuideControlDFactor;
         }
 
         void FixedUpdate()
