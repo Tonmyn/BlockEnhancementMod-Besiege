@@ -64,29 +64,29 @@ namespace BlockEnhancementMod
                 lastError = 0;
             }
 
-            // Calculating the rotating axis
-            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
-            previousPosition = blockRadar.target.transform.position;
+                // Calculating the rotating axis
+                Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
+                previousPosition = blockRadar.target.transform.position;
 
-            // Get the predicted point
-            float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
-            float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
-            Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
-            Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+                // Get the predicted point
+                float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
+                float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
+                Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
+                Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
 
-            // Get the angle difference
-            forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-            float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
-            float angleDiff = Vector3.Angle(forwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
-            integral += angleDiff * Time.fixedDeltaTime;
-            float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
-            lastError = angleDiff;
-            float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
-            Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
+                // Get the angle difference
+                forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
+                float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
+                float angleDiff = Vector3.Angle(forwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
+                integral += angleDiff * Time.fixedDeltaTime;
+                float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
+                lastError = angleDiff;
+                float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
+                Vector3 towardsPositionDiff = dotProduct * positionDiffPredicted.normalized - forwardDirection;
 
-            // Add force to rotate rocket
-            parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
-            parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
+                // Add force to rotate rocket
+                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * towardsPositionDiff, parentBlock.transform.position + forwardDirection);
+                parentRigidbody.AddForceAtPosition(torque * maxTorque * coefficient * (-towardsPositionDiff), parentBlock.transform.position - forwardDirection);
 
         }
 

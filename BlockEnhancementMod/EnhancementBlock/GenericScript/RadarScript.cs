@@ -1,6 +1,7 @@
 ﻿using Modding;
 using Modding.Common;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,12 +29,12 @@ namespace BlockEnhancementMod
         /// <returns>Angle value</returns>
         public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
 
-        //public float minSearchRadiusWhenLaunch = 30;
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
         [Obsolete]private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
-        //private Vector3 forwardDirection = Vector3.zero;
+
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
+        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
         private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;
@@ -43,8 +44,13 @@ namespace BlockEnhancementMod
 
         public event Action<Target> OnTarget;
 
-        private HashSet<Target> checkedTarget = new HashSet<Target>();
-        private Dictionary<BlockBehaviour, Target> checkedTargetDic = new Dictionary<BlockBehaviour, Target>();
+        private HashSet<Target> targetList = new HashSet<Target>();
+        private bool isChooseingTarget = false;
+        private int chooseTargetIndex = 0;
+
+        private List<Collider> colliderList = new List<Collider>();
+        private int processColliderIndex = 0;
+        private bool colliderListChanged = false;
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
@@ -55,59 +61,14 @@ namespace BlockEnhancementMod
             Manual = 1
         }
 
+
+
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
             redSquareAim = RocketsController.redSquareAim;
 
         }
-
-
-        //private void FixedUpdate()
-        //{
-            //if (forwardDirection == Vector3.zero)
-            //{
-            //forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-            //}
-
-            //if (Switch && target != null)
-            //{
-            //    bool removeFlag = !target.collider.enabled;
-            //    bool inSight = false;
-
-            //    //target.positionDiff = target.collider.bounds.center - transform.position;
-            //    //target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
-
-            //    if (!removeFlag)
-            //    {
-            //        if (!target.isRocket && target.block.blockJoint == null)
-            //        {
-            //            removeFlag = true;
-            //        }
-            //        if (target.hasFireTag)
-            //        {
-            //            if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
-            //            {
-            //                removeFlag = true;
-            //            }
-            //        }
-            //        bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
-            //        inSight = forward && target.angleDiff < searchAngle / 2;
-            //    }
-
-            //    if (removeFlag || !inSight)
-            //    {
-            //        if (checkedTargetDic.TryGetValue(target.block, out Target targetInDict))
-            //        {
-            //            checkedTargetDic.Remove(target.block);
-            //            checkedTarget.Remove(targetInDict);
-            //            //target = null;
-            //        }
-            //        SendClientTargetNull();
-            //    }
-            //}
-        //}
-
         private void Update()
         {
             if (lastSwitchState != Switch)
@@ -128,77 +89,135 @@ namespace BlockEnhancementMod
 
             if (!Switch || SearchMode == SearchModes.Manual) return;
 
-            if (target == null && checkedTarget.Count > 0)
+            if (Switch && target != null)
             {
-                target = new Target(Target.warningLevel.dummyValue);
-
-                foreach (var tempTarget in checkedTarget)
+                if (!inRadarArea(target))
                 {
-                    if (tempTarget != null)
+                    ClearTarget();
+                }
+            }
+
+            if (target == null && targetList.Count > 0)
+            {
+                if (!isChooseingTarget&& colliderListChanged == false)
+                {
+#if DEBUG
+                    Debug.Log("choose target");
+#endif
+                    isChooseingTarget = true;
+
+                    var tempTarget = new Target(Target.warningLevel.dummyValue);
+                    var removeTargetList = new HashSet<Target>();
+
+                    StartCoroutine(chooseTargetInTargetList());
+
+                    IEnumerator chooseTargetInTargetList()
                     {
-                        if (tempTarget.WarningLevel > target.WarningLevel)
+                            foreach (var itemTarget in targetList)
+                            {
+                                //Debug.Log("target");
+                                chooseTargetIndex++;
+                                if (itemTarget != null && inRadarArea(itemTarget))
+                                {
+                                    if (itemTarget.WarningLevel > tempTarget.WarningLevel)
+                                    {
+                                        tempTarget = itemTarget;
+                                    }
+                                    else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
+                                    {
+                                        float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
+                                        float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+
+                                        if (itemTargetDistance < tempTargetDistance)
+                                        {
+                                            tempTarget = itemTarget;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
+                                }
+                                if (chooseTargetIndex >= RadarFrequency)
+                                {
+                                    chooseTargetIndex = 0;
+                                    yield return 0;
+                                }
+                            }
+        
+                        if (tempTarget != null && tempTarget.transform != null)
                         {
                             SetTarget(tempTarget);
                         }
-                        else if (tempTarget.WarningLevel == target.WarningLevel)
-                        {
-                            float tempDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
 
-                            if (tempDistance < TargetDistance)
-                            {
-                                SetTarget(tempTarget);
-                            }
-                        }
+                        try { if (removeTargetList.Count > 0) targetList.ExceptWith(removeTargetList); } catch (Exception e) { Debug.Log(e.Message); }
+
+                        isChooseingTarget = false;
+
+                        yield break;
                     }
                 }
             }
 
-            if (Switch && target != null)
+            if (colliderList.Count > 0 && colliderListChanged)
             {
-                bool removeFlag = !target.collider.enabled;
-                bool inSight = false;
-
-                //forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-                //target.positionDiff = target.collider.bounds.center - transform.position;
-                //target.angleDiff = Vector3.Angle(target.positionDiff, forwardDirection);
-
-                if (!removeFlag)
+                for (int i = 0; i < RadarFrequency * 3; i++)
                 {
-                    if (!target.isRocket && target.block.blockJoint == null)
+                    //Debug.Log("collider" + processColliderIndex);
+                    var colliderTarget = ProcessTarget(colliderList[processColliderIndex++]);
+                    try { if (colliderTarget != null) targetList.Add(colliderTarget); } catch (Exception e) { Debug.Log(e.Message); }
+                    if (processColliderIndex >= colliderList.Count)
                     {
-                        removeFlag = true;
+                        colliderListChanged = false;
+                        processColliderIndex = 0;
+                        colliderList.Clear();
+                        break;
                     }
-                    if (target.hasFireTag)
-                    {
-                        if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
-                        {
-                            removeFlag = true;
-                        }
-                    }
-                    
-                    //bool forward = Vector3.Dot(target.positionDiff, forwardDirection) > 0;
-                    bool forward = Vector3.Dot(/*target.positionDiff*/TargetPosition, ForwardDirection) > 0;
-                    if (/*target.positionDiff.magnitude*/TargetDistance > 5f)
-                    {
-                        inSight = forward && /*target.angleDiff*/TargetAngle < SearchAngle / 2;
-                    }
-                    else
-                    {
-                        inSight = forward;
-                    }
-                }
-
-                if (removeFlag || !inSight)
-                {
-                    if (checkedTargetDic.TryGetValue(target.block, out Target targetInDict))
-                    {
-                        checkedTargetDic.Remove(target.block);
-                        checkedTarget.Remove(targetInDict);
-                        target = null;
-                    }
-                    SendClientTargetNull();
                 }
             }
+        }
+        private void OnTriggerEnter(Collider collider)
+        {
+            if ((SearchMode != SearchModes.Auto) || !Switch) return;
+            if (collider.isTrigger || !collider.enabled|| collider.gameObject.isStatic) return;
+
+            colliderList.Add(collider);
+            colliderListChanged = true;
+        }
+        private void OnGUI()
+        {
+            if (StatMaster.isMP && StatMaster.isHosting)
+            {
+                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
+                {
+                    return;
+                }
+            }
+            //if (!Switch) return;
+            DrawTargetRedSquare();
+
+            void DrawTargetRedSquare()
+            {
+                if (MarkTarget)
+                {
+                    if (target != null)
+                    {
+                        Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                        if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
+                        {
+                            int squareWidth = 16;
+                            Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
+                            GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
+                        }
+                    }
+                }
+            }
+        }
+        private void OnDestroy()
+        {
+            Switch = false;
+            ClearTarget();
+            targetList.Clear();
         }
 
         public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar,float safetyRadius = 30f)
@@ -210,67 +229,95 @@ namespace BlockEnhancementMod
             this.SafetyRadius = safetyRadius;
             this.SearchMode = (SearchModes)searchMode;
             CreateFrustumCone(safetyRadius, searchRadius);
-            ClearSavedSets();
-        }
-        public void SetTargetManual()
-        {
-            if (SearchMode == SearchModes.Manual)
-            {
-                ClearTarget();
-                SetTarget(ProcessTarget(getTargetManual()));
-            }
-        }
-        private Collider getTargetManual()
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (StatMaster.isClient)
-            {
-                SendRayToHost(ray);
-                return null;
-            }
-            else
-            {
-                //Find targets in the manual search mode by casting a sphere along the ray
-                float manualSearchRadius = 1.25f;
-                Collider tempCollider = new Collider();
+            targetList.Clear();
 
-                RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+            void CreateFrustumCone(float topRadius, float bottomRadius)
+            {
+                float topHeight = topRadius;
+                float height = bottomRadius - topHeight;
 
-                if (hits.Length > 0)
+                float radiusTop = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * topHeight + 0.5f;
+                float radiusBottom = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
+
+                //越高越精细
+                int numVertices = 5 + 10;
+
+                Vector3 myTopCenter = Vector3.up * topHeight - Vector3.up;
+                Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
+                //构建顶点数组和UV数组
+                Vector3[] vertices = new Vector3[numVertices * 2 + 2];
+                Vector2[] uvs = new Vector2[vertices.Length];
+                //顶圆中心点放第一个，底圆中心点放最后一个
+                vertices[0] = myTopCenter;
+                vertices[vertices.Length - 1] = myBottomCenter;
+
+                for (int i = 0; i < numVertices; i++)
                 {
-                    for (int i = 0; i < hits.Length; i++)
-                    {
-                        if (hits[i].collider.gameObject.layer == 29) continue;
-                        LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
-                        BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
-                        if (levelEntity != null || blockBehaviour != null)
-                        {
-                            tempCollider = hits[i].collider;
-                            break;
-                            //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-                            //{
-                            //    tempCollider = hits[i].collider;
-                            //    break;
-                            //}
-                        }
-                    }
+                    float angleStep = 2 * Mathf.PI * i / numVertices;
+                    float angleSin = Mathf.Sin(angleStep);
+                    float angleCos = Mathf.Cos(angleStep);
+
+                    vertices[i + 1] = new Vector3(radiusTop * angleCos, myTopCenter.magnitude, radiusTop * angleSin);
+                    vertices[i + 1 + numVertices] = new Vector3(radiusBottom * angleCos, myBottomCenter.magnitude, radiusBottom * angleSin);
+
+                    uvs[i] = new Vector2(1.0f * i / numVertices, 1);
+                    uvs[i + numVertices] = new Vector2(1.0f * i / numVertices, 0);
                 }
-                if (tempCollider == null && Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
+
+                int[] tris = new int[numVertices * 6 + numVertices * 6];
+                int index = 0;
+                //画下圆面
+                for (int i = 0; i < numVertices; i++)
                 {
-                    if (rayHit.collider.gameObject.layer != 29)
-                    {
-                        LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
-                        BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
-                        if (levelEntity != null || blockBehaviour != null)
-                        {
-                            if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-                            {
-                                tempCollider = rayHit.collider;
-                            }
-                        }
-                    }
+                    tris[index++] = 0;
+                    tris[index++] = i + 1;
+                    tris[index++] = (i == numVertices - 1) ? 1 : i + 2;
                 }
-                return tempCollider;
+                //画斜面
+                for (int i = 0; i < numVertices; i++)
+                {
+                    int ip1 = i + 2;
+                    if (ip1 > numVertices)
+                        ip1 = 1;
+
+                    tris[index++] = i + 1;
+                    tris[index++] = i + 1 + numVertices;
+                    tris[index++] = ip1 + numVertices;
+
+                    tris[index++] = i + 1;
+                    tris[index++] = ip1 + numVertices;
+                    tris[index++] = ip1;
+                }
+                //画上圆面
+                for (int i = 0; i < numVertices; i++)
+                {
+                    tris[index++] = 2 * numVertices + 1;
+                    tris[index++] = (i == numVertices - 1) ? numVertices + 1 : numVertices + i + 2;
+                    tris[index++] = numVertices + i + 1;
+                }
+
+                var mf = gameObject.GetComponent<MeshFilter>() ?? gameObject.AddComponent<MeshFilter>();
+                mf.mesh.vertices = vertices;
+                mf.mesh.triangles = tris;
+                mf.mesh.uv = uvs;
+                mf.mesh.RecalculateBounds();
+                mf.mesh.RecalculateNormals();
+
+                var mc = gameObject.GetComponent<MeshCollider>() ?? gameObject.AddComponent<MeshCollider>();
+                mc.sharedMesh = GetComponent<MeshFilter>().mesh;
+                mc.convex = true;
+                mc.isTrigger = true;
+                meshCollider = mc;
+                meshCollider.enabled = false;
+
+                Physics.IgnoreLayerCollision(CollisionLayer, 29);
+
+                var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
+                Material material = new Material(Shader.Find("Transparent/Diffuse"));
+                material.color = new Color(0, 1, 0, 0.1f);
+                mr.material = material;
+                meshRenderer = mr;
+                meshRenderer.enabled = false;
             }
         }
         public void SetTarget(Target tempTarget)
@@ -278,84 +325,137 @@ namespace BlockEnhancementMod
             if (tempTarget == null) return;
 
             target = tempTarget;
+            targetList.Add(target);
             target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
-            //DeactivateDetectionZone();
 
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            //try
-            //{
-            //    checkedTargetDic.Remove(target.block);
-            //    checkedTarget.Remove(target);
-            //}
-            //catch{ }
             OnTarget?.Invoke(target);
         }
-        public void ClearTarget()
+        public void SetTarget_Manual()
         {
-            target = null;
-            ClearSavedSets();
-            SendClientTargetNull();
-        }
-
-        private void OnTriggerEnter(Collider collider)
-        {
-            if ((SearchMode != SearchModes.Auto) || !Switch) return;
-            if (collider.isTrigger) return;
-    
-            Target triggeredTarget = ProcessTarget(collider);
-            if (triggeredTarget == null) return;
-
-            if (!checkedTargetDic.ContainsKey(triggeredTarget.block))
+            if (SearchMode == SearchModes.Manual)
             {
-                checkedTarget.Add(triggeredTarget);
-                checkedTargetDic.Add(triggeredTarget.block, triggeredTarget);
+                ClearTarget();
+                SetTarget(ProcessTarget(getTargetManual()));
+            }
 
-                if (target == null)
+            Collider getTargetManual()
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (StatMaster.isClient)
                 {
-                    SetTarget(triggeredTarget);
+                    SendRayToHost(ray);
+                    return null;
                 }
                 else
                 {
-                    if (triggeredTarget.WarningLevel > target.WarningLevel)
-                    {
-                        SetTarget(triggeredTarget);
-                    }
-                    else if (triggeredTarget.WarningLevel == target.WarningLevel)
-                    {
-                        float aimDistance = Vector3.Distance(triggeredTarget.transform.position, transform.position);
+                    //Find targets in the manual search mode by casting a sphere along the ray
+                    Collider tempCollider = new Collider();
 
-                        if (aimDistance < TargetDistance)
+                    if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
+                    {
+                        var collider = rayHit.collider;
+                        if (collider.gameObject.layer != 29 && collider.enabled && !collider.isTrigger)
                         {
-                            SetTarget(triggeredTarget);
+                            LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
+                            BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                            if (levelEntity != null || blockBehaviour != null)
+                            {
+                                tempCollider = collider;
+                                //if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
+                                //{
+                                //    tempCollider = collider;
+                                //}
+                            }
                         }
                     }
+                    if (tempCollider == null)
+                    {
+                        float manualSearchRadius = 1.25f;
+                        RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+
+                        if (hits.Length > 0)
+                        {
+                            for (int i = 0; i < hits.Length; i++)
+                            {
+                                var collider = hits[i].collider;
+                                if (collider.gameObject.layer == 29 || !collider.enabled || collider.isTrigger) continue;
+                                LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
+                                BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                                if (levelEntity != null || blockBehaviour != null)
+                                {
+                                    tempCollider = hits[i].collider;
+                                    break;
+                                    //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
+                                    //{
+                                    //    tempCollider = hits[i].collider;
+                                    //    break;
+                                    //}
+                                }
+                            }
+                        }
+                    }
+                    return tempCollider;
                 }
             }
         }
-
-        void OnTriggerExit(Collider collider)
+        public void ChangeSearchMode()
         {
-            if (SearchMode != SearchModes.Auto) return;
-            if (collider.isTrigger) return;
+            //if (!Switch) return;
 
-            BlockBehaviour triggeredBB = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-            if (triggeredBB == null) return;
-
-            if (checkedTargetDic.TryGetValue(triggeredBB, out Target targetInDict))
+            ClearTarget();
+            if (SearchMode == SearchModes.Auto)
             {
-                if (inRadarArea(triggeredBB.transform.position))
-                {
-                    checkedTargetDic.Remove(triggeredBB);
-                    checkedTarget.Remove(targetInDict);
-                }
+                SearchMode = SearchModes.Manual;
+                //do something...
+                DeactivateDetectionZone();
+            }
+            else
+            {
+                SearchMode = SearchModes.Auto;
+                //do something...
+                if (Switch) ActivateDetectionZone();
             }
         }
+        public void ClearTarget()
+        {
+            if (targetList.Contains(target)) targetList.Remove(target);
+            SendClientTargetNull();
+            target = null;
+#if DEBUG
+            Debug.Log("clear target");
+#endif
+        }
 
+        private void ActivateDetectionZone()
+        {
+            meshRenderer.enabled = ShowRadar;
+            StopCoroutine("intervalActivateDetectionZone");
+            StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 8f, Time.deltaTime * 4f));
+
+            IEnumerator intervalActivateDetectionZone(float stopTime,float workTime)
+            {
+                while (Switch && SearchMode == SearchModes.Auto)
+                {
+                    meshCollider.enabled = true;
+                    yield return new WaitForSeconds(workTime);
+                    meshCollider.enabled = false;
+                    colliderListChanged = false;
+                    yield return new WaitForSeconds(stopTime);
+                }
+                yield break;
+            }
+        }
+        private void DeactivateDetectionZone()
+        {
+            meshCollider.enabled = false;
+            meshRenderer.enabled = false;
+        }
         private Target ProcessTarget(Collider collider)
         {
-            if (collider == null) return null;
+            if (collider == null || !collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return null;
 
             BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
@@ -442,57 +542,11 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void ClearSavedSets()
-        {
-            checkedTarget.Clear();
-            checkedTargetDic.Clear();
-            blocksInSafetyRange.Clear(); 
-        }
-        [Obsolete]
-        public void GetBlocksInSafetyRange()
-        {
-            Collider[] overlappedColliders = Physics.OverlapSphere(transform.parent.position,/* minSearchRadiusWhenLaunch*/0, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
-            foreach (var collider in overlappedColliders)
-            {
-                BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-                if (block != null)
-                {
-                    blocksInSafetyRange.Add(block);
-                }
-            }
-        }
-        private void ActivateDetectionZone()
-        {
-            meshCollider.enabled = true;
-            meshRenderer.enabled = ShowRadar;
-        }
-        private void DeactivateDetectionZone()
-        {
-            meshCollider.enabled = false;
-            meshRenderer.enabled = false;
-        }
-
-        public void ChangeSearchMode()
-        {
-            //if (!Switch) return;
-            
-            ClearTarget();
-            if (SearchMode == SearchModes.Auto)
-            {
-                SearchMode = SearchModes.Manual;
-                //do something...
-                DeactivateDetectionZone();
-            }
-            else
-            {
-                SearchMode = SearchModes.Auto;
-                //do something...
-                if (Switch) ActivateDetectionZone();
-            }
-        }
-        public bool inRadarArea(Vector3 position_In_World)
+        public bool inRadarArea(Vector3 position_in_world)
         {
             var value = false;
+            var position_In_World = position_in_world;
+
             if (Vector3.Dot(position_In_World - transform.position, ForwardDirection) > 0)
             {
                 var distance = position_In_World - transform.position;
@@ -514,96 +568,42 @@ namespace BlockEnhancementMod
             }
             return value;
         }
-
-        private void CreateFrustumCone(float topRadius, float bottomRadius)
+        public bool inRadarArea(Collider collider)
         {
-            float topHeight = topRadius;
-            float height = bottomRadius - topHeight;
+            var value = false;
+            if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return value;
 
-            float radiusTop = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * topHeight + 0.5f;
-            float radiusBottom = Mathf.Tan(SearchAngle * 0.5f * Mathf.Deg2Rad) * bottomRadius;
-
-            //越高越精细
-            int numVertices = 5 + 10;
-
-            Vector3 myTopCenter = Vector3.up * topHeight - Vector3.up;
-            Vector3 myBottomCenter = myTopCenter + Vector3.up * height;
-            //构建顶点数组和UV数组
-            Vector3[] vertices = new Vector3[numVertices * 2 + 2];
-            Vector2[] uvs = new Vector2[vertices.Length];
-            //顶圆中心点放第一个，底圆中心点放最后一个
-            vertices[0] = myTopCenter;
-            vertices[vertices.Length - 1] = myBottomCenter;
-
-            for (int i = 0; i < numVertices; i++)
-            {
-                float angleStep = 2 * Mathf.PI * i / numVertices;
-                float angleSin = Mathf.Sin(angleStep);
-                float angleCos = Mathf.Cos(angleStep);
-
-                vertices[i + 1] = new Vector3(radiusTop * angleCos, myTopCenter.magnitude, radiusTop * angleSin);
-                vertices[i + 1 + numVertices] = new Vector3(radiusBottom * angleCos, myBottomCenter.magnitude, radiusBottom * angleSin);
-
-                uvs[i] = new Vector2(1.0f * i / numVertices, 1);
-                uvs[i + numVertices] = new Vector2(1.0f * i / numVertices, 0);
-            }
-
-            int[] tris = new int[numVertices * 6 + numVertices * 6];
-            int index = 0;
-            //画下圆面
-            for (int i = 0; i < numVertices; i++)
-            {
-                tris[index++] = 0;
-                tris[index++] = i + 1;
-                tris[index++] = (i == numVertices - 1) ? 1 : i + 2;
-            }
-            //画斜面
-            for (int i = 0; i < numVertices; i++)
-            {
-                int ip1 = i + 2;
-                if (ip1 > numVertices)
-                    ip1 = 1;
-
-                tris[index++] = i + 1;
-                tris[index++] = i + 1 + numVertices;
-                tris[index++] = ip1 + numVertices;
-
-                tris[index++] = i + 1;
-                tris[index++] = ip1 + numVertices;
-                tris[index++] = ip1;
-            }
-            //画上圆面
-            for (int i = 0; i < numVertices; i++)
-            {
-                tris[index++] = 2 * numVertices + 1;
-                tris[index++] = (i == numVertices - 1) ? numVertices + 1 : numVertices + i + 2;
-                tris[index++] = numVertices + i + 1;
-            }
-
-            var mf = gameObject.GetComponent<MeshFilter>() ?? gameObject.AddComponent<MeshFilter>();
-            mf.mesh.vertices = vertices;
-            mf.mesh.triangles = tris;
-            mf.mesh.uv = uvs;
-            mf.mesh.RecalculateBounds();
-            mf.mesh.RecalculateNormals();
-
-            var mc = gameObject.GetComponent<MeshCollider>() ?? gameObject.AddComponent<MeshCollider>();
-            mc.sharedMesh = GetComponent<MeshFilter>().mesh;
-            mc.convex = true;
-            mc.isTrigger = true;
-            meshCollider = mc;
-            meshCollider.enabled = false;
-
-            Physics.IgnoreLayerCollision(CollisionLayer, 29);
-
-            var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
-            Material material = new Material(Shader.Find("Transparent/Diffuse"));
-            material.color = new Color(0, 1, 0, 0.1f);
-            mr.material = material;
-            meshRenderer = mr;
-            meshRenderer.enabled = false;
+            var position_In_World = collider.bounds.center;
+            return inRadarArea(position_In_World);
         }
-
+        public bool inRadarArea(Target target)
+        {
+            var value = false;
+            if (inRadarArea(target.collider))
+            {
+                if (!target.isRocket && target.block.blockJoint == null)
+                {
+                    value = false;
+                }
+                else
+                {
+                    value = true;
+                }
+                if (target.hasFireTag)
+                {
+                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned) && !target.isRocket)
+                    {
+                        value = false;
+                    }
+                    else
+                    {
+                        value = true;
+                    }
+                }
+            }
+            return value;
+        }
+   
         #region Networking Method
         private void SendRayToHost(Ray ray)
         {
@@ -664,43 +664,8 @@ namespace BlockEnhancementMod
             }
             RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
-        #endregion
+#endregion
 
-        private void OnGUI()
-        {
-            if (StatMaster.isMP && StatMaster.isHosting)
-            {
-                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
-                {
-                    return;
-                }
-            }
-            //if (!Switch) return;
-            DrawTargetRedSquare();
-
-            void DrawTargetRedSquare()
-            {
-                if (MarkTarget)
-                {
-                    if (target != null)
-                    {
-                        Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
-                        if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
-                        {
-                            int squareWidth = 16;
-                            Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-                            GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth / 2, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth / 2, squareWidth, squareWidth), redSquareAim);
-                        }
-                    }
-                }
-            }
-        }
-        private void OnDestroy()
-        {
-            Switch = false;
-            ClearTarget();
-            ClearSavedSets();
-        }
     }
 
     class Target

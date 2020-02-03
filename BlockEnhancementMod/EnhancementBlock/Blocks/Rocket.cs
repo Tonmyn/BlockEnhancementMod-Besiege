@@ -388,7 +388,7 @@ namespace BlockEnhancementMod
                             //{
                             //    radar.SetTargetManual();
                             //}
-                            radar.SetTargetManual();
+                            radar.SetTarget_Manual();
                         }
                     }
                 }           

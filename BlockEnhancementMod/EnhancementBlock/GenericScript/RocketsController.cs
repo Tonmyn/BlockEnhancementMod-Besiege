@@ -146,7 +146,6 @@ namespace BlockEnhancementMod
             normal = { textColor = new Color(1, 0, 0, transparancy) },
             alignment = TextAnchor.MiddleCenter,
         };
-
         readonly GUIStyle groupedRocketsCounterStyle = new GUIStyle()
         {
             fontStyle = FontStyle.Bold,
