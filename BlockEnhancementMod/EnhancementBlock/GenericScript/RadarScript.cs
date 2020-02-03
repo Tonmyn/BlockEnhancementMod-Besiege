@@ -63,8 +63,6 @@ namespace BlockEnhancementMod
             Manual = 1
         }
 
-
-
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
@@ -99,7 +97,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList)||target==null))
+            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList) || target == null))
             {
                 if (!isChoosingTarget/*&& colliderListChanged == false*/)
                 {
@@ -116,21 +114,20 @@ namespace BlockEnhancementMod
 
                     IEnumerator chooseTargetInTargetList(HashSet<Target> targets)
                     {
-                            foreach (var itemTarget in targets)
+                        foreach (var itemTarget in targets)
+                        {
+                            if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                             {
-                                if (itemTarget.WarningLevel > tempTarget.WarningLevel)
+                                tempTarget = itemTarget;
+                            }
+                            else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
+                            {
+                                float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
+                                float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+
+                                if (itemTargetDistance < tempTargetDistance)
                                 {
                                     tempTarget = itemTarget;
-                                }
-                                else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
-                                {
-                                    float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
-                                    float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
-
-                                    if (itemTargetDistance < tempTargetDistance)
-                                    {
-                                        tempTarget = itemTarget;
-                                    }
                                 }
                             }
                             else
@@ -189,10 +186,10 @@ namespace BlockEnhancementMod
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
             if (collider.isTrigger || !collider.enabled || collider.gameObject.isStatic) return;
 
-            var triggerTarger = ProcessTarget(collider);
-            if (triggerTarger != null)
+            var triggeredTarget = ProcessTarget(collider);
+            if (triggeredTarget != null)
             {
-                targetList.Add(triggerTarger);
+                targetList.Add(triggeredTarget);
                 //targetListChanged = true;
             }
             //colliderList.Add(collider);
@@ -334,6 +331,7 @@ namespace BlockEnhancementMod
                 meshRenderer.enabled = false;
             }
         }
+
         public void SetTarget(Target tempTarget)
         {
             if (tempTarget == null) return;
