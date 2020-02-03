@@ -31,7 +31,7 @@ namespace BlockEnhancementMod
 
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        [Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
+        //[Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
 
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
@@ -490,48 +490,40 @@ namespace BlockEnhancementMod
                 {
                     return null;
                 }
-                //if (block.iJointTo == null && block.jointsToMe == null)
-                //{
-                //    return null;
-                //}
-                //if (block.iJointTo != null && block.iJointTo.Count == 0)
-                //{
-                //    return null;
-                //}
-                //if (block.jointsToMe != null && block.jointsToMe.Count == 0)
-                //{
-                //    return null;
-                //}
+            }
+            else
+            {
+                if (!StatMaster.isMP && parentBlock.BlockID == (int)BlockType.Rocket)
+                {
+                    RocketScript targetRocketScript = block.GetComponent<RocketScript>();
+                    RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
+                    if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
+                    {
+                        if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return null;
+                    }
+                }
             }
 
             // if is own machine
             if (block != null)
             {
-                if (StatMaster.isMP && StatMaster.isClient)
+                if (StatMaster.isMP && !StatMaster.isClient)
                 {
                     if (block.Team == MPTeam.None)
                     {
-                        if (block.ParentMachine.PlayerID == GetComponentInParent<BlockBehaviour>().ParentMachine.PlayerID)
+                        if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
                         {
                             return null;
                         }
                     }
                     else
                     {
-                        if (block.Team == GetComponentInParent<BlockBehaviour>().Team)
+                        if (block.Team == parentBlock.Team)
                         {
                             return null;
                         }
                     }
                 }
-                //else
-                //{
-                //    if (blocksInSafetyRange.Contains(block))
-                //    {
-                //        return null;
-                //    }
-                //}
-
             }
 
             FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();

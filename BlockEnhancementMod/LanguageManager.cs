@@ -448,6 +448,8 @@ namespace BlockEnhancementMod
 
         string PauseTracking { get; }
 
+        string SinglePlayerTeam { get; }
+
         //CV Joint
         string CvJoint { get; }
 
@@ -622,6 +624,8 @@ namespace BlockEnhancementMod
         public string ZoomSpeed { get; } = "变焦速度";
 
         public string PauseTracking { get; } = "暂停/恢复追踪";
+
+        public string SinglePlayerTeam { get; } = "单人模式队伍";
 
         //CV Joint
         public string CvJoint { get; } = "万向节";
@@ -798,6 +802,8 @@ namespace BlockEnhancementMod
 
         public string PauseTracking { get; } = "Pause/Resume" + Environment.NewLine + "Tracking";
 
+        public string SinglePlayerTeam { get; } = "Single Player" + Environment.NewLine + "Team";
+
         //CV Joint
         public string CvJoint { get; } = "Universal Joint";
 
@@ -972,6 +978,8 @@ namespace BlockEnhancementMod
         public string ZoomSpeed { get; } = "ズームスピード";
 
         public string PauseTracking { get; } = "注視の" + Environment.NewLine + "停止/再開";
+
+        public string SinglePlayerTeam { get; } = "Single Player" + Environment.NewLine + "Team";
 
         //CV Joint
         public string CvJoint { get; } = "ﾕﾆﾊﾞｰｻﾙｼﾞｮｲﾝﾄ";
