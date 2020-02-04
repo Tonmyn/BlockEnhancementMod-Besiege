@@ -116,6 +116,13 @@ namespace BlockEnhancementMod
                     {
                         foreach (var itemTarget in targets)
                         {
+                            //chooseTargetIndex++;
+                            if (!InRadarRange(itemTarget))
+                            {
+                                try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
+                                continue;
+                            }
+
                             if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                             {
                                 tempTarget = itemTarget;
