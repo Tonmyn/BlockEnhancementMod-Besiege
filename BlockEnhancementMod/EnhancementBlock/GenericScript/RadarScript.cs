@@ -582,7 +582,7 @@ namespace BlockEnhancementMod
         }
         public bool InRadarRange(Target target)
         {
-            var value = false;
+            bool value = false;
             if (InRadarRange(target.collider))
             {
                 if (target.isRocket)
@@ -595,7 +595,14 @@ namespace BlockEnhancementMod
                 }
                 else
                 {
-                    value = !(target.block.blockJoint == null);
+                    if (target.hasFireTag)
+                    {
+                        value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
+                    }
+                    if (value)
+                    {
+                        value = !(target.block.blockJoint == null);
+                    }
                 }
 
                 //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
@@ -607,17 +614,18 @@ namespace BlockEnhancementMod
                 //    value = true;
                 //}
 
-                if (target.hasFireTag && !target.isRocket && !target.isBomb)
-                {
-                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned))
-                    {
-                        value = false;
-                    }
-                    else
-                    {
-                        value = true;
-                    }
-                }
+                //if (target.hasFireTag && !target.isRocket && !target.isBomb)
+                //{
+                //    value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
+                //    //if (target.fireTag.burning || target.fireTag.hasBeenBurned)
+                //    //{
+                //    //    value = false;
+                //    //}
+                //    //else
+                //    //{
+                //    //    value = true;
+                //    //}
+                //}
             }
             return value;
         }
