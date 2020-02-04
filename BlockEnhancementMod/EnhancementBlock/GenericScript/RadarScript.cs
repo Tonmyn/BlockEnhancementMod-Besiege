@@ -440,13 +440,11 @@ namespace BlockEnhancementMod
             Debug.Log("clear target");
 #endif
         }
-
         public void ClearTargetNoRemoval()
         {
             SendClientTargetNull();
             target = null;
         }
-
         private void ActivateDetectionZone()
         {
             meshRenderer.enabled = ShowRadar;
@@ -601,6 +599,7 @@ namespace BlockEnhancementMod
                     }
                     if (value)
                     {
+                        target.block.CheckJoints();
                         value = !(target.block.blockJoint == null);
                     }
                 }
@@ -708,9 +707,9 @@ namespace BlockEnhancementMod
         public ExplodeOnCollideBlock bomb;
         public float initialDistance = 0f;
 
-        public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
-        public float angleDiff = 0f;
-        public Vector3 acceleration = Vector3.zero;
+        //public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+        //public float angleDiff = 0f;
+        //public Vector3 acceleration = Vector3.zero;
 
         public warningLevel WarningLevel { get; private set; } = 0;
 
