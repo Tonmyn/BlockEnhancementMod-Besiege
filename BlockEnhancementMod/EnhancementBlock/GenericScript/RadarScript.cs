@@ -110,13 +110,12 @@ namespace BlockEnhancementMod
                     var tempTarget = target ?? new Target(Target.warningLevel.dummyValue);
                     var removeTargetList = new HashSet<Target>();
 
-                    StartCoroutine(chooseTargetInTargetList(lastTargetList));
+                    StartCoroutine(chooseTargetInTargetList(new List<Target>(lastTargetList)));
 
-                    IEnumerator chooseTargetInTargetList(HashSet<Target> targets)
+                    IEnumerator chooseTargetInTargetList(List<Target> targets)
                     {
                         foreach (var itemTarget in targets)
                         {
-                            //chooseTargetIndex++;
                             if (!InRadarRange(itemTarget))
                             {
                                 try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
@@ -141,8 +140,9 @@ namespace BlockEnhancementMod
                             {
                                 try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
                             }
-                            if (chooseTargetIndex >= RadarFrequency)
+                            if (chooseTargetIndex++ >= RadarFrequency)
                             {
+                                Debug.Log("frequency" + "  target count:" + targets.Count);
                                 chooseTargetIndex = 0;
                                 yield return 0;
                             }
@@ -196,7 +196,7 @@ namespace BlockEnhancementMod
             var triggeredTarget = ProcessTarget(collider);
             if (triggeredTarget != null)
             {
-                targetList.Add(triggeredTarget);
+                if (!targetList.Contains(triggeredTarget)) targetList.Add(triggeredTarget);
                 //targetListChanged = true;
             }
             //colliderList.Add(collider);
