@@ -46,7 +46,7 @@ namespace BlockEnhancementMod
         public float GuideControlIFactor = 10f;
         public float GuideControlDFactor = 0f;
 
-        public int RadarFequency = 50;
+        public int RadarFequency = 20;
 
         public static Configuration FormatXDataToConfig(Configuration config = null)
         {
@@ -79,20 +79,13 @@ namespace BlockEnhancementMod
 
             T getValue<T> (string key ,T defaultValue)
             {
-                foreach(var type in typeSpecialAction.Keys)
+                if (xDataHolder.HasKey(key) && !reWrite)
                 {
-                    if (defaultValue.GetType() == type)
-                    {
-                        if (xDataHolder.HasKey(key) && !reWrite)
-                        {
-                            defaultValue = (T)Convert.ChangeType(typeSpecialAction[type](xDataHolder, key), typeof(T));
-                        }
-                        else
-                        {
-                            xDataHolder.Write(key, defaultValue);
-                        }
-                        break;
-                    }
+                    defaultValue = (T)Convert.ChangeType(typeSpecialAction[typeof(T)](xDataHolder, key), typeof(T));
+                }
+                else
+                {
+                    xDataHolder.Write(key, defaultValue);
                 }
                 return defaultValue;
             }
