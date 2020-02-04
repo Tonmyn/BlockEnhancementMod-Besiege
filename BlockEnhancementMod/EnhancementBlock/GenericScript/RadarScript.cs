@@ -116,6 +116,13 @@ namespace BlockEnhancementMod
                     {
                         foreach (var itemTarget in targets)
                         {
+                            //chooseTargetIndex++;
+                            if (!InRadarRange(itemTarget))
+                            {
+                                try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
+                                continue;
+                            }
+
                             if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                             {
                                 tempTarget = itemTarget;
@@ -440,13 +447,11 @@ namespace BlockEnhancementMod
             Debug.Log("clear target");
 #endif
         }
-
         public void ClearTargetNoRemoval()
         {
             SendClientTargetNull();
             target = null;
         }
-
         private void ActivateDetectionZone()
         {
             meshRenderer.enabled = ShowRadar;
@@ -582,7 +587,7 @@ namespace BlockEnhancementMod
         }
         public bool InRadarRange(Target target)
         {
-            var value = false;
+            bool value = false;
             if (InRadarRange(target.collider))
             {
                 if (target.isRocket)
@@ -595,7 +600,15 @@ namespace BlockEnhancementMod
                 }
                 else
                 {
-                    value = !(target.block.blockJoint == null);
+                    if (target.hasFireTag)
+                    {
+                        value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
+                    }
+                    if (value)
+                    {
+                        target.block.CheckJoints();
+                        value = !(target.block.blockJoint == null);
+                    }
                 }
 
                 //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
@@ -607,17 +620,18 @@ namespace BlockEnhancementMod
                 //    value = true;
                 //}
 
-                if (target.hasFireTag && !target.isRocket && !target.isBomb)
-                {
-                    if ((target.fireTag.burning || target.fireTag.hasBeenBurned))
-                    {
-                        value = false;
-                    }
-                    else
-                    {
-                        value = true;
-                    }
-                }
+                //if (target.hasFireTag && !target.isRocket && !target.isBomb)
+                //{
+                //    value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
+                //    //if (target.fireTag.burning || target.fireTag.hasBeenBurned)
+                //    //{
+                //    //    value = false;
+                //    //}
+                //    //else
+                //    //{
+                //    //    value = true;
+                //    //}
+                //}
             }
             return value;
         }
@@ -700,9 +714,9 @@ namespace BlockEnhancementMod
         public ExplodeOnCollideBlock bomb;
         public float initialDistance = 0f;
 
-        public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
-        public float angleDiff = 0f;
-        public Vector3 acceleration = Vector3.zero;
+        //public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+        //public float angleDiff = 0f;
+        //public Vector3 acceleration = Vector3.zero;
 
         public warningLevel WarningLevel { get; private set; } = 0;
 
