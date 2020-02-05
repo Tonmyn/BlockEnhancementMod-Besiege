@@ -101,15 +101,17 @@ namespace BlockEnhancementMod
                     Debug.Log("choose target");
 #endif
                     isChoosingBlock = true;
-                    lastBlockList = blockList;
+                    lastBlockList = new HashSet<BlockBehaviour>(blockList);
 
                     var tempTarget = target ?? new Target(Target.warningLevel.dummyValue);
                     var removeBlockList = new HashSet<BlockBehaviour>();
                     int chooseTargetIndex = 0;
 
-                    StartCoroutine(chooseTargetInTargetList(new List<BlockBehaviour>(lastBlockList)));
+                    //StartCoroutine(chooseTargetInTargetList(new List<BlockBehaviour>(lastBlockList)));
+                    StartCoroutine(chooseTargetInTargetList(lastBlockList));
 
-                    IEnumerator chooseTargetInTargetList(List<BlockBehaviour> blocks)
+                    //IEnumerator chooseTargetInTargetList(List<BlockBehaviour> blocks)
+                    IEnumerator chooseTargetInTargetList(HashSet<BlockBehaviour> blocks)
                     {
                         foreach (var itemBlock in blocks)
                         {
@@ -172,11 +174,11 @@ namespace BlockEnhancementMod
         private void OnTriggerEnter(Collider collider)
         {
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
-            if (!isQualifiedCollider(collider)) return;
-            
-            var block = collider.gameObject.GetComponent<BlockBehaviour>() ?? collider.gameObject.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.gameObject.GetComponent<BlockBehaviour>();
+            if (!IsQualifiedCollider(collider)) return;
+            //var block = collider.gameObject.GetComponent<BlockBehaviour>() ?? collider.gameObject.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.gameObject.GetComponent<BlockBehaviour>();
+            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
-            if (!isQualifiedBlock(block)) return;
+            if (!IsQualifiedBlock(block)) return;
             blockList.Add(block);
         }
         private void OnGUI()
@@ -456,7 +458,7 @@ namespace BlockEnhancementMod
         }
         private Target ProcessTarget(Collider collider)
         {
-            if (!isQualifiedCollider(collider))
+            if (!IsQualifiedCollider(collider))
             {
                 return null;
             }
@@ -464,7 +466,7 @@ namespace BlockEnhancementMod
             {
                 BlockBehaviour block = collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>();
 
-                return isQualifiedBlock(block) ? ProcessTarget(block) : null;
+                return IsQualifiedBlock(block) ? ProcessTarget(block) : null;
             }
 
 
@@ -544,7 +546,7 @@ namespace BlockEnhancementMod
         }
         private Target ProcessTarget(BlockBehaviour block)
         {
-            if (!isQualifiedBlock(block) || !isQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
+            if (!IsQualifiedBlock(block) || !IsQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
 
             Target tempTarget = new Target(block);
 
@@ -558,11 +560,11 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private bool isQualifiedCollider(Collider collider)
+        private bool IsQualifiedCollider(Collider collider)
         {
-            return !(collider == null || collider.isTrigger || !collider.enabled || collider.gameObject.isStatic);
+            return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic);
         }
-        private bool isQualifiedBlock(BlockBehaviour block)
+        private bool IsQualifiedBlock(BlockBehaviour block)
         {
             var value = true;
 
