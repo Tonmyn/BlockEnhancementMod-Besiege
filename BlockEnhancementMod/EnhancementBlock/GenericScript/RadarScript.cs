@@ -31,7 +31,6 @@ namespace BlockEnhancementMod
 
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
-        //[Obsolete] private HashSet<BlockBehaviour> blocksInSafetyRange = new HashSet<BlockBehaviour>();
 
         public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
@@ -44,15 +43,9 @@ namespace BlockEnhancementMod
 
         public event Action<Target> OnTarget;
 
-        private HashSet<Target> targetList = new HashSet<Target>();
-        private HashSet<Target> lastTargetList = new HashSet<Target>();
-        private bool isChoosingTarget = false;
-        private int chooseTargetIndex = 0;
-
-
-        //private List<Collider> colliderList = new List<Collider>();
-        //private int processColliderIndex = 0;
-        //private bool colliderListChanged = false;
+        private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
+        private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
+        private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
@@ -97,33 +90,36 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (/*target == null &&*/ targetList.Count > 0 && (!targetList.Equals(lastTargetList) || target == null))
+            if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
             {
-                if (!isChoosingTarget/*&& colliderListChanged == false*/)
+#if DEBUG
+                Debug.Log(blockList.Count);
+#endif
+                if (!isChoosingBlock)
                 {
 #if DEBUG
                     Debug.Log("choose target");
 #endif
-                    isChoosingTarget = true;
-                    lastTargetList = targetList;
+                    isChoosingBlock = true;
+                    lastBlockList = blockList;
 
                     var tempTarget = target ?? new Target(Target.warningLevel.dummyValue);
-                    var removeTargetList = new HashSet<Target>();
+                    var removeBlockList = new HashSet<BlockBehaviour>();
+                    int chooseTargetIndex = 0;
 
-                    StartCoroutine(chooseTargetInTargetList(lastTargetList));
+                    StartCoroutine(chooseTargetInTargetList(new List<BlockBehaviour>(lastBlockList)));
 
-                    IEnumerator chooseTargetInTargetList(HashSet<Target> targets)
+                    IEnumerator chooseTargetInTargetList(List<BlockBehaviour> blocks)
                     {
-                        foreach (var itemTarget in targets)
+                        foreach (var itemBlock in blocks)
                         {
-                            //chooseTargetIndex++;
+                            var itemTarget = ProcessTarget(itemBlock);
+
                             if (!InRadarRange(itemTarget))
                             {
-                                try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
-                                continue;
+                                try { removeBlockList.Add(itemBlock); } catch (Exception e) { Debug.Log(e.Message); }
                             }
-
-                            if (itemTarget.WarningLevel > tempTarget.WarningLevel)
+                            else if (itemTarget.WarningLevel > tempTarget.WarningLevel)
                             {
                                 tempTarget = itemTarget;
                             }
@@ -137,12 +133,13 @@ namespace BlockEnhancementMod
                                     tempTarget = itemTarget;
                                 }
                             }
-                            else
+
+
+                            if (chooseTargetIndex++ >= RadarFrequency)
                             {
-                                try { removeTargetList.Add(itemTarget); } catch (Exception e) { Debug.Log(e.Message); }
-                            }
-                            if (chooseTargetIndex >= RadarFrequency)
-                            {
+#if DEBUG
+                                Debug.Log("frequency" + "  target count:" + blocks.Count);
+#endif
                                 chooseTargetIndex = 0;
                                 yield return 0;
                             }
@@ -155,52 +152,32 @@ namespace BlockEnhancementMod
 
                         try
                         {
-                            if (removeTargetList.Count > 0)
+                            if (removeBlockList.Count > 0)
                             {
-                                lastTargetList.ExceptWith(removeTargetList);
-                                targetList.ExceptWith(removeTargetList);
+                                lastBlockList.ExceptWith(removeBlockList);
+                                blockList.ExceptWith(removeBlockList);
                             }
 
                         }
                         catch (Exception e) { Debug.Log(e.Message); }
 
-                        isChoosingTarget = false;
+                        isChoosingBlock = false;
 
                         yield break;
                     }
                 }
             }
 
-            //if (colliderList.Count > 0 && colliderListChanged)
-            //{
-            //    for (int i = 0; i < RadarFrequency * 3; i++)
-            //    {
-            //        //Debug.Log("collider" + processColliderIndex);
-            //        var colliderTarget = ProcessTarget(colliderList[processColliderIndex++]);
-            //        try { if (colliderTarget != null) targetList.Add(colliderTarget); } catch (Exception e) { Debug.Log(e.Message); }
-            //        if (processColliderIndex >= colliderList.Count)
-            //        {
-            //            colliderListChanged = false;
-            //            processColliderIndex = 0;
-            //            colliderList.Clear();
-            //            break;
-            //        }
-            //    }
-            //}
         }
         private void OnTriggerEnter(Collider collider)
         {
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
-            if (collider.isTrigger || !collider.enabled || collider.gameObject.isStatic) return;
+            if (!isQualifiedCollider(collider)) return;
+            
+            var block = collider.gameObject.GetComponent<BlockBehaviour>() ?? collider.gameObject.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.gameObject.GetComponent<BlockBehaviour>();
 
-            var triggeredTarget = ProcessTarget(collider);
-            if (triggeredTarget != null)
-            {
-                targetList.Add(triggeredTarget);
-                //targetListChanged = true;
-            }
-            //colliderList.Add(collider);
-            //colliderListChanged = true;
+            if (!isQualifiedBlock(block)) return;
+            blockList.Add(block);
         }
         private void OnGUI()
         {
@@ -235,7 +212,7 @@ namespace BlockEnhancementMod
         {
             Switch = false;
             ClearTarget();
-            targetList.Clear();
+            blockList.Clear();
         }
 
         public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int searchMode, bool showRadar, float safetyRadius = 30f)
@@ -247,7 +224,8 @@ namespace BlockEnhancementMod
             this.SafetyRadius = safetyRadius;
             this.SearchMode = (SearchModes)searchMode;
             CreateFrustumCone(safetyRadius, searchRadius);
-            targetList.Clear();
+            //targetList.Clear();
+            blockList.Clear();
 
             void CreateFrustumCone(float topRadius, float bottomRadius)
             {
@@ -344,7 +322,8 @@ namespace BlockEnhancementMod
             if (tempTarget == null) return;
 
             target = tempTarget;
-            targetList.Add(target);
+            //targetList.Add(target);
+            blockList.Add(tempTarget.block);
             target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
 
             if (receivedRayFromClient) SendTargetToClient();
@@ -440,7 +419,7 @@ namespace BlockEnhancementMod
         }
         public void ClearTarget()
         {
-            if (targetList.Contains(target)) targetList.Remove(target);
+            if (target != null) blockList.Remove(target.block);
             SendClientTargetNull();
             target = null;
 #if DEBUG
@@ -456,7 +435,7 @@ namespace BlockEnhancementMod
         {
             meshRenderer.enabled = ShowRadar;
             StopCoroutine("intervalActivateDetectionZone");
-            StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 8f, Time.deltaTime * 4f));
+            StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
 
             IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             {
@@ -465,7 +444,6 @@ namespace BlockEnhancementMod
                     meshCollider.enabled = true;
                     yield return new WaitForSeconds(workTime);
                     meshCollider.enabled = false;
-                    //colliderListChanged = false;
                     yield return new WaitForSeconds(stopTime);
                 }
                 yield break;
@@ -478,22 +456,129 @@ namespace BlockEnhancementMod
         }
         private Target ProcessTarget(Collider collider)
         {
-            if (collider == null || !collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return null;
+            if (!isQualifiedCollider(collider))
+            {
+                return null;
+            }
+            else
+            {
+                BlockBehaviour block = collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>();
 
-            BlockBehaviour block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+                return isQualifiedBlock(block) ? ProcessTarget(block) : null;
+            }
+
+
+            //// If not a block
+            //if (block == null && SearchMode == SearchModes.Auto) return null;
+            //// if not a rocket and have nothing connected to
+            //if (block.BlockID != (int)BlockType.Rocket)
+            //{
+            //    if (block.blockJoint == null)
+            //    {
+            //        return null;
+            //    }
+            //    else if (block.blockJoint.connectedBody == null)
+            //    {
+            //        return null;
+            //    }
+            //}
+            //else
+            //{
+            //    if (Playerlist.Players.Count < 2 && parentBlock.BlockID == (int)BlockType.Rocket)
+            //    {
+            //        RocketScript targetRocketScript = block.GetComponent<RocketScript>();
+            //        RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
+            //        if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
+            //        {
+            //            if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return null;
+            //        }
+            //    }
+            //}
+
+            //// if is own machine
+            //if (block != null)
+            //{
+            //    if (StatMaster.isMP && !StatMaster.isClient && Playerlist.Players.Count > 1)
+            //    {
+            //        if (block.Team == MPTeam.None)
+            //        {
+            //            if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
+            //            {
+            //                return null;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (block.Team == parentBlock.Team)
+            //            {
+            //                return null;
+            //            }
+            //        }
+            //    }
+            //}
+
+            //FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();
+            //Rigidbody rigidbody = collider.gameObject.GetComponentInParent<Rigidbody>();
+
+            //if (rigidbody == null) return null;
+
+            //Target tempTarget = new Target
+            //{
+            //    collider = collider,
+            //    transform = collider.gameObject.transform,
+            //    block = block,
+            //    rigidbody = rigidbody,
+            //    fireTag = fireTag,
+            //    hasFireTag = (fireTag != null)
+            //};
+            //tempTarget.SetTargetWarningLevel();
+
+            //if (tempTarget.hasFireTag)
+            //{
+            //    if ((tempTarget.fireTag.burning || tempTarget.fireTag.hasBeenBurned) && !tempTarget.isRocket)
+            //    {
+            //        return null;
+            //    }
+            //}
+            //return tempTarget;
+        }
+        private Target ProcessTarget(BlockBehaviour block)
+        {
+            if (!isQualifiedBlock(block) || !isQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
+
+            Target tempTarget = new Target(block);
+
+            if (tempTarget.hasFireTag)
+            {
+                if ((tempTarget.fireTag.burning || tempTarget.fireTag.hasBeenBurned) && !tempTarget.isRocket)
+                {
+                    return null;
+                }
+            }
+            return tempTarget;
+        }
+
+        private bool isQualifiedCollider(Collider collider)
+        {
+            return !(collider == null || collider.isTrigger || !collider.enabled || collider.gameObject.isStatic);
+        }
+        private bool isQualifiedBlock(BlockBehaviour block)
+        {
+            var value = true;
 
             // If not a block
-            if (block == null && SearchMode == SearchModes.Auto) return null;
+            if (block == null) return false;
+
             // if not a rocket and have nothing connected to
             if (block.BlockID != (int)BlockType.Rocket)
             {
                 if (block.blockJoint == null)
                 {
-                    return null;
+                    return false;
                 }
                 else if (block.blockJoint.connectedBody == null)
                 {
-                    return null;
+                    return false;
                 }
             }
             else
@@ -504,7 +589,7 @@ namespace BlockEnhancementMod
                     RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
                     if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
                     {
-                        if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return null;
+                        if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return false;
                     }
                 }
             }
@@ -518,43 +603,26 @@ namespace BlockEnhancementMod
                     {
                         if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
                         {
-                            return null;
+                            return false;
                         }
                     }
                     else
                     {
                         if (block.Team == parentBlock.Team)
                         {
-                            return null;
+                            return false;
                         }
                     }
                 }
+
+                FireTag fireTag = block.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
+                Rigidbody rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
+
+                if (fireTag == null || fireTag.burning || fireTag.hasBeenBurned) return false;
+                if (rigidbody == null || rigidbody.gameObject.layer == 2) return false;
             }
 
-            FireTag fireTag = collider.gameObject.GetComponentInParent<FireTag>();
-            Rigidbody rigidbody = collider.gameObject.GetComponentInParent<Rigidbody>();
-
-            if (rigidbody == null) return null;
-
-            Target tempTarget = new Target
-            {
-                collider = collider,
-                transform = collider.gameObject.transform,
-                block = block,
-                rigidbody = rigidbody,
-                fireTag = fireTag,
-                hasFireTag = (fireTag != null)
-            };
-            tempTarget.SetTargetWarningLevel();
-
-            if (tempTarget.hasFireTag)
-            {
-                if ((tempTarget.fireTag.burning || tempTarget.fireTag.hasBeenBurned) && !tempTarget.isRocket)
-                {
-                    return null;
-                }
-            }
-            return tempTarget;
+            return value;
         }
 
         public bool InRadarRange(Vector3 positionInWorld)
@@ -580,6 +648,10 @@ namespace BlockEnhancementMod
             }
             return false;
         }
+        public bool InRadarRange(BlockBehaviour block)
+        {
+            return block == null ? false : InRadarRange(ProcessTarget(block));
+        }
         public bool InRadarRange(Collider collider)
         {
             if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return false;
@@ -588,6 +660,8 @@ namespace BlockEnhancementMod
         public bool InRadarRange(Target target)
         {
             bool value = false;
+            if (target == null) return value;
+
             if (InRadarRange(target.collider))
             {
                 if (target.isRocket)
@@ -736,6 +810,17 @@ namespace BlockEnhancementMod
         public Target(warningLevel warningLevel)
         {
             WarningLevel = warningLevel;
+        }
+        public Target(BlockBehaviour block)
+        {
+            collider = block.gameObject.GetComponent<Collider>() ?? block.gameObject.GetComponentInChildren<Collider>();
+            fireTag = block.gameObject.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
+            rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
+            hasFireTag = (fireTag != null);
+            transform = block.transform;
+            this.block = block;
+
+            SetTargetWarningLevel();
         }
 
         public void SetTargetWarningLevel()
