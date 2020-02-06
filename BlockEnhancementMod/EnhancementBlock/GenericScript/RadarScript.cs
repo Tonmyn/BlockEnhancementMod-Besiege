@@ -174,11 +174,11 @@ namespace BlockEnhancementMod
         private void OnTriggerEnter(Collider collider)
         {
             if ((SearchMode != SearchModes.Auto) || !Switch) return;
-            if (!IsQualifiedCollider(collider)) return;
+            if (!isQualifiedCollider(collider)) return;
             //var block = collider.gameObject.GetComponent<BlockBehaviour>() ?? collider.gameObject.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.gameObject.GetComponent<BlockBehaviour>();
             var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
-            if (!IsQualifiedBlock(block)) return;
+            if (!isQualifiedBlock(block)) return;
             blockList.Add(block);
         }
         private void OnGUI()
@@ -199,7 +199,7 @@ namespace BlockEnhancementMod
                 {
                     if (target != null)
                     {
-                        Vector3 markerPosition = target.collider.bounds != null ? target.collider.bounds.center : target.transform.position;
+                        Vector3 markerPosition = target.collider/*.bounds*/ != null ? target.collider.bounds.center : target.transform.position;
                         if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
                         {
                             int squareWidth = 16;
@@ -326,7 +326,8 @@ namespace BlockEnhancementMod
             target = tempTarget;
             //targetList.Add(target);
             blockList.Add(tempTarget.block);
-            target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
+            if (target.collider != null) target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
+
 
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
@@ -338,7 +339,8 @@ namespace BlockEnhancementMod
             if (SearchMode == SearchModes.Manual)
             {
                 ClearTarget();
-                SetTarget(ProcessTarget(GetTargetManual()));
+                //SetTarget(ProcessTarget(GetTargetManual()));
+                SetTarget(getTargetManual());
             }
 
             Collider GetTargetManual()
@@ -400,6 +402,71 @@ namespace BlockEnhancementMod
                     return tempCollider;
                 }
             }
+
+            Target getTargetManual()
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (StatMaster.isClient)
+                {
+                    SendRayToHost(ray);
+                    return null;
+                }
+                else
+                {
+                    Target tempTarget = null;
+
+                    if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, SearchRadius, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
+                    {
+                        tempTarget = ConvertRaycastHitToTarget(rayHit); /*Debug.Log("11- " + (tempTarget == null).ToString());*/
+                    }
+                    if (tempTarget == null)
+                    {
+                        float manualSearchRadius = 1.25f;
+                        RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, SearchRadius, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+
+                        if (hits.Length > 0)
+                        {
+                            for (int i = 0; i < hits.Length; i++)
+                            {
+                                tempTarget = ConvertRaycastHitToTarget(hits[i]); /*Debug.Log("22- " + (tempTarget == null).ToString());*/
+                                if (tempTarget != null) break;
+                            }
+                        }
+                    }
+                    if (tempTarget == null)
+                    {
+                        tempTarget =new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
+                    }
+
+                    return tempTarget;
+                }
+
+                Target ConvertRaycastHitToTarget(RaycastHit raycastHit)
+                {
+                    if (isQualifiedBlock(raycastHit.transform.GetComponentInParent<BlockBehaviour>()))
+                    {
+                        return new Target(raycastHit.transform);
+                    }
+                    else if (isQualifiedEntity(raycastHit.transform.GetComponentInParent<LevelEntity>()))
+                    {
+                        return new Target(raycastHit.transform);
+                    }
+                    else if (isQualifiedFireTag(raycastHit.transform.gameObject.GetComponentInParent<FireTag>()))
+                    {
+                        return new Target(raycastHit.transform);
+                    }
+                    else if (isQualifiedRigidbody(raycastHit.rigidbody))
+                    {
+                        return new Target(raycastHit.transform);
+                    }
+                    else if (isQualifiedCollider(raycastHit.collider))
+                    {
+                        return new Target(raycastHit.transform);
+                    }
+
+                    return null;
+                }
+            }
         }
         public void ChangeSearchMode()
         {
@@ -458,15 +525,15 @@ namespace BlockEnhancementMod
         }
         private Target ProcessTarget(Collider collider)
         {
-            if (!IsQualifiedCollider(collider))
+            if (!isQualifiedCollider(collider))
             {
                 return null;
             }
             else
             {
-                BlockBehaviour block = collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>();
+                BlockBehaviour block = /*collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>()*/ collider.transform.gameObject.GetComponentInParent<BlockBehaviour>();
 
-                return IsQualifiedBlock(block) ? ProcessTarget(block) : null;
+                return isQualifiedBlock(block) ? ProcessTarget(block) : null;
             }
 
 
@@ -546,7 +613,7 @@ namespace BlockEnhancementMod
         }
         private Target ProcessTarget(BlockBehaviour block)
         {
-            if (!IsQualifiedBlock(block) || !IsQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
+            if (!isQualifiedBlock(block) || !isQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
 
             Target tempTarget = new Target(block);
 
@@ -560,11 +627,19 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private bool IsQualifiedCollider(Collider collider)
+        private bool isQualifiedCollider(Collider collider)
         {
-            return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic);
+            return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic || collider.gameObject.layer == 29);
         }
-        private bool IsQualifiedBlock(BlockBehaviour block)
+        private bool isQualifiedRigidbody(Rigidbody rigidbody)
+        {
+            return !(rigidbody == null || rigidbody.isKinematic == true);
+        }
+        private bool isQualifiedFireTag(FireTag fireTag)
+        {
+            return !(fireTag == null || fireTag.burning || fireTag.hasBeenBurned);
+        }
+        private bool isQualifiedBlock(BlockBehaviour block)
         {
             var value = true;
 
@@ -625,6 +700,22 @@ namespace BlockEnhancementMod
             }
 
             return value;
+        }
+        private bool isQualifiedEntity(LevelEntity levelEntity)
+        {
+            if (levelEntity != null)
+            {
+                if (levelEntity.isStatic || levelEntity.IsDestroyed) return false;
+                if (levelEntity.fireTag.burning || levelEntity.fireTag.hasBeenBurned) return false;
+                if (!isQualifiedCollider(levelEntity.GetComponentInParent<Collider>())) return false;
+                if (!isQualifiedRigidbody(levelEntity.GetComponentInParent<Rigidbody>())) return false;
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public bool InRadarRange(Vector3 positionInWorld)
@@ -809,15 +900,36 @@ namespace BlockEnhancementMod
         }
 
         public Target() { }
+        public Target(Vector3 point)
+        {
+            var go = new GameObject("Target Object");
+            go.AddComponent<DestroyIfEditMode>();
+            go.transform.position = point;
+            transform = go.transform;
+            initialDistance = 500f;
+            WarningLevel = warningLevel.dummyValue;
+        }
+        public Target(Transform transform)
+        {
+            this.transform = transform;
+            this.collider = transform.GetComponentInParent<Collider>();
+            this.block = transform.GetComponentInParent<BlockBehaviour>();
+            this.rigidbody = transform.GetComponentInParent<Rigidbody>();
+            this.fireTag = transform.GetComponentInParent<FireTag>();
+            this.hasFireTag = (this.fireTag != null);
+            initialDistance = 500f;
+
+            WarningLevel = warningLevel.normalBlockValue;
+        }
         public Target(warningLevel warningLevel)
         {
             WarningLevel = warningLevel;
         }
         public Target(BlockBehaviour block)
         {
-            collider = block.gameObject.GetComponent<Collider>() ?? block.gameObject.GetComponentInChildren<Collider>();
-            fireTag = block.gameObject.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
-            rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
+            collider =block.gameObject.GetComponentInParent<Collider>();
+            fireTag =  block.gameObject.GetComponentInParent<FireTag>();
+            rigidbody =  block.gameObject.GetComponentInParent<Rigidbody>();
             hasFireTag = (fireTag != null);
             transform = block.transform;
             this.block = block;
@@ -828,7 +940,7 @@ namespace BlockEnhancementMod
         public void SetTargetWarningLevel()
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
-            BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
+            BlockBehaviour block = collider.GetComponentInParent<BlockBehaviour>();
             if (block != null)
             {
                 switch (block.BlockID)
