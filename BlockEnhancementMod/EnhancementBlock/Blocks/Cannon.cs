@@ -246,6 +246,8 @@ namespace BlockEnhancementMod.Blocks
                 if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
                 {
                     KnockBackSpeedSlider.DisplayInMapper = false;
+                    KnockBackSpeedSlider.Value = 1f;
+                    CB.knockbackSpeed = originalKnockBackSpeed;
                 }
                 if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper)
                 {

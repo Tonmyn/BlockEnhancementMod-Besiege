@@ -8,19 +8,19 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-    class SliderScript : EnhancementBlock
+    class SliderScript : ChangeHardnessBlock
     {
 
-        MMenu HardnessMenu;
+        //MMenu HardnessMenu;
 
         MSlider LimitSlider;
 
-        public int HardnessIndex = 1;
+        //public int HardnessIndex = 1;
         //private int orginHardnessIndex = 1;
         public float Limit = 1;
         //private float orginLimit = 1;
 
-        ConfigurableJoint CJ;
+        //ConfigurableJoint ConfigurableJoint;
 
         public override void SafeAwake()
         {
@@ -31,6 +31,7 @@ namespace BlockEnhancementMod
             LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0f, 2f);
             LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
 
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
@@ -41,25 +42,26 @@ namespace BlockEnhancementMod
         {
             HardnessMenu.DisplayInMapper = value;
             LimitSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
         }
 
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
             {
-                CJ = GetComponent<ConfigurableJoint>();
-
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
+                hardness = new Hardness(ConfigurableJoint);
                 //if (!EnhancementEnabled)
                 //{
                 //    Limit = orginLimit;
                 //    HardnessIndex = orginHardnessIndex;
                 //}
 
-                SoftJointLimit limit = CJ.linearLimit;
+                SoftJointLimit limit = ConfigurableJoint.linearLimit;
                 limit.limit = Limit = Mathf.Abs(Limit);
-                CJ.linearLimit = limit;
+                ConfigurableJoint.linearLimit = limit;
 
-                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+                hardness.SwitchWoodHardness(HardnessIndex, ConfigurableJoint);
             }    
         }
     }

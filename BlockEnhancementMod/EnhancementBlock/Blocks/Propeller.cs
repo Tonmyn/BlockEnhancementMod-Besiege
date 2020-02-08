@@ -6,15 +6,15 @@ using UnityEngine;
 
 namespace BlockEnhancementMod.Blocks
 {   
-    class PropellerScript : EnhancementBlock
+    class PropellerScript : ChangeHardnessBlock
     {
         MKey SwitchKey;
-        MMenu HardnessMenu;
+        //MMenu HardnessMenu;
         MToggle EffectToggle;
         MToggle ToggleToggle;
         MToggle LiftIndicatorToggle;
 
-        int HardnessIndex = 1;
+        //int HardnessIndex = 1;
         bool Effect = true,Toggle = true,LiftIndicator = false;
 
         public override void SafeAwake()
@@ -35,6 +35,8 @@ namespace BlockEnhancementMod.Blocks
             LiftIndicatorToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.LiftIndicator, "Lift Indicator", LiftIndicator);
             LiftIndicatorToggle.Toggled += (value) => { LiftIndicator = value; ChangedProperties(); };
 
+            base.SafeAwake();
+
 #if DEBUG
             ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
@@ -49,7 +51,7 @@ namespace BlockEnhancementMod.Blocks
             LiftIndicatorToggle.DisplayInMapper = value;
         }
 
-        private ConfigurableJoint CJ;
+        //private ConfigurableJoint ConfigurableJoint;
         private LineRenderer LR;
         private AxialDrag AD;
         
@@ -60,13 +62,13 @@ namespace BlockEnhancementMod.Blocks
         {
             if (EnhancementEnabled)
             {
-                CJ = GetComponent<ConfigurableJoint>();
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
                 AD = GetComponent<AxialDrag>();
                 axisDragOrgin = AD.AxisDrag;
 
                 SetVelocityCap(Effect);
 
-                Hardness.SwitchWoodHardness(HardnessIndex, CJ);
+                hardness.SwitchWoodHardness(HardnessIndex, ConfigurableJoint);
 
                 if (LiftIndicator)
                 {
@@ -110,7 +112,7 @@ namespace BlockEnhancementMod.Blocks
                 //AD.xyz = Vector3.Scale(AD.Rigidbody.transform.InverseTransformDirection(SettingWindow.simulateVelocity_Vector), ad.AxisDrag);
                 ////计算模拟速度向量模的平方
                 //ad.currentVelocitySqr = Mathf.Min(SettingWindow.simulateVelocity_Vector.sqrMagnitude, GetComponent<BlockBehaviour>().GetBlockID() == (int)BlockType.Wing ? 100 : 900);
-                if (CJ != null)
+                if (ConfigurableJoint != null)
                 {
                     liftVector = AD.Rigidbody.transform.TransformVector(AD.xyz * AD.currentVelocitySqr);
                     LR.SetPosition(0, transform.TransformPoint(AD.Rigidbody.centerOfMass));

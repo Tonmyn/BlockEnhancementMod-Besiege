@@ -2,91 +2,91 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
     [Obsolete]
-    class Cog : EnhancementBlock
+    class Cog : CogMotoControllerHinge_GenericEnhanceScript
     {
-//        CogScript CS;
+        //        CogScript CS;
 
-//        MToggle TemperingToggle;
+        //        MToggle TemperingToggle;
 
-//        bool Tempering = false;
+        //        bool Tempering = false;
 
-//        public Cog(BlockBehaviour block) : base(block)
-//        {
-//            if (BB.GetComponent<CogScript>() == null)
-//            {
+        //        public Cog(BlockBehaviour block) : base(block)
+        //        {
+        //            if (BB.GetComponent<CogScript>() == null)
+        //            {
 
-//                CS = BB.gameObject.AddComponent<CogScript>();
+        //                CS = BB.gameObject.AddComponent<CogScript>();
 
-//                TemperingToggle = new MToggle("齿轮调质", "Tempering", Tempering);
-//                TemperingToggle.Toggled += (bool value) => { Tempering = value; ChangedPropertise(); };
-//                CurrentMapperTypes.Add(TemperingToggle);
+        //                TemperingToggle = new MToggle("齿轮调质", "Tempering", Tempering);
+        //                TemperingToggle.Toggled += (bool value) => { Tempering = value; ChangedPropertise(); };
+        //                CurrentMapperTypes.Add(TemperingToggle);
 
-//            }
-//            LoadConfiguration();
+        //            }
+        //            LoadConfiguration();
 
-//            ChangedPropertise();
-//            DisplayInMapper(EnhancementEnable);
+        //            ChangedPropertise();
+        //            DisplayInMapper(EnhancementEnable);
 
-//            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
+        //            Controller.MapperTypesField.SetValue(block, CurrentMapperTypes);
 
-//#if DEBUG
-//            Debug.Log("齿轮添加进阶属性");
-//#endif
+        //#if DEBUG
+        //            Debug.Log("齿轮添加进阶属性");
+        //#endif
 
-//        }
+        //        }
 
-//        public static bool IsCog(int id)
-//        {
-//            bool result = false;
+        //        public static bool IsCog(int id)
+        //        {
+        //            bool result = false;
 
-//            switch (id)
-//            {
-//                case (int)BlockType.CogMediumPowered:
-//                    result = true;
-//                    break;
+        //            switch (id)
+        //            {
+        //                case (int)BlockType.CogMediumPowered:
+        //                    result = true;
+        //                    break;
 
-//                case (int)BlockType.CogMediumUnpowered:
-//                    result = true;
-//                    break;
-//                case (int)BlockType.CogLargeUnpowered:
-//                    result = true;
-//                    break;
+        //                case (int)BlockType.CogMediumUnpowered:
+        //                    result = true;
+        //                    break;
+        //                case (int)BlockType.CogLargeUnpowered:
+        //                    result = true;
+        //                    break;
 
-//                default: result = false; break;
-//            }
-//            return result;
+        //                default: result = false; break;
+        //            }
+        //            return result;
 
-//        }
-        
-//        public class CogScript : BlockScript
-//        {
+        //        }
 
-//            ConfigurableJoint CJ;
+        //        public class CogScript : BlockScript
+        //        {
 
-//            SetCogStatic SCS;
+        //            ConfigurableJoint CJ;
 
-//            public bool Tempering; 
+        //            SetCogStatic SCS;
 
-//            private void Start()
-//            {
-//                CJ = GetComponent<ConfigurableJoint>();
+        //            public bool Tempering; 
 
-//                //float num = Mathf.Infinity;
-//                //SoftJointLimitSpring softJointLimitSpring = CJ.angularYZLimitSpring;
-//                //softJointLimitSpring.damper = num;
-//                //CJ.angularYZLimitSpring = softJointLimitSpring;
+        //            private void Start()
+        //            {
+        //                CJ = GetComponent<ConfigurableJoint>();
 
-//                //float single = Mathf.Infinity;
+        //                //float num = Mathf.Infinity;
+        //                //SoftJointLimitSpring softJointLimitSpring = CJ.angularYZLimitSpring;
+        //                //softJointLimitSpring.damper = num;
+        //                //CJ.angularYZLimitSpring = softJointLimitSpring;
 
-//                //CJ.angularYZDrive = new JointDrive() { positionSpring = single, maximumForce = single };
+        //                //float single = Mathf.Infinity;
 
-//            }
+        //                //CJ.angularYZDrive = new JointDrive() { positionSpring = single, maximumForce = single };
 
-//        }
+        //            }
+
+        //        }
     }
+
 }

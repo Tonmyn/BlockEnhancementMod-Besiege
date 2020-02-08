@@ -7,7 +7,7 @@ using System.Collections;
 namespace BlockEnhancementMod.Blocks
 {
 
-    class WheelScript : EnhancementBlock
+    class WheelScript : CogMotoControllerHinge_GenericEnhanceScript
     {
 
         MToggle ColliderToggle;
@@ -45,9 +45,9 @@ namespace BlockEnhancementMod.Blocks
             {
                 StartCoroutine(ReadWheelMesh());
             }
-
+            base.SafeAwake();
 #if DEBUG
-            ConsoleController.ShowMessage("动力组件添加进阶属性");
+            ConsoleController.ShowMessage("轮子组件添加进阶属性");
 #endif
 
         }
@@ -58,6 +58,8 @@ namespace BlockEnhancementMod.Blocks
             ShowColliderToggle.DisplayInMapper = value && Collider;
             FrictionSlider.DisplayInMapper = value;
             BouncinessSlider.DisplayInMapper = value;
+
+            base.DisplayInMapper(value);
         }
 
 
@@ -101,9 +103,6 @@ namespace BlockEnhancementMod.Blocks
 
         public override void OnSimulateStartClient()
         {
-
-           
-
             if (EnhancementEnabled)
             {
                 Colliders = GetComponentsInChildren<Collider>();
@@ -159,6 +158,11 @@ namespace BlockEnhancementMod.Blocks
 
             //    Destroy(WheelCollider);
             //}
+        }
+
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            base.SimulateUpdateAlways_EnhancementEnable();
         }
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)

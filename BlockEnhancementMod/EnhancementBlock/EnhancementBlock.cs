@@ -26,7 +26,7 @@ namespace BlockEnhancementMod
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataSaveEvent;
 
-        public Action BlockPropertiseChangedEvent;
+        public Action PropertiseChangedEvent;
 
         private bool isFirstFrame = true;
 
@@ -40,11 +40,12 @@ namespace BlockEnhancementMod
             //if (BB.isSimulating ) { return; }        
 
             Enhancement = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Enhancement, "Enhancement", EnhancementEnabled);
-            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; DisplayInMapper(value); };
+            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; PropertiseChangedEvent(); DisplayInMapper(value); };
 
             //LoadConfiguration();    
 
-            ChangedProperties(); try { BlockPropertiseChangedEvent(); } catch { }
+            PropertiseChangedEvent += ChangedProperties;
+            PropertiseChangedEvent?.Invoke();
 
             DisplayInMapper(EnhancementEnabled);
 
@@ -216,6 +217,7 @@ namespace BlockEnhancementMod
         /// <summary>
         /// 显示在Mapper里面
         /// </summary>
+        /// <param name="value">EnhancementEnabled.value</param>
         public virtual void DisplayInMapper(bool value) { }
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
@@ -226,57 +228,109 @@ namespace BlockEnhancementMod
         /// </summary>
         public virtual void OnSimulateStartClient() { }
 
+        public MKey AddKey(string displayName, string key, KeyCode defaultValue)
+        {
+            var mapper = BB.AddKey(displayName, key, defaultValue);
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
+        public MSlider AddSlider(string displayName,string key ,float defaultValue,float min,float max)
+        {
+            var mapper = BB.AddSlider(displayName, key, defaultValue, min, max);
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled);  };
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
+        public MToggle AddToggle(string displayName, string key, bool defaultValue)
+        {
+            var mapper = BB.AddToggle(displayName, key, defaultValue);
+            mapper.Toggled += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled);  };
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
+        public MMenu AddMenu(string key, int defaultIndex, List<string> items)
+        {
+            var mapper = BB.AddMenu(key, defaultIndex, items);
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
+        public MValue AddValue(string displayName, string key, float defaultValue)
+        {
+            var mapper = BB.AddValue(displayName, key, defaultValue);
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
+    }
+    public interface IChangeSpeed
+    {
+        float Speed { get; set; }
+        MSlider SpeedSlider { get; set; }
+        MKey AddSpeedKey { get; set; }
+        MKey ReduceSpeedKey { get; set; }
+        MValue ChangeSpeedValue { get; set; }
+    }
+    public class ChangeSpeedBlock : EnhancementBlock,IChangeSpeed
+    {
+        public float Speed { get { return SpeedSlider.Value; } set { SpeedSlider.Value =/* Mathf.Clamp(value, SpeedSlider.Min, SpeedSlider.Max)*/value; } }
+        public MSlider SpeedSlider { get; set; }
+        public MKey AddSpeedKey { get; set; }
+        public MKey ReduceSpeedKey { get; set; }
+        public MValue ChangeSpeedValue { get; set; }
 
-        ///// <summary>
-        ///// 设置金属硬度
-        ///// </summary>
-        ///// <param name="Hardness">硬度</param>
-        ///// <param name="CJ">关节</param>
-        //internal static void SwitchMatalHardness(int Hardness, ConfigurableJoint CJ)
+        public override void SafeAwake()
+        {
+            base.SafeAwake();
+            AddSpeedKey = /*BB.*/AddKey("加速", "Add Speed", KeyCode.Equals);
+            ReduceSpeedKey = /*BB.*/AddKey("减速", "Reduce Speed", KeyCode.Minus);
+            ChangeSpeedValue = /*BB.*/AddValue("更改速度", "Change Speed", 0.1f);
+        }
+
+        //public override void DisplayInMapper(bool value)
         //{
-        //    switch (Hardness)
-        //    {
-        //        case 1:
-        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-        //            CJ.projectionAngle = 0.5f; break;
-        //        case 2:
-        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-        //            CJ.projectionAngle = 0; break;
-        //        default:
-        //            CJ.projectionMode = JointProjectionMode.None; break;
-
-        //    }
-        //}
-        ///// <summary>
-        ///// 设置木头硬度
-        ///// </summary>
-        ///// <param name="Hardness">硬度</param>
-        ///// <param name="CJ">关节</param>
-        //internal static void SwitchWoodHardness(int Hardness, ConfigurableJoint CJ)
-        //{
-        //    switch (Hardness)
-        //    {
-        //        case 0:
-        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-        //            CJ.projectionAngle = 10f;
-        //            CJ.projectionDistance = 5; break;
-        //        case 2:
-        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-        //            CJ.projectionAngle = 5f;
-        //            CJ.projectionDistance = 2.5f; break;
-        //        case 3:
-        //            CJ.projectionMode = JointProjectionMode.PositionAndRotation;
-        //            CJ.projectionAngle = 0f;
-        //            CJ.projectionDistance = 0; break;
-        //        default:
-        //            CJ.projectionMode = JointProjectionMode.None;
-        //            CJ.projectionDistance = 0;
-        //            CJ.projectionAngle = 0; break;
-
-        //    }
-
+        //    AddSpeedKey.DisplayInMapper = ReduceSpeedKey.DisplayInMapper = ChangeSpeedValue.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
         //}
 
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            base.SimulateUpdateAlways_EnhancementEnable();
+            if (AddSpeedKey.IsPressed)
+            {
+                Speed += ChangeSpeedValue.Value;
+            }
+
+            if (ReduceSpeedKey.IsPressed)
+            {
+                Speed -= ChangeSpeedValue.Value;
+            }
+        }
+    }
+
+    public interface IChangeHardness
+    {
+        ConfigurableJoint ConfigurableJoint { get;}
+        MMenu HardnessMenu { get;}
+    }
+    public class ChangeHardnessBlock :EnhancementBlock,IChangeHardness
+    {
+        public int HardnessIndex { get; set; } = 1;
+        public ConfigurableJoint ConfigurableJoint { get; set; }
+        public MMenu HardnessMenu { get; set; }
+
+        internal Hardness hardness;
+
+        enum Material
+        {
+            LowCarbonSteel, MedianSoftWood = 0,
+            MidCarbonSteel = 1,
+            HighCarbonSteel = 2,
+            SoftWood = 3,
+            HardWood = 4,
+            VeryHardWood = 5,
+            None = 6,
+        }
         public struct Hardness
         {
             public JointProjectionMode projectionMode;
@@ -284,6 +338,7 @@ namespace BlockEnhancementMod
             public float projectionDistance;
 
             //Material material;
+           
 
             public Hardness(JointProjectionMode mode, float angle, float distance/*, Material material = Material.None*/)
             {
@@ -322,7 +377,7 @@ namespace BlockEnhancementMod
                 None = 6,
             }
 
-            public static Hardness SwitchHardness(int index)
+            public Hardness SwitchHardness(int index)
             {
                 var hardness = new Hardness();
 
@@ -351,11 +406,11 @@ namespace BlockEnhancementMod
                 }
                 return hardness;
             }
-            public static Hardness GetOrginHardness(ConfigurableJoint joint)
+            public Hardness GetOrginHardness(ConfigurableJoint joint)
             {
                 return new Hardness(joint.projectionMode, joint.projectionAngle, joint.projectionDistance);
             }
-            public static ConfigurableJoint SwitchWoodHardness(int index, ConfigurableJoint joint)
+            public ConfigurableJoint SwitchWoodHardness(int index, ConfigurableJoint joint)
             {
                 switch (index)
                 {
@@ -369,7 +424,7 @@ namespace BlockEnhancementMod
                         return GetOrginHardness(joint).toConfigurableJoint(joint);
                 }
             }
-            public static ConfigurableJoint SwitchMetalHardness(int index, ConfigurableJoint joint)
+            public ConfigurableJoint SwitchMetalHardness(int index, ConfigurableJoint joint)
             {
                 switch (index)
                 {
@@ -382,10 +437,6 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
-
     }
-
-   
 }
 

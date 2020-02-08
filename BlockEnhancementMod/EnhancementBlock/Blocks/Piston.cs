@@ -8,10 +8,10 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod.Blocks
 {
-    class PistonScript : EnhancementBlock
+    class PistonScript : ChangeSpeedBlock,IChangeHardness
     {
 
-        MMenu HardnessMenu;
+        public MMenu HardnessMenu { get; private set; }
         MSlider DamperSlider;
         MSlider LimitSlider;
 
@@ -22,7 +22,7 @@ namespace BlockEnhancementMod.Blocks
         //private float orginLimit = 1.1f;
 
         private SliderCompress SC;
-        private ConfigurableJoint CJ;
+        public ConfigurableJoint ConfigurableJoint { get; private set; }
 
         public override void SafeAwake()
         {
@@ -36,6 +36,7 @@ namespace BlockEnhancementMod.Blocks
             LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0, Limit);
             LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("活塞添加进阶属性");
 #endif
@@ -46,6 +47,7 @@ namespace BlockEnhancementMod.Blocks
             HardnessMenu.DisplayInMapper = value;
             DamperSlider.DisplayInMapper = value;
             LimitSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
         }
 
         public override void OnSimulateStartClient()
@@ -53,20 +55,27 @@ namespace BlockEnhancementMod.Blocks
             if (EnhancementEnabled)
             {
                 SC = GetComponent<SliderCompress>();
-                CJ = GetComponent<ConfigurableJoint>();
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
+                ChangeHardnessBlock.Hardness hardness = new ChangeHardnessBlock.Hardness(ConfigurableJoint);
 
+                SpeedSlider = SC.SpeedSlider;
                 //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
                 SC.newLimit = Limit * FlipToSign(SC.Flipped);
 
-                var drive = CJ.xDrive;
+                var drive = ConfigurableJoint.xDrive;
                 drive.positionDamper *= Damper;
-                CJ.xDrive = drive;
+                ConfigurableJoint.xDrive = drive;
 
-                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+                hardness.SwitchMetalHardness(HardnessIndex, ConfigurableJoint);
 
                 int FlipToSign(bool value) { return value == true ? 1 : -1; }
-            }     
-        }   
+            }
+        }
+
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            base.SimulateUpdateAlways_EnhancementEnable();
+        }
     }
 }

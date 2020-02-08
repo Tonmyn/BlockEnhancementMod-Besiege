@@ -9,10 +9,10 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-    public class SuspensionScript : EnhancementBlock
+    public class SuspensionScript : ChangeSpeedBlock,IChangeHardness
     {
 
-        MMenu HardnessMenu;
+        public MMenu HardnessMenu { get; private set; }
         MKey ExtendKey;
         MKey ShrinkKey;
         MToggle HydraulicToggle;
@@ -23,30 +23,30 @@ namespace BlockEnhancementMod
         MSlider ShrinkLimitSlider;
 
         public float Damper = 1f;
-        public int HardnessIndex = 0;
+        //public int HardnessIndex = 0;
         public bool Hydraulic = false;
         public bool R2C = false;
-        public float Feed = 0.5f;
+        //public float Feed = 0.5f;
         public float ExtendLimit = 1f;
         public float RetractLimit = 1f;
 
         //private int orginHardnessIndex = 0;
         //private float orginLimit = 1;
 
-        ConfigurableJoint CJ;
+        public ConfigurableJoint ConfigurableJoint { get; private set; }
         Rigidbody RB;
 
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/0, LanguageManager.Instance.CurrentLanguage.MetalHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.Extend, "Extend", KeyCode.E);
             ShrinkKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.Retract, "Shrink", KeyCode.F);           
 
             HydraulicToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.HydraulicMode, "Pressure", Hydraulic);
-            HydraulicToggle.Toggled += (bool value) => { Hydraulic = R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper = value; ChangedProperties(); };
+            HydraulicToggle.Toggled += (bool value) => { Hydraulic /*= R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper*/ = value; DisplayInMapper(EnhancementEnabled); ChangedProperties(); };
 
             R2CToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center", R2C);
             R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
@@ -54,8 +54,8 @@ namespace BlockEnhancementMod
             DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", Damper, 0f, 5f);
             DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
-            FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", Feed, 0f, 2f);
-            FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
+            FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", /*Feed*/0.5f, 0f, 2f);
+            //FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
 
             ExtendLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ExtendLimit, "ExtendLimit", ExtendLimit, 0f, 3f);
             ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
@@ -63,8 +63,8 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.RetractLimit, "ShrinkLimit", RetractLimit, 0f, 3f);
             ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
 
-
-
+            SpeedSlider = FeedSlider;
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("悬挂添加进阶属性");
 #endif
@@ -82,14 +82,16 @@ namespace BlockEnhancementMod
             FeedSlider.DisplayInMapper = value && Hydraulic;
             ExtendLimitSlider.DisplayInMapper = value && Hydraulic;
             ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
+            base.DisplayInMapper(value && Hydraulic);
         }
 
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
             {
-                CJ = GetComponent<ConfigurableJoint>();
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
                 RB = GetComponent<Rigidbody>();
+                ChangeHardnessBlock.Hardness hardness = new ChangeHardnessBlock.Hardness(ConfigurableJoint);
 
                 float limit = Mathf.Max(ExtendLimit, RetractLimit);
 
@@ -100,30 +102,37 @@ namespace BlockEnhancementMod
                 //    limit = orginLimit;
                 //}
 
-                SoftJointLimit SJlimit = CJ.linearLimit;
+                SoftJointLimit SJlimit = ConfigurableJoint.linearLimit;
                 SJlimit.limit = limit;            
-                CJ.linearLimit = SJlimit;
+                ConfigurableJoint.linearLimit = SJlimit;
 
-                var drive = CJ.xDrive;
+                var drive = ConfigurableJoint.xDrive;
                 drive.positionDamper *= Damper;
-                CJ.xDrive = drive;
+                ConfigurableJoint.xDrive = drive;
 
-                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+                hardness.SwitchMetalHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
             }        
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
+            base.SimulateUpdateAlways_EnhancementEnable();
+        }
+
+        public override void SimulateFixedUpdate_EnhancementEnabled()
+        {
+            base.SimulateFixedUpdate_EnhancementEnabled();
+
             if (StatMaster.isClient) return;
 
             if (Hydraulic)
-            {             
+            {
                 float? target = null;
 
                 CalculationTarget();
                 if (target != null)
                 {
-                    SuspensionMoveTowards((float)target, Feed);
+                    SuspensionMoveTowards((float)target, /*Feed*/FeedSlider.Value);
                 }
 
                 void CalculationTarget()
@@ -142,7 +151,7 @@ namespace BlockEnhancementMod
                         target = RetractLimit;
                     }
 
-                    if (R2C && !pressed && CJ.targetPosition != Vector3.zero)
+                    if (R2C && !pressed && ConfigurableJoint.targetPosition != Vector3.zero)
                     {
                         target = 0f;
                     }
@@ -152,10 +161,8 @@ namespace BlockEnhancementMod
             void SuspensionMoveTowards(float target, float feed, float delta = 0.005f)
             {
                 RB.WakeUp();
-                CJ.targetPosition = Vector3.MoveTowards(CJ.targetPosition, new Vector3(target, 0, 0), feed * delta);
+                ConfigurableJoint.targetPosition = Vector3.MoveTowards(ConfigurableJoint.targetPosition, new Vector3(target, 0, 0), feed * delta);
             }
-        }   
+        }
     }
-
-  
 }
