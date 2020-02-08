@@ -20,10 +20,5 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("动力铰链添加进阶属性");
 #endif
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
     }
 }

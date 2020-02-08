@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BlockEnhancementMod
 {
-    class Balloon_EnhanceScript:ChangeSpeedBlock
+    public class Balloon_EnhanceScript:ChangeSpeedBlock
     {
         private BalloonController  balloonController;
 
@@ -20,12 +20,5 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("气球添加进阶属性");
 #endif
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
-
-
     }
 }

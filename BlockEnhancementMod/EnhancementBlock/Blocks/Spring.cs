@@ -14,25 +14,25 @@ namespace BlockEnhancementMod.Blocks
 
         MSlider DragSlider;
 
-        public float Drag = 2;
+        //public float Drag = 2;
         //private float orginDrag = 2;
 
         Rigidbody A, B;
 
         public override void SafeAwake()
         {
-            DragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Drag, "Drag", Drag, 0f, 3f);
-            DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
+            DragSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Drag, "Drag", /*Drag*/2f, 0f, 3f);
+            //DragSlider.ValueChanged += (float value) => { Drag = value; ChangedProperties(); };
 
 #if DEBUG
             ConsoleController.ShowMessage("皮筋添加进阶属性");
 #endif
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            DragSlider.DisplayInMapper = value;
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    DragSlider.DisplayInMapper = value;
+        //}
 
         public override void OnSimulateStartClient()
         {
@@ -43,7 +43,7 @@ namespace BlockEnhancementMod.Blocks
 
                 //if (!EnhancementEnabled) { Drag = orginDrag; };
 
-                A.drag = B.drag = Drag;
+                A.drag = B.drag = /*Drag*/DragSlider.Value;
             }
           
         }

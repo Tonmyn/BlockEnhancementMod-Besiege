@@ -15,8 +15,8 @@ namespace BlockEnhancementMod
         MSlider thrustForceSlider;
         MColourSlider flameColorSlider;
 
-        public float ThrustForce = 0f;       
-        public Color FlameColor = Color.white;
+        //public float ThrustForce = 0f;       
+        //public Color FlameColor = Color.white;
         public string FlameShader = "Particles/Additive";
         //private Color orginFlameColor = Color.white;
         //private string orginShader = "Particles/Alpha Blended";
@@ -26,10 +26,10 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            thrustForceSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ThrustForce, "Thrust Force", ThrustForce, 0f, 5f);
-            thrustForceSlider.ValueChanged += (float value) => { ThrustForce = value; ChangedProperties(); };           
-            flameColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.FlameColor, "Flame Color", FlameColor, false);
-            flameColorSlider.ValueChanged += (Color value) => { FlameColor = value; ChangedProperties(); };
+            thrustForceSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.ThrustForce, "Thrust Force", /*ThrustForce*/0f, 0f, 5f);
+            //thrustForceSlider.ValueChanged += (float value) => { ThrustForce = value; ChangedProperties(); };           
+            flameColorSlider = /*BB.*/AddColourSlider(LanguageManager.Instance.CurrentLanguage.FlameColor, "Flame Color", /*FlameColor*/Color.white, false);
+            //flameColorSlider.ValueChanged += (Color value) => { FlameColor = value; ChangedProperties(); };
 
             base.SafeAwake();
 
@@ -38,12 +38,12 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            thrustForceSlider.DisplayInMapper = value;
-            flameColorSlider.DisplayInMapper = value;
-            base.DisplayInMapper(value);
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    thrustForceSlider.DisplayInMapper = value;
+        //    flameColorSlider.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
 
         public override void OnSimulateStartClient()
         {   
@@ -54,15 +54,9 @@ namespace BlockEnhancementMod
                 SpeedSlider = thrustForceSlider;
 
                 flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
-                flamethrowerController.fireParticles.startColor = FlameColor;
+                flamethrowerController.fireParticles.startColor = /*FlameColor*/flameColorSlider.Value;
             }
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
-
         public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (StatMaster.isClient) return;

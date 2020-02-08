@@ -15,10 +15,10 @@ namespace BlockEnhancementMod.Blocks
         MSlider FrictionSlider;
         MSlider BouncinessSlider;
 
-        bool Collider = false;
-        bool ShowCollider = true;
+        //bool Collider = false;
+        //bool ShowCollider = true;
         float Friction = 0.8f;
-        float Bounciness = 0f;
+        //float Bounciness = 0f;
         int ID = 0;
 
         static GameObject WheelColliderOrgin;
@@ -29,17 +29,17 @@ namespace BlockEnhancementMod.Blocks
             ID = GetComponent<BlockVisualController>().ID;
             Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
 
-            ColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", Collider);
-            ColliderToggle.Toggled += (value) => { Collider = ShowColliderToggle.DisplayInMapper = value; ChangedProperties(); };
+            ColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", false);
+            //ColliderToggle.Toggled += (value) => { Collider = ShowColliderToggle.DisplayInMapper = value; ChangedProperties(); };
 
-            ShowColliderToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", ShowCollider);
-            ShowColliderToggle.Toggled += (value) => { ShowCollider = value; ChangedProperties(); };
+            ShowColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", true);
+            //ShowColliderToggle.Toggled += (value) => { ShowCollider = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
-            FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
+            FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
+            //FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
 
-            BouncinessSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", Bounciness, 0f, 1f);
-            BouncinessSlider.ValueChanged += (float value) => { Bounciness = value; ChangedProperties(); };
+            BouncinessSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", /*Bounciness*/0f, 0f, 1f);
+            //BouncinessSlider.ValueChanged += (float value) => { Bounciness = value; ChangedProperties(); };
 
             if (WheelColliderOrgin == null)
             {
@@ -54,12 +54,10 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            ColliderToggle.DisplayInMapper = value;
-            ShowColliderToggle.DisplayInMapper = value && Collider;
-            FrictionSlider.DisplayInMapper = value;
-            BouncinessSlider.DisplayInMapper = value;
-
-            base.DisplayInMapper(value);
+            //ColliderToggle.DisplayInMapper = value;
+            ShowColliderToggle.DisplayInMapper = value && ColliderToggle.IsActive;
+            //FrictionSlider.DisplayInMapper = value;
+            //BouncinessSlider.DisplayInMapper = value;
         }
 
 
@@ -108,8 +106,8 @@ namespace BlockEnhancementMod.Blocks
                 Colliders = GetComponentsInChildren<Collider>();
                 wheelPhysicMaterialOrgin = Colliders[0].material;
 
-                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(Friction, Bounciness, PhysicMaterialCombine.Average);
-                if (Collider)
+                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(/*Friction*/FrictionSlider.Value, /*Bounciness*/BouncinessSlider.Value, PhysicMaterialCombine.Average);
+                if (/*Collider*/ColliderToggle.IsActive)
                 {
                     if (WheelCollider != null) return;
 
@@ -128,7 +126,7 @@ namespace BlockEnhancementMod.Blocks
                     mCollider.convex = true;
                     mCollider.material = wheelPhysicMaterial;
 
-                    if (ShowCollider)
+                    if (/*ShowCollider*/ShowColliderToggle.IsActive)
                     {
                         mRenderer = WheelCollider.AddComponent<MeshRenderer>();
                         mRenderer.material.color = Color.red;
@@ -160,10 +158,10 @@ namespace BlockEnhancementMod.Blocks
             //}
         }
 
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
+        //public override void SimulateUpdateAlways_EnhancementEnable()
+        //{
+        //    base.SimulateUpdateAlways_EnhancementEnable();
+        //}
 
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)
         {

@@ -22,10 +22,5 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("转向关节添加进阶属性");
 #endif
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
     }
 }

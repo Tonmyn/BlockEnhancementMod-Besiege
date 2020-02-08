@@ -19,10 +19,5 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("皮筋添加进阶属性");
 #endif
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
     }
 }

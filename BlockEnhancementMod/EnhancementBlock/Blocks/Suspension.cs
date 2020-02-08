@@ -22,13 +22,13 @@ namespace BlockEnhancementMod
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
 
-        public float Damper = 1f;
+        //public float Damper = 1f;
         //public int HardnessIndex = 0;
-        public bool Hydraulic = false;
-        public bool R2C = false;
+        //public bool Hydraulic = false;
+        //public bool R2C = false;
         //public float Feed = 0.5f;
-        public float ExtendLimit = 1f;
-        public float RetractLimit = 1f;
+        //public float ExtendLimit = 1f;
+        //public float RetractLimit = 1f;
 
         //private int orginHardnessIndex = 0;
         //private float orginLimit = 1;
@@ -42,26 +42,26 @@ namespace BlockEnhancementMod
             HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/0, LanguageManager.Instance.CurrentLanguage.MetalHardness/*, false*/);
             //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            ExtendKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.Extend, "Extend", KeyCode.E);
-            ShrinkKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.Retract, "Shrink", KeyCode.F);           
+            ExtendKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.Extend, "Extend", KeyCode.E);
+            ShrinkKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.Retract, "Shrink", KeyCode.F);           
 
-            HydraulicToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.HydraulicMode, "Pressure", Hydraulic);
-            HydraulicToggle.Toggled += (bool value) => { Hydraulic /*= R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper*/ = value; DisplayInMapper(EnhancementEnabled); ChangedProperties(); };
+            HydraulicToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.HydraulicMode, "Pressure", /*Hydraulic*/false);
+            //HydraulicToggle.Toggled += (bool value) => { Hydraulic /*= R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper*/ = value; DisplayInMapper(EnhancementEnabled); ChangedProperties(); };
 
-            R2CToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center", R2C);
-            R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
+            R2CToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center",/* R2C*/false);
+            //R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
 
-            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", Damper, 0f, 5f);
-            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
+            DamperSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", /*Damper*/1f, 0f, 5f);
+            //DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
-            FeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", /*Feed*/0.5f, 0f, 2f);
+            FeedSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", /*Feed*/0.5f, 0f, 2f);
             //FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
 
-            ExtendLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ExtendLimit, "ExtendLimit", ExtendLimit, 0f, 3f);
-            ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
+            ExtendLimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.ExtendLimit, "ExtendLimit", /*ExtendLimit*/1f, 0f, 3f);
+            //ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
 
-            ShrinkLimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.RetractLimit, "ShrinkLimit", RetractLimit, 0f, 3f);
-            ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
+            ShrinkLimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.RetractLimit, "ShrinkLimit", /*RetractLimit*/1f, 0f, 3f);
+            //ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
 
             SpeedSlider = FeedSlider;
             base.SafeAwake();
@@ -73,16 +73,19 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            HardnessMenu.DisplayInMapper = value;
-            DamperSlider.DisplayInMapper = value;
-            ExtendKey.DisplayInMapper = value && Hydraulic;
-            ShrinkKey.DisplayInMapper = value && Hydraulic;
-            HydraulicToggle.DisplayInMapper = value;
-            R2CToggle.DisplayInMapper = value && Hydraulic;
-            FeedSlider.DisplayInMapper = value && Hydraulic;
-            ExtendLimitSlider.DisplayInMapper = value && Hydraulic;
-            ShrinkLimitSlider.DisplayInMapper = value && Hydraulic;
-            base.DisplayInMapper(value && Hydraulic);
+            var _value = value && HydraulicToggle.IsActive;
+            //HardnessMenu.DisplayInMapper = value;
+            //DamperSlider.DisplayInMapper = value;
+            ExtendKey.DisplayInMapper = _value;
+            ShrinkKey.DisplayInMapper = _value;
+            //HydraulicToggle.DisplayInMapper = value;
+            R2CToggle.DisplayInMapper = _value;
+            FeedSlider.DisplayInMapper = _value;
+            ExtendLimitSlider.DisplayInMapper = _value;
+            ShrinkLimitSlider.DisplayInMapper = _value;
+            AddSpeedKey.DisplayInMapper = _value;
+            ReduceSpeedKey.DisplayInMapper = _value;
+            ChangeSpeedValue.DisplayInMapper = _value;
         }
 
         public override void OnSimulateStartClient()
@@ -93,7 +96,7 @@ namespace BlockEnhancementMod
                 RB = GetComponent<Rigidbody>();
                 ChangeHardnessBlock.Hardness hardness = new ChangeHardnessBlock.Hardness(ConfigurableJoint);
 
-                float limit = Mathf.Max(ExtendLimit, RetractLimit);
+                float limit = Mathf.Max(/*ExtendLimit*/ExtendLimitSlider.Value, /*RetractLimit*/ShrinkLimitSlider.Value);
 
                 //if (!EnhancementEnabled)
                 //{
@@ -107,7 +110,7 @@ namespace BlockEnhancementMod
                 ConfigurableJoint.linearLimit = SJlimit;
 
                 var drive = ConfigurableJoint.xDrive;
-                drive.positionDamper *= Damper;
+                drive.positionDamper *= /*Damper*/DamperSlider.Value;
                 ConfigurableJoint.xDrive = drive;
 
                 hardness.SwitchMetalHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
@@ -125,7 +128,7 @@ namespace BlockEnhancementMod
 
             if (StatMaster.isClient) return;
 
-            if (Hydraulic)
+            if (/*Hydraulic*/HydraulicToggle.IsActive)
             {
                 float? target = null;
 
@@ -142,16 +145,16 @@ namespace BlockEnhancementMod
                     if (ExtendKey.IsHeld)
                     {
                         pressed = true;
-                        target = -ExtendLimit;
+                        target = -/*ExtendLimit*/ExtendLimitSlider.Value;
                     }
 
                     if (ShrinkKey.IsHeld)
                     {
                         pressed = true;
-                        target = RetractLimit;
+                        target = /*RetractLimit*/ShrinkLimitSlider.Value;
                     }
 
-                    if (R2C && !pressed && ConfigurableJoint.targetPosition != Vector3.zero)
+                    if (/*R2C*/R2CToggle.IsActive && !pressed && ConfigurableJoint.targetPosition != Vector3.zero)
                     {
                         target = 0f;
                     }

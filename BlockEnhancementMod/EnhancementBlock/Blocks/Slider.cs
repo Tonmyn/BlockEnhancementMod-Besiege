@@ -17,7 +17,7 @@ namespace BlockEnhancementMod
 
         //public int HardnessIndex = 1;
         //private int orginHardnessIndex = 1;
-        public float Limit = 1;
+        //public float Limit = 1;
         //private float orginLimit = 1;
 
         //ConfigurableJoint ConfigurableJoint;
@@ -25,11 +25,11 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0f, 2f);
-            LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
+            LimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", /*Limit*/1f, 0f, 2f);
+            //LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
 
             base.SafeAwake();
 #if DEBUG
@@ -38,12 +38,12 @@ namespace BlockEnhancementMod
 
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            HardnessMenu.DisplayInMapper = value;
-            LimitSlider.DisplayInMapper = value;
-            base.DisplayInMapper(value);
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    HardnessMenu.DisplayInMapper = value;
+        //    LimitSlider.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
 
         public override void OnSimulateStartClient()
         {
@@ -58,10 +58,10 @@ namespace BlockEnhancementMod
                 //}
 
                 SoftJointLimit limit = ConfigurableJoint.linearLimit;
-                limit.limit = Limit = Mathf.Abs(Limit);
+                limit.limit = /*Limit =*/ Mathf.Abs(/*Limit*/LimitSlider.Value);
                 ConfigurableJoint.linearLimit = limit;
 
-                hardness.SwitchWoodHardness(HardnessIndex, ConfigurableJoint);
+                hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
             }    
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BlockEnhancementMod
 {
-    class FlyingBlock_EnhanceScript:ChangeSpeedBlock
+    class FlyingBlock_EnhanceScript : ChangeSpeedBlock
     {
         private FlyingController flyingController;
 
@@ -20,11 +20,5 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage("风扇添加进阶属性");
 #endif
         }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
-        }
-
     }
 }

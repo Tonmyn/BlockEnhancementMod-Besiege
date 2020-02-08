@@ -8,7 +8,7 @@ namespace BlockEnhancementMod
     class WaterCannonScript : ChangeSpeedBlock
     {
         MToggle BoilingToggle;
-        public bool Boiling = false;
+        //public bool Boiling = false;
         //private bool orginBoiling = false;
 
         WaterCannonController WCC;
@@ -17,8 +17,8 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            BoilingToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Boiling, "Boiling", Boiling);
-            BoilingToggle.Toggled += (bool value) => { Boiling = value; ChangedProperties(); };
+            BoilingToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.Boiling, "Boiling", /*Boiling*/false);
+            //BoilingToggle.Toggled += (bool value) => { Boiling = value; ChangedProperties(); };
 
             base.SafeAwake();
 #if DEBUG
@@ -26,11 +26,11 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            BoilingToggle.DisplayInMapper = value;
-            base.DisplayInMapper(value);
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    BoilingToggle.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
 
         public override void OnSimulateStartClient()
         {
@@ -50,7 +50,7 @@ namespace BlockEnhancementMod
             base.SimulateUpdateAlways_EnhancementEnable();
             if (StatMaster.isClient) return;
 
-            if (Boiling)
+            if (/*Boiling*/BoilingToggle.IsActive)
             {
                 WCC.boiling = WCC.prevBoilingState = true;
                 //BVC.heating.glowTimer = 1f;

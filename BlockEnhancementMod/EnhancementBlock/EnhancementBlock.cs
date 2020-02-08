@@ -255,6 +255,13 @@ namespace BlockEnhancementMod
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
+        public MColourSlider AddColourSlider(string displayName, string key, Color defaultValue,bool snapColors)
+        {
+            var mapper = BB.AddColourSlider(displayName, key, defaultValue,snapColors);
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            return mapper;
+        }
         public MValue AddValue(string displayName, string key, float defaultValue)
         {
             var mapper = BB.AddValue(displayName, key, defaultValue);
@@ -315,7 +322,7 @@ namespace BlockEnhancementMod
     }
     public class ChangeHardnessBlock :EnhancementBlock,IChangeHardness
     {
-        public int HardnessIndex { get; set; } = 1;
+        //public int HardnessIndex { get; set; } = 1;
         public ConfigurableJoint ConfigurableJoint { get; set; }
         public MMenu HardnessMenu { get; set; }
 

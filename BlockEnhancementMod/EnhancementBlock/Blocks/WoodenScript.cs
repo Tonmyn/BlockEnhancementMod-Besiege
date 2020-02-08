@@ -14,8 +14,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {        
 
-            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
-            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             base.SafeAwake();
 #if DEBUG
@@ -24,11 +24,11 @@ namespace BlockEnhancementMod
 
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            HardnessMenu.DisplayInMapper = value;
-            base.DisplayInMapper(value);
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    HardnessMenu.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
 
         public override void OnSimulateStartClient()
         {
@@ -36,7 +36,7 @@ namespace BlockEnhancementMod
             {
                 ConfigurableJoint = GetComponent<ConfigurableJoint>();
 
-                hardness.SwitchWoodHardness(HardnessIndex, ConfigurableJoint);
+                hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
             }      
         }
     }

@@ -15,7 +15,7 @@ namespace BlockEnhancementMod.Blocks
         public MMenu HardnessMenu { get; private set; }
 
         //public float Friction = 1000;
-        public int HardnessIndex = 1;
+        //public int HardnessIndex = 1;
         public ConfigurableJoint ConfigurableJoint { get; private set; }
 
         private Collider[] colliders;
@@ -23,11 +23,11 @@ namespace BlockEnhancementMod.Blocks
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.WoodenHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", /*Friction*/1, 0f, /*1000f*/5f);
-            FrictionSlider.ValueChanged += (float value) => { /*Friction*/FrictionSlider.Value = Mathf.Abs(value); ChangedProperties(); };
+            FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", /*Friction*/1f, 0f, /*1000f*/5f);
+            //FrictionSlider.ValueChanged += (float value) => { /*Friction*/FrictionSlider.Value = Mathf.Abs(value); ChangedProperties(); };
 
             SpeedSlider = FrictionSlider;
             base.SafeAwake();
@@ -37,12 +37,12 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            HardnessMenu.DisplayInMapper = value;
-            FrictionSlider.DisplayInMapper = value;
-            base.DisplayInMapper(value);
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    HardnessMenu.DisplayInMapper = value;
+        //    FrictionSlider.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
        
         public override void OnSimulateStartClient()
         {
@@ -61,13 +61,8 @@ namespace BlockEnhancementMod.Blocks
                         break;
                     }
                 }
-                hardness.SwitchWoodHardness(HardnessIndex, ConfigurableJoint);
+                hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
             }        
-        }
-
-        public override void SimulateUpdateAlways_EnhancementEnable()
-        {
-            base.SimulateUpdateAlways_EnhancementEnable();
         }
     }
 
