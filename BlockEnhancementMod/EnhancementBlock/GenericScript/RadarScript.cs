@@ -927,9 +927,9 @@ namespace BlockEnhancementMod
         }
         public Target(BlockBehaviour block)
         {
-            collider =block.gameObject.GetComponentInParent<Collider>();
-            fireTag =  block.gameObject.GetComponentInParent<FireTag>();
-            rigidbody =  block.gameObject.GetComponentInParent<Rigidbody>();
+            collider = block.gameObject.GetComponent<Collider>() ?? block.gameObject.GetComponentInChildren<Collider>();
+            fireTag = block.gameObject.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
+            rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
             hasFireTag = (fireTag != null);
             transform = block.transform;
             this.block = block;
@@ -940,7 +940,7 @@ namespace BlockEnhancementMod
         public void SetTargetWarningLevel()
         {
             GameObject collidedObject = collider.transform.parent.gameObject;
-            BlockBehaviour block = collider.GetComponentInParent<BlockBehaviour>();
+            BlockBehaviour block = collidedObject.GetComponentInParent<BlockBehaviour>();
             if (block != null)
             {
                 switch (block.BlockID)
