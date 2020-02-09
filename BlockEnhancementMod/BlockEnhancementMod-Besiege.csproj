@@ -83,7 +83,7 @@
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
-    <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\Propeller.cs" />
     <Compile Include="EnhancementBlock\Blocks\Rocket.cs" />
     <Compile Include="EnhancementBlock\Blocks\Slider.cs" />
     <Compile Include="EnhancementBlock\Blocks\SmallWheel.cs" />

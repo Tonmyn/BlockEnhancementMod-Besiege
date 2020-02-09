@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public class CanonBlock_EnhanceScript : EnhancementBlock
+    public class CanonBlock_GenericEnhanceScript : EnhancementBlock
     {
         public MSlider IntervalSlider;
         public MSlider RandomDelaySlider;

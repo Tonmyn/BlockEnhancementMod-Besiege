@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {   
-    class PropellerScript : ChangeHardnessBlock
+    class Propeller_GenericEnhanceScript : ChangeHardnessBlock
     {
         MKey SwitchKey;
         //MMenu HardnessMenu;

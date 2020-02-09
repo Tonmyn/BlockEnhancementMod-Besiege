@@ -10,7 +10,7 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod.Blocks
 {
-    public class CannonScript :CanonBlock_EnhanceScript
+    public class CannonScript :CanonBlock_GenericEnhanceScript
     {
         public MToggle BullerCustomBulletToggle;
         public MToggle BulletInheritSizeToggle;
