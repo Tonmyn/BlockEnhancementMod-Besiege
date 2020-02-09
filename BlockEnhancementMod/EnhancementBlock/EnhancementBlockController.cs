@@ -99,6 +99,7 @@ namespace BlockEnhancementMod
             {(int)BlockType.BallJoint,typeof(BallJointScript) },
             {(int)BlockType.Balloon,typeof(Balloon_EnhanceScript) },
             {(int)BlockType.Cannon,typeof(CannonScript) },
+            {(int)BlockType.ShrapnelCannon,typeof(/*CannonScript*/CanonBlock_EnhanceScript) },
             {(int)BlockType.CogLargeUnpowered,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
             {(int)BlockType.CogMediumPowered,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
             //{(int)BlockType.CogMediumUnpowered,typeof(cog) },
@@ -135,24 +136,5 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
         };
-
-        [Obsolete]
-        /// <summary>刷新菜单组件</summary>
-        public IEnumerator RefreshSliders()
-        {
-            int i = 0;
-            while (i++ < 3)
-            {
-                yield return new WaitForEndOfFrame();
-            }
-            foreach (BlockBehaviour block in Machine.Active().BuildingBlocks)
-            {
-                AddSliders(block);
-            }
-
-#if DEBUG
-            ConsoleController.ShowMessage("Refresh");
-#endif
-        }     
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Modding;
 using Modding.Blocks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -45,13 +46,11 @@ namespace BlockEnhancementMod
             //LoadConfiguration();    
 
             PropertiseChangedEvent += ChangedProperties;
+            PropertiseChangedEvent += () => { DisplayInMapper(EnhancementEnabled); };
             PropertiseChangedEvent?.Invoke();
-
-            DisplayInMapper(EnhancementEnabled);
 
             //Controller.Instance.OnSave += SaveConfiguration;
         }
-
         void Update()
         {
             if (BB.isSimulating)
@@ -78,21 +77,18 @@ namespace BlockEnhancementMod
                 isFirstFrame = true;
             }
         }
-
         private void FixedUpdate()
         {
             if (!EnhancementEnabled) return;
 
             if (BB.isSimulating && !isFirstFrame) { SimulateFixedUpdate_EnhancementEnabled(); }
         }
-
         private void LateUpdate()
         {
             if (!EnhancementEnabled) return;
 
             if (BB.isSimulating && !isFirstFrame) { SimulateLateUpdate_EnhancementEnabled(); }
         }
-
         [Obsolete]
         private void SaveConfiguration(PlayerMachineInfo pmi)
         {
@@ -131,7 +127,6 @@ namespace BlockEnhancementMod
 
 
         }
-
         [Obsolete]
         private void LoadConfiguration()
         {
@@ -237,35 +232,35 @@ namespace BlockEnhancementMod
         public MSlider AddSlider(string displayName,string key ,float defaultValue,float min,float max)
         {
             var mapper = BB.AddSlider(displayName, key, defaultValue, min, max);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled);  };
+            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MToggle AddToggle(string displayName, string key, bool defaultValue)
         {
             var mapper = BB.AddToggle(displayName, key, defaultValue);
-            mapper.Toggled += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled);  };
+            mapper.Toggled += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent();  };
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MMenu AddMenu(string key, int defaultIndex, List<string> items)
         {
             var mapper = BB.AddMenu(key, defaultIndex, items);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent();};
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MColourSlider AddColourSlider(string displayName, string key, Color defaultValue,bool snapColors)
         {
             var mapper = BB.AddColourSlider(displayName, key, defaultValue,snapColors);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MValue AddValue(string displayName, string key, float defaultValue)
         {
             var mapper = BB.AddValue(displayName, key, defaultValue);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); DisplayInMapper(EnhancementEnabled); };
+            mapper.ValueChanged += (value) => { if(Input.GetKeyUp(KeyCode.Mouse0))PropertiseChangedEvent(); };
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
