@@ -19,7 +19,8 @@ namespace BlockEnhancementMod
         public float torque = 0f;
         public float maxTorque = 1500f;
         private Vector3 previousPosition = Vector3.zero;
-        private Vector3 forwardDirection = Vector3.zero;
+        private Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
+
         private BlockBehaviour preTargetBlock = null;
         public bool Switch { get; set; } = false;
 
@@ -75,27 +76,25 @@ namespace BlockEnhancementMod
             Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
 
             // Get the angle difference
-            forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-            float dotProduct = Vector3.Dot(forwardDirection, positionDiffPredicted.normalized);
-            float angleDiff = Vector3.Angle(forwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
+            float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted.normalized);
+            float angleDiff = Vector3.Angle(ForwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
 
             integral += angleDiff * Time.fixedDeltaTime;
             float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
             lastError = angleDiff;
             float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
-            Debug.Log(coefficient);
-            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted.normalized - forwardDirection) * Mathf.Sign(dotProduct);
+
+            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted.normalized - ForwardDirection) * Mathf.Sign(dotProduct);
             Vector3 addedForce = torque * maxTorque * coefficient * towardsPositionDiff;
 
             // Add force to rotate rocket
-            parentRigidbody.AddForceAtPosition(addedForce, parentBlock.transform.position + forwardDirection);
-            parentRigidbody.AddForceAtPosition(-addedForce, parentBlock.transform.position - forwardDirection);
+            parentRigidbody.AddForceAtPosition(addedForce, parentBlock.transform.position + ForwardDirection);
+            parentRigidbody.AddForceAtPosition(-addedForce, parentBlock.transform.position - ForwardDirection);
         }
 
         private void AddAerodynamicsToRocketVelocity()
         {
-            forwardDirection = parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward;
-            aeroEffectPosition = forwardDirection * 5f;
+            aeroEffectPosition = ForwardDirection * 5f;
 
             Vector3 locVel = transform.InverseTransformDirection(parentRigidbody.velocity);
             Vector3 dir = new Vector3(0.1f, 0f, 0.1f) * aeroEffectMultiplier;
