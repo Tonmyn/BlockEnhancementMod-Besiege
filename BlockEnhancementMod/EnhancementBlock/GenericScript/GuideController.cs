@@ -66,7 +66,7 @@ namespace BlockEnhancementMod
             }
 
             // Calculating the rotating axis
-            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
+            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
 
             // Get the predicted point
