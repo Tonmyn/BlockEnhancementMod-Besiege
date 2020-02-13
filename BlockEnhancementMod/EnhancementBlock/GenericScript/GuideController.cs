@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Modding;
 using Modding.Common;
@@ -52,11 +53,16 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
             if (parentBlock == null || parentRigidbody == null) return;
+            if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
+
             if (blockRadar == null) return;
             if (blockRadar.target == null) return;
             if (Switch == false) return;
+            StartCoroutine(AddGuideForce());
+        }
 
-            if (enableAerodynamicEffect) AddAerodynamicsToRocketVelocity();
+        private IEnumerator AddGuideForce()
+        {
             if (blockRadar.target.block != preTargetBlock)
             {
                 previousPosition = Vector3.zero;
@@ -66,7 +72,7 @@ namespace BlockEnhancementMod
             }
 
             // Calculating the rotating axis
-            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.deltaTime - parentBlock.Rigidbody.velocity;
+            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
 
             // Get the predicted point
@@ -90,9 +96,10 @@ namespace BlockEnhancementMod
             // Add force to rotate rocket
             parentRigidbody.AddForceAtPosition(addedForce, parentBlock.transform.position + ForwardDirection);
             parentRigidbody.AddForceAtPosition(-addedForce, parentBlock.transform.position - ForwardDirection);
+            yield break;
         }
 
-        private void AddAerodynamicsToRocketVelocity()
+        private IEnumerator AddAerodynamicsToRocketVelocity()
         {
             aeroEffectPosition = ForwardDirection * 5f;
 
@@ -104,6 +111,8 @@ namespace BlockEnhancementMod
 
             parentRigidbody.AddForceAtPosition(force, parentBlock.CenterOfBounds - aeroEffectPosition);
             parentRigidbody.AddForceAtPosition(-0.1f * force, parentBlock.CenterOfBounds + aeroEffectPosition);
+
+            yield break;
         }
     }
 }
