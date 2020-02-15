@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
         MToggle HeldToggle;
 
         public bool Switch = false;
-        public bool Held = false;
+        //public bool Held = false;
 
         private ConfigurableJoint hinge;
         private bool state =  false;
@@ -22,21 +22,20 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            SwitchKey = BB.AddKey("Switch", "Switch", KeyCode.R);
+            SwitchKey = /*BB.*/AddKey("Switch", "Switch", KeyCode.R);
             SwitchKey.InvokeKeysChanged();
 
-            HeldToggle = BB.AddToggle("Toggle", "Toggle", Held);
-            HeldToggle.Toggled += (value) => { Held = value; ChangedProperties(); };
+            HeldToggle = /*BB.*/AddToggle("Toggle", "Toggle", /*Held*/false);
+            //HeldToggle.Toggled += (value) => { Held = value; ChangedProperties(); };
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            SwitchKey.DisplayInMapper = HeldToggle.DisplayInMapper = value;
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    SwitchKey.DisplayInMapper = HeldToggle.DisplayInMapper = value;
+        //}
 
         public override void OnSimulateStartClient()
         {
-            Debug.Log("??");
             if (!EnhancementEnabled) return;
             hinge = GetComponent<ConfigurableJoint>();
         }
@@ -53,7 +52,7 @@ namespace BlockEnhancementMod
                 Debug.Log("switch");
                
             }
-            if (Held)
+            if (/*Held*/HeldToggle.IsActive)
             {
                 if (SwitchKey.IsReleased)
                 {

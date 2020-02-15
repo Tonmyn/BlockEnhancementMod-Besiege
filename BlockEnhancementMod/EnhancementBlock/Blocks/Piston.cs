@@ -8,65 +8,69 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod.Blocks
 {
-    class PistonScript : EnhancementBlock
+    class PistonScript : ChangeSpeedBlock,IChangeHardness
     {
 
-        MMenu HardnessMenu;
+        public MMenu HardnessMenu { get; private set; }
         MSlider DamperSlider;
         MSlider LimitSlider;
 
-        public int HardnessIndex = 0;
+        //public int HardnessIndex = 0;
         //private int orginHardnessIndex = 0;
-        public float Damper = 1;
-        public float Limit = 1.1f;
+        //public float Damper = 1;
+        //public float Limit = 1.1f;
         //private float orginLimit = 1.1f;
 
         private SliderCompress SC;
-        private ConfigurableJoint CJ;
+        public ConfigurableJoint ConfigurableJoint { get; private set; }
 
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu("Hardness", HardnessIndex, LanguageManager.Instance.CurrentLanguage.MetalHardness, false);
-            HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/0, LanguageManager.Instance.CurrentLanguage.MetalHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (value) => { HardnessIndex = value; ChangedProperties(); };
 
-            DamperSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", Damper, 0f, 5f);
-            DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
+            DamperSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper",/* Damper*/1f, 0f, 5f);
+            //DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
-            LimitSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", Limit, 0, Limit);
-            LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
+            LimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", /*Limit*/1.1f, 0, /*Limit*/1.1f);
+            //LimitSlider.ValueChanged += (value) => { Limit = value; ChangedProperties(); };
 
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("活塞添加进阶属性");
 #endif
         }
 
-        public override void DisplayInMapper(bool value)
-        {
-            HardnessMenu.DisplayInMapper = value;
-            DamperSlider.DisplayInMapper = value;
-            LimitSlider.DisplayInMapper = value;
-        }
+        //public override void DisplayInMapper(bool value)
+        //{
+        //    HardnessMenu.DisplayInMapper = value;
+        //    DamperSlider.DisplayInMapper = value;
+        //    LimitSlider.DisplayInMapper = value;
+        //    base.DisplayInMapper(value);
+        //}
 
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
             {
                 SC = GetComponent<SliderCompress>();
-                CJ = GetComponent<ConfigurableJoint>();
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
+                ChangeHardnessBlock.Hardness hardness = new ChangeHardnessBlock.Hardness(ConfigurableJoint);
 
+                SpeedSlider = SC.SpeedSlider;
                 //if (!EnhancementEnabled) { HardnessIndex = orginHardnessIndex; Limit = orginLimit; }
 
-                SC.newLimit = Limit * FlipToSign(SC.Flipped);
+                SC.newLimit = /*Limit*/LimitSlider.Value * FlipToSign(SC.Flipped);
 
-                var drive = CJ.xDrive;
-                drive.positionDamper *= Damper;
-                CJ.xDrive = drive;
+                var drive = ConfigurableJoint.xDrive;
+                drive.positionDamper *= /*Damper*/DamperSlider.Value;
+                ConfigurableJoint.xDrive = drive;
 
-                Hardness.SwitchMetalHardness(HardnessIndex, CJ);
+                hardness.SwitchMetalHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
 
                 int FlipToSign(bool value) { return value == true ? 1 : -1; }
-            }     
-        }   
+            }
+        }
     }
 }

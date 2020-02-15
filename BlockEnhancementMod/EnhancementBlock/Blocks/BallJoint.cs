@@ -12,7 +12,7 @@ namespace BlockEnhancementMod
     {
 
         public MToggle RotationToggle;
-        public bool Rotation = false;
+        //public bool Rotation = false;
         //private bool orginRotation = false;
 
         private ConfigurableJoint CJ;
@@ -21,8 +21,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            RotationToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CvJoint, "Rotation", Rotation);
-            RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
+            RotationToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CvJoint, "Rotation", /*Rotation*/false);
+            //RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
 
 
 #if DEBUG
@@ -41,7 +41,7 @@ namespace BlockEnhancementMod
             {
                 CJ = GetComponent<ConfigurableJoint>();
 
-                if (Rotation)
+                if (/*Rotation*/RotationToggle.IsActive)
                 {
                     CJ.angularYMotion = ConfigurableJointMotion.Locked;
                     CJ.breakTorque = Mathf.Infinity;

@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using Modding;
-using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-
-    class SteeringHinge : EnhancementBlock
+    [Obsolete]
+    class SteeringHinge : SteeringWheel_GenericEnhanceScript
     {
 
         SteeringWheel steeringWheel;
 
         MToggle r2cToggle;
         MToggle NearToggle;
+        MKey addSpeedKey, reduceSpeedKey;
 
         public bool ReturnToCenter = false;
         public bool Near = true;
@@ -62,7 +61,7 @@ namespace BlockEnhancementMod
 
                 //if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
             }
-          
+
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
@@ -117,6 +116,5 @@ namespace BlockEnhancementMod
             }
         }
     }
-
 
 }
