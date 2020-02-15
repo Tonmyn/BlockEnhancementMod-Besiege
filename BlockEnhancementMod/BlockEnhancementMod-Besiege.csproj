@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6A16F1F7-31C2-4CAE-9FD3-0C56BBD29757}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BlockEnhancementMod</RootNamespace>
+    <AssemblyName>BlockEnhancementMod</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Assembly-UnityScript, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BESIEGE_LOCATION)Besiege_Data\Managed\Assembly-UnityScript.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BESIEGE_LOCATION)Besiege_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BESIEGE_LOCATION)Besiege_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(BESIEGE_LOCATION)Besiege_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EnhancementBlock\Blocks\Balloon.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
+    <Compile Include="EnhancementBlock\Blocks\FlyingBlock.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
+    <Compile Include="EnhancementBlock\Blocks\UnpoweredCog.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\CanonBlock.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\GuideController.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\DelayCollision.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\RadarScript.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\SkinManager.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\SpringCode.cs" />
+    <Compile Include="EnhancementEntity\EnhancementEventsController.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\RocketsController.cs" />
+    <Compile Include="EnhancementBlock\Blocks\CrossBow.cs" />
+    <Compile Include="EnhancementEntity\Entitise\Zone.cs" />
+    <Compile Include="MessageController.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Camera.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\CogMotoControllerHinge.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Decoupler.cs" />
+    <Compile Include="EnhancementBlock\Blocks\FlamethrowerScript.cs" />
+    <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
+    <Compile Include="EnhancementBlock\Blocks\WaterCannon.cs" />
+    <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
+    <Compile Include="LanguageManager.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\Propeller.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Rocket.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Slider.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SmallWheel.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Spinning.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Spring.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\SteeringWheel.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Suspension.cs" />
+    <Compile Include="EnhancementBlock\Blocks\BallJoint.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Cannon.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Wheel.cs" />
+    <Compile Include="EnhancementBlock\EnhancementBlock.cs" />
+    <Compile Include="Mod.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EnhancementBlock\EnhancementBlockController.cs" />
+    <Compile Include="UI\ModSettingUI.cs" />
+    <Compile Include="UI\SafeUIBehaviour.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\Group-Icon.png" />
+    <Content Include="Resources\icon.png" />
+    <Content Include="XML\GroupEvent.xml" />
+    <Content Include="XML\Mod.xml" />
+    <Content Include="Resources\Square-Red.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Wheel.obj" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y "$(TargetPath)" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\$(TargetName).dll"
+copy /Y "$(ProjectDir)Resources\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\Resources\"
+copy /Y "$(ProjectDir)XML\*" "%25BESIEGE_LOCATION%25\Besiege_Data\Mods\BlockEnhancementMod\"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(BESIEGE_LOCATION)Besiege.exe</StartProgram>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
