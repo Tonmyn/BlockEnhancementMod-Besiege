@@ -10,8 +10,14 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod.Blocks
 {
-    public class CannonScript :CanonBlock_GenericEnhanceScript
+    public class CannonScript : EnhancementBlock
     {
+
+        public MSlider StrengthSlider;
+        public MSlider IntervalSlider;
+        public MSlider RandomDelaySlider;
+        public MSlider KnockBackSpeedSlider;
+
         public MToggle BullerCustomBulletToggle;
         public MToggle BulletInheritSizeToggle;
         public MSlider BulletMassSlider;
@@ -21,8 +27,28 @@ namespace BlockEnhancementMod.Blocks
         public MSlider BulletDelayCollisionSlider;
         public MColourSlider BulletTrailColorSlider;
 
+        public CanonBlock CB;
+        public AudioSource AS;
+
+        public float Strength = 1f;
+        public float Interval = 0.25f;
+        private readonly float intervalMin = EnhanceMore ? 0f : 0.1f;
+        public float RandomDelay = 0.2f;
+        private float orginRandomDelay = 0.2f;
+        public float KnockBackSpeedZeroOne = 1f;
+        private readonly float knockBackSpeedZeroOneMin = EnhanceMore ? 0f : 0.25f;
+        private readonly float knockBackSpeedZeroOneMax = 1f;
+        public float originalKnockBackSpeed = 8000;
+        public bool firstShotFired = true;
+
+        public bool ShootEnabled { get; set; } = true;
+
         public Bullet bullet;
-        private bool lastInfinite = false;
+
+        private float knockBackSpeed;
+        private int BulletNumber = 1;
+
+        //子弹类
         public class Bullet
         {
             public GameObject bulletObject;
@@ -79,64 +105,128 @@ namespace BlockEnhancementMod.Blocks
 
         public override void SafeAwake()
         {
-            base.SafeAwake();
+            // Initialise some components and default values
+            AS = BB.GetComponent<AudioSource>();
+            CB = BB.GetComponent<CanonBlock>();
             bullet = new Bullet(CB);
+
+
+            IntervalSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FireInterval, "Interval", Interval, intervalMin, 0.5f);
+            IntervalSlider.ValueChanged += (float value) => { Interval = value; ChangedProperties(); };
+
+            RandomDelaySlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.RandomDelay, "RandomDelay", RandomDelay, 0f, 0.5f);
+            RandomDelaySlider.ValueChanged += (float value) => { RandomDelay = value; ChangedProperties(); };
+
+            KnockBackSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.Recoil, "KnockBackSpeed", KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax);
+            KnockBackSpeedSlider.ValueChanged += (float value) => { KnockBackSpeedZeroOne = value; ChangedProperties(); };
 
             #region 子弹控件初始化
 
-            BullerCustomBulletToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomBullet, "Bullet", false);
-            BulletInheritSizeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.InheritSize, "InheritSize", false);
-            BulletMassSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletMass, "BulletMass", 2f, 0.1f, 2f);
-            BulletDragSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
-            BulletDelayCollisionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
-            BulletTrailToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.Trail, "Trail", false);
-            BulletTrailLengthSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.TrailLength, "trail length", 1f, 0.2f, 2f);
-            BulletTrailColorSlider = /*BB.*/AddColourSlider(LanguageManager.Instance.CurrentLanguage.TrailColor, "trail color", Color.yellow, false);
+            BullerCustomBulletToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.CustomBullet, "Bullet", false);
+            BullerCustomBulletToggle.Toggled += (bool value) => { BulletTrailToggle.DisplayInMapper =BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = BulletDragSlider.DisplayInMapper = BulletMassSlider.DisplayInMapper = BulletInheritSizeToggle.DisplayInMapper = BulletDelayCollisionSlider.DisplayInMapper = bullet.Custom = value; ChangedProperties(); };
+
+            BulletInheritSizeToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.InheritSize, "InheritSize", false);
+            BulletInheritSizeToggle.Toggled += (bool value) => { bullet.InheritSize = value; ChangedProperties(); };
+
+            BulletMassSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletMass, "BulletMass", 2f, 0.1f, 2f);
+            BulletMassSlider.ValueChanged += (float value) => { bullet.Mass = value; ChangedProperties(); };
+
+            BulletDragSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
+            BulletDragSlider.ValueChanged += (float value) => { bullet.Drag = value; ChangedProperties(); };
+
+            BulletDelayCollisionSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
+            BulletDelayCollisionSlider.ValueChanged += (value) => { bullet.DelayCollision = value; ChangedProperties(); };
+
+            BulletTrailToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Trail, "Trail", false);
+            BulletTrailToggle.Toggled += (bool value) => { bullet.TrailEnable = BulletTrailColorSlider.DisplayInMapper = BulletTrailLengthSlider.DisplayInMapper = value; ChangedProperties(); };
+
+            BulletTrailLengthSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.TrailLength, "trail length", 1f, 0.2f, 2f);
+            BulletTrailLengthSlider.ValueChanged += (float value) => { bullet.TrailLength = value; ChangedProperties(); };
+
+            BulletTrailColorSlider = BB.AddColourSlider(LanguageManager.Instance.CurrentLanguage.TrailColor, "trail color", Color.yellow, false);
+            BulletTrailColorSlider.ValueChanged += (Color value) => { bullet.TrailColor = value; ChangedProperties(); };
 
             #endregion
 
 #if DEBUG
             ConsoleController.ShowMessage("加农炮添加进阶属性");
 #endif
+
         }
+
         public override void DisplayInMapper(bool value)
         {
-            var isSingle = StatMaster.IsLevelEditorOnly || !StatMaster.isMP;
-            var isCustomBullet = isSingle && BullerCustomBulletToggle.IsActive;
+            IntervalSlider.DisplayInMapper = value;
+            RandomDelaySlider.DisplayInMapper = value;
+            KnockBackSpeedSlider.DisplayInMapper = value;
 
-            BullerCustomBulletToggle.DisplayInMapper = value && isSingle;
-            BulletInheritSizeToggle.DisplayInMapper = value && isCustomBullet;
-            BulletMassSlider.DisplayInMapper = value && isCustomBullet;
-            BulletDragSlider.DisplayInMapper = value && isCustomBullet;
-            BulletDelayCollisionSlider.DisplayInMapper = value && isCustomBullet;
-            BulletTrailToggle.DisplayInMapper = value && isCustomBullet;
-            BulletTrailColorSlider.DisplayInMapper = BulletTrailToggle.IsActive && isCustomBullet;
-            BulletTrailLengthSlider.DisplayInMapper = BulletTrailToggle.IsActive && isCustomBullet;
+            BullerCustomBulletToggle.DisplayInMapper = value && !StatMaster.isMP;
+            BulletInheritSizeToggle.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
+            BulletMassSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
+            BulletDragSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
+            BulletDelayCollisionSlider.DisplayInMapper = value && /*customBullet*/bullet.Custom && !StatMaster.isMP;
+            BulletTrailToggle.DisplayInMapper = value && bullet.Custom && !StatMaster.isMP;
+            BulletTrailColorSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
+            BulletTrailLengthSlider.DisplayInMapper = /*Trail*/bullet.Custom && bullet.TrailEnable && !StatMaster.isMP;
+
         }
 
-        public override void OnSimulateStartAlways()
+        public override void OnSimulateStartClient()
         {
-            base.OnSimulateStartAlways();
-
-            lastInfinite = StatMaster.GodTools.InfiniteAmmoMode;
 
             BulletInit();
 
             if (StatMaster.isMP) { bullet.Custom = bullet.TrailEnable = false; }
-
-            //独立自定子弹
-            if (bullet.Custom)
+        
+            if (!EnhancementEnabled)
             {
-                bullet.CreateCustomBullet();
-            }
+                CB.knockbackSpeed = originalKnockBackSpeed;
+                bullet.Custom = bullet.TrailEnable = false;
 
-            if (EnhancementEnabled || CB.boltObject.gameObject.activeSelf == false)
-            {
-                CB.randomDelay = 0f;
+                if (CB.boltObject.gameObject.activeSelf == true)
+                {
+                    
+                    CB.randomDelay = orginRandomDelay;
+                    RandomDelay = 0;                  
+                }
+                else
+                {              
+                    CB.randomDelay = 0;
+                    RandomDelay = orginRandomDelay;               
+                }             
             }
+            else
+            {
+
+                RandomDelay = Mathf.Clamp(RandomDelay, 0f, RandomDelay);
+                knockBackSpeed = Mathf.Clamp(KnockBackSpeedZeroOne, knockBackSpeedZeroOneMin, knockBackSpeedZeroOneMax) * originalKnockBackSpeed;
+
+               
+
+                //独立自定子弹
+                if (bullet.Custom)
+                {
+                    bullet.CreateCustomBullet();
+                }
+                //else
+                //{
+                //    if (Strength <= 20 || EnhanceMore || !StatMaster.isMP)
+                //    {
+                //        CB.knockbackSpeed = knockBackSpeed;
+                //    }
+                //}      
+
+                CB.randomDelay = 0;
+                CB.knockbackSpeed = knockBackSpeed;
+            }
+                   
 
             void BulletInit()
             {
+                BulletNumber = 1;
+                firstShotFired = true;
+                Strength = CB.StrengthSlider.Value;
+
                 bullet.Custom = BullerCustomBulletToggle.IsActive;
                 bullet.Mass = BulletMassSlider.Value;
                 bullet.Drag = BulletDragSlider.Value;
@@ -149,101 +239,105 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        public override void SimulateUpdateAlways_EnhancementEnable()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
-  
+            if (!EnhanceMore && StatMaster.isMP)
+            {
+                if (CB.StrengthSlider.Value > 20 && KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = false;
+                }
+                if (CB.StrengthSlider.Value <= 20 && !KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
+                }
+            }
+            else
+            {
+                if (!KnockBackSpeedSlider.DisplayInMapper)
+                {
+                    KnockBackSpeedSlider.DisplayInMapper = true;
+                }
+            }
         }
 
         public override void SimulateUpdateAlways()
         {
-            base.SimulateUpdateAlways();
-
             if (StatMaster.isClient) return;
 
             if (CB.ShootKey.IsReleased)
             {
-                if (StatMaster.GodTools.InfiniteAmmoMode) ShootEnabled = true;
+                firstShotFired = true;
+                ShootEnabled = true;
                 StopCoroutine(Shoot());
             }
 
             if (CB.ShootKey.IsHeld && ShootEnabled)
             {
-                StopCoroutine(Shoot());
                 StartCoroutine(Shoot());
-            }
-            else
-            {
-                StopCoroutine(Shoot());
-            }
-
-            if (EnhancementEnabled && lastInfinite != StatMaster.GodTools.InfiniteAmmoMode)
-            {
-                lastInfinite = StatMaster.GodTools.InfiniteAmmoMode;
-
-                if (lastInfinite) ShootEnabled = true;
             }
         }
 
-        protected override IEnumerator Shoot()
+        private IEnumerator Shoot()
         {
             ShootEnabled = false;
-            float randomDelay = 0f;
 
-            if (CB.boltObject.gameObject.activeSelf == false)
-            {
-                if (EnhancementEnabled)
+            GameObject bulletClone = null;
+
+            if (BulletNumber > 0 || StatMaster.GodTools.InfiniteAmmoMode)
+            {                      
+                if (bullet.Custom)
                 {
-                    if (bullet.Custom)
-                    {
-                        StartCoroutine(shoot(bullet.bulletObject));
-                    }
-                    else
-                    {
-                        StartCoroutine(shoot(CB.boltObject.gameObject));
-                    }
+
+                    ////克隆子弹物体
+                    //bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    //bulletClone.SetActive(true);
+                    ////子弹施加推力并且继承炮身速度
+                    ////try { bulletClone.GetComponent<Rigidbody>().velocity = CB.Rigidbody.velocity; } catch { }
+                    //bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+                    //炮身施加后坐力
+                    //gameObject.GetComponent<Rigidbody>().AddForce(knockBackSpeed * Strength * Mathf.Min(bullet.bulletObject.transform.localScale.x, bullet.bulletObject.transform.localScale.z) * transform.up);
+
+                    //bulletClone = (GameObject)Instantiate(bullet.bulletObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    bulletClone = (GameObject)Instantiate(bullet.bulletObject, transform.TransformPoint( CB.boltSpawnPos), CB.boltSpawnRot);
+                    //bulletClone.SetActive(true);
+                    //bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
                 }
-                else
+                else if (CB.boltObject.gameObject.activeSelf == false)
                 {
-                    StartCoroutine(shoot(CB.boltObject.gameObject));
-                }
-            }
-            else
-            {
-                if (EnhancementEnabled)
-                {
-                    if (bullet.Custom)
-                    {
-                        StartCoroutine(shoot(bullet.bulletObject));
-                    }
-                    else
-                    {
-                        StartCoroutine(shoot());
-                    }
+                    //bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, CB.boltSpawnPos.position, CB.boltSpawnPos.rotation);
+                    bulletClone = (GameObject)Instantiate(CB.boltObject.gameObject, transform.TransformPoint(CB.boltSpawnPos), CB.boltSpawnRot);
                 }
             }
 
-            yield return new WaitForSeconds(IntervalSlider.Value + randomDelay);
-            if (StatMaster.GodTools.InfiniteAmmoMode && EnhancementEnabled) ShootEnabled = true;
-            yield break;
+            float randomDelay = UnityEngine.Random.Range(0f, RandomDelay);
 
-            IEnumerator shoot(GameObject bulletObject = null)
+            yield return new WaitForSeconds(randomDelay);
+
+            if (bulletClone != null)
             {
-                
-                randomDelay = UnityEngine.Random.Range(0f, RandomDelaySlider.Value);
-                yield return new WaitForSeconds(randomDelay);
-                if (bulletObject != null)
-                {
-                    var go = (GameObject)Instantiate(bulletObject, transform.TransformPoint(CB.boltSpawnPos), CB.boltSpawnRot);
-                    go.AddComponent<DelayCollision>().Delay = bullet.DelayCollision;
-                    go.SetActive(true);
-                    go.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * CB.StrengthSlider.Value);
-                }
-                CB.Shoot();
-                yield break;
+                bulletClone.AddComponent<DelayCollision>().Delay = bullet.DelayCollision;
+                bulletClone.SetActive(true);
+                bulletClone.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * Strength);
+            }
+
+            if (!firstShotFired)
+            {
+                CB.Shoot();    
+                //CB.
+
+            }
+          
+            BulletNumber--;
+            firstShotFired = false;
+
+            yield return new WaitForSeconds(Interval);
+            if (EnhancementEnabled)
+            {
+                ShootEnabled = true;
             }
         }
     }
 }
-
 
 

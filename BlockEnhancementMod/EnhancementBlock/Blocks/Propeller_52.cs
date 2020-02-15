@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BlockEnhancementMod.Blocks
 {
-    class PropellerScript_52 : Propeller_GenericEnhanceScript
+    class PropellerScript_52 : PropellerScript
     {
 
 

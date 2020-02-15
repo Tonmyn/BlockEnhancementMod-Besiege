@@ -97,29 +97,25 @@ namespace BlockEnhancementMod
         public Dictionary<int, Type> dic_EnhancementBlock = new Dictionary<int, Type>
         {
             {(int)BlockType.BallJoint,typeof(BallJointScript) },
-            {(int)BlockType.Balloon,typeof(Balloon_EnhanceScript) },
             {(int)BlockType.Cannon,typeof(CannonScript) },
-            {(int)BlockType.ShrapnelCannon,typeof(/*CannonScript*/CanonBlock_GenericEnhanceScript) },
-            {(int)BlockType.CogLargeUnpowered,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
-            {(int)BlockType.CogMediumPowered,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
-            //{(int)BlockType.CogMediumUnpowered,typeof(cog) },
+            ////{(int)BlockType.CogLargeUnpowered,typeof(cog) },
+            ////{(int)BlockType.CogMediumPowered,typeof(CannonScript) },
+            ////{(int)BlockType.CogMediumUnpowered,typeof(CannonScript) },
             {(int)BlockType.Decoupler,typeof(DecouplerScript) },
-            {(int)BlockType.FlyingBlock,typeof(FlyingBlock_EnhanceScript) },
             {(int)BlockType.GripPad,typeof(GripPadScript) },
             {(int)BlockType.Piston,typeof(PistonScript) },
-            {(int)BlockType.Propeller,typeof(Propeller_GenericEnhanceScript) },
-            {(int)BlockType.SmallPropeller,typeof(Propeller_GenericEnhanceScript) },
-            { (int)BlockType.Wing,typeof(Propeller_GenericEnhanceScript)},
-            { (int)BlockType.WingPanel,typeof(Propeller_GenericEnhanceScript)},
+            {(int)BlockType.Propeller,typeof(PropellerScript) },
+            {(int)BlockType.SmallPropeller,typeof(PropellerScript) },
+            { (int)BlockType.Wing,typeof(PropellerScript)},
+            { (int)BlockType.WingPanel,typeof(PropellerScript)},
             { (int)BlockType.Unused3,typeof(PropellerScript_52)},
             {(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
-            {(int)BlockType.SpinningBlock,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
+            ////{(int)BlockType.SpinningBlock,typeof(SpinningScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
-            {(int)BlockType.SteeringHinge,typeof(SteeringWheel_GenericEnhanceScript) },
-            {(int)BlockType.SteeringBlock,typeof(SteeringWheel_GenericEnhanceScript) },
+            //{(int)BlockType.SteeringHinge,typeof(SteeringHinge) },
+            //{(int)BlockType.SteeringBlock,typeof(SteeringHinge) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
-            {(int)BlockType.RopeWinch,typeof(SpringCode_GenericEnhanceScript) },
             { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},
             {(int)BlockType.Wheel,typeof(WheelScript) },
             {(int)BlockType.LargeWheel,typeof(WheelScript) },
@@ -136,5 +132,24 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
         };
+
+        [Obsolete]
+        /// <summary>刷新菜单组件</summary>
+        public IEnumerator RefreshSliders()
+        {
+            int i = 0;
+            while (i++ < 3)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+            foreach (BlockBehaviour block in Machine.Active().BuildingBlocks)
+            {
+                AddSliders(block);
+            }
+
+#if DEBUG
+            ConsoleController.ShowMessage("Refresh");
+#endif
+        }     
     }
 }

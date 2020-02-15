@@ -13,7 +13,7 @@ namespace BlockEnhancementMod
 
         MSlider SpeedSlider;
 
-        //public float Speed = 5;
+        public float Speed = 5;
         //private float orginSpeed = 5;
 
         SmallWheel SW;
@@ -21,8 +21,8 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
-            SpeedSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.RotatingSpeed, "Speed", /*Speed*/5f, 0f, 5f);
-            //SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedProperties(); };
+            SpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.RotatingSpeed, "Speed", Speed, 0f, 5f);
+            SpeedSlider.ValueChanged += (float value) => { Speed = value; ChangedProperties(); };
 
 
 #if DEBUG
@@ -30,10 +30,10 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    SpeedSlider.DisplayInMapper = value;
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            SpeedSlider.DisplayInMapper = value;
+        }
 
         public override void OnSimulateStartClient()
         {
@@ -43,7 +43,7 @@ namespace BlockEnhancementMod
 
                 //if (!EnhancementEnabled) { Speed = orginSpeed; }
 
-                SW.speed = /*Speed*/SpeedSlider.Value;
+                SW.speed = Speed;
             }          
         }
     }

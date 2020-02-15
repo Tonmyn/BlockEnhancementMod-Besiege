@@ -57,25 +57,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnhancementBlock\Blocks\Balloon.cs" />
-    <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
-    <Compile Include="EnhancementBlock\Blocks\FlyingBlock.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
-    <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\UnpoweredCog.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\CanonBlock.cs" />
     <Compile Include="EnhancementBlock\GenericScript\GuideController.cs" />
     <Compile Include="EnhancementBlock\GenericScript\DelayCollision.cs" />
     <Compile Include="EnhancementBlock\GenericScript\RadarScript.cs" />
     <Compile Include="EnhancementBlock\GenericScript\SkinManager.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\SpringCode.cs" />
     <Compile Include="EnhancementEntity\EnhancementEventsController.cs" />
     <Compile Include="EnhancementBlock\GenericScript\RocketsController.cs" />
     <Compile Include="EnhancementBlock\Blocks\CrossBow.cs" />
     <Compile Include="EnhancementEntity\Entitise\Zone.cs" />
     <Compile Include="MessageController.cs" />
     <Compile Include="EnhancementBlock\Blocks\Camera.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\CogMotoControllerHinge.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
     <Compile Include="EnhancementBlock\Blocks\Decoupler.cs" />
     <Compile Include="EnhancementBlock\Blocks\FlamethrowerScript.cs" />
     <Compile Include="EnhancementBlock\Blocks\GripPad.cs" />
@@ -83,13 +77,13 @@
     <Compile Include="EnhancementBlock\Blocks\WoodenScript.cs" />
     <Compile Include="LanguageManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Piston.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\Propeller.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Propeller.cs" />
     <Compile Include="EnhancementBlock\Blocks\Rocket.cs" />
     <Compile Include="EnhancementBlock\Blocks\Slider.cs" />
     <Compile Include="EnhancementBlock\Blocks\SmallWheel.cs" />
     <Compile Include="EnhancementBlock\Blocks\Spinning.cs" />
     <Compile Include="EnhancementBlock\Blocks\Spring.cs" />
-    <Compile Include="EnhancementBlock\GenericScript\SteeringWheel.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\Suspension.cs" />
     <Compile Include="EnhancementBlock\Blocks\BallJoint.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cannon.cs" />
