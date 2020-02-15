@@ -32,8 +32,8 @@ namespace BlockEnhancementMod
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
 
-        public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
-        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
+        public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
+        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration./*RadarFequency*/GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;

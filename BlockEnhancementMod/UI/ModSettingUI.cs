@@ -14,8 +14,8 @@ namespace BlockEnhancementMod
     {
 
         public override bool ShouldShowGUI { get; set; } = true;
-        public bool showGUI = BlockEnhancementMod.Configuration.ShowUI;
-        public bool Friction = BlockEnhancementMod.Configuration.Friction;
+        public bool showGUI { get { return BlockEnhancementMod.Configuration.GetValue<bool>("ShowUI"); } set { BlockEnhancementMod.Configuration.SetValue("ShowUI", value); } }
+        public bool Friction { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Friction"); } set { BlockEnhancementMod.Configuration.SetValue("Friction", value); } }
 
         public Action<bool> OnFrictionToggle;
         private void FrictionToggle(bool value)
@@ -46,8 +46,7 @@ namespace BlockEnhancementMod
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
             {
-                BlockEnhancementMod.Configuration.ShowUI = showGUI = !showGUI;
-                StartCoroutine(SaveConfig());
+                showGUI = !showGUI;
             }
 
             ShouldShowGUI = showGUI && !StatMaster.levelSimulating && IsBuilding() && !StatMaster.inMenu;
@@ -75,17 +74,17 @@ namespace BlockEnhancementMod
             {
                 if (!StatMaster.isClient)
                 {
-                    BlockEnhancementMod.Configuration.EnhanceMore = EnhancementBlock.EnhanceMore = AddToggle(EnhancementBlock.EnhanceMore, new GUIContent(LanguageManager.Instance.CurrentLanguage.AdditionalFunction));
+                    EnhancementBlock.EnhanceMore = AddToggle(EnhancementBlock.EnhanceMore, new GUIContent(LanguageManager.Instance.CurrentLanguage.AdditionalFunction));
 
                     if (Friction != AddToggle(Friction, new GUIContent(LanguageManager.Instance.CurrentLanguage.UnifiedFriction)))
                     {
-                        BlockEnhancementMod.Configuration.Friction = Friction = !Friction;
+                         Friction = !Friction;
                         OnFrictionToggle(Friction);
                     }
                 }
-                BlockEnhancementMod.Configuration.DisplayWaring = RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
-                BlockEnhancementMod.Configuration.MarkTarget = RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, new GUIContent(LanguageManager.Instance.CurrentLanguage.MarkTarget));
-                BlockEnhancementMod.Configuration.DisplayRocketCount = RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayRocketCount));
+                 RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
+                RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, new GUIContent(LanguageManager.Instance.CurrentLanguage.MarkTarget));
+                RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayRocketCount));
             }
             GUILayout.Space(2);
             GUILayout.EndVertical();
@@ -97,22 +96,12 @@ namespace BlockEnhancementMod
         private bool AddToggle(bool value,string text)
         {
             value = GUILayout.Toggle(value, text);
-            StartCoroutine(SaveConfig());
             return value;
         }
-
         private bool AddToggle(bool value, GUIContent content)
         {
             var _value = GUILayout.Toggle(value,content);
-            if (_value != value) StartCoroutine(SaveConfig());
             return _value;
-        }
-
-        private IEnumerator SaveConfig()
-        {
-            yield return new WaitForSeconds(0.3f);
-            Configuration.FormatXDataToConfig(BlockEnhancementMod.Configuration);
-            yield break;
         }
     }
 }

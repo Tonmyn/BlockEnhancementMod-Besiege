@@ -3,6 +3,7 @@ using UnityEngine;
 using Modding.Levels;
 using System.Collections.Generic;
 using System;
+using System.Collections;
 
 namespace BlockEnhancementMod
 {
@@ -35,50 +36,148 @@ namespace BlockEnhancementMod
 
     public class Configuration
     {
-        public bool EnhanceMore = false;
-        public bool ShowUI = true;
-        public bool Friction = false;
-        public bool DisplayWaring = true;
-        public bool MarkTarget = true;
-        public bool DisplayRocketCount = true;
+        internal static ArrayList Propertises { get; private set; } = new ArrayList()
+        {
+            new Propertise<bool>("Enhance More",  false ),
+            new Propertise<bool>("ShowUI",true ),
+            new Propertise<bool>("Friction",  false ),
+            new Propertise<bool>("Display Warning", true ),
+            new Propertise<bool>("Mark Target", true ),
+            new Propertise<bool>("Display Rocket Count", true ),
 
-        public float GuideControlPFactor = 1.25f;
-        public float GuideControlIFactor = 10f;
-        public float GuideControlDFactor = 0f;
+            new Propertise<float>("GuideControl P Factor",  1.25f),
+            new Propertise<float>("GuideControl I Factor",  10f),
+            new Propertise<float>("GuideControl D Factor",0f),
+            new Propertise<float>("Rocket Smoke Emission Constant",80f),
+            new Propertise<float>("Rocket Smoke Lifetime",1f),
+            new Propertise<float>("Rocket Smoke Size",3.5f),
 
-        public int RadarFequency = 20;
+            new Propertise<int>("Radar Fequency",20),
+        };
+
+        //public bool EnhanceMore = false;
+        //public bool ShowUI = true;
+        //public bool Friction = false;
+        //public bool DisplayWaring = true;
+        //public bool MarkTarget = true;
+        //public bool DisplayRocketCount = true;
+
+        //public float GuideControlPFactor = 1.25f;
+        //public float GuideControlIFactor = 10f;
+        //public float GuideControlDFactor = 0f;
+
+        //public int RadarFequency = 20;
+        public class Propertise<T>
+        {
+            public string Key = "";
+            public T Value = default;
+
+            public Propertise(string key, T value) { Key = key; Value = value; }
+            public override string ToString()
+            {
+                return Key + " - " + Value.ToString();
+            }
+        }
+
+        public T GetValue<T>(string key)
+        {
+            T value = default;
+
+            foreach (var pro in Propertises)
+            {
+                if (pro is Propertise<T>)
+                {
+                    var _pro = pro as Propertise<T>;
+                    if (_pro.Key == key)
+                    {
+                        value = _pro.Value;
+                        break;
+                    }
+                }
+            }
+            return value;
+        }
+
+        public void SetValue<T>(string key, T value)
+        {
+            var exist = false;
+
+            foreach (var pro in Propertises)
+            {
+                if (pro is Propertise<T>)
+                {
+                    var _pro = pro as Propertise<T>;
+                    if (_pro.Key == key)
+                    {
+                        _pro.Value = value;
+                        exist = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!exist)
+            {
+                Propertises.Add(new Propertise<T>(key, value));
+            }
+
+            Modding.Configuration.GetData().Write(key, value);
+        }
+
+        ~Configuration()
+        {
+            Modding.Configuration.Save();
+        }
 
         public static Configuration FormatXDataToConfig(Configuration config = null)
         {
             XDataHolder xDataHolder = Modding.Configuration.GetData();
             bool reWrite = true;
+            bool needWrite = false;
 
             if (config == null)
             {
                 reWrite = false;
+                needWrite = true;
                 config = new Configuration();
             }
-   
-            string[] keys = new string[] { "Enhance More", "ShowUI", "Friction", "Display Waring", "Mark Target", "Display Rocket Count", "PFactor", "IFactor", "DFactor" ,"RadarFequency"};
 
-            config.EnhanceMore = getValue(keys[0], config.EnhanceMore);
-            config.ShowUI = getValue(keys[1], config.ShowUI);
-            config.Friction = getValue(keys[2], config.Friction);
-            config.DisplayWaring = getValue(keys[3], config.DisplayWaring);
-            config.MarkTarget = getValue(keys[4], config.MarkTarget);
-            config.DisplayRocketCount = getValue(keys[5], config.DisplayRocketCount);
+            for (int i = 0; i < Propertises.Count; i++)
+            {
+                var value = Propertises[i];
 
-            config.GuideControlPFactor = getValue(keys[6],config.GuideControlPFactor);
-            config.GuideControlIFactor = getValue(keys[7],config.GuideControlIFactor);
-            config.GuideControlDFactor = getValue(keys[8],config.GuideControlDFactor);
+                if (value is Propertise<int>)
+                {
+                    value = getValue(value as Propertise<int>);
+                }
+                else if (value is Propertise<bool>)
+                {
+                    value = getValue(value as Propertise<bool>);
+                }
+                else if (value is Propertise<float>)
+                {
+                    value = getValue(value as Propertise<float>);
+                }
+                else if (value is Propertise<string>)
+                {
+                    value = getValue(value as Propertise<string>);
+                }
+                else if (value is Propertise<Vector3>)
+                {
+                    value = getValue(value as Propertise<Vector3>);
+                }
+                Propertises[i] = value;
+            }
 
-            config.RadarFequency = getValue(keys[9], config.RadarFequency);
+            if (needWrite) Modding.Configuration.Save();
 
-            Modding.Configuration.Save();
             return config;
 
-            T getValue<T> (string key ,T defaultValue)
+            Propertise<T> getValue<T>(Propertise<T> propertise)
             {
+                var key = propertise.Key;
+                var defaultValue = propertise.Value;
+
                 if (xDataHolder.HasKey(key) && !reWrite)
                 {
                     defaultValue = (T)Convert.ChangeType(typeSpecialAction[typeof(T)](xDataHolder, key), typeof(T));
@@ -86,11 +185,12 @@ namespace BlockEnhancementMod
                 else
                 {
                     xDataHolder.Write(key, defaultValue);
+                    needWrite = true;
                 }
-                return defaultValue;
+
+                return new Propertise<T>(key, defaultValue);
             }
         }
-
         private static Dictionary<Type, Func<XDataHolder, string, object>> typeSpecialAction = new Dictionary<Type, Func<XDataHolder, string, object>>
         {
             { typeof(int), (xDataHolder,key)=>xDataHolder.ReadInt(key)},
@@ -99,19 +199,5 @@ namespace BlockEnhancementMod
             { typeof(string), (xDataHolder,key)=>xDataHolder.ReadString(key)},
             { typeof(Vector3), (xDataHolder,key)=>xDataHolder.ReadVector3(key)},
         };
-
-        //public Configuration()
-        //{
-        //    EnhanceMore = false;
-        //    ShowUI = true;
-        //    Friction = false;
-        //    DisplayWaring = true;
-        //    MarkTarget = true;
-        //    DisplayRocketCount = true;
-
-        //    GuideControl_PFactor = 1.25f;
-        //    GuideControl_IFactor = 10f;
-        //    GuideControl_DFactor = 0f;
-        //}
     }
 }
