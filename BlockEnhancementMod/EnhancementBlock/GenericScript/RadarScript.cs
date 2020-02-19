@@ -310,7 +310,7 @@ namespace BlockEnhancementMod
 
                 Physics.IgnoreLayerCollision(CollisionLayer, CollisionLayer);
                 Physics.IgnoreLayerCollision(CollisionLayer, 29);
-                Physics.IgnoreLayerCollision(CollisionLayer, 0);
+                //Physics.IgnoreLayerCollision(CollisionLayer, 0);
 
                 var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
                 Material material = new Material(Shader.Find("Transparent/Diffuse"));
