@@ -53,12 +53,19 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
             if (parentBlock == null || parentRigidbody == null) return;
-            if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
+         
 
-            if (blockRadar == null) return;
-            if (blockRadar.target == null) return;
-            if (Switch == false) return;
-            StartCoroutine(AddGuideForce());
+            //if (blockRadar == null) return;
+            //if (blockRadar.target == null) return;
+            //if (Switch == false) return;
+            if (blockRadar != null)
+            {
+                if (blockRadar.target != null && Switch != false)
+                {
+                    StartCoroutine(AddGuideForce());
+                }
+            }
+            if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
         }
 
         private IEnumerator AddGuideForce()
