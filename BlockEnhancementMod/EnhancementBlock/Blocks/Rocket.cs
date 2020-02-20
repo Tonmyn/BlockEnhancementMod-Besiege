@@ -20,6 +20,10 @@ namespace BlockEnhancementMod
         public Rigidbody rocketRigidbody;
         //public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
+        public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
+        public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
+        public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
+
         public bool removedFromGroup = false;
 
         //No smoke mode related
@@ -93,6 +97,8 @@ namespace BlockEnhancementMod
         private readonly float power = 3600f;
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
+
+        ParticleSystem st;
 
         public override void SafeAwake()
         {
@@ -299,7 +305,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = Vector3.one;
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radar.Setup(BB, searchRange, searchAngle, searchModeIndex,guidedRocketShowRadar);
+                radar.Setup(BB, searchRange, searchAngle, searchModeIndex, guidedRocketShowRadar);
                 //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
@@ -354,13 +360,25 @@ namespace BlockEnhancementMod
                     bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
                 }
             }
+
+            /*ParticleSystem*/ st = null;
+            foreach (var value in rocket.trail)
+            {
+                if (value.name.ToLower() == "smoketrail")
+                {
+                    st = value;
+                    break;
+                }
+            }
+
+
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (gameObject.activeInHierarchy)
             {
-     
+
 
                 if (GroupFireKey.IsHeld && !StatMaster.isClient)
                 {
@@ -403,14 +421,14 @@ namespace BlockEnhancementMod
                             //radar.SetTargetManual();
                         }
                     }
-                }           
+                }
 
                 if (rocket.hasFired)
                 {
                     //Activate Detection Zone
                     //if (!radar.Switch /*&& canTrigger*/) /*radar.Switch = true*/;
                     //if (radar.SearchMode == RadarScript.SearchModes.Auto && radar.target == null) radar.Switch = true;
-                   
+
 
                     //Activate aerodynamic effect
                     guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
@@ -456,11 +474,11 @@ namespace BlockEnhancementMod
                             {
                                 //if (radar.target != null)
                                 //{
-                                    //if (radar.target.positionDiff.magnitude <= proximityRange+1f) StartCoroutine(RocketExplode());
-                                    if (radar.TargetDistance <= proximityRange + 1f)
-                                    {
-                                        StartCoroutine(RocketExplode());
-                                    }
+                                //if (radar.target.positionDiff.magnitude <= proximityRange+1f) StartCoroutine(RocketExplode());
+                                if (radar.TargetDistance <= proximityRange + 1f)
+                                {
+                                    StartCoroutine(RocketExplode());
+                                }
                                 //}
                             }
                         }
@@ -482,6 +500,16 @@ namespace BlockEnhancementMod
                     }
                     catch { }
                     rocketExploMsgSent = true;
+                }
+
+                if (!NoSmokeToggle.IsActive)
+                {
+                    var em = st.emission;
+                    var r = em.rate;
+                    r.constant = TrailSmokeEmissionConstant;
+                    em.rate = r;
+                    st.startLifetime = TrailSmokeLifetime;
+                    st.startSize = TrailSmokeSize;
                 }
             }
         }

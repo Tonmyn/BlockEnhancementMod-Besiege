@@ -32,8 +32,8 @@ namespace BlockEnhancementMod
         public MeshCollider meshCollider;
         public MeshRenderer meshRenderer;
 
-        public static bool MarkTarget { get; internal set; } = BlockEnhancementMod.Configuration.MarkTarget;
-        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.RadarFequency;
+        public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
+        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration./*RadarFequency*/GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;
@@ -310,7 +310,7 @@ namespace BlockEnhancementMod
 
                 Physics.IgnoreLayerCollision(CollisionLayer, CollisionLayer);
                 Physics.IgnoreLayerCollision(CollisionLayer, 29);
-                Physics.IgnoreLayerCollision(CollisionLayer, 0);
+                //Physics.IgnoreLayerCollision(CollisionLayer, 0);
 
                 var mr = gameObject.GetComponent<MeshRenderer>() ?? gameObject.AddComponent<MeshRenderer>();
                 Material material = new Material(Shader.Find("Transparent/Diffuse"));

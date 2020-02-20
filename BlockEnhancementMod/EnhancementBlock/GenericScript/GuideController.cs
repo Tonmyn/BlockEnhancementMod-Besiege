@@ -44,21 +44,28 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
             prediction = sourcePrediction;
             preTargetBlock = new BlockBehaviour();
-            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GuideControlPFactor;
-            iFactor = /*10f*/BlockEnhancementMod.Configuration.GuideControlIFactor;
-            dFactor =/*5f*/BlockEnhancementMod.Configuration.GuideControlDFactor;
+            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
+            iFactor = /*10f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl I Factor");
+            dFactor =/*5f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl D Factor");
         }
 
         void FixedUpdate()
         {
             if (StatMaster.isClient) return;
             if (parentBlock == null || parentRigidbody == null) return;
-            if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
+         
 
-            if (blockRadar == null) return;
-            if (blockRadar.target == null) return;
-            if (Switch == false) return;
-            StartCoroutine(AddGuideForce());
+            //if (blockRadar == null) return;
+            //if (blockRadar.target == null) return;
+            //if (Switch == false) return;
+            if (blockRadar != null)
+            {
+                if (blockRadar.target != null && Switch != false)
+                {
+                    StartCoroutine(AddGuideForce());
+                }
+            }
+            if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
         }
 
         private IEnumerator AddGuideForce()

@@ -9,7 +9,7 @@ namespace BlockEnhancementMod
 {
     public  class EnhancementBlock : MonoBehaviour
     {
-        public static bool EnhanceMore { get; internal set; } =BlockEnhancementMod.Configuration.EnhanceMore;
+        public static bool EnhanceMore { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Enhance More"); } internal set { BlockEnhancementMod.Configuration.SetValue("Enhance More", value); } } 
 
         /// <summary>模块行为</summary>
         public BlockBehaviour BB { get; internal set; } 
@@ -284,9 +284,9 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
             base.SafeAwake();
-            AddSpeedKey = /*BB.*/AddKey("加速", "Add Speed", KeyCode.Equals);
-            ReduceSpeedKey = /*BB.*/AddKey("减速", "Reduce Speed", KeyCode.Minus);
-            ChangeSpeedValue = /*BB.*/AddValue("更改速度", "Change Speed", 0.1f);
+            AddSpeedKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.AddSpeed,"Add Speed", KeyCode.Equals);
+            ReduceSpeedKey = /*BB.*/AddKey( LanguageManager.Instance.CurrentLanguage.ReduceSpeed, "Reduce Speed",KeyCode.Minus);
+            ChangeSpeedValue = /*BB.*/AddValue(LanguageManager.Instance.CurrentLanguage.ChangeSpeed, "Change Speed", 0.1f);
         }
 
         //public override void DisplayInMapper(bool value)
