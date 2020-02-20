@@ -34,6 +34,8 @@ namespace BlockEnhancementMod
         private Vector3 aeroEffectPosition = Vector3.zero;
         public bool enableAerodynamicEffect = false;
 
+        private int  delay = 0;
+
         public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
         {
             parentBlock = sourceBlock;
@@ -53,11 +55,11 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
             if (parentBlock == null || parentRigidbody == null) return;
-         
 
             //if (blockRadar == null) return;
             //if (blockRadar.target == null) return;
-            //if (Switch == false) return;
+            if (Switch == false) return;
+
             if (blockRadar != null)
             {
                 if (blockRadar.target != null && Switch != false)
