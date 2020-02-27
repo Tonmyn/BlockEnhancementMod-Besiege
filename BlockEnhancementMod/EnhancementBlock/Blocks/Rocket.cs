@@ -98,7 +98,7 @@ namespace BlockEnhancementMod
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
-        ParticleSystem st;
+        ParticleSystem smokeTrail;
 
         public override void SafeAwake()
         {
@@ -288,6 +288,16 @@ namespace BlockEnhancementMod
                     RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
                 }
             }
+
+            // Read the charge from rocket
+            explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
+
+            // Make sure the high explo mode is not too imba
+            if (highExploActivated && !EnhanceMore)
+            {
+                bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
+            }
+
             if (guidedRocketActivated)
             {
                 // Initialisation for simulation
@@ -350,23 +360,14 @@ namespace BlockEnhancementMod
                 randomDelay = UnityEngine.Random.Range(0f, 0.1f);
 
                 StopAllCoroutines();
-
-                // Read the charge from rocket
-                explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
-
-                // Make sure the high explo mode is not too imba
-                if (highExploActivated && !EnhanceMore)
-                {
-                    bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
-                }
             }
 
-            /*ParticleSystem*/ st = null;
+            smokeTrail = null;
             foreach (var value in rocket.trail)
             {
                 if (value.name.ToLower() == "smoketrail")
                 {
-                    st = value;
+                    smokeTrail = value;
                     break;
                 }
             }
@@ -378,8 +379,6 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-
-
                 if (GroupFireKey.IsHeld && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
@@ -387,7 +386,6 @@ namespace BlockEnhancementMod
                         StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
                     }
                 }
-
                 if (radar != null)
                 {
                     radar.Switch = rocket.hasFired;
@@ -423,15 +421,11 @@ namespace BlockEnhancementMod
                     }
                 }
 
-                if (rocket.hasFired)
+                if (rocket.hasFired )
                 {
                     //Activate Detection Zone
                     //if (!radar.Switch /*&& canTrigger*/) /*radar.Switch = true*/;
                     //if (radar.SearchMode == RadarScript.SearchModes.Auto && radar.target == null) radar.Switch = true;
-
-
-                    //Activate aerodynamic effect
-                    guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
 
                     //Let rocket controller know the rocket is fired
                     SendRocketFired();
@@ -454,6 +448,9 @@ namespace BlockEnhancementMod
 
                         if (guidedRocketActivated)
                         {
+                            //Activate aerodynamic effect
+                            guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
+
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)
                             {
@@ -484,10 +481,17 @@ namespace BlockEnhancementMod
                         }
                     }
                 }
+
                 if (rocket.hasExploded && !rocketExploMsgSent)
                 {
                     Destroy(radarObject);
                     Destroy(guideObject);
+
+                    if (HighExploToggle.IsActive)
+                    {
+                        StartCoroutine(RocketExplode());
+                    }
+
                     try
                     {
                         if (RocketsController.Instance.playerGroupedRockets.TryGetValue(StatMaster.isMP ? rocket.ParentMachine.PlayerID : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
@@ -504,12 +508,12 @@ namespace BlockEnhancementMod
 
                 if (!NoSmokeToggle.IsActive)
                 {
-                    var em = st.emission;
+                    var em = smokeTrail.emission;
                     var r = em.rate;
                     r.constant = TrailSmokeEmissionConstant;
                     em.rate = r;
-                    st.startLifetime = TrailSmokeLifetime;
-                    st.startSize = TrailSmokeSize;
+                    smokeTrail.startLifetime = TrailSmokeLifetime;
+                    smokeTrail.startSize = TrailSmokeSize;
                 }
             }
         }
@@ -653,7 +657,7 @@ namespace BlockEnhancementMod
                         yield return 0;
                     }
 
-                    if (hit.attachedRigidbody != null && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
+                    if (hit.attachedRigidbody != null && hit.attachedRigidbody && hit.attachedRigidbody != rocket.Rigidbody && /*!rocket.prevRigidbodies.Contains(hit.attachedRigidbody) &&*/ hit.attachedRigidbody.gameObject.layer != 20 && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.tag != "KeepConstraintsAlways" && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
                     {
                         try
                         {
