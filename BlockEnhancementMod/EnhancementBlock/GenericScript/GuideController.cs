@@ -11,6 +11,9 @@ namespace BlockEnhancementMod
 {
     class GuideController : MonoBehaviour
     {
+        //Internal Delay
+        private int delay = 10;
+        private int delayCounter = 0;
         //Guide Setting
         private Rigidbody parentRigidbody;
         private BlockBehaviour parentBlock;
