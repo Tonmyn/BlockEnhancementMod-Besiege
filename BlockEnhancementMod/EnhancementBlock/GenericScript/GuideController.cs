@@ -11,9 +11,7 @@ namespace BlockEnhancementMod
 {
     class GuideController : MonoBehaviour
     {
-        //Internal Delay
-        private int delay = 10;
-        private int delayCounter = 0;
+
         //Guide Setting
         private Rigidbody parentRigidbody;
         private BlockBehaviour parentBlock;
@@ -37,7 +35,6 @@ namespace BlockEnhancementMod
         private Vector3 aeroEffectPosition = Vector3.zero;
         public bool enableAerodynamicEffect = false;
 
-        private int  delay = 0;
 
         public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
         {
