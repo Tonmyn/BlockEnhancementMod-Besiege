@@ -41,11 +41,13 @@ namespace BlockEnhancementMod
         MToggle GuidedRocketStabilityToggle;
         MSlider GuidePredictionSlider;
         MToggle GuidedRocketShowRadar;
+        MToggle AsRadar;
         public bool guidedRocketShowRadar = false;
         public bool guidedRocketStabilityOn = true;
         public bool guidedRocketActivated = false;
         public bool rocketExploMsgSent = false;
         public bool rocketInBuildSent = false;
+        public bool asRadar = false;
         public float torque = 100f;
         public float prediction = 10f;
 
@@ -54,8 +56,8 @@ namespace BlockEnhancementMod
         MKey SwitchGuideModeKey;
         public MKey SPTeamKey;
         MMenu DefaultSearchModeMenu;
-        private int searchModeIndex = 0;
-        public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.DefaultAuto, LanguageManager.Instance.CurrentLanguage.DefaultManual };
+        public int searchModeIndex = 0;
+        public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.DefaultAuto, LanguageManager.Instance.CurrentLanguage.DefaultManual, LanguageManager.Instance.CurrentLanguage.DefaultPassive };
         //public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
         //public List<KeyCode> singlePlayerTeamKey = new List<KeyCode> { KeyCode.None };
         public float searchAngle = 60f;
@@ -107,6 +109,7 @@ namespace BlockEnhancementMod
             GuidedRocketToggle.Toggled += (bool value) =>
             {
                 guidedRocketActivated =
+                AsRadar.DisplayInMapper =
                 DefaultSearchModeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
@@ -128,6 +131,13 @@ namespace BlockEnhancementMod
             DefaultSearchModeMenu.ValueChanged += (int value) =>
             {
                 searchModeIndex = value;
+                ChangedProperties();
+            };
+
+            AsRadar = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.AsRadar, "AsRadar", asRadar);
+            AsRadar.Toggled += (bool value) =>
+            {
+                asRadar = value;
                 ChangedProperties();
             };
 
@@ -226,6 +236,7 @@ namespace BlockEnhancementMod
             GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value;
             AutoGrabberReleaseToggle.DisplayInMapper = value;
+            AsRadar.DisplayInMapper = value;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             SPTeamKey.DisplayInMapper = value && guidedRocketActivated && (!StatMaster.isMP || Playerlist.Players.Count == 1);
             DefaultSearchModeMenu.DisplayInMapper = value && guidedRocketActivated;
@@ -243,6 +254,52 @@ namespace BlockEnhancementMod
 
         public override void BuildingUpdateAlways_EnhancementEnabled()
         {
+            if (searchModeIndex == (int)RadarScript.SearchModes.Passive)
+            {
+                if (AsRadar.DisplayInMapper)
+                {
+                    AsRadar.DisplayInMapper = asRadar = false;
+                }
+                if (SwitchGuideModeKey.DisplayInMapper)
+                {
+                    SwitchGuideModeKey.DisplayInMapper = false;
+                }
+                if (ActiveGuideRocketSearchAngleSlider.DisplayInMapper)
+                {
+                    ActiveGuideRocketSearchAngleSlider.DisplayInMapper = false;
+                }
+                if (GuidedRocketShowRadar.DisplayInMapper)
+                {
+                    GuidedRocketShowRadar.DisplayInMapper = false;
+                }
+                if (LockTargetKey.DisplayInMapper)
+                {
+                    LockTargetKey.DisplayInMapper = false;
+                }
+            }
+            else
+            {
+                if (!AsRadar.DisplayInMapper)
+                {
+                    AsRadar.DisplayInMapper = true;
+                }
+                if (!SwitchGuideModeKey.DisplayInMapper)
+                {
+                    SwitchGuideModeKey.DisplayInMapper = true;
+                }
+                if (!ActiveGuideRocketSearchAngleSlider.DisplayInMapper)
+                {
+                    ActiveGuideRocketSearchAngleSlider.DisplayInMapper = true;
+                }
+                if (!GuidedRocketShowRadar.DisplayInMapper)
+                {
+                    GuidedRocketShowRadar.DisplayInMapper = true;
+                }
+                if (!LockTargetKey.DisplayInMapper)
+                {
+                    LockTargetKey.DisplayInMapper = true;
+                }
+            }
 
             if (GroupFireKey.GetKey(0) == KeyCode.None)
             {
@@ -272,22 +329,6 @@ namespace BlockEnhancementMod
         public override void OnSimulateStart_EnhancementEnabled()
         {
             smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
-            //Initialise Dict in RocketsController
-            if (GroupFireKey.GetKey(0) != KeyCode.None)
-            {
-                if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
-                {
-                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
-                }
-                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
-                {
-                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
-                }
-                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
-                {
-                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
-                }
-            }
 
             // Read the charge from rocket
             explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
@@ -372,14 +413,47 @@ namespace BlockEnhancementMod
                 }
             }
 
-
+            //Initialise Dict in RocketsController
+            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            {
+                if (asRadar)
+                {
+                    if (!RocketsController.Instance.playerGroupedRadars.ContainsKey(rocket.ParentMachine.PlayerID))
+                    {
+                        RocketsController.Instance.playerGroupedRadars.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<RadarScript>>());
+                    }
+                    if (!RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                    {
+                        RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<RadarScript>());
+                    }
+                    if (!RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(radar))
+                    {
+                        RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(radar);
+                    }
+                }
+                else
+                {
+                    if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
+                    {
+                        RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
+                    }
+                    if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
+                    {
+                        RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
+                    }
+                    if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                    {
+                        RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
+                    }
+                }
+            }
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (gameObject.activeInHierarchy)
             {
-                if (GroupFireKey.IsHeld && !StatMaster.isClient)
+                if (GroupFireKey.IsHeld && !asRadar && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
                     {
@@ -421,7 +495,7 @@ namespace BlockEnhancementMod
                     }
                 }
 
-                if (rocket.hasFired )
+                if (rocket.hasFired)
                 {
                     //Activate Detection Zone
                     //if (!radar.Switch /*&& canTrigger*/) /*radar.Switch = true*/;

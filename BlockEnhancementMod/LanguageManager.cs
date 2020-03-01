@@ -52,7 +52,7 @@ namespace BlockEnhancementMod
             {
                 CurrentLanguage = Dic_Language["English"];
             }
-        }   
+        }
 
     }
 
@@ -75,9 +75,11 @@ namespace BlockEnhancementMod
         string GroupedFire { get; }
         string GroupFireRate { get; }
         string AutoGrabberRelease { get; }
+        string AsRadar { get; }
         string SearchMode { get; }
         string DefaultAuto { get; }
         string DefaultManual { get; }
+        string DefaultPassive { get; }
         string ZoomControlMode { get; }
         string MouseWheelZoomControl { get; }
 
@@ -240,6 +242,8 @@ namespace BlockEnhancementMod
 
         public string ShowRadar { get; } = " 显示雷达";
 
+        public string AsRadar { get; } = "作为雷达";
+
         public string MarkTarget { get; } = " 标记火箭目标";
 
         public string DisplayRocketCount { get; } = " 显示剩余火箭量";
@@ -259,6 +263,8 @@ namespace BlockEnhancementMod
         public string DefaultAuto { get; } = "默认自动搜索";
 
         public string DefaultManual { get; } = "默认手动搜索";
+
+        public string DefaultPassive { get; } = "被动接受目标";
 
         public string ZoomControlMode { get; } = "变焦控制";
 
@@ -403,7 +409,7 @@ namespace BlockEnhancementMod
 
         public string ChangeSpeed { get; } = "改变速度";
         public string AddSpeed { get; } = "加速";
-       public string ReduceSpeed { get; } = "减速";
+        public string ReduceSpeed { get; } = "减速";
     }
 
     public class English : ILanguage
@@ -420,6 +426,8 @@ namespace BlockEnhancementMod
         public string DisplayWarning { get; } = " Rocket Warning in First Person Camera";
 
         public string ShowRadar { get; } = " Display Radar";
+
+        public string AsRadar { get; } = "As Radar";
 
         public string MarkTarget { get; } = " Mark Rocket Target";
 
@@ -440,6 +448,8 @@ namespace BlockEnhancementMod
         public string DefaultAuto { get; } = "Default " + Environment.NewLine + "Auto Search";
 
         public string DefaultManual { get; } = "Default " + Environment.NewLine + " Manual Search";
+
+        public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
@@ -603,6 +613,8 @@ namespace BlockEnhancementMod
 
         public string ShowRadar { get; } = " レーダー表示";
 
+        public string AsRadar { get; } = "As Radar";
+
         public string MarkTarget { get; } = " ロケットのターゲット枠表示";
 
         public string DisplayRocketCount { get; } = " ロケットの残数表示";
@@ -622,6 +634,8 @@ namespace BlockEnhancementMod
         public string DefaultAuto { get; } = "デフォルト " + Environment.NewLine + "自動ロックオン";
 
         public string DefaultManual { get; } = "デフォルト " + Environment.NewLine + " 手動ロックオン";
+
+        public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 

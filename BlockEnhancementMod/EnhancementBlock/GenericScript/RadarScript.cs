@@ -40,6 +40,7 @@ namespace BlockEnhancementMod
         bool lastSwitchState = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
+        public RadarScript sourceRadar;
 
         public event Action<Target> OnTarget;
 
@@ -53,7 +54,8 @@ namespace BlockEnhancementMod
         public enum SearchModes
         {
             Auto = 0,
-            Manual = 1
+            Manual = 1,
+            Passive = 2
         }
 
         private void Awake()
@@ -80,7 +82,21 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || SearchMode == SearchModes.Manual) return;
+            //if (!Switch || SearchMode != SearchModes.Auto) return;
+            if (!Switch) return;
+
+            if (SearchMode == SearchModes.Passive)
+            {
+                if (sourceRadar == null) return;
+                if (target != sourceRadar.target)
+                {
+                    target = sourceRadar.target;    
+                }
+            }
+            else if (SearchMode == SearchModes.Manual)
+            {
+                return;
+            }
 
             if (Switch && target != null)
             {
@@ -190,6 +206,9 @@ namespace BlockEnhancementMod
                     return;
                 }
             }
+
+            if (SearchMode == SearchModes.Passive) return;
+
             //if (!Switch) return;
             DrawTargetRedSquare();
 
@@ -437,7 +456,7 @@ namespace BlockEnhancementMod
                     }
                     if (tempTarget == null)
                     {
-                        tempTarget =new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
+                        tempTarget = new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
                     }
 
                     return tempTarget;
@@ -473,6 +492,7 @@ namespace BlockEnhancementMod
         public void ChangeSearchMode()
         {
             //if (!Switch) return;
+            if (SearchMode == SearchModes.Passive) return;
 
             ClearTarget();
             if (SearchMode == SearchModes.Auto)
