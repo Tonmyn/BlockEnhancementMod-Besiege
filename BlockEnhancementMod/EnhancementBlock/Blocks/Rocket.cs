@@ -256,49 +256,31 @@ namespace BlockEnhancementMod
         {
             if (searchModeIndex == (int)RadarScript.SearchModes.Passive)
             {
-                if (AsRadar.DisplayInMapper)
-                {
-                    AsRadar.DisplayInMapper = asRadar = false;
-                }
-                if (SwitchGuideModeKey.DisplayInMapper)
-                {
-                    SwitchGuideModeKey.DisplayInMapper = false;
-                }
-                if (ActiveGuideRocketSearchAngleSlider.DisplayInMapper)
-                {
-                    ActiveGuideRocketSearchAngleSlider.DisplayInMapper = false;
-                }
-                if (GuidedRocketShowRadar.DisplayInMapper)
-                {
-                    GuidedRocketShowRadar.DisplayInMapper = false;
-                }
-                if (LockTargetKey.DisplayInMapper)
-                {
-                    LockTargetKey.DisplayInMapper = false;
-                }
+                if (AsRadar.DisplayInMapper) AsRadar.DisplayInMapper = asRadar = false;
+
+                if (SwitchGuideModeKey.DisplayInMapper) SwitchGuideModeKey.DisplayInMapper = false;
+
+                if (ActiveGuideRocketSearchAngleSlider.DisplayInMapper) ActiveGuideRocketSearchAngleSlider.DisplayInMapper = false;
+
+                if (GuidedRocketShowRadar.DisplayInMapper) GuidedRocketShowRadar.DisplayInMapper = false;
+
+                if (LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = false;
+
+                if (SPTeamKey.DisplayInMapper) SPTeamKey.DisplayInMapper = false;
             }
             else
             {
-                if (!AsRadar.DisplayInMapper)
-                {
-                    AsRadar.DisplayInMapper = true;
-                }
-                if (!SwitchGuideModeKey.DisplayInMapper)
-                {
-                    SwitchGuideModeKey.DisplayInMapper = true;
-                }
-                if (!ActiveGuideRocketSearchAngleSlider.DisplayInMapper)
-                {
-                    ActiveGuideRocketSearchAngleSlider.DisplayInMapper = true;
-                }
-                if (!GuidedRocketShowRadar.DisplayInMapper)
-                {
-                    GuidedRocketShowRadar.DisplayInMapper = true;
-                }
-                if (!LockTargetKey.DisplayInMapper)
-                {
-                    LockTargetKey.DisplayInMapper = true;
-                }
+                if (!AsRadar.DisplayInMapper) AsRadar.DisplayInMapper = true;
+
+                if (!SwitchGuideModeKey.DisplayInMapper) SwitchGuideModeKey.DisplayInMapper = true;
+
+                if (!ActiveGuideRocketSearchAngleSlider.DisplayInMapper) ActiveGuideRocketSearchAngleSlider.DisplayInMapper = true;
+
+                if (!GuidedRocketShowRadar.DisplayInMapper) GuidedRocketShowRadar.DisplayInMapper = true;
+
+                if (!LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = true;
+
+                if (!SPTeamKey.DisplayInMapper) SPTeamKey.DisplayInMapper = true;
             }
 
             if (GroupFireKey.GetKey(0) == KeyCode.None)
