@@ -265,8 +265,6 @@ namespace BlockEnhancementMod
                 if (GuidedRocketShowRadar.DisplayInMapper) GuidedRocketShowRadar.DisplayInMapper = false;
 
                 if (LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = false;
-
-                if (SPTeamKey.DisplayInMapper) SPTeamKey.DisplayInMapper = false;
             }
             else
             {
@@ -279,8 +277,6 @@ namespace BlockEnhancementMod
                 if (!GuidedRocketShowRadar.DisplayInMapper) GuidedRocketShowRadar.DisplayInMapper = true;
 
                 if (!LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = true;
-
-                if (!SPTeamKey.DisplayInMapper) SPTeamKey.DisplayInMapper = true;
             }
 
             if (GroupFireKey.GetKey(0) == KeyCode.None)
