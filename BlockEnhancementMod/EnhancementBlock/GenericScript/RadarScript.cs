@@ -88,7 +88,7 @@ namespace BlockEnhancementMod
 
             if (SearchMode == SearchModes.Passive)
             {
-                if (target != null) return;
+                if (InRadarRange(target)) return;
                 if (sourceRadars == null) return;
                 RadarScript radar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
                 if (radar == null) return;
