@@ -42,6 +42,7 @@ namespace BlockEnhancementMod
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
         public HashSet<RadarScript> sourceRadars;
+        public RadarScript sourceRadar;
 
         public event Action<Target> OnTarget;
 
@@ -88,18 +89,17 @@ namespace BlockEnhancementMod
 
             if (SearchMode == SearchModes.Passive)
             {
-                if (InRadarRange(target)) return;
                 if (sourceRadars == null) return;
-                RadarScript radar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
-                if (radar == null) return;
-                if (radar.target == null) return;
-                SetTarget(radar.target);
-                //if (target != sourceRadar.target)
-                //{
-                //    target = sourceRadar.target;
-                //}
+                if (sourceRadar == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                if (sourceRadar.target == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                if (sourceRadar.SearchMode == SearchModes.Auto)
+                {
+                    if (InRadarRange(target)) return;
+                }
+                if (target != sourceRadar.target) target = sourceRadar.target;
+                return;
             }
-            else if (SearchMode == SearchModes.Manual)
+            if (SearchMode == SearchModes.Manual)
             {
                 return;
             }
