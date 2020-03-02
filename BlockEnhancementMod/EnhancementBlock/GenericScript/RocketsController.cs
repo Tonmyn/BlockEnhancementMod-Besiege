@@ -311,9 +311,10 @@ namespace BlockEnhancementMod
                                     {
                                         if (radars.Count > 0)
                                         {
-                                            RadarScript radar = radars.ElementAt(UnityEngine.Random.Range(0, radars.Count));
-                                            passiveRocketRadar.sourceRadar = radar;
-                                            passiveRocketRadar.SetTarget(radar.target);
+                                            passiveRocketRadar.sourceRadars = radars;
+                                            //RadarScript radar = radars.ElementAt(UnityEngine.Random.Range(0, radars.Count));
+                                            //passiveRocketRadar.sourceRadar = radar;
+                                            //passiveRocketRadar.SetTarget(radar.target);
                                         }
                                     }
                                 }

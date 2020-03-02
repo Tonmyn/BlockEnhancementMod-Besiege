@@ -1,6 +1,7 @@
 ﻿using Modding;
 using Modding.Common;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace BlockEnhancementMod
         bool lastSwitchState = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
-        public RadarScript sourceRadar;
+        public HashSet<RadarScript> sourceRadars;
 
         public event Action<Target> OnTarget;
 
@@ -87,11 +88,16 @@ namespace BlockEnhancementMod
 
             if (SearchMode == SearchModes.Passive)
             {
-                if (sourceRadar == null) return;
-                if (target != sourceRadar.target)
-                {
-                    target = sourceRadar.target;    
-                }
+                if (target != null) return;
+                if (sourceRadars == null) return;
+                RadarScript radar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                if (radar == null) return;
+                if (radar.target == null) return;
+                SetTarget(radar.target);
+                //if (target != sourceRadar.target)
+                //{
+                //    target = sourceRadar.target;
+                //}
             }
             else if (SearchMode == SearchModes.Manual)
             {
@@ -742,6 +748,7 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Vector3 positionInWorld)
         {
+            if (SearchMode == SearchModes.Passive) return true;
             if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
             {
                 var distance = positionInWorld - transform.position;
