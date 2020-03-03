@@ -1,6 +1,7 @@
 ﻿using Modding;
 using Modding.Common;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -40,6 +41,8 @@ namespace BlockEnhancementMod
         bool lastSwitchState = false;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
+        public HashSet<RadarScript> sourceRadars;
+        public RadarScript sourceRadar;
 
         public event Action<Target> OnTarget;
 
@@ -53,7 +56,8 @@ namespace BlockEnhancementMod
         public enum SearchModes
         {
             Auto = 0,
-            Manual = 1
+            Manual = 1,
+            Passive = 2
         }
 
         private void Awake()
@@ -80,7 +84,25 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || SearchMode == SearchModes.Manual) return;
+            //if (!Switch || SearchMode != SearchModes.Auto) return;
+            if (!Switch) return;
+
+            if (SearchMode == SearchModes.Passive)
+            {
+                if (sourceRadars == null) return;
+                if (sourceRadar == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                if (sourceRadar.target == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                if (sourceRadar.SearchMode == SearchModes.Auto)
+                {
+                    if (InRadarRange(target)) return;
+                }
+                if (target != sourceRadar.target) target = sourceRadar.target;
+                return;
+            }
+            if (SearchMode == SearchModes.Manual)
+            {
+                return;
+            }
 
             if (Switch && target != null)
             {
@@ -190,6 +212,9 @@ namespace BlockEnhancementMod
                     return;
                 }
             }
+
+            if (SearchMode == SearchModes.Passive) return;
+
             //if (!Switch) return;
             DrawTargetRedSquare();
 
@@ -437,7 +462,7 @@ namespace BlockEnhancementMod
                     }
                     if (tempTarget == null)
                     {
-                        tempTarget =new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
+                        tempTarget = new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
                     }
 
                     return tempTarget;
@@ -473,6 +498,7 @@ namespace BlockEnhancementMod
         public void ChangeSearchMode()
         {
             //if (!Switch) return;
+            if (SearchMode == SearchModes.Passive) return;
 
             ClearTarget();
             if (SearchMode == SearchModes.Auto)
@@ -722,6 +748,7 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Vector3 positionInWorld)
         {
+            if (SearchMode == SearchModes.Passive) return true;
             if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
             {
                 var distance = positionInWorld - transform.position;
