@@ -332,7 +332,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.position = transform.position;
                 radarObject.transform.rotation = transform.rotation;
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
-                radarObject.transform.localScale = Vector3.one;
+                radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.Setup(BB, searchRange, searchAngle, searchModeIndex, guidedRocketShowRadar);
                 //radar.parentBlock = BB;
@@ -390,6 +390,15 @@ namespace BlockEnhancementMod
                     break;
                 }
             }
+
+            Vector3 restoreScale(Vector3 rocketScale)
+            {
+                var single = 1f / rocketScale.x;
+                var single1 = 1f / rocketScale.y;
+                var single2 = 1f / rocketScale.z;
+
+                return new Vector3(single, single1, single2);
+              }
 
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)

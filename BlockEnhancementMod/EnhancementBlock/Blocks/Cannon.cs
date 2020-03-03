@@ -23,6 +23,8 @@ namespace BlockEnhancementMod.Blocks
 
         public Bullet bullet;
         private bool lastInfinite = false;
+        private bool firstShoot = true;
+
         public class Bullet
         {
             public GameObject bulletObject;
@@ -148,12 +150,10 @@ namespace BlockEnhancementMod.Blocks
             }
 
         }
-
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
   
         }
-
         public override void SimulateUpdateAlways()
         {
             base.SimulateUpdateAlways();
@@ -164,6 +164,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 if (StatMaster.GodTools.InfiniteAmmoMode) ShootEnabled = true;
                 StopCoroutine(Shoot());
+                firstShoot = true;
             }
 
             if (CB.ShootKey.IsHeld && ShootEnabled)
@@ -183,7 +184,6 @@ namespace BlockEnhancementMod.Blocks
                 if (lastInfinite) ShootEnabled = true;
             }
         }
-
         protected override IEnumerator Shoot()
         {
             ShootEnabled = false;
@@ -195,7 +195,7 @@ namespace BlockEnhancementMod.Blocks
                 {
                     if (bullet.Custom)
                     {
-                        StartCoroutine(shoot(bullet.bulletObject));
+                        StartCoroutine(shoot(bullet.bulletObject));       
                     }
                     else
                     {
@@ -228,7 +228,6 @@ namespace BlockEnhancementMod.Blocks
 
             IEnumerator shoot(GameObject bulletObject = null)
             {
-                
                 randomDelay = UnityEngine.Random.Range(0f, RandomDelaySlider.Value);
                 yield return new WaitForSeconds(randomDelay);
                 if (bulletObject != null)
@@ -238,7 +237,8 @@ namespace BlockEnhancementMod.Blocks
                     go.SetActive(true);
                     go.GetComponent<Rigidbody>().AddForce(-transform.up * CB.boltSpeed * CB.StrengthSlider.Value);
                 }
-                CB.Shoot();
+                if (!firstShoot) { CB.Shoot(); }
+                firstShoot = false;
                 yield break;
             }
         }
