@@ -467,7 +467,7 @@ namespace BlockEnhancementMod
                             {
                                 radar.ClearTargetNoRemoval();
                             }
-                            else
+                            else if (radar.SearchMode == RadarScript.SearchModes.Manual)
                             {
                                 radar.SetTargetManual();
                             }
