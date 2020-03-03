@@ -398,7 +398,7 @@ namespace BlockEnhancementMod
                 var single2 = 1f / rocketScale.z;
 
                 return new Vector3(single, single1, single2);
-              }
+            }
 
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)

@@ -91,10 +91,13 @@ namespace BlockEnhancementMod
             {
                 if (sourceRadars == null) return;
                 if (sourceRadar == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
-                if (sourceRadar.target == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
-                if (sourceRadar.SearchMode == SearchModes.Auto)
+                if (sourceRadars.Count > 1)
                 {
-                    if (InRadarRange(target)) return;
+                    if (sourceRadar.target == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
+                    //if (sourceRadar.SearchMode == SearchModes.Auto)
+                    //{
+                    //    if (InRadarRange(target)) return;
+                    //}
                 }
                 if (target != sourceRadar.target) target = sourceRadar.target;
                 return;
@@ -367,70 +370,70 @@ namespace BlockEnhancementMod
             {
                 ClearTarget();
                 //SetTarget(ProcessTarget(GetTargetManual()));
-                SetTarget(getTargetManual());
+                SetTarget(GetTargetManual());
             }
 
-            Collider GetTargetManual()
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (StatMaster.isClient)
-                {
-                    SendRayToHost(ray);
-                    return null;
-                }
-                else
-                {
-                    //Find targets in the manual search mode by casting a sphere along the ray
-                    Collider tempCollider = new Collider();
+            //Collider GetTargetManual()
+            //{
+            //    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            //    if (StatMaster.isClient)
+            //    {
+            //        SendRayToHost(ray);
+            //        return null;
+            //    }
+            //    else
+            //    {
+            //        //Find targets in the manual search mode by casting a sphere along the ray
+            //        Collider tempCollider = new Collider();
 
-                    if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
-                    {
-                        var collider = rayHit.collider;
-                        if (collider.gameObject.layer != 29 && collider.enabled && !collider.isTrigger)
-                        {
-                            LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
-                            BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
-                            if (levelEntity != null || blockBehaviour != null)
-                            {
-                                tempCollider = collider;
-                                //if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-                                //{
-                                //    tempCollider = collider;
-                                //}
-                            }
-                        }
-                    }
-                    if (tempCollider == null)
-                    {
-                        float manualSearchRadius = 1.25f;
-                        RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
+            //        if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
+            //        {
+            //            var collider = rayHit.collider;
+            //            if (collider.gameObject.layer != 29 && collider.enabled && !collider.isTrigger)
+            //            {
+            //                LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
+            //                BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
+            //                if (levelEntity != null || blockBehaviour != null)
+            //                {
+            //                    tempCollider = collider;
+            //                    //if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
+            //                    //{
+            //                    //    tempCollider = collider;
+            //                    //}
+            //                }
+            //            }
+            //        }
+            //        if (tempCollider == null)
+            //        {
+            //            float manualSearchRadius = 1.25f;
+            //            RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
 
-                        if (hits.Length > 0)
-                        {
-                            for (int i = 0; i < hits.Length; i++)
-                            {
-                                var collider = hits[i].collider;
-                                if (collider.gameObject.layer == 29 || !collider.enabled || collider.isTrigger) continue;
-                                LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
-                                BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
-                                if (levelEntity != null || blockBehaviour != null)
-                                {
-                                    tempCollider = hits[i].collider;
-                                    break;
-                                    //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-                                    //{
-                                    //    tempCollider = hits[i].collider;
-                                    //    break;
-                                    //}
-                                }
-                            }
-                        }
-                    }
-                    return tempCollider;
-                }
-            }
+            //            if (hits.Length > 0)
+            //            {
+            //                for (int i = 0; i < hits.Length; i++)
+            //                {
+            //                    var collider = hits[i].collider;
+            //                    if (collider.gameObject.layer == 29 || !collider.enabled || collider.isTrigger) continue;
+            //                    LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
+            //                    BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
+            //                    if (levelEntity != null || blockBehaviour != null)
+            //                    {
+            //                        tempCollider = hits[i].collider;
+            //                        break;
+            //                        //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
+            //                        //{
+            //                        //    tempCollider = hits[i].collider;
+            //                        //    break;
+            //                        //}
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        return tempCollider;
+            //    }
+            //}
 
-            Target getTargetManual()
+            Target GetTargetManual()
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (StatMaster.isClient)
@@ -748,7 +751,6 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Vector3 positionInWorld)
         {
-            if (SearchMode == SearchModes.Passive) return true;
             if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
             {
                 var distance = positionInWorld - transform.position;
