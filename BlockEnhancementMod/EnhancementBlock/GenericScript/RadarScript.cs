@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    class RadarScript : MonoBehaviour
+    class RadarScript : MonoBehaviour,IComparer<Target>
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
@@ -892,6 +892,12 @@ namespace BlockEnhancementMod
             }
             RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
+
+        public int Compare(Target x, Target y)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
     }
@@ -901,6 +907,7 @@ namespace BlockEnhancementMod
         public Transform transform;
         public Collider collider;
         public BlockBehaviour block;
+        public GenericEntity entity;
         public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;
@@ -910,11 +917,37 @@ namespace BlockEnhancementMod
         public ExplodeOnCollideBlock bomb;
         public float initialDistance = 0f;
 
+        public category Category { get; private set; }
+
         //public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
         //public float angleDiff = 0f;
         //public Vector3 acceleration = Vector3.zero;
 
         public warningLevel WarningLevel { get; private set; } = 0;
+
+        public int WarningValue { get { return getWarningValue(); } }
+
+        public enum category
+        {
+            //Block
+            Basic, Armour = 1,
+            Machanical = 2,
+            Locomotion, Flight, ModBlock = 3,
+            Automation = 4,
+
+            //Entity
+            Primitives, EnvironmentFoliage = 1,
+            Brick, Buildings = 2,
+            Animals = 3,
+            Humans = 4,
+            Virtual, Weather, All = -1,
+
+            //Generic
+            Weaponry = 5,
+
+            //Point
+            Point = 10,
+        }
 
         public enum warningLevel
         {
@@ -962,7 +995,7 @@ namespace BlockEnhancementMod
             hasFireTag = (fireTag != null);
             transform = block.transform;
             this.block = block;
-
+            
             SetTargetWarningLevel();
         }
 
@@ -1020,5 +1053,39 @@ namespace BlockEnhancementMod
                 WarningLevel = warningLevel.normalBlockValue;
             }
         }
+
+        private int getWarningValue()
+        {
+            var value = 0;
+
+            var base1 = (int)Category;
+            var base2 = (int)
+
+
+            return value;
+
+            //------------------------
+            int getImplicitCategory()
+            {
+                if (Category == category.Point)
+                {
+                    return 5;
+                }
+                else if(Category == category.Block)
+                { 
+                if(block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock)
+                }
+            }
+            //------------------------
+        }
+
+        //private category getCategory()
+        //{ 
+
+        //}
+
+        //大致分为两类，1 block 2 entity 
+        //从collider 开始寻找， 找到BB 就是block，找到generic Entity就是entity，如果没找到，就找父对象，如果父对象名字里包含“PHYSICS GOAL”那么就是有效entity,标签暂时设置为build（后期可以细化）
+        //然后寻找组件下面是不是含有 firetag组件，然后根据firetag 的状态来控制 fire因数，最终控制返回的 warning value （暂定为  burning 时 fire factor = 0，fire时 fire factor =2）
     }
 }
