@@ -236,7 +236,7 @@ namespace BlockEnhancementMod
             GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value;
             AutoGrabberReleaseToggle.DisplayInMapper = value;
-            AsRadar.DisplayInMapper = value;
+            AsRadar.DisplayInMapper = value && guidedRocketActivated;
             SwitchGuideModeKey.DisplayInMapper = value && guidedRocketActivated;
             SPTeamKey.DisplayInMapper = value && guidedRocketActivated && (!StatMaster.isMP || Playerlist.Players.Count == 1);
             DefaultSearchModeMenu.DisplayInMapper = value && guidedRocketActivated;
