@@ -1059,23 +1059,23 @@ namespace BlockEnhancementMod
             var value = 0;
 
             var base1 = (int)Category;
-            var base2 = (int)
+            //var base2 = (int)
 
 
             return value;
 
             //------------------------
-            int getImplicitCategory()
-            {
-                if (Category == category.Point)
-                {
-                    return 5;
-                }
-                else if (Category == category.Block)
-                {
-                    if (block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock)
-                }
-            }
+            //int getImplicitCategory()
+            //{
+            //    if (Category == category.Point)
+            //    {
+            //        return 5;
+            //    }
+            //    else if (Category == category.Block)
+            //    {
+            //        if (block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock)
+            //    }
+            //}
             //------------------------
         }
 
