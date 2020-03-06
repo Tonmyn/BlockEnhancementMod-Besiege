@@ -29,7 +29,7 @@ namespace BlockEnhancementMod
         //No smoke mode related
         MToggle NoSmokeToggle;
         private bool noSmoke = false;
-        private bool smokeStopped = false;
+        //private bool smokeStopped = false;
 
         //Firing record related setting
         private float randomDelay = 0;
@@ -310,7 +310,7 @@ namespace BlockEnhancementMod
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            smokeStopped = rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
+            /*smokeStopped = */rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
 
             // Read the charge from rocket
             explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
@@ -386,14 +386,26 @@ namespace BlockEnhancementMod
             }
 
             smokeTrail = null;
-            foreach (var value in rocket.trail)
+            if (NoSmokeToggle.IsActive)
             {
-                if (value.name.ToLower() == "smoketrail")
+                foreach (var value in rocket.trail)
                 {
-                    smokeTrail = value;
-                    break;
+                    var emission = value.emission;
+                    emission.enabled = false;
                 }
             }
+            else
+            {
+                foreach (var value in rocket.trail)
+                {
+                    if (value.name.ToLower() == "smoketrail")
+                    {
+                        smokeTrail = value;
+                        break;
+                    }
+                }
+            }
+
 
             Vector3 restoreScale(Vector3 rocketScale)
             {
@@ -498,18 +510,18 @@ namespace BlockEnhancementMod
                     if (!rocket.hasExploded)
                     {
                         //If no smoke mode is enabled, stop all smoke
-                        if (noSmoke && !smokeStopped)
-                        {
-                            try
-                            {
-                                foreach (var smoke in rocket.trail)
-                                {
-                                    smoke.Stop();
-                                }
-                                smokeStopped = true;
-                            }
-                            catch { }
-                        }
+                        //if (noSmoke && !smokeStopped)
+                        //{
+                        //    try
+                        //    {
+                        //        foreach (var smoke in rocket.trail)
+                        //        {
+                        //            smoke.Stop();
+                        //        }
+                        //        smokeStopped = true;
+                        //    }
+                        //    catch { }
+                        //}
 
                         if (guidedRocketActivated)
                         {
