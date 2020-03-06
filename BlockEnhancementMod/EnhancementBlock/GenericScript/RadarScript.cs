@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    class RadarScript : MonoBehaviour
+    class RadarScript : MonoBehaviour,IComparer<Target>
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
@@ -894,6 +894,12 @@ namespace BlockEnhancementMod
             }
             RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
+
+        public int Compare(Target x, Target y)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
     }
@@ -903,6 +909,7 @@ namespace BlockEnhancementMod
         public Transform transform;
         public Collider collider;
         public BlockBehaviour block;
+        public GenericEntity entity;
         public Rigidbody rigidbody;
         public FireTag fireTag;
         public bool hasFireTag = false;
@@ -912,11 +919,37 @@ namespace BlockEnhancementMod
         public ExplodeOnCollideBlock bomb;
         public float initialDistance = 0f;
 
+        public category Category { get; private set; }
+
         //public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
         //public float angleDiff = 0f;
         //public Vector3 acceleration = Vector3.zero;
 
         public warningLevel WarningLevel { get; private set; } = 0;
+
+        public int WarningValue { get { return getWarningValue(); } }
+
+        public enum category
+        {
+            //Block
+            Basic, Armour = 1,
+            Machanical = 2,
+            Locomotion, Flight, ModBlock = 3,
+            Automation = 4,
+
+            //Entity
+            Primitives, EnvironmentFoliage = 1,
+            Brick, Buildings = 2,
+            Animals = 3,
+            Humans = 4,
+            Virtual, Weather, All = -1,
+
+            //Generic
+            Weaponry = 5,
+
+            //Point
+            Point = 10,
+        }
 
         public enum warningLevel
         {
@@ -1022,5 +1055,153 @@ namespace BlockEnhancementMod
                 WarningLevel = warningLevel.normalBlockValue;
             }
         }
+
+        private int getWarningValue()
+        {
+            var value = 0;
+
+            var base1 = (int)Category;
+            //var base2 = (int)
+
+
+            return value;
+
+            //------------------------
+            //int getImplicitCategory()
+            //{
+            //    if (Category == category.Point)
+            //    {
+            //        return 5;
+            //    }
+            //    else if (Category == category.Block)
+            //    {
+            //        if (block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock || block.BlockID == (int)BlockType.SingleWoodenBlock)
+            //    }
+            //}
+            //------------------------
+        }
+
+        //private category getCategory()
+        //{ 
+
+        //
+
+        private List<int> weapons = new List<int>()
+        {
+            (int)BlockType.Spike,
+            (int)BlockType.MetalBlade,
+            (int)BlockType.CircularSaw,
+            (int)BlockType.Drill,
+            (int)BlockType.Cannon,
+            (int)BlockType.ShrapnelCannon,
+            (int)BlockType.Crossbow,
+            (int)BlockType.Flamethrower,
+            (int)BlockType.Vacuum,
+            (int)BlockType.WaterCannon,
+            (int)BlockType.Torch,
+            (int)BlockType.Bomb,
+            (int)BlockType.Grenade,
+            (int)BlockType.Rocket,
+            (int)BlockType.FlameBall,
+            (int)BlockType.Boulder
+        };
+        private List<int> basic = new List<int>()
+        {
+            (int)BlockType.StartingBlock,
+            (int)BlockType.SingleWoodenBlock,
+            (int)BlockType.DoubleWoodenBlock,
+            (int)BlockType.Log,
+            (int)BlockType.WoodenPole,
+        };
+        private List<int> armour = new List<int>()
+        {
+            (int)BlockType.ArmorPlateSmall,
+            (int)BlockType.ArmorPlateLarge,
+            (int)BlockType.ArmorPlateRound,
+            (int)BlockType.WoodenPanel,
+            (int)BlockType.GripPad,
+            (int)BlockType.Plow,
+            (int)BlockType.HalfPipe,
+            (int)BlockType.BombHolder,
+            (int)BlockType.MetalBall
+        };
+        private List<int> machanical = new List<int>()
+        {
+            (int)BlockType.Swivel,
+            (int)BlockType.Hinge,
+            (int)BlockType.BallJoint,
+            (int)BlockType.SpinningBlock,
+            (int)BlockType.Suspension,
+            (int)BlockType.Slider,
+            (int)BlockType.Piston,
+            (int)BlockType.Decoupler,
+            (int)BlockType.Grabber,
+            (int)BlockType.Spring,
+            (int)BlockType.RopeWinch,
+        };
+        private List<int> locomotion = new List<int>()
+        {
+            (int)BlockType.SteeringHinge,
+            (int)BlockType.SteeringBlock,
+            (int)BlockType.Wheel,
+            (int)BlockType.LargeWheel,
+            (int)BlockType.WheelUnpowered,
+            (int)BlockType.LargeWheelUnpowered,
+            (int)BlockType.SmallWheel,
+            (int)BlockType.CogMediumPowered,
+            (int)BlockType.CogMediumUnpowered,
+            (int)BlockType.CogLargeUnpowered,
+        };
+        private List<int> flight = new List<int>()
+        {
+            (int)BlockType.FlyingBlock,
+            (int)BlockType.Propeller,
+            (int)BlockType.SmallPropeller,
+            (int)BlockType.Unused3,
+            (int)BlockType.Wing,
+            (int)BlockType.WingPanel,
+            (int)BlockType.Ballast,
+            (int)BlockType.Balloon,
+        };
+        private List<int> automation = new List<int>()
+        {
+            (int)BlockType.Sensor,
+            (int)BlockType.Timer,
+            (int)BlockType.Altimeter,
+            (int)BlockType.LogicGate,
+            (int)BlockType.Anglometer,
+            (int)BlockType.Speedometer,
+        };
+
+        private category getBlockCategory(BlockBehaviour block)
+        {
+            var id = block.BlockID;
+
+            if (weapons.Contains(id)) return category.Weaponry;
+            else if (basic.Contains(id)) return category.Basic;
+            else if (armour.Contains(id)) return category.Armour;
+            else if (machanical.Contains(id)) return category.Machanical;
+            else if (flight.Contains(id)) return category.Flight;
+            else if (automation.Contains(id)) return category.Automation;
+            else return category.ModBlock;
+        }
+        private category getEntityCategory(GenericEntity entity)
+        {
+            var str = entity.prefab.category.ToString().ToLower();
+
+            if (str == category.Weaponry.ToString().ToLower()) return category.Weaponry;
+            else if (str == category.Primitives.ToString().ToLower()) return category.Primitives;
+            else if (str == category.EnvironmentFoliage.ToString().ToLower()) return category.EnvironmentFoliage;
+            else if (str == category.Brick.ToString().ToLower()) return category.Brick;
+            else if (str == category.Buildings.ToString().ToLower()) return category.Buildings;
+            else if (str == category.Animals.ToString().ToLower()) return category.Animals;
+            else if (str == category.Humans.ToString().ToLower()) return category.Humans;
+            else if (str == category.Virtual.ToString().ToLower()) return category.Virtual;
+            else if (str == category.Weather.ToString().ToLower()) return category.Weather;
+            else return category.All;
+        }
+        //大致分为两类，1 block 2 entity 
+        //从collider 开始寻找， 找到BB 就是block，找到generic Entity就是entity，如果没找到，就找父对象，如果父对象名字里包含“PHYSICS GOAL”那么就是有效entity,标签暂时设置为build（后期可以细化）
+        //然后寻找组件下面是不是含有 firetag组件，然后根据firetag 的状态来控制 fire因数，最终控制返回的 warning value （暂定为  burning 时 fire factor = 0，fire时 fire factor =2）
     }
 }

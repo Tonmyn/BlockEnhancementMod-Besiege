@@ -12,27 +12,17 @@ namespace BlockEnhancementMod
     {
 
         public MToggle RotationToggle;
-        //public bool Rotation = false;
-        //private bool orginRotation = false;
 
         private ConfigurableJoint CJ;
-        //private float orginBreakTorque = 18000;
 
         public override void SafeAwake()
         {
 
-            RotationToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CvJoint, "Rotation", /*Rotation*/false);
-            //RotationToggle.Toggled += (bool value) => { Rotation = value; ChangedProperties(); };
-
+            RotationToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.CvJoint, "Rotation", false);
 
 #if DEBUG
             ConsoleController.ShowMessage("球铰添加进阶属性");
 #endif
-        }
-
-        public override void DisplayInMapper(bool value)
-        {
-            RotationToggle.DisplayInMapper = value;
         }
 
         public override void OnSimulateStartClient()
@@ -41,16 +31,11 @@ namespace BlockEnhancementMod
             {
                 CJ = GetComponent<ConfigurableJoint>();
 
-                if (/*Rotation*/RotationToggle.IsActive)
+                if (RotationToggle.IsActive)
                 {
                     CJ.angularYMotion = ConfigurableJointMotion.Locked;
                     CJ.breakTorque = Mathf.Infinity;
                 }
-                //else
-                //{
-                //    CJ.angularYMotion = ConfigurableJointMotion.Free;
-                //    CJ.breakTorque = orginBreakTorque;
-                //}
             }        
         }
     }

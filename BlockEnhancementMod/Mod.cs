@@ -55,18 +55,6 @@ namespace BlockEnhancementMod
             new Propertise<int>("Radar Fequency",20),
         };
 
-        //public bool EnhanceMore = false;
-        //public bool ShowUI = true;
-        //public bool Friction = false;
-        //public bool DisplayWaring = true;
-        //public bool MarkTarget = true;
-        //public bool DisplayRocketCount = true;
-
-        //public float GuideControlPFactor = 1.25f;
-        //public float GuideControlIFactor = 10f;
-        //public float GuideControlDFactor = 0f;
-
-        //public int RadarFequency = 20;
         public class Propertise<T>
         {
             public string Key = "";
