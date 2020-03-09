@@ -267,7 +267,7 @@ namespace BlockEnhancementMod
             {
                 if (searchModeIndex == (int)RadarScript.SearchModes.Passive)
                 {
-                    if (AsRadar.DisplayInMapper) AsRadar.DisplayInMapper = false;
+                    if (AsRadar.DisplayInMapper) AsRadar.DisplayInMapper = asRadar = false;
                     if (SwitchGuideModeKey.DisplayInMapper) SwitchGuideModeKey.DisplayInMapper = false;
                     if (ActiveGuideRocketSearchAngleSlider.DisplayInMapper) ActiveGuideRocketSearchAngleSlider.DisplayInMapper = false;
                     if (GuidedRocketShowRadar.DisplayInMapper) GuidedRocketShowRadar.DisplayInMapper = false;
@@ -310,7 +310,8 @@ namespace BlockEnhancementMod
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            /*smokeStopped = */rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
+            /*smokeStopped = */
+            rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
 
             // Read the charge from rocket
             explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
@@ -746,7 +747,8 @@ namespace BlockEnhancementMod
                         catch { }
                         try
                         {
-                            hit.attachedRigidbody.gameObject.GetComponent<RocketScript>().StartCoroutine(RocketExplode());
+                            RocketScript rocketScript = hit.attachedRigidbody.gameObject.GetComponent<RocketScript>();
+                            rocketScript.StartCoroutine(rocketScript.RocketExplode());
                         }
                         catch { }
                         try
