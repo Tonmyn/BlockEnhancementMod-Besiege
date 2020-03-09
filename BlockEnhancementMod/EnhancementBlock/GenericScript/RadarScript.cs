@@ -1000,6 +1000,10 @@ namespace BlockEnhancementMod
 
             SetTargetWarningLevel();
         }
+        public Target(GenericEntity entity)
+        { 
+        
+        }
 
         public void SetTargetWarningLevel()
         {
@@ -1061,8 +1065,9 @@ namespace BlockEnhancementMod
             var value = 0;
 
             var base1 = (int)Category;
-            //var base2 = (int)
+            var factor = (hasFireTag && fireTag.burning == false && fireTag.hasBeenBurned == false) ? (int)2 : (int)0.5;
 
+            value = base1 * factor;
 
             return value;
 
