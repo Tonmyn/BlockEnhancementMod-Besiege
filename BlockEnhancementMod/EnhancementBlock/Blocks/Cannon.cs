@@ -152,7 +152,7 @@ namespace BlockEnhancementMod.Blocks
         }
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
-  
+  //虽然是空的但是必须要
         }
         public override void SimulateUpdateAlways()
         {
@@ -160,14 +160,14 @@ namespace BlockEnhancementMod.Blocks
 
             if (StatMaster.isClient) return;
 
-            if (CB.ShootKey.IsReleased)
+            if (CB.ShootKey.IsReleased || CB.ShootKey.EmulationReleased())
             {
                 if (StatMaster.GodTools.InfiniteAmmoMode) ShootEnabled = true;
                 StopCoroutine(Shoot());
                 firstShoot = true;
             }
 
-            if (CB.ShootKey.IsHeld && ShootEnabled)
+            if ((CB.ShootKey.IsHeld ||CB.ShootKey.EmulationHeld())&& ShootEnabled)
             {
                 StopCoroutine(Shoot());
                 StartCoroutine(Shoot());

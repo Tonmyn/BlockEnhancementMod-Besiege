@@ -142,13 +142,13 @@ namespace BlockEnhancementMod
                 {
                     bool pressed = false;
 
-                    if (ExtendKey.IsHeld)
+                    if (ExtendKey.IsHeld || ExtendKey.EmulationHeld())
                     {
                         pressed = true;
                         target = -/*ExtendLimit*/ExtendLimitSlider.Value;
                     }
 
-                    if (ShrinkKey.IsHeld)
+                    if (ShrinkKey.IsHeld || ShrinkKey.EmulationHeld())
                     {
                         pressed = true;
                         target = /*RetractLimit*/ShrinkLimitSlider.Value;

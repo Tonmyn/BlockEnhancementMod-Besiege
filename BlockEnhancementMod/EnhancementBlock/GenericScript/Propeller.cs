@@ -91,7 +91,7 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
 
-            if (SwitchKey.IsPressed)
+            if (SwitchKey.IsPressed || SwitchKey.EmulationPressed())
             {
                 //Effect = !Effect;
                 EffectToggle.IsActive = !EffectToggle.IsActive;
@@ -100,7 +100,7 @@ namespace BlockEnhancementMod
 
             if (!/*Toggle*/ToggleToggle.IsActive)
             {
-                if (SwitchKey.IsReleased)
+                if (SwitchKey.IsReleased || SwitchKey.EmulationReleased())
                 {
                     //Effect = !Effect;
                     EffectToggle.IsActive = !EffectToggle.IsActive;

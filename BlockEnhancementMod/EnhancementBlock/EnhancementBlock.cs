@@ -226,6 +226,7 @@ namespace BlockEnhancementMod
         public MKey AddKey(string displayName, string key, KeyCode defaultValue)
         {
             var mapper = BB.AddKey(displayName, key, defaultValue);
+            mapper.KeysChanged += () => { PropertiseChangedEvent(); };
             PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
@@ -298,12 +299,12 @@ namespace BlockEnhancementMod
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             base.SimulateUpdateAlways_EnhancementEnable();
-            if (AddSpeedKey.IsPressed)
+            if (AddSpeedKey.IsPressed || AddSpeedKey.EmulationPressed())
             {
                 Speed += ChangeSpeedValue.Value;
             }
 
-            if (ReduceSpeedKey.IsPressed)
+            if (ReduceSpeedKey.IsPressed || ReduceSpeedKey.EmulationPressed())
             {
                 Speed -= ChangeSpeedValue.Value;
             }

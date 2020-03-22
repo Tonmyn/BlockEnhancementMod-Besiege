@@ -46,7 +46,7 @@ namespace BlockEnhancementMod
 
             Debug.Log(hinge.targetPosition); Debug.Log(hinge.targetRotation);
 
-            if (SwitchKey.IsPressed)
+            if (SwitchKey.IsPressed || SwitchKey.EmulationPressed())
             {
                 state = !state;
                 Debug.Log("switch");
