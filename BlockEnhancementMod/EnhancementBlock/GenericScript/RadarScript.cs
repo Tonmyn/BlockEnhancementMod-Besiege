@@ -39,6 +39,7 @@ namespace BlockEnhancementMod
 
         public bool Switch { get; set; } = false;
         bool lastSwitchState = false;
+        public Types Type { get; set; } = Types.AirborneRadar;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
         public HashSet<RadarScript> sourceRadars;
@@ -60,6 +61,14 @@ namespace BlockEnhancementMod
             Passive = 2
         }
 
+        public enum Types
+        {
+            //机载雷达
+            AirborneRadar = 0,
+            //引导雷达
+            DirectorRadar = 1,
+        }
+
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
@@ -67,7 +76,7 @@ namespace BlockEnhancementMod
 
         }
         private void Update()
-        {
+        { 
             if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;
