@@ -20,12 +20,12 @@ namespace BlockEnhancementMod
         public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
         public Vector3 TargetPosition { get { return target.collider.bounds.center - transform.position; } }
         /// <summary>
-        /// Distance of StartPoint to Target
+        /// Distance of Radar to Target
         /// </summary>
         /// <returns>Distance value</returns>
         public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.transform.position); } }
         /// <summary>
-        /// Angle of StartPoint to Target
+        /// Angle of Radar to Target
         /// </summary>
         /// <returns>Angle value</returns>
         public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
