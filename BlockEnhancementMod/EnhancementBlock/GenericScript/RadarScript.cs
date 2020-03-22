@@ -20,12 +20,12 @@ namespace BlockEnhancementMod
         public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
         public Vector3 TargetPosition { get { return target.collider.bounds.center - transform.position; } }
         /// <summary>
-        /// Distance of StartPoint to Target
+        /// Distance of Radar to Target
         /// </summary>
         /// <returns>Distance value</returns>
         public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.transform.position); } }
         /// <summary>
-        /// Angle of StartPoint to Target
+        /// Angle of Radar to Target
         /// </summary>
         /// <returns>Angle value</returns>
         public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
@@ -39,6 +39,7 @@ namespace BlockEnhancementMod
 
         public bool Switch { get; set; } = false;
         bool lastSwitchState = false;
+        public Types Type { get; set; } = Types.AirborneRadar;
         public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
         public HashSet<RadarScript> sourceRadars;
@@ -60,6 +61,14 @@ namespace BlockEnhancementMod
             Passive = 2
         }
 
+        public enum Types
+        {
+            //机载雷达
+            AirborneRadar = 0,
+            //引导雷达
+            DirectorRadar = 1,
+        }
+
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
@@ -67,7 +76,7 @@ namespace BlockEnhancementMod
 
         }
         private void Update()
-        {
+        { 
             if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;

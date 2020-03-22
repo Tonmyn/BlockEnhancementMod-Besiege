@@ -228,11 +228,11 @@ namespace BlockEnhancementMod
                     }
                     else
                     {
-                        if (ZoomInKey.IsDown)
+                        if (ZoomInKey.IsHeld || ZoomInKey.EmulationHeld())
                         {
                             newCamFOV = Mathf.Clamp(activeCam.fieldOfView - zoomSpeed, 1, orgCamFOV);
                         }
-                        if (ZoomOutKey.IsDown)
+                        if (ZoomOutKey.IsHeld || ZoomOutKey.EmulationHeld())
                         {
                             newCamFOV = Mathf.Clamp(activeCam.fieldOfView + zoomSpeed, 1, orgCamFOV);
                         }
@@ -249,16 +249,16 @@ namespace BlockEnhancementMod
                         switchTime = Time.time;
                         activateTimeRecorded = true;
                     }
-                    if (AutoLookAtKey.IsReleased)
+                    if (AutoLookAtKey.IsReleased || AutoLookAtKey.EmulationReleased())
                     {
                         autoSearch = !autoSearch;
                         switchTime = Time.time;
                     }
-                    if (PauseTrackingKey.IsReleased)
+                    if (PauseTrackingKey.IsReleased || PauseTrackingKey.EmulationReleased())
                     {
                         pauseTracking = !pauseTracking;
                     }
-                    if (LockTargetKey.IsReleased)
+                    if (LockTargetKey.IsReleased || LockTargetKey.EmulationReleased())
                     {
                         target = null;
                         if (autoSearch)

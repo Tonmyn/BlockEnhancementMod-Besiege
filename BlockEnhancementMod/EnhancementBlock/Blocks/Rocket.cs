@@ -457,7 +457,7 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                if (GroupFireKey.IsHeld && !asRadar && !StatMaster.isClient)
+                if ((GroupFireKey.IsHeld||GroupFireKey.EmulationHeld()) && !asRadar && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
                     {
@@ -471,14 +471,14 @@ namespace BlockEnhancementMod
                     if (guidedRocketActivated)
                     {
                         //When toggle auto aim key is released, change the auto aim status
-                        if (SwitchGuideModeKey.IsReleased)
+                        if (SwitchGuideModeKey.IsReleased || SwitchGuideModeKey.EmulationReleased())
                         {
                             //activeGuide = !activeGuide;
                             //radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
                             radar.ChangeSearchMode();
                         }
 
-                        if (LockTargetKey.IsPressed/* && radar.Switch*/)
+                        if (LockTargetKey.IsPressed || LockTargetKey.EmulationPressed()/* && radar.Switch*/)
                         {
                             if (radar.SearchMode == RadarScript.SearchModes.Auto)
                             {
