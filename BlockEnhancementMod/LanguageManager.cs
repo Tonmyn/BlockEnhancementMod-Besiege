@@ -80,6 +80,8 @@ namespace BlockEnhancementMod
         string DefaultAuto { get; }
         string DefaultManual { get; }
         string DefaultPassive { get; }
+        List<string> RadarType { get; }
+        
         string ZoomControlMode { get; }
         string MouseWheelZoomControl { get; }
 
@@ -266,6 +268,8 @@ namespace BlockEnhancementMod
 
         public string DefaultPassive { get; } = "被动接受目标";
 
+        public List<string> RadarType { get; } = new List<string> { "主动雷达", "被动雷达" };
+
         public string ZoomControlMode { get; } = "变焦控制";
 
         public string MouseWheelZoomControl { get; } = "鼠标滚轮变焦";
@@ -450,6 +454,8 @@ namespace BlockEnhancementMod
         public string DefaultManual { get; } = "Default " + Environment.NewLine + " Manual Search";
 
         public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
+
+        public List<string> RadarType { get; } = new List<string> { "Active Radar", "Passive Radar" };
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
@@ -636,6 +642,8 @@ namespace BlockEnhancementMod
         public string DefaultManual { get; } = "デフォルト " + Environment.NewLine + " 手動ロックオン";
 
         public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
+
+        public List<string> RadarType { get; } = new List<string> { "能動レーダー", "受動レーダー" };
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
