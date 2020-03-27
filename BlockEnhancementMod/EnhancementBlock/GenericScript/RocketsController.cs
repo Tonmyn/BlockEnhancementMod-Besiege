@@ -300,7 +300,7 @@ namespace BlockEnhancementMod
                         defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
                         rocket.LaunchMessage();
 
-                        if (rocketScript.radar.RadarType ==RadarScript.RadarTypes.PassiveRadar)
+                        if (rocketScript.radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
                         {
                             RadarScript passiveRocketRadar = rocketScript.radar;
                             if (passiveRocketRadar != null)

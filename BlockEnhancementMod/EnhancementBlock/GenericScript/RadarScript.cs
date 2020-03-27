@@ -191,7 +191,10 @@ namespace BlockEnhancementMod
                     int chooseTargetIndex = 0;
 
                     //StartCoroutine(chooseTargetInTargetList(new List<BlockBehaviour>(lastBlockList)));
-                    StartCoroutine(chooseTargetInTargetList(lastBlockList));
+                    if (lastBlockList.Count > 0)
+                    {
+                        StartCoroutine(chooseTargetInTargetList(lastBlockList));
+                    }
 
                     //IEnumerator chooseTargetInTargetList(List<BlockBehaviour> blocks)
                     IEnumerator chooseTargetInTargetList(HashSet<BlockBehaviour> blocks)
@@ -599,8 +602,10 @@ namespace BlockEnhancementMod
             if (target != null) blockList.Remove(target.block);
             SendClientTargetNull();
             target = null;
-
-            OnClearTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            if (gameObject.activeSelf)
+            {
+                OnClearTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            }
 #if DEBUG
             Debug.Log("clear target");
 #endif
