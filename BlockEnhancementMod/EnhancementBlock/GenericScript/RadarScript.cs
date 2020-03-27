@@ -73,54 +73,12 @@ namespace BlockEnhancementMod
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
-            redSquareAim = RocketsController.redSquareAim;
-
-            OnSetTarget += (target, keycode) =>
-             {
-                 if (/*!this.target.Equals(target)*/this.target == null)
-                 {
-                     if (RadarType == RadarTypes.PassiveRadar)
-                     {
-                         Debug.Log("获得目标");
-                         RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
-                         if (rocketScript != null)
-                         {
-                             if (rocketScript.GroupFireKey.GetKey(0) == keycode)
-                             {
-                                 Debug.Log("是我的雷达");
-                                 SetTarget(target);
-                             }
-                         }
-                     }
-                 }
-             };
-
-            OnClearTarget += (keycode) =>
-            {
-                if (this.target != null)
-                {
-                    if (RadarType == RadarTypes.PassiveRadar)
-                    {
-                        if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keycode)
-                        {
-                            ClearTarget();
-                        }
-                    }
-                    if (RadarType == RadarTypes.ActiveRadar)
-                    {
-                        StartCoroutine(ResendTargetToPassiveRadar());
-                    }
-                }
-            };
-
-            IEnumerator ResendTargetToPassiveRadar()
-            {
-                for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-                OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
-            }
+            redSquareAim = RocketsController.redSquareAim;       
+        }
+        private void Start()
+        {
+            OnSetTarget += onSetTargetEvent;
+            OnClearTarget += onClearTargetEvent;
         }
         private void Update()
         {
@@ -176,7 +134,7 @@ namespace BlockEnhancementMod
             if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
             {
 #if DEBUG
-                Debug.Log(blockList.Count);
+                //Debug.Log(blockList.Count));
 #endif
                 if (!isChoosingBlock)
                 {
@@ -301,6 +259,9 @@ namespace BlockEnhancementMod
         }
         private void OnDestroy()
         {
+            OnSetTarget -= onSetTargetEvent;
+            OnClearTarget -= onClearTargetEvent;
+
             Switch = false;
             ClearTarget();
             blockList.Clear();
@@ -596,15 +557,19 @@ namespace BlockEnhancementMod
                 if (Switch) ActivateDetectionZone();
             }
         }
-
         public void ClearTarget()
         {
             if (target != null) blockList.Remove(target.block);
             SendClientTargetNull();
             target = null;
-            if (gameObject.activeSelf)
+
+            if (gameObject.activeSelf && RadarType ==  RadarTypes.ActiveRadar && parentBlock != null)
             {
-                OnClearTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+                var rs = parentBlock.GetComponent<RocketScript>();
+                if (rs != null)
+                {
+                    OnClearTarget?.Invoke(rs.GroupFireKey.GetKey(0));
+                }
             }
 #if DEBUG
             Debug.Log("clear target");
@@ -666,6 +631,50 @@ namespace BlockEnhancementMod
                 }
             }
             return tempTarget;
+        }
+
+        private void onSetTargetEvent(Target target ,KeyCode keyCode )
+        {
+            if (/*!this.target.Equals(target)*/this.target == null || this.target != target)
+            {
+                if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
+                {
+                    Debug.Log("获得目标");
+                    RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
+                    if (rocketScript != null)
+                    {
+                        Debug.Log("父组件存在");
+                        if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
+                        {
+                            Debug.Log("是我的雷达");
+                            SetTarget(target);
+                        }
+                    }
+                }
+            }
+        }
+        private void onClearTargetEvent(KeyCode keyCode)
+        {
+            if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
+            {
+                if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keyCode)
+                {
+                    ClearTarget();
+                }
+            }
+            //else  if (RadarType == RadarTypes.ActiveRadar)
+            //{
+            //    StartCoroutine(ResendTargetToPassiveRadar());
+            //}
+
+            IEnumerator ResendTargetToPassiveRadar()
+            {
+                for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+                OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            }
         }
 
         private bool isQualifiedCollider(Collider collider)
