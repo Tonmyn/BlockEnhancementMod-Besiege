@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    class RadarScript : MonoBehaviour,IComparer<Target>
+    class RadarScript : MonoBehaviour, IComparer<Target>
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
@@ -77,23 +77,27 @@ namespace BlockEnhancementMod
 
             OnSetTarget += (target, keycode) =>
              {
-                 if (!this.target.Equals(target))
+                 if (this.target != null)
                  {
-                     if (RadarType == RadarTypes.PassiveRadar)
+                     if (!this.target.Equals(target))
                      {
-                         Debug.Log("获得目标");
-                         if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keycode)
+                         if (RadarType == RadarTypes.PassiveRadar)
                          {
-                             Debug.Log("是我的雷达");
-                             SetTarget(target);
-                         }
+                             Debug.Log("获得目标");
+                             if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keycode)
+                             {
+                                 Debug.Log("是我的雷达");
+                                 SetTarget(target);
+                             }
 
+                         }
                      }
                  }
              };
+
             OnClearTarget += (keycode) =>
             {
-                if (this.target!=null)
+                if (this.target != null)
                 {
                     if (RadarType == RadarTypes.PassiveRadar)
                     {
@@ -107,7 +111,7 @@ namespace BlockEnhancementMod
             };
         }
         private void Update()
-        { 
+        {
             if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;
@@ -403,7 +407,7 @@ namespace BlockEnhancementMod
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-             OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
         }
         public void SetTargetManual()
         {
@@ -564,12 +568,12 @@ namespace BlockEnhancementMod
             RadarType = radarType;
 
             ClearTarget();
-            if (RadarType ==  RadarTypes.PassiveRadar)
+            if (RadarType == RadarTypes.PassiveRadar)
             {
                 //do something...
                 DeactivateDetectionZone();
             }
-            else if(RadarType == RadarTypes.ActiveRadar)
+            else if (RadarType == RadarTypes.ActiveRadar)
             {
                 //do something...
                 if (Switch) ActivateDetectionZone();
@@ -989,8 +993,8 @@ namespace BlockEnhancementMod
             SetTargetWarningLevel();
         }
         public Target(GenericEntity entity)
-        { 
-        
+        {
+
         }
 
         public void SetTargetWarningLevel()
