@@ -124,6 +124,8 @@ namespace BlockEnhancementMod
         }
         private void Update()
         {
+            if (!parentBlock.isSimulating) return;
+
             if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;
