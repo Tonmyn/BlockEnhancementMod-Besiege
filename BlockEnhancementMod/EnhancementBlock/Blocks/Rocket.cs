@@ -42,9 +42,9 @@ namespace BlockEnhancementMod
         MSlider GuidePredictionSlider;
         MToggle GuidedRocketShowRadarToggle;
         //MToggle AsRadarToggle;
-        public bool guidedRocketShowRadar = false;
-        public bool guidedRocketStabilityOn = true;
-        public bool guidedRocketActivated = false;
+        //public bool guidedRocketShowRadar = false;
+        //public bool guidedRocketStabilityOn = true;
+        //public bool guidedRocketActivated = false;
         public bool rocketExploMsgSent = false;
         public bool rocketInBuildSent = false;
         //public bool asRadar = false;
@@ -108,7 +108,7 @@ namespace BlockEnhancementMod
             GuidedRocketToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", /*guidedRocketActivated*/false);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                guidedRocketActivated =
+                //guidedRocketActivated =
                 //AsRadarToggle.DisplayInMapper =
                 RadarTypeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
@@ -127,7 +127,7 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            RadarTypeMenu = AddMenu("Radar Type",/* radarTypeMenuIndex*/0,LanguageManager.Instance.CurrentLanguage.RadarType);
+            RadarTypeMenu = AddMenu("Radar Type",/* radarTypeMenuIndex*/0, LanguageManager.Instance.CurrentLanguage.RadarType);
             //AsRadarToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AsRadar, "AsRadar", /*asRadar*/false);
 
             AutoGrabberReleaseToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.AutoGrabberRelease, "AutoGrabberRelease",/* autoGrabberRelease*/false);
@@ -227,7 +227,7 @@ namespace BlockEnhancementMod
             AutoGrabberReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
 
             var _value = value && GuidedRocketToggle.IsActive;
-            var _value1 =_value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
+            var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
 
             ChangedRadarTypeKey.DisplayInMapper = _value;
             SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
@@ -235,7 +235,7 @@ namespace BlockEnhancementMod
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value1;
             GuidePredictionSlider.DisplayInMapper = _value1;
             GuidedRocketTorqueSlider.DisplayInMapper = _value1;
-            GuidedRocketShowRadarToggle.DisplayInMapper = _value1 ;
+            GuidedRocketShowRadarToggle.DisplayInMapper = _value1;
             GuidedRocketStabilityToggle.DisplayInMapper = _value1;
             ImpactFuzeToggle.DisplayInMapper = _value;
             ProximityFuzeToggle.DisplayInMapper = _value;
@@ -311,7 +311,7 @@ namespace BlockEnhancementMod
                 bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
             }
 
-            if (guidedRocketActivated)
+            if (GuidedRocketToggle.IsActive)
             {
                 // Initialisation for simulation
                 launchTimeRecorded /*= canTrigger*/  = bombHasExploded = rocketExploMsgSent = false;
@@ -328,7 +328,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radar.Setup(BB, searchRange, searchAngle, RadarTypeMenu.Value, guidedRocketShowRadar);
+                radar.Setup(BB, searchRange, searchAngle, RadarTypeMenu.Value, GuidedRocketShowRadarToggle.IsActive);
                 //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
@@ -446,7 +446,7 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                if ((GroupFireKey.IsHeld||GroupFireKey.EmulationHeld()) && /*!asRadar*/!(radar.RadarType == RadarScript.RadarTypes.PassiveRadar) && !StatMaster.isClient)
+                if ((GroupFireKey.IsHeld || GroupFireKey.EmulationHeld()) && /*!asRadar*/!(radar.RadarType == RadarScript.RadarTypes.PassiveRadar) && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
                     {
@@ -534,7 +534,7 @@ namespace BlockEnhancementMod
                         if (GuidedRocketToggle.IsActive /*guidedRocketActivated*/)
                         {
                             //Activate aerodynamic effect
-                            guideController.enableAerodynamicEffect = guidedRocketStabilityOn;
+                            guideController.enableAerodynamicEffect = GuidedRocketStabilityToggle.IsActive;
 
                             //Record the launch time for the guide delay
                             if (!launchTimeRecorded)

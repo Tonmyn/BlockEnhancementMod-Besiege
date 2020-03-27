@@ -289,7 +289,7 @@ namespace BlockEnhancementMod
                     rocketScript = rocket.GetComponent<RocketScript>();
                     if (rocketScript != null)
                     {
-                        if (rocketScript./*autoGrabberRelease*/AutoGrabberReleaseToggle.IsActive && rocket.grabbers.Count > 0)
+                        if (rocketScript.AutoGrabberReleaseToggle.IsActive && rocket.grabbers.Count > 0)
                         {
                             List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
                             foreach (var grabber in allGrabbers)
@@ -300,7 +300,7 @@ namespace BlockEnhancementMod
                         defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
                         rocket.LaunchMessage();
 
-                        if (rocketScript.radarTypeMenuIndex == /*(int)RadarScript.SearchModes.Passive*/(int)RadarScript.RadarTypes.PassiveRadar)
+                        if (rocketScript.radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
                         {
                             RadarScript passiveRocketRadar = rocketScript.radar;
                             if (passiveRocketRadar != null)
