@@ -77,19 +77,19 @@ namespace BlockEnhancementMod
 
             OnSetTarget += (target, keycode) =>
              {
-                 if (this.target != null)
+                 if (/*!this.target.Equals(target)*/this.target == null)
                  {
-                     if (!this.target.Equals(target))
+                     if (RadarType == RadarTypes.PassiveRadar)
                      {
-                         if (RadarType == RadarTypes.PassiveRadar)
+                         Debug.Log("获得目标");
+                         RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
+                         if (rocketScript != null)
                          {
-                             Debug.Log("获得目标");
-                             if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keycode)
+                             if (rocketScript.GroupFireKey.GetKey(0) == keycode)
                              {
                                  Debug.Log("是我的雷达");
                                  SetTarget(target);
                              }
-
                          }
                      }
                  }
@@ -105,10 +105,22 @@ namespace BlockEnhancementMod
                         {
                             ClearTarget();
                         }
-
+                    }
+                    if (RadarType == RadarTypes.ActiveRadar)
+                    {
+                        StartCoroutine(ResendTargetToPassiveRadar());
                     }
                 }
             };
+
+            IEnumerator ResendTargetToPassiveRadar()
+            {
+                for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+                OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            }
         }
         private void Update()
         {
