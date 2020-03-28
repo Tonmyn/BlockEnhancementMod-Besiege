@@ -42,8 +42,8 @@ namespace BlockEnhancementMod
         public RadarTypes RadarType { get; set; } = RadarTypes.ActiveRadar;
         //public SearchModes SearchMode { get; set; } = SearchModes.Auto;
         public Target target { get; private set; }
-        public HashSet<RadarScript> sourceRadars;
-        public RadarScript sourceRadar;
+        //public HashSet<RadarScript> sourceRadars;
+        //public RadarScript sourceRadar;
 
         public static event Action<Target, KeyCode> OnSetTarget;
         public static event Action</*Target, */KeyCode> OnClearTarget;
@@ -77,8 +77,8 @@ namespace BlockEnhancementMod
         }
         private void Start()
         {
-            OnSetTarget += onSetTargetEvent;
-            OnClearTarget += onClearTargetEvent;
+            OnSetTarget += OnSetTargetEvent;
+            OnClearTarget += OnClearTargetEvent;
         }
         private void Update()
         {
@@ -259,8 +259,8 @@ namespace BlockEnhancementMod
         }
         private void OnDestroy()
         {
-            OnSetTarget -= onSetTargetEvent;
-            OnClearTarget -= onClearTargetEvent;
+            OnSetTarget -= OnSetTargetEvent;
+            OnClearTarget -= OnClearTargetEvent;
 
             Switch = false;
             ClearTarget();
@@ -274,10 +274,8 @@ namespace BlockEnhancementMod
             this.ShowRadar = showRadar;
             this.SearchRadius = searchRadius;
             this.SafetyRadius = safetyRadius;
-            //this.SearchMode = (SearchModes)searchMode;
             this.RadarType = (RadarTypes)radarType;
             CreateFrustumCone(safetyRadius, searchRadius);
-            //targetList.Clear();
             blockList.Clear();
 
             void CreateFrustumCone(float topRadius, float bottomRadius)
@@ -612,7 +610,7 @@ namespace BlockEnhancementMod
             }
             else
             {
-                BlockBehaviour block = /*collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>()*/ collider.transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                BlockBehaviour block = collider.transform.gameObject.GetComponentInParent<BlockBehaviour>();
 
                 return isQualifiedBlock(block) ? ProcessTarget(block) : null;
             }
@@ -633,27 +631,24 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void onSetTargetEvent(Target target, KeyCode keyCode)
+        private void OnSetTargetEvent(Target target, KeyCode keyCode)
         {
             if (/*!this.target.Equals(target)*/this.target == null || this.target != target)
             {
                 if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
                 {
-                    Debug.Log("获得目标");
                     RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
                     if (rocketScript != null)
                     {
-                        Debug.Log("父组件存在");
                         if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
                         {
-                            Debug.Log("是我的雷达");
                             SetTarget(target);
                         }
                     }
                 }
             }
         }
-        private void onClearTargetEvent(KeyCode keyCode)
+        private void OnClearTargetEvent(KeyCode keyCode)
         {
             if (parentBlock == null) return;
             if (RadarType == RadarTypes.PassiveRadar)

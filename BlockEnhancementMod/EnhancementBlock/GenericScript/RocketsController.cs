@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
         public Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>> playerGroupedRockets;
-        public Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> playerGroupedRadars;
+        //public Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> playerGroupedRadars;
         public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
@@ -54,7 +54,7 @@ namespace BlockEnhancementMod
         {
             rocketTargetDict = new Dictionary<BlockBehaviour, int>();
             playerGroupedRockets = new Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>>();
-            playerGroupedRadars = new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
+            //playerGroupedRadars = new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
 
             initRadarSomething();
 
@@ -81,10 +81,6 @@ namespace BlockEnhancementMod
                 {
                     playerGroupedRockets.Clear();
                 }
-                if (playerGroupedRadars.Count > 0)
-                {
-                    playerGroupedRadars.Clear();
-                }
             }
             if (PlayerMachine.GetLocal() != null)
             {
@@ -104,10 +100,6 @@ namespace BlockEnhancementMod
                         if (playerGroupedRockets.ContainsKey(PlayerMachine.GetLocal().InternalObject.PlayerID))
                         {
                             playerGroupedRockets.Remove(PlayerMachine.GetLocal().InternalObject.PlayerID);
-                        }
-                        if (playerGroupedRadars.ContainsKey(PlayerMachine.GetLocal().InternalObject.PlayerID))
-                        {
-                            playerGroupedRadars.Remove(PlayerMachine.GetLocal().InternalObject.PlayerID);
                         }
                         rocketTargetDict.Clear();
                         isFirstFrame = true;
@@ -297,29 +289,29 @@ namespace BlockEnhancementMod
                                 grabber?.OnKeyPressed();
                             }
                         }
-                        defaultDelay = Mathf.Clamp(rocketScript.groupFireRate, 0.1f, 1f);
+                        defaultDelay = Mathf.Clamp(rocketScript.GroupFireRateSlider.Value, 0.1f, 1f);
                         rocket.LaunchMessage();
 
-                        if (rocketScript.radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
-                        {
-                            RadarScript passiveRocketRadar = rocketScript.radar;
-                            if (passiveRocketRadar != null)
-                            {
-                                if (playerGroupedRadars.TryGetValue(rocket.ParentMachine.PlayerID, out Dictionary<KeyCode, HashSet<RadarScript>> radarsDict))
-                                {
-                                    if (radarsDict.TryGetValue(rocketScript.GroupFireKey.GetKey(0), out HashSet<RadarScript> radars))
-                                    {
-                                        if (radars.Count > 0)
-                                        {
-                                            passiveRocketRadar.sourceRadars = radars;
-                                            //RadarScript radar = radars.ElementAt(UnityEngine.Random.Range(0, radars.Count));
-                                            //passiveRocketRadar.sourceRadar = radar;
-                                            //passiveRocketRadar.SetTarget(radar.target);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        //if (rocketScript.radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
+                        //{
+                        //    RadarScript passiveRocketRadar = rocketScript.radar;
+                        //    if (passiveRocketRadar != null)
+                        //    {
+                        //        if (playerGroupedRadars.TryGetValue(rocket.ParentMachine.PlayerID, out Dictionary<KeyCode, HashSet<RadarScript>> radarsDict))
+                        //        {
+                        //            if (radarsDict.TryGetValue(rocketScript.GroupFireKey.GetKey(0), out HashSet<RadarScript> radars))
+                        //            {
+                        //                if (radars.Count > 0)
+                        //                {
+                        //                    passiveRocketRadar.sourceRadars = radars;
+                        //                    //RadarScript radar = radars.ElementAt(UnityEngine.Random.Range(0, radars.Count));
+                        //                    //passiveRocketRadar.sourceRadar = radar;
+                        //                    //passiveRocketRadar.SetTarget(radar.target);
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
                 }
             }
