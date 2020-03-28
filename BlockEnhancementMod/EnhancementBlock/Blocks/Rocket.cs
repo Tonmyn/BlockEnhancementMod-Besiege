@@ -170,10 +170,10 @@ namespace BlockEnhancementMod
             SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
             RadarTypeMenu.DisplayInMapper = _value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value1;
-            GuidePredictionSlider.DisplayInMapper = _value1;
-            GuidedRocketTorqueSlider.DisplayInMapper = _value1;
+            GuidePredictionSlider.DisplayInMapper = _value;
+            GuidedRocketTorqueSlider.DisplayInMapper = _value;
             GuidedRocketShowRadarToggle.DisplayInMapper = _value1;
-            GuidedRocketStabilityToggle.DisplayInMapper = _value1;
+            GuidedRocketStabilityToggle.DisplayInMapper = _value;
             ImpactFuzeToggle.DisplayInMapper = _value;
             ProximityFuzeToggle.DisplayInMapper = _value;
             ProximityFuzeRangeSlider.DisplayInMapper = _value;
