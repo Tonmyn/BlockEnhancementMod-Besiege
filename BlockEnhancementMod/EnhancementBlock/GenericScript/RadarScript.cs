@@ -44,7 +44,8 @@ namespace BlockEnhancementMod
 
         public Target target { get; private set; }
 
-        public static event Action<Target, KeyCode> OnSetTarget;
+        public static event Action<Target, KeyCode> OnSetPassiveRadarTarget;
+        //public static event Action<Target> OnManualSetActiveRadarTarget;
         public static event Action<KeyCode> OnClearTarget;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
@@ -69,7 +70,8 @@ namespace BlockEnhancementMod
         }
         private void Start()
         {
-            OnSetTarget += OnSetTargetEvent;
+            OnSetPassiveRadarTarget += OnSetPassiveRadarTargetEvent;
+            //OnManualSetActiveRadarTarget += OnManualSetActiveRadarTargetEvent;
             OnClearTarget += OnClearTargetEvent;
         }
         private void Update()
@@ -247,8 +249,9 @@ namespace BlockEnhancementMod
         }
         private void OnDestroy()
         {
-            OnSetTarget -= OnSetTargetEvent;
+            OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
             OnClearTarget -= OnClearTargetEvent;
+            //OnManualSetActiveRadarTarget -= OnManualSetActiveRadarTargetEvent;
 
             Switch = false;
             ClearTarget(true);
@@ -370,7 +373,7 @@ namespace BlockEnhancementMod
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
         }
         public void SetTargetManual()
         {
@@ -537,7 +540,7 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void OnSetTargetEvent(Target target, KeyCode keyCode)
+        private void OnSetPassiveRadarTargetEvent(Target target, KeyCode keyCode)
         {
             if (this.target == null || this.target != target)
             {
@@ -557,6 +560,16 @@ namespace BlockEnhancementMod
                 }
             }
         }
+
+        //private void OnManualSetActiveRadarTargetEvent(Target target)
+        //{
+        //    if (parentBlock != null && canBeOverridden)
+        //    {
+        //        this.target = target;
+        //        OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+        //    }
+        //}
+
         private void OnClearTargetEvent(KeyCode keyCode)
         {
             if (parentBlock == null) return;
@@ -578,7 +591,7 @@ namespace BlockEnhancementMod
                 {
                     yield return new WaitForFixedUpdate();
                 }
-                OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+                OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
 
