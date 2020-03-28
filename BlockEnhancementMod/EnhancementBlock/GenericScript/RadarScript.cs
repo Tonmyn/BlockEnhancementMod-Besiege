@@ -73,7 +73,7 @@ namespace BlockEnhancementMod
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
-            redSquareAim = RocketsController.redSquareAim;       
+            redSquareAim = RocketsController.redSquareAim;
         }
         private void Start()
         {
@@ -563,7 +563,7 @@ namespace BlockEnhancementMod
             SendClientTargetNull();
             target = null;
 
-            if (gameObject.activeSelf && RadarType ==  RadarTypes.ActiveRadar && parentBlock != null)
+            if (gameObject.activeSelf && RadarType == RadarTypes.ActiveRadar && parentBlock != null)
             {
                 var rs = parentBlock.GetComponent<RocketScript>();
                 if (rs != null)
@@ -633,7 +633,7 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void onSetTargetEvent(Target target ,KeyCode keyCode )
+        private void onSetTargetEvent(Target target, KeyCode keyCode)
         {
             if (/*!this.target.Equals(target)*/this.target == null || this.target != target)
             {
@@ -655,17 +655,18 @@ namespace BlockEnhancementMod
         }
         private void onClearTargetEvent(KeyCode keyCode)
         {
-            if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
+            if (parentBlock == null) return;
+            if (RadarType == RadarTypes.PassiveRadar)
             {
                 if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keyCode)
                 {
                     ClearTarget();
                 }
             }
-            //else  if (RadarType == RadarTypes.ActiveRadar)
-            //{
-            //    StartCoroutine(ResendTargetToPassiveRadar());
-            //}
+            else
+            {
+                StartCoroutine(ResendTargetToPassiveRadar());
+            }
 
             IEnumerator ResendTargetToPassiveRadar()
             {
