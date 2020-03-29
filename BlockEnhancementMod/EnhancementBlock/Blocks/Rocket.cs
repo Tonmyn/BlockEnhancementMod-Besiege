@@ -57,8 +57,6 @@ namespace BlockEnhancementMod
         MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
-        public bool impactFuzeActivated = false;
-        public bool proximityFuzeActivated = false;
         public float proximityRange = 0f;
         public float triggerForceImpactFuzeOn = 50f;
         public float triggerForceImpactFuzeOff = 400f;
@@ -69,7 +67,6 @@ namespace BlockEnhancementMod
 
         //High power explosion related setting
         MToggle HighExploToggle;
-        //public bool highExploActivated = false;
         private bool bombHasExploded = false;
         private readonly int levelBombCategory = 4;
         private readonly int levelBombID = 5001;
@@ -116,7 +113,6 @@ namespace BlockEnhancementMod
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                proximityFuzeActivated =
                 ProximityFuzeRangeSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
@@ -431,7 +427,7 @@ namespace BlockEnhancementMod
             if (!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (ImpactFuzeToggle.IsActive ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                 {
                     StartCoroutine(RocketExplode());
                 }
