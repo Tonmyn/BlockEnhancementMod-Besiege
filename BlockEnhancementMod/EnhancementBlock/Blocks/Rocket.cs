@@ -27,7 +27,6 @@ namespace BlockEnhancementMod
         MToggle NoSmokeToggle;
 
         //Firing record related setting
-        private float randomDelay = 0;
         private float launchTime = 0f;
         private bool launchTimeRecorded = false;
 
@@ -41,13 +40,11 @@ namespace BlockEnhancementMod
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
+        MMenu RadarTypeMenu;
         MKey ManualOverrideKey;
         public MKey SPTeamKey;
-        MMenu RadarTypeMenu;
-        public float searchAngle = 60f;
         private readonly float maxSearchAngleNormal = 90f;
         private readonly float maxSearchAngleNo8 = 175f;
-        private float searchRange = 0;
         public GameObject radarObject;
         public RadarScript radar;
         public GameObject guideObject;
@@ -57,13 +54,11 @@ namespace BlockEnhancementMod
         MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
-        public float proximityRange = 0f;
         public float triggerForceImpactFuzeOn = 50f;
         public float triggerForceImpactFuzeOff = 400f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
-        public float guideDelay = 0f;
 
         //High power explosion related setting
         MToggle HighExploToggle;
@@ -194,8 +189,8 @@ namespace BlockEnhancementMod
             {
                 // Initialisation for simulation
                 launchTimeRecorded = bombHasExploded = rocketExploMsgSent = false;
-                searchAngle = Mathf.Clamp(ActiveGuideRocketSearchAngleSlider.Value, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
-                searchRange = EnhanceMore ? 5000f : 2000f;
+                float searchAngle = Mathf.Clamp(ActiveGuideRocketSearchAngleSlider.Value, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
+                float searchRange = EnhanceMore ? 5000f : 2000f;
 
                 //Add radar
                 Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
@@ -207,7 +202,6 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.Setup(BB, searchRange, searchAngle, RadarTypeMenu.Value, GuidedRocketShowRadarToggle.IsActive);
-                //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
@@ -240,9 +234,6 @@ namespace BlockEnhancementMod
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
                 guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value);
-
-                //previousVelocity = acceleration = Vector3.zero;
-                randomDelay = UnityEngine.Random.Range(0f, 0.1f);
 
                 StopAllCoroutines();
             }
@@ -369,7 +360,7 @@ namespace BlockEnhancementMod
                             }
 
                             //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                            if (Time.time - launchTime >= guideDelay)
+                            if (Time.time - launchTime >= GuideDelaySlider.Value + 0.15f)
                             {
                                 guideController.Switch = true;
                             }
@@ -377,7 +368,7 @@ namespace BlockEnhancementMod
                             //Proximity fuse behaviour
                             if (ProximityFuzeToggle.IsActive)
                             {
-                                if (radar.TargetDistance <= proximityRange + 1f)
+                                if (radar.TargetDistance <= ProximityFuzeRangeSlider.Value + 1f)
                                 {
                                     StartCoroutine(RocketExplode());
                                 }
