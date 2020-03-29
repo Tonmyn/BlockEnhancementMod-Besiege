@@ -69,7 +69,7 @@ namespace BlockEnhancementMod
 
         //High power explosion related setting
         MToggle HighExploToggle;
-        public bool highExploActivated = false;
+        //public bool highExploActivated = false;
         private bool bombHasExploded = false;
         private readonly int levelBombCategory = 4;
         private readonly int levelBombID = 5001;
@@ -189,7 +189,7 @@ namespace BlockEnhancementMod
             explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
 
             // Make sure the high explo mode is not too imba
-            if (highExploActivated && !EnhanceMore)
+            if (HighExploToggle.IsActive && !EnhanceMore)
             {
                 bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
             }
@@ -447,7 +447,7 @@ namespace BlockEnhancementMod
             {
                 rocket.ExplodeMessage();
             }
-            if (!highExploActivated) yield break;
+            if (!HighExploToggle.IsActive) yield break;
 
             if (!bombHasExploded && explosiveCharge != 0)
             {
