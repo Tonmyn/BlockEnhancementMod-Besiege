@@ -34,19 +34,19 @@ namespace BlockEnhancementMod
         public MeshRenderer meshRenderer;
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
-        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration./*RadarFequency*/GetValue<int>("Radar Frequency");
+        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
 
         public bool Switch { get; set; } = false;
         bool lastSwitchState = false;
         public RadarTypes RadarType { get; set; } = RadarTypes.ActiveRadar;
-        //public SearchModes SearchMode { get; set; } = SearchModes.Auto;
-        public Target target { get; private set; }
-        public HashSet<RadarScript> sourceRadars;
-        public RadarScript sourceRadar;
+        public bool canBeOverridden = false;
 
-        public static event Action<Target, KeyCode> OnSetTarget;
-        public static event Action</*Target, */KeyCode> OnClearTarget;
+        public Target target { get; private set; }
+
+        public static event Action<Target, KeyCode> OnSetPassiveRadarTarget;
+        //public static event Action<Target> OnManualSetActiveRadarTarget;
+        public static event Action<KeyCode> OnClearTarget;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
@@ -54,13 +54,6 @@ namespace BlockEnhancementMod
 
         public bool receivedRayFromClient = false;
         public Ray rayFromClient;
-
-        //public enum SearchModes
-        //{
-        //    Auto = 0,
-        //    Manual = 1,
-        //    Passive = 2
-        //}
 
         public enum RadarTypes
         {
@@ -73,12 +66,13 @@ namespace BlockEnhancementMod
         private void Awake()
         {
             gameObject.layer = CollisionLayer;
-            redSquareAim = RocketsController.redSquareAim;       
+            redSquareAim = RocketsController.redSquareAim;
         }
         private void Start()
         {
-            OnSetTarget += onSetTargetEvent;
-            OnClearTarget += onClearTargetEvent;
+            OnSetPassiveRadarTarget += OnSetPassiveRadarTargetEvent;
+            //OnManualSetActiveRadarTarget += OnManualSetActiveRadarTargetEvent;
+            OnClearTarget += OnClearTargetEvent;
         }
         private void Update()
         {
@@ -89,7 +83,7 @@ namespace BlockEnhancementMod
                 lastSwitchState = Switch;
                 if (Switch)
                 {
-                    if (/*SearchMode == SearchModes.Auto*/RadarType == RadarTypes.ActiveRadar)
+                    if (RadarType == RadarTypes.ActiveRadar)
                     {
                         ActivateDetectionZone();
                     }
@@ -127,7 +121,7 @@ namespace BlockEnhancementMod
             {
                 if (!InRadarRange(target))
                 {
-                    ClearTarget();
+                    ClearTarget(true);
                 }
             }
 
@@ -148,13 +142,11 @@ namespace BlockEnhancementMod
                     var removeBlockList = new HashSet<BlockBehaviour>();
                     int chooseTargetIndex = 0;
 
-                    //StartCoroutine(chooseTargetInTargetList(new List<BlockBehaviour>(lastBlockList)));
                     if (lastBlockList.Count > 0)
                     {
                         StartCoroutine(chooseTargetInTargetList(lastBlockList));
                     }
 
-                    //IEnumerator chooseTargetInTargetList(List<BlockBehaviour> blocks)
                     IEnumerator chooseTargetInTargetList(HashSet<BlockBehaviour> blocks)
                     {
                         foreach (var itemBlock in blocks)
@@ -179,7 +171,6 @@ namespace BlockEnhancementMod
                                     tempTarget = itemTarget;
                                 }
                             }
-
 
                             if (chooseTargetIndex++ >= RadarFrequency)
                             {
@@ -235,9 +226,8 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (/*SearchMode == SearchModes.Passive*/RadarType == RadarTypes.PassiveRadar) return;
+            if (RadarType == RadarTypes.PassiveRadar) return;
 
-            //if (!Switch) return;
             DrawTargetRedSquare();
 
             void DrawTargetRedSquare()
@@ -259,11 +249,12 @@ namespace BlockEnhancementMod
         }
         private void OnDestroy()
         {
-            OnSetTarget -= onSetTargetEvent;
-            OnClearTarget -= onClearTargetEvent;
+            OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
+            OnClearTarget -= OnClearTargetEvent;
+            //OnManualSetActiveRadarTarget -= OnManualSetActiveRadarTargetEvent;
 
             Switch = false;
-            ClearTarget();
+            ClearTarget(true);
             blockList.Clear();
         }
 
@@ -274,10 +265,8 @@ namespace BlockEnhancementMod
             this.ShowRadar = showRadar;
             this.SearchRadius = searchRadius;
             this.SafetyRadius = safetyRadius;
-            //this.SearchMode = (SearchModes)searchMode;
             this.RadarType = (RadarTypes)radarType;
             CreateFrustumCone(safetyRadius, searchRadius);
-            //targetList.Clear();
             blockList.Clear();
 
             void CreateFrustumCone(float topRadius, float bottomRadius)
@@ -377,7 +366,6 @@ namespace BlockEnhancementMod
             if (tempTarget == null) return;
 
             target = tempTarget;
-            //targetList.Add(target);
             blockList.Add(tempTarget.block);
             if (target.collider != null) target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
 
@@ -385,76 +373,17 @@ namespace BlockEnhancementMod
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
         }
         public void SetTargetManual()
         {
-            if (/*SearchMode == SearchModes.Manual*/RadarType == RadarTypes.PassiveRadar)
-            {
-                ClearTarget();
-                //SetTarget(ProcessTarget(GetTargetManual()));
-                SetTarget(GetTargetManual());
-            }
-
-            //Collider GetTargetManual()
+            //if (RadarType == RadarTypes.PassiveRadar)
             //{
-            //    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            //    if (StatMaster.isClient)
-            //    {
-            //        SendRayToHost(ray);
-            //        return null;
-            //    }
-            //    else
-            //    {
-            //        //Find targets in the manual search mode by casting a sphere along the ray
-            //        Collider tempCollider = new Collider();
-
-            //        if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
-            //        {
-            //            var collider = rayHit.collider;
-            //            if (collider.gameObject.layer != 29 && collider.enabled && !collider.isTrigger)
-            //            {
-            //                LevelEntity levelEntity = rayHit.transform.gameObject.GetComponentInParent<LevelEntity>();
-            //                BlockBehaviour blockBehaviour = rayHit.transform.gameObject.GetComponentInParent<BlockBehaviour>();
-            //                if (levelEntity != null || blockBehaviour != null)
-            //                {
-            //                    tempCollider = collider;
-            //                    //if ((rayHit.transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-            //                    //{
-            //                    //    tempCollider = collider;
-            //                    //}
-            //                }
-            //            }
-            //        }
-            //        if (tempCollider == null)
-            //        {
-            //            float manualSearchRadius = 1.25f;
-            //            RaycastHit[] hits = Physics.SphereCastAll(receivedRayFromClient ? rayFromClient : ray, manualSearchRadius, Mathf.Infinity, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore);
-
-            //            if (hits.Length > 0)
-            //            {
-            //                for (int i = 0; i < hits.Length; i++)
-            //                {
-            //                    var collider = hits[i].collider;
-            //                    if (collider.gameObject.layer == 29 || !collider.enabled || collider.isTrigger) continue;
-            //                    LevelEntity levelEntity = hits[i].transform.gameObject.GetComponentInParent<LevelEntity>();
-            //                    BlockBehaviour blockBehaviour = hits[i].transform.gameObject.GetComponentInParent<BlockBehaviour>();
-            //                    if (levelEntity != null || blockBehaviour != null)
-            //                    {
-            //                        tempCollider = hits[i].collider;
-            //                        break;
-            //                        //if ((hits[i].transform.position - transform.position).magnitude >= /*minSearchRadiusWhenLaunch*/0)
-            //                        //{
-            //                        //    tempCollider = hits[i].collider;
-            //                        //    break;
-            //                        //}
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        return tempCollider;
-            //    }
+            //    ClearTarget(true);
+            //    SetTarget(GetTargetManual());
             //}
+            ClearTarget(true);
+            SetTarget(GetTargetManual());
 
             Target GetTargetManual()
             {
@@ -516,36 +445,16 @@ namespace BlockEnhancementMod
                     {
                         return new Target(raycastHit.transform);
                     }
-
                     return null;
                 }
             }
         }
-        //public void ChangeSearchMode()
-        //{
-        //    //if (!Switch) return;
-        //    if (SearchMode == SearchModes.Passive) return;
-
-        //    ClearTarget();
-        //    if (SearchMode == SearchModes.Auto)
-        //    {
-        //        SearchMode = SearchModes.Manual;
-        //        //do something...
-        //        DeactivateDetectionZone();
-        //    }
-        //    else
-        //    {
-        //        SearchMode = SearchModes.Auto;
-        //        //do something...
-        //        if (Switch) ActivateDetectionZone();
-        //    }
-        //}
 
         public void ChangeRadarType(RadarTypes radarType)
         {
             RadarType = radarType;
 
-            ClearTarget();
+            ClearTarget(true);
             if (RadarType == RadarTypes.PassiveRadar)
             {
                 //do something...
@@ -557,13 +466,16 @@ namespace BlockEnhancementMod
                 if (Switch) ActivateDetectionZone();
             }
         }
-        public void ClearTarget()
+        public void ClearTarget(bool RemoveTargetFromList)
         {
-            if (target != null) blockList.Remove(target.block);
+            if (RemoveTargetFromList)
+            {
+                if (target != null) blockList.Remove(target.block);
+            }
             SendClientTargetNull();
             target = null;
 
-            if (gameObject.activeSelf && RadarType ==  RadarTypes.ActiveRadar && parentBlock != null)
+            if (gameObject.activeSelf && RadarType == RadarTypes.ActiveRadar && parentBlock != null)
             {
                 var rs = parentBlock.GetComponent<RocketScript>();
                 if (rs != null)
@@ -575,12 +487,7 @@ namespace BlockEnhancementMod
             Debug.Log("clear target");
 #endif
         }
-        [Obsolete]
-        public void ClearTargetNoRemoval()
-        {
-            SendClientTargetNull();
-            target = null;
-        }
+
         private void ActivateDetectionZone()
         {
             meshRenderer.enabled = ShowRadar;
@@ -589,7 +496,7 @@ namespace BlockEnhancementMod
 
             IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             {
-                while (Switch && /*SearchMode == SearchModes.Auto*/RadarType == RadarTypes.ActiveRadar)
+                while (Switch && RadarType == RadarTypes.ActiveRadar)
                 {
                     meshCollider.enabled = true;
                     yield return new WaitForSeconds(workTime);
@@ -612,7 +519,7 @@ namespace BlockEnhancementMod
             }
             else
             {
-                BlockBehaviour block = /*collider.transform.GetComponent<BlockBehaviour>() ?? collider.transform.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.GetComponent<BlockBehaviour>()*/ collider.transform.gameObject.GetComponentInParent<BlockBehaviour>();
+                BlockBehaviour block = collider.transform.gameObject.GetComponentInParent<BlockBehaviour>();
 
                 return isQualifiedBlock(block) ? ProcessTarget(block) : null;
             }
@@ -633,39 +540,50 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void onSetTargetEvent(Target target ,KeyCode keyCode )
+        private void OnSetPassiveRadarTargetEvent(Target target, KeyCode keyCode)
         {
-            if (/*!this.target.Equals(target)*/this.target == null || this.target != target)
+            if (this.target == null || this.target != target)
             {
-                if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
+                if (parentBlock != null)
                 {
-                    Debug.Log("获得目标");
-                    RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
-                    if (rocketScript != null)
+                    if (RadarType == RadarTypes.PassiveRadar)
                     {
-                        Debug.Log("父组件存在");
-                        if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
+                        RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
+                        if (rocketScript != null)
                         {
-                            Debug.Log("是我的雷达");
-                            SetTarget(target);
+                            if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
+                            {
+                                SetTarget(target);
+                            }
                         }
                     }
                 }
             }
         }
-        private void onClearTargetEvent(KeyCode keyCode)
+
+        //private void OnManualSetActiveRadarTargetEvent(Target target)
+        //{
+        //    if (parentBlock != null && canBeOverridden)
+        //    {
+        //        this.target = target;
+        //        OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+        //    }
+        //}
+
+        private void OnClearTargetEvent(KeyCode keyCode)
         {
-            if (RadarType == RadarTypes.PassiveRadar && parentBlock != null)
+            if (parentBlock == null) return;
+            if (RadarType == RadarTypes.PassiveRadar)
             {
                 if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keyCode)
                 {
-                    ClearTarget();
+                    ClearTarget(true);
                 }
             }
-            //else  if (RadarType == RadarTypes.ActiveRadar)
-            //{
-            //    StartCoroutine(ResendTargetToPassiveRadar());
-            //}
+            else
+            {
+                StartCoroutine(ResendTargetToPassiveRadar());
+            }
 
             IEnumerator ResendTargetToPassiveRadar()
             {
@@ -673,7 +591,7 @@ namespace BlockEnhancementMod
                 {
                     yield return new WaitForFixedUpdate();
                 }
-                OnSetTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+                OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
 

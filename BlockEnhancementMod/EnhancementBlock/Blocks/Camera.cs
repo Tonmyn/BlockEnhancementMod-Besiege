@@ -97,7 +97,7 @@ namespace BlockEnhancementMod
 
             PauseTrackingKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.PauseTracking, "ResetView", KeyCode.X);
 
-            AutoLookAtKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.SwitchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            AutoLookAtKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ManualOverride, "ActiveSearchKey", KeyCode.RightShift);
 
             ZoomInKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ZoomIn, "ZoomInKey", KeyCode.Equals);
 

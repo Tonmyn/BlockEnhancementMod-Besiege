@@ -12,13 +12,10 @@ namespace BlockEnhancementMod
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
         public MKey GroupFireKey;
-        MSlider GroupFireRateSlider;
+        public MSlider GroupFireRateSlider;
         public MToggle AutoGrabberReleaseToggle;
-        //public bool autoGrabberRelease = false;
-        public float groupFireRate = 0.25f;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
-        //public List<KeyCode> lockKeys = new List<KeyCode> { KeyCode.Delete };
 
         public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
         public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
@@ -28,11 +25,8 @@ namespace BlockEnhancementMod
 
         //No smoke mode related
         MToggle NoSmokeToggle;
-        private bool noSmoke = false;
-        //private bool smokeStopped = false;
 
         //Firing record related setting
-        private float randomDelay = 0;
         private float launchTime = 0f;
         private bool launchTimeRecorded = false;
 
@@ -41,32 +35,16 @@ namespace BlockEnhancementMod
         MToggle GuidedRocketStabilityToggle;
         MSlider GuidePredictionSlider;
         MToggle GuidedRocketShowRadarToggle;
-        //MToggle AsRadarToggle;
-        //public bool guidedRocketShowRadar = false;
-        //public bool guidedRocketStabilityOn = true;
-        //public bool guidedRocketActivated = false;
         public bool rocketExploMsgSent = false;
         public bool rocketInBuildSent = false;
-        //public bool asRadar = false;
-        public float torque = 100f;
-        public float prediction = 10f;
 
         //Active guide related setting
         MSlider ActiveGuideRocketSearchAngleSlider;
-        MKey ChangedRadarTypeKey;
-        public MKey SPTeamKey;
         MMenu RadarTypeMenu;
-        //public int radarTypeMenuIndex = 0;
-        //public List<string> searchMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.DefaultAuto, LanguageManager.Instance.CurrentLanguage.DefaultManual, LanguageManager.Instance.CurrentLanguage.DefaultPassive };
-        //public List<KeyCode> switchGuideModeKey = new List<KeyCode> { KeyCode.RightShift };
-        //public List<KeyCode> singlePlayerTeamKey = new List<KeyCode> { KeyCode.None };
-        public float searchAngle = 60f;
-
-        //private readonly float safetyRadiusAuto = 50f;
+        MKey ManualOverrideKey;
+        public MKey SPTeamKey;
         private readonly float maxSearchAngleNormal = 90f;
         private readonly float maxSearchAngleNo8 = 175f;
-        private float searchRange = 0;
-        //public bool activeGuide = true;
         public GameObject radarObject;
         public RadarScript radar;
         public GameObject guideObject;
@@ -76,20 +54,14 @@ namespace BlockEnhancementMod
         MToggle ImpactFuzeToggle;
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
-        public bool impactFuzeActivated = false;
-        public bool proximityFuzeActivated = false;
-        public float proximityRange = 0f;
         public float triggerForceImpactFuzeOn = 50f;
         public float triggerForceImpactFuzeOff = 400f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
-        public float guideDelay = 0f;
-        //private bool canTrigger = false;
 
         //High power explosion related setting
         MToggle HighExploToggle;
-        public bool highExploActivated = false;
         private bool bombHasExploded = false;
         private readonly int levelBombCategory = 4;
         private readonly int levelBombID = 5001;
@@ -105,11 +77,9 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
             //Key mapper setup
-            GuidedRocketToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", /*guidedRocketActivated*/false);
+            GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false);
             GuidedRocketToggle.Toggled += (bool value) =>
             {
-                //guidedRocketActivated =
-                //AsRadarToggle.DisplayInMapper =
                 RadarTypeMenu.DisplayInMapper =
                 GuidedRocketTorqueSlider.DisplayInMapper =
                 GuidePredictionSlider.DisplayInMapper =
@@ -117,7 +87,7 @@ namespace BlockEnhancementMod
                 ImpactFuzeToggle.DisplayInMapper =
                 ProximityFuzeToggle.DisplayInMapper =
                 LockTargetKey.DisplayInMapper =
-                ChangedRadarTypeKey.DisplayInMapper =
+                ManualOverrideKey.DisplayInMapper =
                 SPTeamKey.DisplayInMapper =
                 ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
                 GuideDelaySlider.DisplayInMapper =
@@ -127,85 +97,47 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            RadarTypeMenu = AddMenu("Radar Type",/* radarTypeMenuIndex*/0, LanguageManager.Instance.CurrentLanguage.RadarType);
-            //AsRadarToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AsRadar, "AsRadar", /*asRadar*/false);
+            RadarTypeMenu = AddMenu("Radar Type", 0, LanguageManager.Instance.CurrentLanguage.RadarType);
 
-            AutoGrabberReleaseToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.AutoGrabberRelease, "AutoGrabberRelease",/* autoGrabberRelease*/false);
-            //AutoGrabberReleaseToggle.Toggled += (bool value) =>
-            //{
-            //    autoGrabberRelease = value;
-            //    ChangedProperties();
-            //};
+            AutoGrabberReleaseToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoGrabberRelease, "AutoGrabberRelease", false);
 
-            GuidedRocketShowRadarToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ShowRadar, "ShowRadar", /*guidedRocketShowRadar*/false);
-            //GuidedRocketShowRadarToggle.Toggled += (bool value) =>
-            //{
-            //    guidedRocketShowRadar = value;
-            //    ChangedProperties();
-            //};
+            GuidedRocketShowRadarToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ShowRadar, "ShowRadar", false);
 
-            ImpactFuzeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ImpactFuze, "ImpactFuze", /*impactFuzeActivated*/false);
-            //ImpactFuzeToggle.Toggled += (bool value) =>
-            //{
-            //    impactFuzeActivated = value;
-            //    ChangedProperties();
-            //};
+            ImpactFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ImpactFuze, "ImpactFuze", false);
 
-            ProximityFuzeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", /*proximityFuzeActivated*/false);
+            ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                proximityFuzeActivated =
                 ProximityFuzeRangeSlider.DisplayInMapper =
                 value;
                 ChangedProperties();
             };
 
-            NoSmokeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.NoSmoke, "NoSmoke", /*noSmoke*/false);
-            //NoSmokeToggle.Toggled += (bool value) =>
-            //{
-            //    noSmoke = value;
-            //    ChangedProperties();
-            //};
+            NoSmokeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.NoSmoke, "NoSmoke", false);
 
-            HighExploToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.HighExplo, "HighExplo", /*highExploActivated*/false);
-            //HighExploToggle.Toggled += (bool value) =>
-            //{
-            //    highExploActivated = value;
-            //    ChangedProperties();
-            //};
+            HighExploToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.HighExplo, "HighExplo", false);
 
-            ActiveGuideRocketSearchAngleSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.SearchAngle, "searchAngle", /*searchAngle*/60f, 0, /*maxSearchAngleNormal*/90f);
-            //ActiveGuideRocketSearchAngleSlider.ValueChanged += (float value) => { searchAngle = value; ChangedProperties(); };
+            ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.SearchAngle, "searchAngle", 60f, 0, maxSearchAngleNormal);
 
-            GuidePredictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Prediction, "prediction", /*prediction*/10, 0, 50);
-            //GuidePredictionSlider.ValueChanged += (float value) => { prediction = value; ChangedProperties(); };
+            GuidePredictionSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Prediction, "prediction", 10, 0, 50);
 
-            ProximityFuzeRangeSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.CloseRange, "closeRange", /*proximityRange*/0f, 0, 10f);
-            //ProximityFuzeRangeSlider.ValueChanged += (float value) => { proximityRange = value; ChangedProperties(); };
+            ProximityFuzeRangeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.CloseRange, "closeRange", 0f, 0, 10f);
 
-            GuidedRocketTorqueSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.TorqueOnRocket, "torqueOnRocket", /*torque*/100f, 0, 100f);
-            //GuidedRocketTorqueSlider.ValueChanged += (float value) => { torque = value; ChangedProperties(); };
+            GuidedRocketTorqueSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.TorqueOnRocket, "torqueOnRocket", 100f, 0, 100f);
 
-            GuidedRocketStabilityToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", /*guidedRocketStabilityOn*/true);
-            //GuidedRocketStabilityToggle.Toggled += (bool value) => { guidedRocketStabilityOn = value; ChangedProperties(); };
+            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", true);
 
-            GuideDelaySlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", /*guideDelay*/0f, 0, 2);
-            //GuideDelaySlider.ValueChanged += (float value) => { guideDelay = value; ChangedProperties(); };
+            GuideDelaySlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", 0f, 0, 2);
 
-            LockTargetKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "lockTarget", KeyCode.Delete);
-            //LockTargetKey.InvokeKeysChanged();
+            LockTargetKey = AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "lockTarget", KeyCode.Delete);
 
-            GroupFireKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.GroupedFire, "groupFire", KeyCode.None);
-            //GroupFireKey.InvokeKeysChanged();
+            GroupFireKey = AddKey(LanguageManager.Instance.CurrentLanguage.GroupedFire, "groupFire", KeyCode.None);
 
-            GroupFireRateSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.GroupFireRate, "groupFireRate", /*groupFireRate*/0.25f, 0.1f, 1f);
-            //GroupFireRateSlider.ValueChanged += (float value) => { groupFireRate = value; ChangedProperties(); };
+            GroupFireRateSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GroupFireRate, "groupFireRate", 0.25f, 0.1f, 1f);
 
-            ChangedRadarTypeKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.SwitchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
-            //ChangedRadarTypeKey.InvokeKeysChanged();
+            ManualOverrideKey = AddKey(LanguageManager.Instance.CurrentLanguage.ManualOverride, "ActiveSearchKey", KeyCode.RightShift);
 
-            SPTeamKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.SinglePlayerTeam, "SinglePlayerTeam", KeyCode.None);
-            //SPTeamKey.InvokeKeysChanged();
+            SPTeamKey = AddKey(LanguageManager.Instance.CurrentLanguage.SinglePlayerTeam, "SinglePlayerTeam", KeyCode.None);
 
             //Add reference to TimedRocket
             rocket = gameObject.GetComponent<TimedRocket>();
@@ -219,94 +151,36 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            //GuidedRocketToggle.DisplayInMapper = value;
-            //HighExploToggle.DisplayInMapper = value;
-            //NoSmokeToggle.DisplayInMapper = value;
-            //GroupFireKey.DisplayInMapper = value;
             GroupFireRateSlider.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
             AutoGrabberReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
 
             var _value = value && GuidedRocketToggle.IsActive;
             var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
 
-            ChangedRadarTypeKey.DisplayInMapper = _value;
+            ManualOverrideKey.DisplayInMapper = _value1;
             SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
             RadarTypeMenu.DisplayInMapper = _value;
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value1;
-            GuidePredictionSlider.DisplayInMapper = _value1;
-            GuidedRocketTorqueSlider.DisplayInMapper = _value1;
+            GuidePredictionSlider.DisplayInMapper = _value;
+            GuidedRocketTorqueSlider.DisplayInMapper = _value;
             GuidedRocketShowRadarToggle.DisplayInMapper = _value1;
-            GuidedRocketStabilityToggle.DisplayInMapper = _value1;
+            GuidedRocketStabilityToggle.DisplayInMapper = _value;
             ImpactFuzeToggle.DisplayInMapper = _value;
             ProximityFuzeToggle.DisplayInMapper = _value;
             ProximityFuzeRangeSlider.DisplayInMapper = _value;
             GuideDelaySlider.DisplayInMapper = _value;
-            LockTargetKey.DisplayInMapper = _value;
-
+            LockTargetKey.DisplayInMapper = _value1;
         }
-
-        //public override void BuildingUpdateAlways_EnhancementEnabled()
-        //{
-        //    if (radarTypeMenuIndex == (int)RadarScript.SearchModes.Passive)
-        //    {
-        //        if (AsRadarToggle.DisplayInMapper) AsRadarToggle.DisplayInMapper = asRadar = false;
-
-        //        if (ChangedRadarTypeKey.DisplayInMapper) ChangedRadarTypeKey.DisplayInMapper = false;
-
-        //        if (ActiveGuideRocketSearchAngleSlider.DisplayInMapper) ActiveGuideRocketSearchAngleSlider.DisplayInMapper = false;
-
-        //        if (GuidedRocketShowRadarToggle.DisplayInMapper) GuidedRocketShowRadarToggle.DisplayInMapper = false;
-
-        //        if (LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = false;
-        //    }
-        //    else
-        //    {
-        //        if (!AsRadarToggle.DisplayInMapper) AsRadarToggle.DisplayInMapper = true;
-
-        //        if (!ChangedRadarTypeKey.DisplayInMapper) ChangedRadarTypeKey.DisplayInMapper = true;
-
-        //        if (!ActiveGuideRocketSearchAngleSlider.DisplayInMapper) ActiveGuideRocketSearchAngleSlider.DisplayInMapper = true;
-
-        //        if (!GuidedRocketShowRadarToggle.DisplayInMapper) GuidedRocketShowRadarToggle.DisplayInMapper = true;
-
-        //        if (!LockTargetKey.DisplayInMapper) LockTargetKey.DisplayInMapper = true;
-        //    }
-
-        //    if (GroupFireKey.GetKey(0) == KeyCode.None)
-        //    {
-        //        if (AutoGrabberReleaseToggle.DisplayInMapper)
-        //        {
-        //            AutoGrabberReleaseToggle.DisplayInMapper = false;
-        //            AutoGrabberReleaseToggle.SetValue(false);
-        //        }
-        //        if (GroupFireRateSlider.DisplayInMapper)
-        //        {
-        //            GroupFireRateSlider.DisplayInMapper = false;
-        //        }
-        //    }
-        //    else  /*(GroupFireKey.GetKey(0) != KeyCode.None)*/
-        //    {
-        //        if (!AutoGrabberReleaseToggle.DisplayInMapper)
-        //        {
-        //            AutoGrabberReleaseToggle.DisplayInMapper = true;
-        //        }
-        //        if (!GroupFireRateSlider.DisplayInMapper)
-        //        {
-        //            GroupFireRateSlider.DisplayInMapper = true;
-        //        }
-        //    }
-        //}
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            /*smokeStopped = */
-            rocketInBuildSent /*= noLongerActiveSent*/ = removedFromGroup = false;
+            rocketInBuildSent = removedFromGroup = false;
 
             // Read the charge from rocket
             explosiveCharge = bombExplosiveCharge = rocket.ChargeSlider.Value;
 
             // Make sure the high explo mode is not too imba
-            if (highExploActivated && !EnhanceMore)
+            if (HighExploToggle.IsActive && !EnhanceMore)
             {
                 bombExplosiveCharge = Mathf.Clamp(explosiveCharge, 0f, 1.5f);
             }
@@ -314,10 +188,9 @@ namespace BlockEnhancementMod
             if (GuidedRocketToggle.IsActive)
             {
                 // Initialisation for simulation
-                launchTimeRecorded /*= canTrigger*/  = bombHasExploded = rocketExploMsgSent = false;
-                //activeGuide = (searchModeIndex == 0);
-                searchAngle = Mathf.Clamp(searchAngle, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
-                searchRange = EnhanceMore ? 5000f : 2000f;
+                launchTimeRecorded = bombHasExploded = rocketExploMsgSent = false;
+                float searchAngle = Mathf.Clamp(ActiveGuideRocketSearchAngleSlider.Value, 0, EnhanceMore ? maxSearchAngleNo8 : maxSearchAngleNormal);
+                float searchRange = EnhanceMore ? 5000f : 2000f;
 
                 //Add radar
                 Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
@@ -329,7 +202,6 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.Setup(BB, searchRange, searchAngle, RadarTypeMenu.Value, GuidedRocketShowRadarToggle.IsActive);
-                //radar.parentBlock = BB;
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();
@@ -338,12 +210,6 @@ namespace BlockEnhancementMod
                 rigidbody.isKinematic = true;
                 rigidbody.mass = 0.0001f;
                 rigidbody.drag = 0f;
-
-                //Initialise radar at the start of simulation
-                //radar.searchAngle = searchAngle;
-                //radar.CreateFrustumCone(searchRange);
-                //radar.showRadar = guidedRocketShowRadar;
-                //radar.ClearSavedSets();
 
                 //Stop colliding with its own colliders
                 if (selfColliders.Length > 0)
@@ -367,10 +233,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(torque, 0, 100), prediction);
-
-                //previousVelocity = acceleration = Vector3.zero;
-                randomDelay = UnityEngine.Random.Range(0f, 0.1f);
+                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value);
 
                 StopAllCoroutines();
             }
@@ -409,35 +272,17 @@ namespace BlockEnhancementMod
             //Initialise Dict in RocketsController
             if (GroupFireKey.GetKey(0) != KeyCode.None)
             {
-                if (/*asRadar*/radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
+                if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
                 {
-                    if (!RocketsController.Instance.playerGroupedRadars.ContainsKey(rocket.ParentMachine.PlayerID))
-                    {
-                        RocketsController.Instance.playerGroupedRadars.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<RadarScript>>());
-                    }
-                    if (!RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
-                    {
-                        RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<RadarScript>());
-                    }
-                    if (!RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(radar))
-                    {
-                        RocketsController.Instance.playerGroupedRadars[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(radar);
-                    }
+                    RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
                 }
-                else
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
                 {
-                    if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
-                    {
-                        RocketsController.Instance.playerGroupedRockets.Add(rocket.ParentMachine.PlayerID, new Dictionary<KeyCode, HashSet<TimedRocket>>());
-                    }
-                    if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].ContainsKey(GroupFireKey.GetKey(0)))
-                    {
-                        RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
-                    }
-                    if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
-                    {
-                        RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
-                    }
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID].Add(GroupFireKey.GetKey(0), new HashSet<TimedRocket>());
+                }
+                if (!RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Contains(rocket))
+                {
+                    RocketsController.Instance.playerGroupedRockets[rocket.ParentMachine.PlayerID][GroupFireKey.GetKey(0)].Add(rocket);
                 }
             }
         }
@@ -446,7 +291,7 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                if ((GroupFireKey.IsHeld || GroupFireKey.EmulationHeld()) && /*!asRadar*/!(radar.RadarType == RadarScript.RadarTypes.PassiveRadar) && !StatMaster.isClient)
+                if ((GroupFireKey.IsHeld || GroupFireKey.EmulationHeld()) && !StatMaster.isClient)
                 {
                     if (!RocketsController.Instance.launchStarted)
                     {
@@ -461,77 +306,47 @@ namespace BlockEnhancementMod
                         radar.Switch = rocket.hasFired;
                     }
 
-                    if (/*guidedRocketActivated*/GuidedRocketToggle.IsActive)
+                    if (GuidedRocketToggle.IsActive)
                     {
                         //When toggle auto aim key is released, change the auto aim status
-                        if (ChangedRadarTypeKey.IsReleased || ChangedRadarTypeKey.EmulationReleased())
+                        if (ManualOverrideKey.IsReleased || ManualOverrideKey.EmulationReleased())
                         {
-                            //activeGuide = !activeGuide;
-                            //radar.SearchMode = activeGuide ? RadarScript.SearchModes.Auto : RadarScript.SearchModes.Manual;
-                            //radar.ChangeSearchMode();
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.ChangeRadarType(RadarScript.RadarTypes.PassiveRadar);
-                            }
-                            else
-                            {
-                                radar.ChangeRadarType(RadarScript.RadarTypes.ActiveRadar);
+                                radar.canBeOverridden = !radar.canBeOverridden;
+                                if (!radar.canBeOverridden)
+                                {
+                                    radar.ClearTarget(false);
+                                }
                             }
                         }
 
                         if (LockTargetKey.IsPressed || LockTargetKey.EmulationPressed()/* && radar.Switch*/)
                         {
-                            if (radar.RadarType == RadarScript.RadarTypes.PassiveRadar)
+                            if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.SetTargetManual();
+                                if (radar.canBeOverridden)
+                                {
+                                    radar.SetTargetManual();
+                                }
+                                else
+                                {
+                                    //保留重新搜索目标的能力
+                                    radar.ClearTarget(false);
+                                }
                             }
-
-                            //if (/*radar.SearchMode == RadarScript.SearchModes.Auto*/radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
-                            //{
-                            //    radar.ClearTargetNoRemoval();
-                            //}
-                            //else
-                            //{
-                            //    radar.SetTargetManual();
-                            //}
-
-                            //radar.SendClientTargetNull();
-                            //radar.ClearTarget();
-                            //if (radar.SearchMode == RadarScript.SearchModes.Manual)
-                            //{
-                            //    radar.SetTargetManual();
-                            //}
-                            //radar.SetTargetManual();
                         }
                     }
                 }
 
                 if (rocket.hasFired)
                 {
-                    //Activate Detection Zone
-                    //if (!radar.Switch /*&& canTrigger*/) /*radar.Switch = true*/;
-                    //if (radar.SearchMode == RadarScript.SearchModes.Auto && radar.target == null) radar.Switch = true;
-
                     //Let rocket controller know the rocket is fired
                     SendRocketFired();
 
                     if (!rocket.hasExploded)
                     {
-                        //If no smoke mode is enabled, stop all smoke
-                        //if (noSmoke && !smokeStopped)
-                        //{
-                        //    try
-                        //    {
-                        //        foreach (var smoke in rocket.trail)
-                        //        {
-                        //            smoke.Stop();
-                        //        }
-                        //        smokeStopped = true;
-                        //    }
-                        //    catch { }
-                        //}
-
-                        if (GuidedRocketToggle.IsActive /*guidedRocketActivated*/)
+                        if (GuidedRocketToggle.IsActive)
                         {
                             //Activate aerodynamic effect
                             guideController.enableAerodynamicEffect = GuidedRocketStabilityToggle.IsActive;
@@ -545,23 +360,18 @@ namespace BlockEnhancementMod
                             }
 
                             //Rocket can be triggered after the time elapsed after firing is greater than guide delay
-                            if (Time.time - launchTime >= guideDelay/* && !canTrigger*/)
+                            if (Time.time - launchTime >= GuideDelaySlider.Value + 0.15f)
                             {
-                                //canTrigger = true;
                                 guideController.Switch = true;
                             }
 
                             //Proximity fuse behaviour
-                            if (ProximityFuzeToggle.IsActive /*proximityFuzeActivated*/ /*&& canTrigger*/)
+                            if (ProximityFuzeToggle.IsActive)
                             {
-                                //if (radar.target != null)
-                                //{
-                                //if (radar.target.positionDiff.magnitude <= proximityRange+1f) StartCoroutine(RocketExplode());
-                                if (radar.TargetDistance <= proximityRange + 1f)
+                                if (radar.TargetDistance <= ProximityFuzeRangeSlider.Value + 1f)
                                 {
                                     StartCoroutine(RocketExplode());
                                 }
-                                //}
                             }
                         }
                     }
@@ -605,10 +415,10 @@ namespace BlockEnhancementMod
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (/*!canTrigger*/!rocket.hasFired) return;
+            if (!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
-                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (impactFuzeActivated ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
+                if (collision.impulse.magnitude / Time.fixedDeltaTime >= (ImpactFuzeToggle.IsActive ? triggerForceImpactFuzeOn : triggerForceImpactFuzeOff) || collision.gameObject.name.Contains("CanonBall"))
                 {
                     StartCoroutine(RocketExplode());
                 }
@@ -624,7 +434,7 @@ namespace BlockEnhancementMod
             {
                 rocket.ExplodeMessage();
             }
-            if (!highExploActivated) yield break;
+            if (!HighExploToggle.IsActive) yield break;
 
             if (!bombHasExploded && explosiveCharge != 0)
             {
@@ -663,7 +473,7 @@ namespace BlockEnhancementMod
                         yield return 0;
                     }
 
-                    if (hit.attachedRigidbody != null && hit.attachedRigidbody && hit.attachedRigidbody != rocket.Rigidbody && /*!rocket.prevRigidbodies.Contains(hit.attachedRigidbody) &&*/ hit.attachedRigidbody.gameObject.layer != 20 && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.tag != "KeepConstraintsAlways" && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
+                    if (hit.attachedRigidbody != null && hit.attachedRigidbody && hit.attachedRigidbody != rocket.Rigidbody && hit.attachedRigidbody.gameObject.layer != 20 && hit.attachedRigidbody.gameObject.layer != 22 && hit.attachedRigidbody.tag != "KeepConstraintsAlways" && hit.attachedRigidbody.gameObject.layer != RadarScript.CollisionLayer)
                     {
                         try
                         {
@@ -728,8 +538,6 @@ namespace BlockEnhancementMod
                     index++;
                 }
             }
-
-
         }
 
         public void SendRocketFired()

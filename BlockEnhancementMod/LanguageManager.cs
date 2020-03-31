@@ -81,7 +81,7 @@ namespace BlockEnhancementMod
         string DefaultManual { get; }
         string DefaultPassive { get; }
         List<string> RadarType { get; }
-        
+
         string ZoomControlMode { get; }
         string MouseWheelZoomControl { get; }
 
@@ -111,7 +111,7 @@ namespace BlockEnhancementMod
 
         string LockTarget { get; }
 
-        string SwitchGuideMode { get; }
+        string ManualOverride { get; }
 
         string RecordTarget { get; }
 
@@ -298,7 +298,7 @@ namespace BlockEnhancementMod
 
         public string LockTarget { get; } = "锁定目标";
 
-        public string SwitchGuideMode { get; } = "自动/手动切换";
+        public string ManualOverride { get; } = "手动覆盖" + Environment.NewLine + "目标开关";
 
         public string RecordTarget { get; } = "记录目标";
 
@@ -485,7 +485,7 @@ namespace BlockEnhancementMod
 
         public string LockTarget { get; } = "Lock Target";
 
-        public string SwitchGuideMode { get; } = "Switch" + Environment.NewLine + "Auto/Manual";
+        public string ManualOverride { get; } = "Manual Override" + Environment.NewLine + "Target Switch";
 
         public string RecordTarget { get; } = "Save Target";
 
@@ -673,7 +673,7 @@ namespace BlockEnhancementMod
 
         public string LockTarget { get; } = "手動ロックオン";
 
-        public string SwitchGuideMode { get; } = "自動/手動" + Environment.NewLine + "切り換え";
+        public string ManualOverride { get; } = "Manual Override" + Environment.NewLine + "Target Switch";
 
         public string RecordTarget { get; } = "ターゲット記憶";
 
