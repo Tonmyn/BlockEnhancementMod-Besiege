@@ -276,12 +276,27 @@ namespace BlockEnhancementMod
                     rocketScript = rocket.GetComponent<RocketScript>();
                     if (rocketScript != null)
                     {
-                        if (rocketScript.AutoGrabberReleaseToggle.IsActive && rocket.grabbers.Count > 0)
+                        if (rocketScript.AutoReleaseToggle.IsActive)
                         {
-                            List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
-                            foreach (var grabber in allGrabbers)
+                            if (rocket.grabbers.Count > 0)
                             {
-                                grabber?.OnKeyPressed();
+                                List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
+                                foreach (var grabber in allGrabbers)
+                                {
+                                    grabber?.OnKeyPressed();
+                                }
+                            }
+
+                            List<Joint> joinedBlocks = new List<Joint>(rocket.iJointTo);
+                            joinedBlocks.AddRange(rocket.jointsToMe);
+                            foreach (var joint in joinedBlocks)
+                            {
+                                ExplosiveBolt bolt = joint.gameObject.GetComponent<ExplosiveBolt>();
+                                if (bolt != null)
+                                {
+                                    bolt.Explode();
+                                    break;
+                                }
                             }
                         }
                         defaultDelay = Mathf.Clamp(rocketScript.GroupFireRateSlider.Value, 0.1f, 1f);

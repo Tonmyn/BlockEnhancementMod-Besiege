@@ -13,7 +13,7 @@ namespace BlockEnhancementMod
         MKey LockTargetKey;
         public MKey GroupFireKey;
         public MSlider GroupFireRateSlider;
-        public MToggle AutoGrabberReleaseToggle;
+        public MToggle AutoReleaseToggle;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
 
@@ -99,7 +99,7 @@ namespace BlockEnhancementMod
 
             RadarTypeMenu = AddMenu("Radar Type", 0, LanguageManager.Instance.CurrentLanguage.RadarType);
 
-            AutoGrabberReleaseToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoGrabberRelease, "AutoGrabberRelease", false);
+            AutoReleaseToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoRelease, "AutoGrabberRelease", false);
 
             GuidedRocketShowRadarToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ShowRadar, "ShowRadar", false);
 
@@ -152,7 +152,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool value)
         {
             GroupFireRateSlider.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
-            AutoGrabberReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
+            AutoReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
 
             var _value = value && GuidedRocketToggle.IsActive;
             var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
