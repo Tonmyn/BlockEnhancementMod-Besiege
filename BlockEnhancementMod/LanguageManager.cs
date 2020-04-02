@@ -74,7 +74,7 @@ namespace BlockEnhancementMod
         string TrackTarget { get; }
         string GroupedFire { get; }
         string GroupFireRate { get; }
-        string AutoGrabberRelease { get; }
+        string AutoRelease { get; }
         string AsRadar { get; }
         string SearchMode { get; }
         string DefaultAuto { get; }
@@ -258,7 +258,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "同组发射间隔";
 
-        public string AutoGrabberRelease { get; } = "自动释放钩爪";
+        public string AutoRelease { get; } = "自动释放";
 
         public string SearchMode { get; } = "搜索模式";
 
@@ -445,7 +445,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "Goruped Launch Rate";
 
-        public string AutoGrabberRelease { get; } = "Auto Grabber Release";
+        public string AutoRelease { get; } = "Auto Release";
 
         public string SearchMode { get; } = "Search Mode";
 
@@ -633,7 +633,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "発射間隔";
 
-        public string AutoGrabberRelease { get; } = "グラバー動作対応";
+        public string AutoRelease { get; } = "自動解放";
 
         public string SearchMode { get; } = "ロックオンモード";
 
