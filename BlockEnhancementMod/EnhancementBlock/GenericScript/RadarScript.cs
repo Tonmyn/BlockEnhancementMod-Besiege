@@ -94,7 +94,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            //if (!Switch || SearchMode != SearchModes.Auto) return;
+            if (!Switch || RadarType != RadarTypes.ActiveRadar) return;
             //if (!Switch) return;
 
             //if (/*SearchMode == SearchModes.Passive*/RadarType == RadarTypes.PassiveRadar)
@@ -466,7 +466,7 @@ namespace BlockEnhancementMod
                 if (Switch) ActivateDetectionZone();
             }
         }
-        public void ClearTarget(bool RemoveTargetFromList)
+        public void ClearTarget(bool RemoveTargetFromList = true)
         {
             if (RemoveTargetFromList)
             {
@@ -577,12 +577,15 @@ namespace BlockEnhancementMod
             {
                 if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keyCode)
                 {
-                    ClearTarget(true);
+                    ClearTarget();
                 }
             }
             else
             {
-                StartCoroutine(ResendTargetToPassiveRadar());
+                if (Machine.Active().isSimulating)
+                {
+                    StartCoroutine(ResendTargetToPassiveRadar());
+                }
             }
 
             IEnumerator ResendTargetToPassiveRadar()
