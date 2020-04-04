@@ -108,8 +108,7 @@ namespace BlockEnhancementMod
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                ProximityFuzeRangeSlider.DisplayInMapper =
-                value;
+                ProximityFuzeRangeSlider.DisplayInMapper = value;
                 ChangedProperties();
             };
 
@@ -151,11 +150,11 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            GroupFireRateSlider.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
-            AutoReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
-
             var _value = value && GuidedRocketToggle.IsActive;
             var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
+
+            GroupFireRateSlider.DisplayInMapper = _value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
+            AutoReleaseToggle.DisplayInMapper = _value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
 
             ManualOverrideKey.DisplayInMapper = _value1;
             SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
