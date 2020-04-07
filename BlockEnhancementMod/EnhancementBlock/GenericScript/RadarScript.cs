@@ -117,7 +117,7 @@ namespace BlockEnhancementMod
             //    return;
             //}
 
-            if (Switch && target != null)
+            if (Switch && !canBeOverridden && target != null)
             {
                 if (!InRadarRange(target))
                 {
