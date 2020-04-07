@@ -312,6 +312,8 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
+                                radar.meshCollider.enabled = radar.canBeOverridden;
+                                radar.meshRenderer.enabled = radar.canBeOverridden;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {

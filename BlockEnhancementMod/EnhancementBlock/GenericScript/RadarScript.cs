@@ -117,7 +117,8 @@ namespace BlockEnhancementMod
             //    return;
             //}
 
-            if (Switch && !canBeOverridden && target != null)
+            if (canBeOverridden) return;
+            if (Switch && target != null)
             {
                 if (!InRadarRange(target))
                 {
@@ -204,7 +205,6 @@ namespace BlockEnhancementMod
                     }
                 }
             }
-
         }
         private void OnTriggerEnter(Collider collider)
         {
