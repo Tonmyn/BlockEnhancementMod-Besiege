@@ -108,8 +108,7 @@ namespace BlockEnhancementMod
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
             ProximityFuzeToggle.Toggled += (bool value) =>
             {
-                ProximityFuzeRangeSlider.DisplayInMapper =
-                value;
+                ProximityFuzeRangeSlider.DisplayInMapper = value;
                 ChangedProperties();
             };
 
@@ -233,7 +232,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value);
+                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value, false);
 
                 StopAllCoroutines();
             }
@@ -313,6 +312,8 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
+                                radar.meshCollider.enabled = radar.canBeOverridden;
+                                radar.meshRenderer.enabled = radar.canBeOverridden;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {

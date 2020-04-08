@@ -34,9 +34,9 @@ namespace BlockEnhancementMod
         private readonly float aeroEffectMultiplier = 5f;
         private Vector3 aeroEffectPosition = Vector3.zero;
         public bool enableAerodynamicEffect = false;
+        public bool constantForce = false;
 
-
-        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction)
+        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction, bool constantForce)
         {
             parentBlock = sourceBlock;
             parentRigidbody = sourceRigidbody;
@@ -45,6 +45,7 @@ namespace BlockEnhancementMod
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
             prediction = sourcePrediction;
+            this.constantForce = constantForce;
             preTargetBlock = new BlockBehaviour();
             pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
             iFactor = /*10f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl I Factor");
@@ -80,27 +81,36 @@ namespace BlockEnhancementMod
                 lastError = 0;
             }
 
+            Vector3 addedForce;
+
             // Calculating the rotating axis
+            Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
             Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
 
             // Get the predicted point
             float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
             float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
-            Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
             Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
 
             // Get the angle difference
             float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted.normalized);
-            float angleDiff = Vector3.Angle(ForwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
-
-            integral += angleDiff * Time.fixedDeltaTime;
-            float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
-            lastError = angleDiff;
-            float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
-
             Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted.normalized - ForwardDirection) * Mathf.Sign(dotProduct);
-            Vector3 addedForce = torque * maxTorque * coefficient * towardsPositionDiff;
+            towardsPositionDiff = towardsPositionDiff.normalized;
+
+            if (constantForce)
+            {
+                addedForce = torque * maxTorque * towardsPositionDiff * 2000f;
+            }
+            else
+            {
+                float angleDiff = Vector3.Angle(ForwardDirection, positionDiff) + Vector3.Angle(positionDiff, positionDiffPredicted);
+                integral += angleDiff * Time.fixedDeltaTime;
+                float derivitive = (angleDiff - lastError) / Time.fixedDeltaTime;
+                lastError = angleDiff;
+                float coefficient = angleDiff * pFactor + integral * iFactor + derivitive * dFactor;
+                addedForce = torque * maxTorque * coefficient * towardsPositionDiff;
+            }
 
             // Add force to rotate rocket
             parentRigidbody.AddForceAtPosition(addedForce, parentBlock.transform.position + ForwardDirection);
