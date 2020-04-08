@@ -232,7 +232,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value);
+                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(GuidedRocketTorqueSlider.Value, 0, 100), GuidePredictionSlider.Value, false);
 
                 StopAllCoroutines();
             }
