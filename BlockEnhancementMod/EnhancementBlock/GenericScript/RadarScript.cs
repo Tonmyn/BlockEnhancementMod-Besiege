@@ -94,7 +94,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || RadarType != RadarTypes.ActiveRadar) return;
+            if (!Switch || RadarType != RadarTypes.ActiveRadar || canBeOverridden) return;
             //if (!Switch) return;
 
             //if (/*SearchMode == SearchModes.Passive*/RadarType == RadarTypes.PassiveRadar)
@@ -117,7 +117,6 @@ namespace BlockEnhancementMod
             //    return;
             //}
 
-            if (canBeOverridden) return;
             if (Switch && target != null)
             {
                 if (!InRadarRange(target))
@@ -450,22 +449,23 @@ namespace BlockEnhancementMod
             }
         }
 
-        public void ChangeRadarType(RadarTypes radarType)
-        {
-            RadarType = radarType;
+        //public void ChangeRadarType(RadarTypes radarType)
+        //{
+        //    RadarType = radarType;
 
-            ClearTarget(true);
-            if (RadarType == RadarTypes.PassiveRadar)
-            {
-                //do something...
-                DeactivateDetectionZone();
-            }
-            else if (RadarType == RadarTypes.ActiveRadar)
-            {
-                //do something...
-                if (Switch) ActivateDetectionZone();
-            }
-        }
+        //    ClearTarget(true);
+        //    if (RadarType == RadarTypes.PassiveRadar)
+        //    {
+        //        //do something...
+        //        DeactivateDetectionZone();
+        //    }
+        //    else if (RadarType == RadarTypes.ActiveRadar)
+        //    {
+        //        //do something...
+        //        if (Switch && !canBeOverridden) ActivateDetectionZone();
+        //    }
+        //}
+
         public void ClearTarget(bool RemoveTargetFromList = true)
         {
             if (RemoveTargetFromList)
@@ -490,7 +490,7 @@ namespace BlockEnhancementMod
 
         private void ActivateDetectionZone()
         {
-            meshRenderer.enabled = ShowRadar;
+            meshRenderer.enabled = ShowRadar && !canBeOverridden;
             StopCoroutine("intervalActivateDetectionZone");
             StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
 
