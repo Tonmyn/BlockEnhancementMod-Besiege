@@ -300,10 +300,7 @@ namespace BlockEnhancementMod
 
                 if (radar != null)
                 {
-                    if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
-                    {
-                        radar.Switch = rocket.hasFired;
-                    }
+                    radar.Switch = rocket.hasFired;
 
                     if (GuidedRocketToggle.IsActive)
                     {
