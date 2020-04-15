@@ -47,10 +47,11 @@ namespace BlockEnhancementMod
         public static event Action<KeyCode> OnSetPassiveRadarTarget;
         public static event Action<KeyCode> OnClearTarget;
         public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
+        private RadarScript passiveSourceRadar;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        static HashSet<Target> tempTargetSet = new HashSet<Target>();
+        static HashSet<RadarScript> tempRadarSet = new HashSet<RadarScript>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -354,7 +355,10 @@ namespace BlockEnhancementMod
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            if (RadarType == RadarTypes.ActiveRadar)
+            {
+                OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            }
         }
         public void SetTargetManual()
         {
@@ -506,17 +510,20 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
-            tempTargetSet.Clear();
-            StartCoroutine(DelayedAddTarget());
+            if (target == null) return;
 
-            IEnumerator DelayedAddTarget()
+            KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+            if (key != keyCode) return;
+
+            tempRadarSet.Clear();
+            StartCoroutine(DelayedAddSelfToSet());
+
+            IEnumerator DelayedAddSelfToSet()
             {
                 yield return new WaitForFixedUpdate();
-                if (target != null)
-                {
-                    tempTargetSet.Add(target);
-                    OnSetPassiveRadarTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
-                }
+                tempRadarSet.Add(this);
+                yield return new WaitForFixedUpdate();
+                OnSetPassiveRadarTarget?.Invoke(key);
             }
         }
 
@@ -526,26 +533,26 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.ActiveRadar) return;
-            if (target != null) return;
+            KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+            if (key != keyCode) return;
 
             StartCoroutine(DelayedSetTarget());
 
             IEnumerator DelayedSetTarget()
             {
-                for (int i = 0; i < 3; i++)
+                yield return new WaitForFixedUpdate();
+                //if (tempRadarSet.Count == 0) yield break;
+                if (tempRadarSet.Count > 0 && target == null)
                 {
-                    yield return new WaitForFixedUpdate();
+                    System.Random random = new System.Random();
+                    int index = random.Next(tempRadarSet.Count);
+#if DEBUG
+                    Debug.Log("Available Radar: " + tempRadarSet.Count);
+                    Debug.Log("Choose: " + index);
+#endif
+                    passiveSourceRadar = tempRadarSet.ElementAt(index);
                 }
-                RocketScript rocketScript = parentBlock?.GetComponent<RocketScript>();
-                if (tempTargetSet.Count == 0) yield break;
-                if (rocketScript != null)
-                {
-                    if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
-                    {
-                        System.Random random = new System.Random();
-                        SetTarget(tempTargetSet.ElementAt(random.Next(tempTargetSet.Count)));
-                    }
-                }
+                SetTarget(passiveSourceRadar.target);
             }
         }
 
@@ -742,7 +749,7 @@ namespace BlockEnhancementMod
             return value;
         }
 
-        #region Networking Method
+#region Networking Method
         private void SendRayToHost(Ray ray)
         {
             Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/transform.parent.GetComponent<BlockBehaviour>());
@@ -804,7 +811,7 @@ namespace BlockEnhancementMod
             throw new NotImplementedException();
         }
 
-        #endregion
+#endregion
 
     }
 
