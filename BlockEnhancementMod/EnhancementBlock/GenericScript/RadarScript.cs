@@ -502,6 +502,7 @@ namespace BlockEnhancementMod
 
         private void OnNotifyActiveRadarToAssignTargetEvent(KeyCode keyCode)
         {
+            if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
@@ -521,6 +522,7 @@ namespace BlockEnhancementMod
 
         private void OnSetPassiveRadarTargetEvent(KeyCode keyCode)
         {
+            if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.ActiveRadar) return;
@@ -549,6 +551,7 @@ namespace BlockEnhancementMod
 
         private void OnClearTargetEvent(KeyCode keyCode)
         {
+            if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
             if (RadarType == RadarTypes.PassiveRadar)
