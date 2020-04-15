@@ -291,12 +291,11 @@ namespace BlockEnhancementMod
                             joinedBlocks.AddRange(rocket.jointsToMe);
                             foreach (var joint in joinedBlocks)
                             {
+                                if (joint == null) continue;
                                 ExplosiveBolt bolt = joint.gameObject.GetComponent<ExplosiveBolt>();
-                                if (bolt != null)
-                                {
-                                    bolt.Explode();
-                                    break;
-                                }
+                                if (bolt == null) continue;
+                                bolt?.Explode();
+                                break;
                             }
                         }
                         defaultDelay = Mathf.Clamp(rocketScript.GroupFireRateSlider.Value, 0.1f, 1f);
