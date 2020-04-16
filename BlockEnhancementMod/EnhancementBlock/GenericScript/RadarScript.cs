@@ -45,7 +45,7 @@ namespace BlockEnhancementMod
         public Target target { get; private set; }
 
         public static event Action<KeyCode> OnSetPassiveRadarTarget;
-        public static event Action<KeyCode> OnClearTarget;
+        public static event Action<KeyCode> OnClearPassiveRadarTarget;
         public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
         private RadarScript passiveSourceRadar;
 
@@ -74,7 +74,7 @@ namespace BlockEnhancementMod
         {
             OnSetPassiveRadarTarget += OnSetPassiveRadarTargetEvent;
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
-            OnClearTarget += OnClearTargetEvent;
+            OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
         }
         private void Update()
         {
@@ -234,7 +234,7 @@ namespace BlockEnhancementMod
         {
             OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
             OnNotifyActiveRadarForNewTarget -= OnNotifyActiveRadarToAssignTargetEvent;
-            OnClearTarget -= OnClearTargetEvent;
+            OnClearPassiveRadarTarget -= OnClearPassiveRadarTargetEvent;
 
             Switch = false;
             ClearTarget(true);
@@ -432,6 +432,9 @@ namespace BlockEnhancementMod
 
         public void ClearTarget(bool RemoveTargetFromList = true)
         {
+            if (!gameObject.activeSelf) return;
+            if (parentBlock == null) return;
+
             if (RemoveTargetFromList)
             {
                 if (target != null) blockList.Remove(target.block);
@@ -439,13 +442,17 @@ namespace BlockEnhancementMod
             SendClientTargetNull();
             target = null;
 
-            if (gameObject.activeSelf && RadarType == RadarTypes.ActiveRadar && parentBlock != null)
+            var rs = parentBlock.GetComponent<RocketScript>();
+            if (rs == null) return;
+
+            KeyCode key = rs.GroupFireKey.GetKey(0);
+            if (RadarType == RadarTypes.ActiveRadar)
             {
-                var rs = parentBlock.GetComponent<RocketScript>();
-                if (rs != null)
-                {
-                    OnClearTarget?.Invoke(rs.GroupFireKey.GetKey(0));
-                }
+                OnClearPassiveRadarTarget?.Invoke(key);
+            }
+            else
+            {
+                OnNotifyActiveRadarForNewTarget?.Invoke(key);
             }
 #if DEBUG
             Debug.Log("clear target");
@@ -555,7 +562,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        private void OnClearTargetEvent(KeyCode keyCode)
+        private void OnClearPassiveRadarTargetEvent(KeyCode keyCode)
         {
             if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
@@ -747,7 +754,7 @@ namespace BlockEnhancementMod
             return value;
         }
 
-#region Networking Method
+        #region Networking Method
         private void SendRayToHost(Ray ray)
         {
             Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/transform.parent.GetComponent<BlockBehaviour>());
@@ -809,7 +816,7 @@ namespace BlockEnhancementMod
             throw new NotImplementedException();
         }
 
-#endregion
+        #endregion
 
     }
 
