@@ -11,6 +11,7 @@ namespace BlockEnhancementMod
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
+        MMenu SettingMenu;
         public MKey GroupFireKey;
         public MSlider GroupFireRateSlider;
         public MToggle AutoReleaseToggle;
@@ -78,24 +79,8 @@ namespace BlockEnhancementMod
         {
             //Key mapper setup
             GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false);
-            GuidedRocketToggle.Toggled += (bool value) =>
-            {
-                RadarTypeMenu.DisplayInMapper =
-                GuidedRocketTorqueSlider.DisplayInMapper =
-                GuidePredictionSlider.DisplayInMapper =
-                GuidedRocketShowRadarToggle.DisplayInMapper =
-                ImpactFuzeToggle.DisplayInMapper =
-                ProximityFuzeToggle.DisplayInMapper =
-                LockTargetKey.DisplayInMapper =
-                ManualOverrideKey.DisplayInMapper =
-                SPTeamKey.DisplayInMapper =
-                ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
-                GuideDelaySlider.DisplayInMapper =
-                GuidedRocketStabilityToggle.DisplayInMapper =
-                NoSmokeToggle.DisplayInMapper =
-                value;
-                ChangedProperties();
-            };
+
+            SettingMenu = AddMenu("SettingType", 0, LanguageManager.Instance.CurrentLanguage.SettingType);
 
             RadarTypeMenu = AddMenu("Radar Type", 0, LanguageManager.Instance.CurrentLanguage.RadarType);
 
@@ -106,11 +91,6 @@ namespace BlockEnhancementMod
             ImpactFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ImpactFuze, "ImpactFuze", false);
 
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
-            ProximityFuzeToggle.Toggled += (bool value) =>
-            {
-                ProximityFuzeRangeSlider.DisplayInMapper = value;
-                ChangedProperties();
-            };
 
             NoSmokeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.NoSmoke, "NoSmoke", false);
 
@@ -124,7 +104,7 @@ namespace BlockEnhancementMod
 
             GuidedRocketTorqueSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.TorqueOnRocket, "torqueOnRocket", 100f, 0, 100f);
 
-            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", true);
+            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", false);
 
             GuideDelaySlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", 0f, 0, 2);
 
@@ -150,25 +130,48 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            GroupFireRateSlider.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
-            AutoReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
+            var _value = value && GuidedRocketToggle.IsActive; //for guided rocket
+            var _value1 = _value && SettingMenu.Value == 1; //Radar setting
+            var _value2 = _value1 && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar); //for active radar
+            var _value3 = _value && SettingMenu.Value == 0; //Rocket setting guided
+            var _value4 = (GuidedRocketToggle.IsActive ? _value3 : value);
+            var _value5 = (Enhancement.IsActive ? _value4 : true);
 
-            var _value = value && GuidedRocketToggle.IsActive;
-            var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
+            //Display when guided is ON
+            SettingMenu.DisplayInMapper = _value;
 
-            ManualOverrideKey.DisplayInMapper = _value1;
-            SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
-            RadarTypeMenu.DisplayInMapper = _value;
-            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value1;
-            GuidePredictionSlider.DisplayInMapper = _value;
-            GuidedRocketTorqueSlider.DisplayInMapper = _value;
-            GuidedRocketShowRadarToggle.DisplayInMapper = _value1;
-            GuidedRocketStabilityToggle.DisplayInMapper = _value;
-            ImpactFuzeToggle.DisplayInMapper = _value;
-            ProximityFuzeToggle.DisplayInMapper = _value;
-            ProximityFuzeRangeSlider.DisplayInMapper = _value;
-            GuideDelaySlider.DisplayInMapper = _value;
-            LockTargetKey.DisplayInMapper = _value1;
+            //Display when radar setting is selected
+            SPTeamKey.DisplayInMapper = _value1 && (!StatMaster.isMP || Playerlist.Players.Count == 1);
+            RadarTypeMenu.DisplayInMapper = _value1;
+            GuidePredictionSlider.DisplayInMapper = _value1;
+            GuidedRocketTorqueSlider.DisplayInMapper = _value1;
+            ImpactFuzeToggle.DisplayInMapper = _value1;
+            ProximityFuzeToggle.DisplayInMapper = _value1;
+            ProximityFuzeRangeSlider.DisplayInMapper = _value1 && ProximityFuzeToggle.IsActive;
+            GuideDelaySlider.DisplayInMapper = _value1;
+
+            //Display for active Radar only
+            ManualOverrideKey.DisplayInMapper = _value2;
+            GuidedRocketShowRadarToggle.DisplayInMapper = _value2;
+            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value2;
+            LockTargetKey.DisplayInMapper = _value2;
+
+            //Display for rocket setting
+            GuidedRocketStabilityToggle.DisplayInMapper = _value3;
+
+            //Display for guided OFF & rocket setting when guided ON
+            AutoReleaseToggle.DisplayInMapper = _value4 && GroupFireKey.GetKey(0) != KeyCode.None;
+            GroupFireKey.DisplayInMapper = _value4;
+            GroupFireRateSlider.DisplayInMapper = _value4 && GroupFireKey.GetKey(0) != KeyCode.None;
+            NoSmokeToggle.DisplayInMapper = _value4;
+            HighExploToggle.DisplayInMapper = _value4;
+
+            //Display for BE off & rocket setting when guided ON
+            rocket.LaunchKey.DisplayInMapper = _value5;
+            rocket.DelaySlider.DisplayInMapper = _value5;
+            rocket.ChargeSlider.DisplayInMapper = _value5;
+            rocket.PowerSlider.DisplayInMapper = _value5;
+            //rocket.ColourSlider.DisplayInMapper = _value6;
         }
 
         public override void OnSimulateStart_EnhancementEnabled()

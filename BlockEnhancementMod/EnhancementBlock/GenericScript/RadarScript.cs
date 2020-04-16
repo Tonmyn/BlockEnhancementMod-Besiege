@@ -541,7 +541,6 @@ namespace BlockEnhancementMod
             IEnumerator DelayedSetTarget()
             {
                 yield return new WaitForFixedUpdate();
-                //if (tempRadarSet.Count == 0) yield break;
                 if (tempRadarSet.Count > 0 && target == null)
                 {
                     System.Random random = new System.Random();
@@ -567,7 +566,6 @@ namespace BlockEnhancementMod
                 if (key == keyCode)
                 {
                     ClearTarget();
-                    OnNotifyActiveRadarForNewTarget?.Invoke(key);
                 }
             }
         }
