@@ -260,7 +260,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "同组发射间隔";
 
-        public string AutoRelease { get; } = "自动释放";
+        public string AutoRelease { get; } = "自动分离";
 
         public string SearchMode { get; } = "搜索模式";
 
@@ -449,7 +449,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "Goruped Launch Rate";
 
-        public string AutoRelease { get; } = "Auto Release";
+        public string AutoRelease { get; } = "Auto Eject";
 
         public string SearchMode { get; } = "Search Mode";
 

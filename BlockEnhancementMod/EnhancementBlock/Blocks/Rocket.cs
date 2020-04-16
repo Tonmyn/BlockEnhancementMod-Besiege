@@ -145,9 +145,7 @@ namespace BlockEnhancementMod
             RadarTypeMenu.DisplayInMapper = _value1;
             GuidePredictionSlider.DisplayInMapper = _value1;
             GuidedRocketTorqueSlider.DisplayInMapper = _value1;
-            ImpactFuzeToggle.DisplayInMapper = _value1;
-            ProximityFuzeToggle.DisplayInMapper = _value1;
-            ProximityFuzeRangeSlider.DisplayInMapper = _value1 && ProximityFuzeToggle.IsActive;
+
             GuideDelaySlider.DisplayInMapper = _value1;
 
             //Display for active Radar only
@@ -158,6 +156,9 @@ namespace BlockEnhancementMod
 
             //Display for rocket setting
             GuidedRocketStabilityToggle.DisplayInMapper = _value3;
+            ImpactFuzeToggle.DisplayInMapper = _value3;
+            ProximityFuzeToggle.DisplayInMapper = _value3;
+            ProximityFuzeRangeSlider.DisplayInMapper = _value3 && ProximityFuzeToggle.IsActive;
 
             //Display for guided OFF & rocket setting when guided ON
             AutoReleaseToggle.DisplayInMapper = _value4 && GroupFireKey.GetKey(0) != KeyCode.None;
