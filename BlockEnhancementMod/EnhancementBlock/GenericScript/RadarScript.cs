@@ -551,7 +551,7 @@ namespace BlockEnhancementMod
 #endif
                     passiveSourceRadar = tempRadarSet.ElementAt(index);
                 }
-                SetTarget(passiveSourceRadar.target);
+                SetTarget(passiveSourceRadar?.target);
             }
         }
 
