@@ -276,7 +276,7 @@ namespace BlockEnhancementMod
                     rocketScript = rocket.GetComponent<RocketScript>();
                     if (rocketScript != null)
                     {
-                        if (rocketScript.AutoReleaseToggle.IsActive)
+                        if (rocketScript.AutoEjectToggle.IsActive)
                         {
                             if (rocket.grabbers.Count > 0)
                             {
