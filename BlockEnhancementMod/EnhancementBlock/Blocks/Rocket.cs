@@ -56,7 +56,7 @@ namespace BlockEnhancementMod
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
         public float triggerForceImpactFuzeOn = 50f;
-        public float triggerForceImpactFuzeOff = 400f;
+        public float triggerForceImpactFuzeOff = 1200f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
@@ -88,13 +88,13 @@ namespace BlockEnhancementMod
 
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
 
+            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", false);
+
             AutoEjectToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoRelease, "AutoGrabberRelease", false);
 
             NoSmokeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.NoSmoke, "NoSmoke", false);
 
             HighExploToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.HighExplo, "HighExplo", false);
-
-            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", false);
 
             GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false); //Keep this as the last toggle
 
@@ -414,6 +414,7 @@ namespace BlockEnhancementMod
 
         private void OnCollisionEnter(Collision collision)
         {
+            if (!Enhancement.IsActive) return;
             if (!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
