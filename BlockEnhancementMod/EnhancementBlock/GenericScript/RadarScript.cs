@@ -44,12 +44,14 @@ namespace BlockEnhancementMod
 
         public Target target { get; private set; }
 
-        public static event Action<Target, KeyCode> OnSetPassiveRadarTarget;
-        //public static event Action<Target> OnManualSetActiveRadarTarget;
-        public static event Action<KeyCode> OnClearTarget;
+        public static event Action<KeyCode> OnSetPassiveRadarTarget;
+        public static event Action<KeyCode> OnClearPassiveRadarTarget;
+        public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
+        private RadarScript passiveSourceRadar;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
+        static HashSet<RadarScript> tempRadarSet = new HashSet<RadarScript>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -71,8 +73,8 @@ namespace BlockEnhancementMod
         private void Start()
         {
             OnSetPassiveRadarTarget += OnSetPassiveRadarTargetEvent;
-            //OnManualSetActiveRadarTarget += OnManualSetActiveRadarTargetEvent;
-            OnClearTarget += OnClearTargetEvent;
+            OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
+            OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
         }
         private void Update()
         {
@@ -87,6 +89,10 @@ namespace BlockEnhancementMod
                     {
                         ActivateDetectionZone();
                     }
+                    else
+                    {
+                        OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+                    }
                 }
                 else
                 {
@@ -94,30 +100,8 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || RadarType != RadarTypes.ActiveRadar) return;
-            //if (!Switch) return;
+            if (!Switch || RadarType == RadarTypes.PassiveRadar || canBeOverridden) return;
 
-            //if (/*SearchMode == SearchModes.Passive*/RadarType == RadarTypes.PassiveRadar)
-            //{
-            //    if (sourceRadars == null) return;
-            //    if (sourceRadar == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
-            //    if (sourceRadar.target == null) sourceRadar = sourceRadars.ElementAt(UnityEngine.Random.Range(0, sourceRadars.Count));
-            //    if (/*sourceRadar.SearchMode == SearchModes.Auto*/sourceRadar.RadarType == RadarTypes.ActiveRadar)
-            //    {
-            //        if (InRadarRange(target)) return;
-            //    }
-            //    if (target != sourceRadar.target) target = sourceRadar.target;
-
-            //    Debug.Log("??");
-            //    return;
-            //}
-
-            //if (SearchMode == SearchModes.Manual)
-            //{
-            //    return;
-            //}
-
-            if (canBeOverridden) return;
             if (Switch && target != null)
             {
                 if (!InRadarRange(target))
@@ -208,9 +192,8 @@ namespace BlockEnhancementMod
         }
         private void OnTriggerEnter(Collider collider)
         {
-            if ((/*SearchMode != SearchModes.Auto*/RadarType != RadarTypes.ActiveRadar) || !Switch) return;
+            if (RadarType != RadarTypes.ActiveRadar || !Switch) return;
             if (!isQualifiedCollider(collider)) return;
-            //var block = collider.gameObject.GetComponent<BlockBehaviour>() ?? collider.gameObject.GetComponentInParent<BlockBehaviour>() ?? collider.transform.parent.gameObject.GetComponent<BlockBehaviour>();
             var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
             if (!isQualifiedBlock(block)) return;
@@ -250,8 +233,8 @@ namespace BlockEnhancementMod
         private void OnDestroy()
         {
             OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
-            OnClearTarget -= OnClearTargetEvent;
-            //OnManualSetActiveRadarTarget -= OnManualSetActiveRadarTargetEvent;
+            OnNotifyActiveRadarForNewTarget -= OnNotifyActiveRadarToAssignTargetEvent;
+            OnClearPassiveRadarTarget -= OnClearPassiveRadarTargetEvent;
 
             Switch = false;
             ClearTarget(true);
@@ -369,19 +352,16 @@ namespace BlockEnhancementMod
             blockList.Add(tempTarget.block);
             if (target.collider != null) target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
 
-
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
 
-            OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            if (RadarType == RadarTypes.ActiveRadar)
+            {
+                OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
+            }
         }
         public void SetTargetManual()
         {
-            //if (RadarType == RadarTypes.PassiveRadar)
-            //{
-            //    ClearTarget(true);
-            //    SetTarget(GetTargetManual());
-            //}
             ClearTarget(true);
             SetTarget(GetTargetManual());
 
@@ -399,7 +379,7 @@ namespace BlockEnhancementMod
 
                     if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, SearchRadius, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
                     {
-                        tempTarget = ConvertRaycastHitToTarget(rayHit); /*Debug.Log("11- " + (tempTarget == null).ToString());*/
+                        tempTarget = ConvertRaycastHitToTarget(rayHit);
                     }
                     if (tempTarget == null)
                     {
@@ -410,14 +390,14 @@ namespace BlockEnhancementMod
                         {
                             for (int i = 0; i < hits.Length; i++)
                             {
-                                tempTarget = ConvertRaycastHitToTarget(hits[i]); /*Debug.Log("22- " + (tempTarget == null).ToString());*/
+                                tempTarget = ConvertRaycastHitToTarget(hits[i]);
                                 if (tempTarget != null) break;
                             }
                         }
                     }
                     if (tempTarget == null)
                     {
-                        tempTarget = new Target(rayHit.point); /*Debug.Log("33- " + (tempTarget == null).ToString());*/
+                        tempTarget = new Target(rayHit.point);
                     }
 
                     return tempTarget;
@@ -450,24 +430,11 @@ namespace BlockEnhancementMod
             }
         }
 
-        public void ChangeRadarType(RadarTypes radarType)
-        {
-            RadarType = radarType;
-
-            ClearTarget(true);
-            if (RadarType == RadarTypes.PassiveRadar)
-            {
-                //do something...
-                DeactivateDetectionZone();
-            }
-            else if (RadarType == RadarTypes.ActiveRadar)
-            {
-                //do something...
-                if (Switch) ActivateDetectionZone();
-            }
-        }
         public void ClearTarget(bool RemoveTargetFromList = true)
         {
+            if (!gameObject.activeSelf) return;
+            if (parentBlock == null) return;
+
             if (RemoveTargetFromList)
             {
                 if (target != null) blockList.Remove(target.block);
@@ -475,13 +442,17 @@ namespace BlockEnhancementMod
             SendClientTargetNull();
             target = null;
 
-            if (gameObject.activeSelf && RadarType == RadarTypes.ActiveRadar && parentBlock != null)
+            var rs = parentBlock.GetComponent<RocketScript>();
+            if (rs == null) return;
+
+            KeyCode key = rs.GroupFireKey.GetKey(0);
+            if (RadarType == RadarTypes.ActiveRadar)
             {
-                var rs = parentBlock.GetComponent<RocketScript>();
-                if (rs != null)
-                {
-                    OnClearTarget?.Invoke(rs.GroupFireKey.GetKey(0));
-                }
+                OnClearPassiveRadarTarget?.Invoke(key);
+            }
+            else
+            {
+                OnNotifyActiveRadarForNewTarget?.Invoke(key);
             }
 #if DEBUG
             Debug.Log("clear target");
@@ -490,7 +461,7 @@ namespace BlockEnhancementMod
 
         private void ActivateDetectionZone()
         {
-            meshRenderer.enabled = ShowRadar;
+            meshRenderer.enabled = ShowRadar && !canBeOverridden;
             StopCoroutine("intervalActivateDetectionZone");
             StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
 
@@ -540,61 +511,69 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
-        private void OnSetPassiveRadarTargetEvent(Target target, KeyCode keyCode)
+        private void OnNotifyActiveRadarToAssignTargetEvent(KeyCode keyCode)
         {
-            if (this.target == null || this.target != target)
+            if (!Machine.Active().isSimulating) return;
+            if (!gameObject.activeSelf) return;
+            if (!Switch) return;
+            if (RadarType == RadarTypes.PassiveRadar) return;
+            if (target == null) return;
+
+            KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+            if (key != keyCode) return;
+
+            tempRadarSet.Clear();
+            StartCoroutine(DelayedAddSelfToSet());
+
+            IEnumerator DelayedAddSelfToSet()
             {
-                if (parentBlock != null)
-                {
-                    if (RadarType == RadarTypes.PassiveRadar)
-                    {
-                        RocketScript rocketScript = parentBlock.GetComponent<RocketScript>();
-                        if (rocketScript != null)
-                        {
-                            if (rocketScript.GroupFireKey.GetKey(0) == keyCode)
-                            {
-                                SetTarget(target);
-                            }
-                        }
-                    }
-                }
+                yield return new WaitForFixedUpdate();
+                tempRadarSet.Add(this);
+                yield return new WaitForFixedUpdate();
+                OnSetPassiveRadarTarget?.Invoke(key);
             }
         }
 
-        //private void OnManualSetActiveRadarTargetEvent(Target target)
-        //{
-        //    if (parentBlock != null && canBeOverridden)
-        //    {
-        //        this.target = target;
-        //        OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
-        //    }
-        //}
-
-        private void OnClearTargetEvent(KeyCode keyCode)
+        private void OnSetPassiveRadarTargetEvent(KeyCode keyCode)
         {
+            if (!Machine.Active().isSimulating) return;
+            if (!gameObject.activeSelf) return;
+            if (!Switch) return;
+            if (RadarType == RadarTypes.ActiveRadar) return;
+            KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+            if (key != keyCode) return;
+
+            StartCoroutine(DelayedSetTarget());
+
+            IEnumerator DelayedSetTarget()
+            {
+                yield return new WaitForFixedUpdate();
+                if (tempRadarSet.Count > 0 && target == null)
+                {
+                    System.Random random = new System.Random();
+                    int index = random.Next(tempRadarSet.Count);
+#if DEBUG
+                    Debug.Log("Available Radar: " + tempRadarSet.Count);
+                    Debug.Log("Choose: " + index);
+#endif
+                    passiveSourceRadar = tempRadarSet.ElementAt(index);
+                }
+                SetTarget(passiveSourceRadar?.target);
+            }
+        }
+
+        private void OnClearPassiveRadarTargetEvent(KeyCode keyCode)
+        {
+            if (!Machine.Active().isSimulating) return;
+            if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
             if (RadarType == RadarTypes.PassiveRadar)
             {
-                if (parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0) == keyCode)
+                KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+                if (key == keyCode)
                 {
                     ClearTarget();
                 }
-            }
-            else
-            {
-                if (Machine.Active().isSimulating)
-                {
-                    StartCoroutine(ResendTargetToPassiveRadar());
-                }
-            }
-
-            IEnumerator ResendTargetToPassiveRadar()
-            {
-                for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-                OnSetPassiveRadarTarget?.Invoke(target, parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
 
@@ -691,7 +670,7 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Vector3 positionInWorld)
         {
-            if (/*SearchMode == SearchModes.Passive*/RadarType == RadarTypes.PassiveRadar) return true;
+            if (RadarType == RadarTypes.PassiveRadar) return true;
             if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
             {
                 var distance = positionInWorld - transform.position;
@@ -823,10 +802,6 @@ namespace BlockEnhancementMod
         }
         private void SendClientTargetNull()
         {
-            //Switch = true;
-            //target = null;
-            //OnTarget?.Invoke(target);
-
             if (StatMaster.isHosting)
             {
                 Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(parentBlock);
@@ -861,10 +836,6 @@ namespace BlockEnhancementMod
         public float initialDistance = 0f;
 
         public category Category { get; private set; }
-
-        //public Vector3 positionDiff = new Vector3(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
-        //public float angleDiff = 0f;
-        //public Vector3 acceleration = Vector3.zero;
 
         public warningLevel WarningLevel { get; private set; } = 0;
 

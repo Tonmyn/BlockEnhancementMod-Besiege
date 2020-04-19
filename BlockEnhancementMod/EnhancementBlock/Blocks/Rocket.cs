@@ -11,17 +11,17 @@ namespace BlockEnhancementMod
         //General setting
         MToggle GuidedRocketToggle;
         MKey LockTargetKey;
+        MMenu SettingMenu;
         public MKey GroupFireKey;
         public MSlider GroupFireRateSlider;
-        public MToggle AutoReleaseToggle;
+        public MToggle AutoEjectToggle;
         public TimedRocket rocket;
         public Rigidbody rocketRigidbody;
 
+        ParticleSystem smokeTrail;
         public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
         public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
         public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
-
-        public bool removedFromGroup = false;
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -29,6 +29,7 @@ namespace BlockEnhancementMod
         //Firing record related setting
         private float launchTime = 0f;
         private bool launchTimeRecorded = false;
+        public bool removedFromGroup = false;
 
         //Guide related setting
         MSlider GuidedRocketTorqueSlider;
@@ -55,7 +56,7 @@ namespace BlockEnhancementMod
         MToggle ProximityFuzeToggle;
         MSlider ProximityFuzeRangeSlider;
         public float triggerForceImpactFuzeOn = 50f;
-        public float triggerForceImpactFuzeOff = 400f;
+        public float triggerForceImpactFuzeOff = 1200f;
 
         //Guide delay related setting
         MSlider GuideDelaySlider;
@@ -72,67 +73,48 @@ namespace BlockEnhancementMod
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
-        ParticleSystem smokeTrail;
-
         public override void SafeAwake()
         {
             //Key mapper setup
-            GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false);
-            GuidedRocketToggle.Toggled += (bool value) =>
-            {
-                RadarTypeMenu.DisplayInMapper =
-                GuidedRocketTorqueSlider.DisplayInMapper =
-                GuidePredictionSlider.DisplayInMapper =
-                GuidedRocketShowRadarToggle.DisplayInMapper =
-                ImpactFuzeToggle.DisplayInMapper =
-                ProximityFuzeToggle.DisplayInMapper =
-                LockTargetKey.DisplayInMapper =
-                ManualOverrideKey.DisplayInMapper =
-                SPTeamKey.DisplayInMapper =
-                ActiveGuideRocketSearchAngleSlider.DisplayInMapper =
-                GuideDelaySlider.DisplayInMapper =
-                GuidedRocketStabilityToggle.DisplayInMapper =
-                NoSmokeToggle.DisplayInMapper =
-                value;
-                ChangedProperties();
-            };
+            //Menus
+            SettingMenu = AddMenu("SettingType", 0, LanguageManager.Instance.CurrentLanguage.SettingType);
 
             RadarTypeMenu = AddMenu("Radar Type", 0, LanguageManager.Instance.CurrentLanguage.RadarType);
 
-            AutoReleaseToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoRelease, "AutoGrabberRelease", false);
-
+            //Toggles
             GuidedRocketShowRadarToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ShowRadar, "ShowRadar", false);
 
             ImpactFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ImpactFuze, "ImpactFuze", false);
 
             ProximityFuzeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ProximityFuze, "ProximityFuze", false);
-            ProximityFuzeToggle.Toggled += (bool value) =>
-            {
-                ProximityFuzeRangeSlider.DisplayInMapper = value;
-                ChangedProperties();
-            };
+
+            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", false);
+
+            AutoEjectToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.AutoRelease, "AutoGrabberRelease", false);
 
             NoSmokeToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.NoSmoke, "NoSmoke", false);
 
             HighExploToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.HighExplo, "HighExplo", false);
 
+            GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false); //Keep this as the last toggle
+
+            //Sliders
             ActiveGuideRocketSearchAngleSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.SearchAngle, "searchAngle", 60f, 0, maxSearchAngleNormal);
+
+            GuidedRocketTorqueSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.TorqueOnRocket, "torqueOnRocket", 100f, 0, 100f);
+
+            GuideDelaySlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", 0f, 0, 2);
 
             GuidePredictionSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Prediction, "prediction", 10, 0, 50);
 
             ProximityFuzeRangeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.CloseRange, "closeRange", 0f, 0, 10f);
 
-            GuidedRocketTorqueSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.TorqueOnRocket, "torqueOnRocket", 100f, 0, 100f);
+            GroupFireRateSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GroupFireRate, "groupFireRate", 0.25f, 0.1f, 1f);
 
-            GuidedRocketStabilityToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.RocketStability, "RocketStabilityOn", true);
-
-            GuideDelaySlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", 0f, 0, 2);
-
+            //Keys
             LockTargetKey = AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "lockTarget", KeyCode.Delete);
 
             GroupFireKey = AddKey(LanguageManager.Instance.CurrentLanguage.GroupedFire, "groupFire", KeyCode.None);
-
-            GroupFireRateSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GroupFireRate, "groupFireRate", 0.25f, 0.1f, 1f);
 
             ManualOverrideKey = AddKey(LanguageManager.Instance.CurrentLanguage.ManualOverride, "ActiveSearchKey", KeyCode.RightShift);
 
@@ -150,25 +132,51 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            GroupFireRateSlider.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
-            AutoReleaseToggle.DisplayInMapper = value && (GroupFireKey.KeysCount > 0 || GroupFireKey.GetKey(0) != KeyCode.None);
+            var _value = value && GuidedRocketToggle.IsActive; //for guided rocket
+            var _value1 = _value && SettingMenu.Value == 1; //Radar setting
+            var _value2 = _value1 && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar); //for active radar
+            var _value3 = _value && SettingMenu.Value == 0; //Rocket setting guided
+            var _value4 = (GuidedRocketToggle.IsActive ? _value3 : value);
+            var _value5 = (Enhancement.IsActive ? _value4 : true);
 
-            var _value = value && GuidedRocketToggle.IsActive;
-            var _value1 = _value && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar);
+            //Display when guided is ON
+            SettingMenu.DisplayInMapper = _value;
 
-            ManualOverrideKey.DisplayInMapper = _value1;
-            SPTeamKey.DisplayInMapper = _value && (!StatMaster.isMP || Playerlist.Players.Count == 1);
-            RadarTypeMenu.DisplayInMapper = _value;
-            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value1;
-            GuidePredictionSlider.DisplayInMapper = _value;
-            GuidedRocketTorqueSlider.DisplayInMapper = _value;
-            GuidedRocketShowRadarToggle.DisplayInMapper = _value1;
-            GuidedRocketStabilityToggle.DisplayInMapper = _value;
-            ImpactFuzeToggle.DisplayInMapper = _value;
-            ProximityFuzeToggle.DisplayInMapper = _value;
-            ProximityFuzeRangeSlider.DisplayInMapper = _value;
-            GuideDelaySlider.DisplayInMapper = _value;
-            LockTargetKey.DisplayInMapper = _value1;
+            //Display when radar setting is selected
+            SPTeamKey.DisplayInMapper = _value1 && (!StatMaster.isMP || Playerlist.Players.Count == 1);
+            RadarTypeMenu.DisplayInMapper = _value1;
+            GuidePredictionSlider.DisplayInMapper = _value1;
+            GuidedRocketTorqueSlider.DisplayInMapper = _value1;
+            GuideDelaySlider.DisplayInMapper = _value1;
+
+            //Display for active Radar only
+            ManualOverrideKey.DisplayInMapper = _value2;
+            GuidedRocketShowRadarToggle.DisplayInMapper = _value2;
+            ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value2;
+            LockTargetKey.DisplayInMapper = _value2;
+
+            //Display for rocket setting
+            GuidedRocketStabilityToggle.DisplayInMapper = _value3;
+            ImpactFuzeToggle.DisplayInMapper = _value3;
+            ProximityFuzeToggle.DisplayInMapper = _value3;
+            ProximityFuzeRangeSlider.DisplayInMapper = _value3 && ProximityFuzeToggle.IsActive;
+
+            //Display for guided OFF & rocket setting when guided ON
+            AutoEjectToggle.DisplayInMapper = _value4 && GroupFireKey.GetKey(0) != KeyCode.None;
+            GroupFireKey.DisplayInMapper = _value4;
+            GroupFireRateSlider.DisplayInMapper = _value4 && GroupFireKey.GetKey(0) != KeyCode.None;
+            NoSmokeToggle.DisplayInMapper = _value4;
+            HighExploToggle.DisplayInMapper = _value4;
+
+            //Display for BE off & rocket setting when guided ON
+            rocket.LaunchKey.DisplayInMapper = _value5;
+            rocket.DelaySlider.DisplayInMapper = _value5;
+            rocket.ChargeSlider.DisplayInMapper = _value5;
+            rocket.PowerSlider.DisplayInMapper = _value5;
+
+            //Tried to hide colour slider, but failed.
+            //try { rocket.ColourSlider.DisplayInMapper = _value5; }
+            //catch (System.Exception) { }
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -218,12 +226,6 @@ namespace BlockEnhancementMod
                         Physics.IgnoreCollision(collider, radar.meshCollider, true);
                     }
                 }
-
-                //If Local play, get blocks in the safety range.
-                //if (!StatMaster.isMP)
-                //{
-                //    radar.GetBlocksInSafetyRange();
-                //}
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -300,10 +302,7 @@ namespace BlockEnhancementMod
 
                 if (radar != null)
                 {
-                    if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
-                    {
-                        radar.Switch = rocket.hasFired;
-                    }
+                    radar.Switch = rocket.hasFired;
 
                     if (GuidedRocketToggle.IsActive)
                     {
@@ -312,8 +311,8 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.meshCollider.enabled = radar.canBeOverridden;
-                                radar.meshRenderer.enabled = radar.canBeOverridden;
+                                radar.meshRenderer.enabled = radar.canBeOverridden && GuidedRocketShowRadarToggle.IsActive && rocket.hasFired;
+                                radar.meshCollider.enabled = radar.canBeOverridden && rocket.hasFired;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {
@@ -322,7 +321,7 @@ namespace BlockEnhancementMod
                             }
                         }
 
-                        if (LockTargetKey.IsPressed || LockTargetKey.EmulationPressed()/* && radar.Switch*/)
+                        if (LockTargetKey.IsPressed || LockTargetKey.EmulationPressed())
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
@@ -357,7 +356,6 @@ namespace BlockEnhancementMod
                             {
                                 launchTimeRecorded = true;
                                 launchTime = Time.time;
-
                             }
 
                             //Rocket can be triggered after the time elapsed after firing is greater than guide delay
@@ -416,6 +414,7 @@ namespace BlockEnhancementMod
 
         private void OnCollisionEnter(Collision collision)
         {
+            if (!Enhancement.IsActive) return;
             if (!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
@@ -570,9 +569,4 @@ namespace BlockEnhancementMod
             }
         }
     }
-
-
-
-
-
 }

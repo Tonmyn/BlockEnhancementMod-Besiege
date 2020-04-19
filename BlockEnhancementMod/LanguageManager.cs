@@ -82,6 +82,8 @@ namespace BlockEnhancementMod
         string DefaultPassive { get; }
         List<string> RadarType { get; }
 
+        List<string> SettingType { get; }
+
         string ZoomControlMode { get; }
         string MouseWheelZoomControl { get; }
 
@@ -258,7 +260,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "同组发射间隔";
 
-        public string AutoRelease { get; } = "自动释放";
+        public string AutoRelease { get; } = "自动分离";
 
         public string SearchMode { get; } = "搜索模式";
 
@@ -269,6 +271,8 @@ namespace BlockEnhancementMod
         public string DefaultPassive { get; } = "被动接受目标";
 
         public List<string> RadarType { get; } = new List<string> { "主动雷达", "被动雷达" };
+
+        public List<string> SettingType { get; } = new List<string> { "火箭设置", "雷达设置" };
 
         public string ZoomControlMode { get; } = "变焦控制";
 
@@ -445,7 +449,7 @@ namespace BlockEnhancementMod
 
         public string GroupFireRate { get; } = "Goruped Launch Rate";
 
-        public string AutoRelease { get; } = "Auto Release";
+        public string AutoRelease { get; } = "Auto Eject";
 
         public string SearchMode { get; } = "Search Mode";
 
@@ -456,6 +460,8 @@ namespace BlockEnhancementMod
         public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
 
         public List<string> RadarType { get; } = new List<string> { "Active Radar", "Passive Radar" };
+
+        public List<string> SettingType { get; } = new List<string> { "Rocket Setting", "Radar Setting" };
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
@@ -644,6 +650,8 @@ namespace BlockEnhancementMod
         public string DefaultPassive { get; } = "Receive Target" + Environment.NewLine + "From Detector";
 
         public List<string> RadarType { get; } = new List<string> { "能動レーダー", "受動レーダー" };
+
+        public List<string> SettingType { get; } = new List<string> { "Rocket Setting", "Radar Setting" };
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
