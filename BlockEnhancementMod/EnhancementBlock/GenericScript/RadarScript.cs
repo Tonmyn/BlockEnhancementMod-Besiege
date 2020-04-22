@@ -269,6 +269,10 @@ namespace BlockEnhancementMod
             return noSol > 0;
         }
 
+        /// <summary>
+        /// Thanks for Forrest Smith's generous share of his fantastic work
+        /// https://www.forrestthewoods.com/blog/solving_ballistic_trajectories/
+        /// </summary>
         public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, Vector3 targetVelocity, float gravity, out Vector3 s0, out float time)
         {
             // Initialize output parameters
