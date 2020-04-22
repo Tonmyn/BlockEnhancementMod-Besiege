@@ -41,7 +41,7 @@ namespace BlockEnhancementMod
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
-        private int squareWidth = 48;
+        private int squareWidth = 40;
         private int circleWidth = 64;
 
         public bool Switch { get; set; } = false;
@@ -232,20 +232,17 @@ namespace BlockEnhancementMod
                 GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
 
                 if (!ShowBulletLanding) return;
-                if (!GetBulletLandingPosition(out Vector3 landingPosition, out Vector3 dir)) return;
+                if (!GetBulletLandingPosition(out Vector3 landingPosition)) return;
                 onScreenPosition = Camera.main.WorldToScreenPoint(landingPosition);
-                GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
-
-                onScreenPosition = Camera.main.WorldToScreenPoint(dir);
                 GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
             }
         }
 
-        bool GetBulletLandingPosition(out Vector3 position, out Vector3 dir)
+        bool GetBulletLandingPosition(out Vector3 position)
         {
             //Get an initial velocity
-            Vector3 initialBulletV = ForwardDirection * cannonBallSpeed + parentRigidBody.velocity;
-            Vector3 relVelocity = target.rigidbody.velocity/* - parentRigidBody.velocity*/;
+            Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
+            Vector3 relVelocity = target.rigidbody.velocity - parentRigidBody.velocity;
 
             //Get an initial position
             Vector3 initialPosition = parentBlock.transform.position;
@@ -255,21 +252,7 @@ namespace BlockEnhancementMod
             Vector3 gravity = Physics.gravity;
 
             //Assume no air resistance
-            int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out Vector3 direction, out float time);
-
-            //int counter = 0;
-            //int limit = 32;
-            //float preTime = 0;
-
-            //while (noSol > 0 && counter < limit)
-            //{
-            //    if (noSol < 1) break;
-            //    if (counter > limit) break;
-            //    if (Mathf.Abs(time - preTime) < 0.01f) break;
-            //    counter++;
-            //    noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition + time * relVelocity, relVelocity, Physics.gravity.magnitude, out time);
-            //    preTime = time;
-            //}
+            int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out float time);
 
             //if (noSol > 0)
             //{
@@ -278,15 +261,16 @@ namespace BlockEnhancementMod
             //    Debug.Log(initialPosition + initialV * time + 0.5f * gravity * time * time);
             //}
 
-            position = initialPosition + initialBulletV * time + 0.5f * gravity * time * time;
-            dir = direction;
+
+            //dir = (direction + parentBlock.transform.position).normalized;
+            position = initialPosition + initialBulletV * time + 0.5f * gravity * time * time - relVelocity * time;
             return noSol > 0;
         }
 
-        public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, Vector3 targetVelocity, float gravity, out Vector3 s0, out float time)
+        public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, Vector3 targetVelocity, float gravity, /*out Vector3 s0,*/ out float time)
         {
             // Initialize output parameters
-            s0 = Vector3.zero;
+            //s0 = Vector3.zero;
             time = 0;
 
             // Derivation 
@@ -348,7 +332,7 @@ namespace BlockEnhancementMod
 
             // Plug quartic solutions into base equations
             // There should never be more than 2 positive, real roots.
-            Vector3[] solutions = new Vector3[2];
+            //Vector3[] solutions = new Vector3[2];
             float[] timesOut = new float[2];
             int numSolutions = 0;
 
@@ -359,9 +343,9 @@ namespace BlockEnhancementMod
                     continue;
 
                 timesOut[numSolutions] = t;
-                solutions[numSolutions].x = ((H + P * t) / t);
-                solutions[numSolutions].y = ((K + Q * t - L * t * t) / t);
-                solutions[numSolutions].z = ((J + R * t) / t);
+                //solutions[numSolutions].x = ((H + P * t) / t);
+                //solutions[numSolutions].y = ((K + Q * t - L * t * t) / t);
+                //solutions[numSolutions].z = ((J + R * t) / t);
                 ++numSolutions;
             }
 
@@ -369,7 +353,7 @@ namespace BlockEnhancementMod
             if (numSolutions > 0)
             {
                 time = timesOut[0];
-                s0 = solutions[0];
+                //s0 = solutions[0];
             }
 
             return numSolutions;
@@ -573,7 +557,7 @@ namespace BlockEnhancementMod
 
         public static bool IsZero(double d)
         {
-            const double eps = 1e-9;
+            const double eps = 1e-4;
             return d > -eps && d < eps;
         }
 
