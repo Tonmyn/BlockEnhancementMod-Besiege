@@ -38,6 +38,7 @@ namespace BlockEnhancementMod
         MToggle ShowRadarToggle;
         MToggle ShowPredictionToggle;
         MSlider CannonBallSpeedSlider;
+        MSlider DragSlider;
         public bool rocketExploMsgSent = false;
         public bool rocketInBuildSent = false;
 
@@ -117,6 +118,8 @@ namespace BlockEnhancementMod
 
             CannonBallSpeedSlider = AddSlider("炮弹速度", "CannonBallSpeed", 1f, 0.1f, 1000f);
 
+            DragSlider = AddSlider("炮弹阻力", "CannonBallDrag", 0.2f, 0f, 1f);
+
             //Keys
             LockTargetKey = AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "lockTarget", KeyCode.Delete);
 
@@ -162,6 +165,7 @@ namespace BlockEnhancementMod
             LockTargetKey.DisplayInMapper = _value2;
             ShowPredictionToggle.DisplayInMapper = _value2;
             CannonBallSpeedSlider.DisplayInMapper = _value2 && ShowPredictionToggle.IsActive;
+            DragSlider.DisplayInMapper = /*_value2 && ShowPredictionToggle.IsActive*/ false;
 
             //Display for rocket setting
             StabilityToggle.DisplayInMapper = _value3;
@@ -216,7 +220,8 @@ namespace BlockEnhancementMod
                 radarObject.transform.localPosition = Vector3.forward * 0.5f;
                 radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
-                radar.Setup(BB, rocketRigidbody, searchRange, searchAngle, RadarTypeMenu.Value, ShowRadarToggle.IsActive, ShowPredictionToggle.IsActive, CannonBallSpeedSlider.Value);
+                radar.Setup(BB, rocketRigidbody, searchRange, searchAngle, RadarTypeMenu.Value, ShowRadarToggle.IsActive);
+                radar.Setup(ShowPredictionToggle.IsActive, CannonBallSpeedSlider.Value, DragSlider.Value);
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();

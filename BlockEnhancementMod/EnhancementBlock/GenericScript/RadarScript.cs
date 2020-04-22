@@ -37,7 +37,8 @@ namespace BlockEnhancementMod
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
         public bool ShowBulletLanding { get; set; } = false;
-        public float cannonBallSpeed;
+        private float cannonBallSpeed;
+        private float drag;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
@@ -252,7 +253,7 @@ namespace BlockEnhancementMod
             Vector3 gravity = Physics.gravity;
 
             //Assume no air resistance
-            int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out float time);
+            int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out Vector3 dir, out float time);
 
             //if (noSol > 0)
             //{
@@ -263,14 +264,15 @@ namespace BlockEnhancementMod
 
 
             //dir = (direction + parentBlock.transform.position).normalized;
+            //position = initialPosition + initialBulletV * (1 - drag * time) * time + 0.5f * gravity * time * time - relVelocity * time;
             position = initialPosition + initialBulletV * time + 0.5f * gravity * time * time - relVelocity * time;
             return noSol > 0;
         }
 
-        public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, Vector3 targetVelocity, float gravity, /*out Vector3 s0,*/ out float time)
+        public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, Vector3 targetVelocity, float gravity, out Vector3 s0, out float time)
         {
             // Initialize output parameters
-            //s0 = Vector3.zero;
+            s0 = Vector3.zero;
             time = 0;
 
             // Derivation 
@@ -332,7 +334,7 @@ namespace BlockEnhancementMod
 
             // Plug quartic solutions into base equations
             // There should never be more than 2 positive, real roots.
-            //Vector3[] solutions = new Vector3[2];
+            Vector3[] solutions = new Vector3[2];
             float[] timesOut = new float[2];
             int numSolutions = 0;
 
@@ -343,9 +345,9 @@ namespace BlockEnhancementMod
                     continue;
 
                 timesOut[numSolutions] = t;
-                //solutions[numSolutions].x = ((H + P * t) / t);
-                //solutions[numSolutions].y = ((K + Q * t - L * t * t) / t);
-                //solutions[numSolutions].z = ((J + R * t) / t);
+                solutions[numSolutions].x = ((H + P * t) / t);
+                solutions[numSolutions].y = ((K + Q * t - L * t * t) / t);
+                solutions[numSolutions].z = ((J + R * t) / t);
                 ++numSolutions;
             }
 
@@ -353,7 +355,7 @@ namespace BlockEnhancementMod
             if (numSolutions > 0)
             {
                 time = timesOut[0];
-                //s0 = solutions[0];
+                s0 = solutions[0];
             }
 
             return numSolutions;
@@ -572,14 +574,12 @@ namespace BlockEnhancementMod
             blockList.Clear();
         }
 
-        public void Setup(BlockBehaviour parentBlock, Rigidbody sourceRigidBody, float searchRadius, float searchAngle, int radarType, bool showRadar, bool showPrediction, float cannonPower, float safetyRadius = 30f)
+        public void Setup(BlockBehaviour parentBlock, Rigidbody sourceRigidBody, float searchRadius, float searchAngle, int radarType, bool showRadar, float safetyRadius = 30f)
         {
             this.parentBlock = parentBlock;
             this.parentRigidBody = sourceRigidBody;
             this.SearchAngle = searchAngle;
             this.ShowRadar = showRadar;
-            this.ShowBulletLanding = showPrediction;
-            this.cannonBallSpeed = cannonPower;
             this.SearchRadius = searchRadius;
             this.SafetyRadius = safetyRadius;
             this.RadarType = (RadarTypes)radarType;
@@ -676,6 +676,13 @@ namespace BlockEnhancementMod
                 meshRenderer = mr;
                 meshRenderer.enabled = false;
             }
+        }
+
+        public void Setup(bool showPrediction, float cannonBallSpeed, float drag)
+        {
+            this.ShowBulletLanding = showPrediction;
+            this.cannonBallSpeed = cannonBallSpeed;
+            this.drag = drag;
         }
 
         public void SetTarget(Target tempTarget)
