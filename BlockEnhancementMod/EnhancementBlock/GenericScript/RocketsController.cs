@@ -31,6 +31,7 @@ namespace BlockEnhancementMod
         private static readonly Rect warningRect = new Rect(Screen.width - screenOffset - warningWidth, Screen.height - screenOffset - warningHeight, warningWidth, warningHeight);
         private static Texture2D redTexture;
         public static Texture2D redSquareAim = new Texture2D(16, 16);
+        public static Texture2D redCircleAim = new Texture2D(64, 64);
 
         private static Texture2D RedTexture
         {
@@ -57,6 +58,8 @@ namespace BlockEnhancementMod
             void InitRedSquareAndLayer()
             {
                 redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+                redCircleAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Circle-Red.png"));
+
                 SetRadarIgnoreCollosionLayer();
 
                 void SetRadarIgnoreCollosionLayer()
