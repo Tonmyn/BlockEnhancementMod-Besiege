@@ -83,15 +83,51 @@ namespace BlockEnhancementMod
 
             Vector3 addedForce;
 
+            //RadarScript.SolveBallisticArc(parentBlock.transform.position, 1000f, blockRadar.target.transform.position, blockRadar.target.rigidbody.velocity, Physics.gravity.magnitude, out Vector3 dir, out float time);
+
+
+
             // Calculating the rotating axis
             Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
             Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
 
+            float speed;
+            bool turretMode;
+            if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
+            {
+                turretMode = blockRadar.ShowBulletLanding;
+                speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+            }
+            else
+            {
+                if (blockRadar.passiveSourceRadar == null)
+                {
+                    turretMode = false;
+                }
+                else
+                {
+                    turretMode = blockRadar.passiveSourceRadar.ShowBulletLanding;
+                }
+                speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+            }
+
+            float time;
+            if (turretMode)
+            {
+                RadarScript.SolveBallisticArc(parentBlock.transform.position, speed, blockRadar.target.transform.position, blockRadar.target.rigidbody.velocity, Physics.gravity.magnitude, out Vector3 dir, out time);
+            }
+            else
+            {
+                time = FirstOrderInterceptTime(speed, positionDiff, velocity);
+            }
+
             // Get the predicted point
-            float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
-            float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
-            Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+            //float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
+            //float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
+            //Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+
+            Vector3 positionDiffPredicted = positionDiff + velocity * time;
 
             // Get the angle difference
             float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted.normalized);
@@ -132,6 +168,45 @@ namespace BlockEnhancementMod
             parentRigidbody.AddForceAtPosition(-0.1f * force, parentBlock.CenterOfBounds + aeroEffectPosition);
 
             yield break;
+        }
+
+        public static float FirstOrderInterceptTime(float shotSpeed, Vector3 targetRelativePosition, Vector3 targetRelativeVelocity)
+        {
+            float velocitySquared = targetRelativeVelocity.sqrMagnitude;
+            if (velocitySquared < 0.001f)
+                return 0f;
+
+            float a = velocitySquared - shotSpeed * shotSpeed;
+
+            //handle similar velocities
+            if (Mathf.Abs(a) < 0.001f)
+            {
+                float t = -targetRelativePosition.sqrMagnitude / (2f * Vector3.Dot(targetRelativeVelocity, targetRelativePosition));
+                return Mathf.Max(t, 0f); //don't shoot back in time
+            }
+
+            float b = 2f * Vector3.Dot(targetRelativeVelocity, targetRelativePosition);
+            float c = targetRelativePosition.sqrMagnitude;
+            float determinant = b * b - 4f * a * c;
+
+            if (determinant > 0f)
+            { //determinant > 0; two intercept paths (most common)
+                float t1 = (-b + Mathf.Sqrt(determinant)) / (2f * a),
+                        t2 = (-b - Mathf.Sqrt(determinant)) / (2f * a);
+                if (t1 > 0f)
+                {
+                    if (t2 > 0f)
+                        return Mathf.Min(t1, t2); //both are positive
+                    else
+                        return t1; //only t1 is positive
+                }
+                else
+                    return Mathf.Max(t2, 0f); //don't shoot back in time
+            }
+            else if (determinant < 0f) //determinant < 0; no intercept path
+                return 0f;
+            else //determinant = 0; one intercept path, pretty much never happens
+                return Mathf.Max(-b / (2f * a), 0f); //don't shoot back in time
         }
     }
 }

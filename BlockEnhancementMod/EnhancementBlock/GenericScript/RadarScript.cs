@@ -37,7 +37,7 @@ namespace BlockEnhancementMod
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
         public bool ShowBulletLanding { get; set; } = false;
-        private float cannonBallSpeed;
+        public float cannonBallSpeed;
         private float drag;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
@@ -55,7 +55,7 @@ namespace BlockEnhancementMod
         public static event Action<KeyCode> OnSetPassiveRadarTarget;
         public static event Action<KeyCode> OnClearPassiveRadarTarget;
         public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
-        private RadarScript passiveSourceRadar;
+        public RadarScript passiveSourceRadar;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
