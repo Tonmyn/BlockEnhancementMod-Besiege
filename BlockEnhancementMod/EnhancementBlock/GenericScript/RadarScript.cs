@@ -241,6 +241,12 @@ namespace BlockEnhancementMod
 
         bool GetBulletLandingPosition(out Vector3 position)
         {
+            position = Vector3.zero;
+
+            if (target == null) return false;
+            if (parentBlock == null) return false;
+            if (parentRigidBody == null) return false;
+
             //Get an initial velocity
             Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
             Vector3 relVelocity = target.rigidbody.velocity - parentRigidBody.velocity;
@@ -249,23 +255,12 @@ namespace BlockEnhancementMod
             Vector3 initialPosition = parentBlock.transform.position;
             Vector3 targetPosition = target.transform.position;
 
-            //Get the gravity
-            Vector3 gravity = Physics.gravity;
-
             //Assume no air resistance
             int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out Vector3 dir, out float time);
 
-            //if (noSol > 0)
-            //{
-            //    Debug.Log("Found solution");
-            //    Debug.Log(time);
-            //    Debug.Log(initialPosition + initialV * time + 0.5f * gravity * time * time);
-            //}
-
-
             //dir = (direction + parentBlock.transform.position).normalized;
             //position = initialPosition + initialBulletV * (1 - drag * time) * time + 0.5f * gravity * time * time - relVelocity * time;
-            position = initialPosition + initialBulletV * time + 0.5f * gravity * time * time - relVelocity * time;
+            position = initialPosition + initialBulletV * time + 0.5f * Physics.gravity * time * time - relVelocity * time;
             return noSol > 0;
         }
 
