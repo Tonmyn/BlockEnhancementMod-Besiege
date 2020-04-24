@@ -37,7 +37,7 @@ namespace BlockEnhancementMod
         MSlider PredictionSlider;
         MToggle ShowRadarToggle;
         MToggle ShowPredictionToggle;
-        MSlider CannonBallSpeedSlider;
+        MSlider ProjectileSpeedSlider;
         MSlider DragSlider;
         public bool rocketExploMsgSent = false;
         public bool rocketInBuildSent = false;
@@ -99,7 +99,7 @@ namespace BlockEnhancementMod
 
             HighExploToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.HighExplo, "HighExplo", false);
 
-            ShowPredictionToggle = AddToggle("显示预测位置", "ShowPrediction", false);
+            ShowPredictionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ShowProjectileInterception, "ShowPrediction", false);
 
             GuidedRocketToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingRocket", false); //Keep this as the last toggle
 
@@ -116,7 +116,7 @@ namespace BlockEnhancementMod
 
             GroupFireRateSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GroupFireRate, "groupFireRate", 0.25f, 0.1f, 1f);
 
-            CannonBallSpeedSlider = AddSlider("炮弹速度", "CannonBallSpeed", 1f, 0.1f, 1000f);
+            ProjectileSpeedSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.ProjectileSpeed, "CannonBallSpeed", 1f, 0.1f, 1000f);
 
             DragSlider = AddSlider("炮弹阻力", "CannonBallDrag", 0.2f, 0f, 1f);
 
@@ -164,7 +164,7 @@ namespace BlockEnhancementMod
             ActiveGuideRocketSearchAngleSlider.DisplayInMapper = _value2;
             LockTargetKey.DisplayInMapper = _value2;
             ShowPredictionToggle.DisplayInMapper = _value2;
-            CannonBallSpeedSlider.DisplayInMapper = _value2 && ShowPredictionToggle.IsActive;
+            ProjectileSpeedSlider.DisplayInMapper = _value2 && ShowPredictionToggle.IsActive;
             DragSlider.DisplayInMapper = /*_value2 && ShowPredictionToggle.IsActive*/ false;
 
             //Display for rocket setting
@@ -221,7 +221,7 @@ namespace BlockEnhancementMod
                 radarObject.transform.localScale = restoreScale(rocket.transform.localScale);
                 radar = radarObject.GetComponent<RadarScript>() ?? radarObject.AddComponent<RadarScript>();
                 radar.Setup(BB, rocketRigidbody, searchRange, searchAngle, RadarTypeMenu.Value, ShowRadarToggle.IsActive);
-                radar.Setup(ShowPredictionToggle.IsActive, CannonBallSpeedSlider.Value, DragSlider.Value);
+                radar.Setup(ShowPredictionToggle.IsActive, ProjectileSpeedSlider.Value, DragSlider.Value);
 
                 //Workaround when radar can be ignited hence explode the rocket
                 FireTag fireTag = radarObject.AddComponent<FireTag>();

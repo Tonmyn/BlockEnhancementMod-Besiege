@@ -91,6 +91,10 @@ namespace BlockEnhancementMod
 
         string Prediction { get; }
 
+        string ProjectileSpeed { get; }
+
+        string ShowProjectileInterception { get; }
+
         string ImpactFuze { get; }
 
         string ProximityFuze { get; }
@@ -282,6 +286,10 @@ namespace BlockEnhancementMod
 
         public string Prediction { get; } = "预测";
 
+        public string ProjectileSpeed { get; } = "炮弹速度";
+
+        public string ShowProjectileInterception { get; } = "显示炮弹落点";
+
         public string ImpactFuze { get; } = "碰炸";
 
         public string ProximityFuze { get; } = "近炸";
@@ -471,6 +479,10 @@ namespace BlockEnhancementMod
 
         public string Prediction { get; } = "Prediction";
 
+        public string ProjectileSpeed { get; } = "Projectile Speed";
+
+        public string ShowProjectileInterception { get; } = "Show Projectile" + Environment.NewLine + "Interception Point";
+
         public string ImpactFuze { get; } = "Impact Fuze";
 
         public string ProximityFuze { get; } = "Proximity Fuze";
@@ -651,7 +663,7 @@ namespace BlockEnhancementMod
 
         public List<string> RadarType { get; } = new List<string> { "能動レーダー", "受動レーダー" };
 
-        public List<string> SettingType { get; } = new List<string> { "Rocket Setting", "Radar Setting" };
+        public List<string> SettingType { get; } = new List<string> { "ロケット設定", "レーダー設定" };
 
         public string ZoomControlMode { get; } = "Zoom Contorol";
 
@@ -660,6 +672,10 @@ namespace BlockEnhancementMod
         public string KeyboardZoomControl { get; } = "ズーム" + Environment.NewLine + "キーボード";
 
         public string Prediction { get; } = "予測誘導";
+
+        public string ProjectileSpeed { get; } = "弾速";
+
+        public string ShowProjectileInterception { get; } = "迎撃点を示す";
 
         public string ImpactFuze { get; } = "衝撃起爆";
 
@@ -681,7 +697,7 @@ namespace BlockEnhancementMod
 
         public string LockTarget { get; } = "手動ロックオン";
 
-        public string ManualOverride { get; } = "Manual Override" + Environment.NewLine + "Target Switch";
+        public string ManualOverride { get; } = "オーバーライド" + Environment.NewLine + "目標スイッチ";
 
         public string RecordTarget { get; } = "ターゲット記憶";
 
