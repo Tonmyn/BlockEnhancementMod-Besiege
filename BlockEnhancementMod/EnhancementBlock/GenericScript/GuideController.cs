@@ -105,18 +105,10 @@ namespace BlockEnhancementMod
             {
                 turretMode = blockRadar.ShowBulletLanding;
                 speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
-                //speed = turretMode ? blockRadar.cannonBallSpeed : 1000;
             }
             else
             {
-                if (blockRadar.passiveSourceRadar == null)
-                {
-                    turretMode = false;
-                }
-                else
-                {
-                    turretMode = blockRadar.passiveSourceRadar.ShowBulletLanding;
-                }
+                turretMode = blockRadar.passiveSourceRadar == null ? false : blockRadar.passiveSourceRadar.ShowBulletLanding;
                 speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
             }
 
@@ -125,7 +117,6 @@ namespace BlockEnhancementMod
             Vector3 positionDiffPredicted;
             if (turretMode)
             {
-                //RadarScript.SolveBallisticArc(parentBlock.transform.position, speed, blockRadar.target.transform.position, targetVelocity, Physics.gravity.magnitude, out turrentDirection, out time);
                 Vector3 aimDir;
                 if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                 {
