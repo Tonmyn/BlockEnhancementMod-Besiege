@@ -222,12 +222,8 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isMP && StatMaster.isHosting)
             {
-                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
-                {
-                    return;
-                }
+                if (parentBlock.ParentMachine.PlayerID != 0) return;
             }
-
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
             if (target == null) return;
