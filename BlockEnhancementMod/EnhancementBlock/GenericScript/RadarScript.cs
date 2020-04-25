@@ -38,6 +38,7 @@ namespace BlockEnhancementMod
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
         public bool ShowBulletLanding { get; set; } = false;
         public float cannonBallSpeed;
+        public Vector3 aimDir;
         private float drag;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
@@ -242,25 +243,39 @@ namespace BlockEnhancementMod
         bool GetBulletLandingPosition(out Vector3 position)
         {
             position = Vector3.zero;
-
             if (target == null) return false;
+            if (target.block != null)
+            {
+                if (target.block == parentBlock) return false;
+            }
             if (parentBlock == null) return false;
             if (parentRigidBody == null) return false;
 
             //Get an initial velocity
+            Vector3 targetVelocity = target.rigidbody == null ? Vector3.zero : target.rigidbody.velocity;
             Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
-            Vector3 relVelocity = target.rigidbody.velocity - parentRigidBody.velocity;
+            //Vector3 relVelocity = targetVelocity - parentRigidBody.velocity;
 
             //Get an initial position
             Vector3 initialPosition = parentBlock.transform.position;
             Vector3 targetPosition = target.transform.position;
 
             //Assume no air resistance
-            int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out Vector3 dir, out float time);
+            //int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out aimDir, out float time);
+            int noSol;
+            float time;
+            if (targetVelocity.magnitude > 0.1f)
+            {
+                noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, targetVelocity, Physics.gravity.magnitude, out aimDir, out time);
+            }
+            else
+            {
+                noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, Physics.gravity.magnitude, out aimDir, out time);
+            }
 
             //dir = (direction + parentBlock.transform.position).normalized;
             //position = initialPosition + initialBulletV * (1 - drag * time) * time + 0.5f * gravity * time * time - relVelocity * time;
-            position = initialPosition + initialBulletV * time + 0.5f * Physics.gravity * time * time - relVelocity * time;
+            position = initialPosition + initialBulletV * time + 0.5f * Physics.gravity * time * time - targetVelocity * time;
             return noSol > 0;
         }
 
@@ -357,6 +372,58 @@ namespace BlockEnhancementMod
                 s0 = solutions[0];
             }
 
+            return numSolutions;
+        }
+
+        public static int SolveBallisticArc(Vector3 projPos, float projSpeed, Vector3 targetPos, float gravity, out Vector3 s0, out float time)
+        {
+            // Handling these cases is up to your project's coding standards
+            Debug.Assert(projPos != targetPos && projSpeed > 0 && gravity > 0, "fts.solve_ballistic_arc called with invalid data");
+
+            // C# requires out variables be set
+            s0 = Vector3.zero;
+            time = 0;
+            // Derivation
+            //   (1) x = v*t*cos O
+            //   (2) y = v*t*sin O - .5*g*t^2
+            // 
+            //   (3) t = x/(cos O*v)                                        [solve t from (1)]
+            //   (4) y = v*x*sin O/(cos O * v) - .5*g*x^2/(cos^2 O*v^2)     [plug t into y=...]
+            //   (5) y = x*tan O - g*x^2/(2*v^2*cos^2 O)                    [reduce; cos/sin = tan]
+            //   (6) y = x*tan O - (g*x^2/(2*v^2))*(1+tan^2 O)              [reduce; 1+tan O = 1/cos^2 O]
+            //   (7) 0 = ((-g*x^2)/(2*v^2))*tan^2 O + x*tan O - (g*x^2)/(2*v^2) - y    [re-arrange]
+            //   Quadratic! a*p^2 + b*p + c where p = tan O
+            //
+            //   (8) let gxv = -g*x*x/(2*v*v)
+            //   (9) p = (-x +- sqrt(x*x - 4gxv*(gxv - y)))/2*gxv           [quadratic formula]
+            //   (10) p = (v^2 +- sqrt(v^4 - g(g*x^2 + 2*y*v^2)))/gx        [multiply top/bottom by -2*v*v/x; move 4*v^4/x^2 into root]
+            //   (11) O = atan(p)
+
+            Vector3 diff = targetPos - projPos;
+            Vector3 diffXZ = new Vector3(diff.x, 0f, diff.z);
+            float groundDist = diffXZ.magnitude;
+
+            float speed2 = projSpeed * projSpeed;
+            float speed4 = projSpeed * projSpeed * projSpeed * projSpeed;
+            float y = diff.y;
+            float x = groundDist;
+            float gx = gravity * x;
+
+            float root = speed4 - gravity * (gravity * x * x + 2 * y * speed2);
+
+            // No solution
+            if (root < 0)
+                return 0;
+
+            root = Mathf.Sqrt(root);
+
+            float lowAng = Mathf.Atan2(speed2 - root, gx);
+            float highAng = Mathf.Atan2(speed2 + root, gx);
+            int numSolutions = lowAng != highAng ? 2 : 1;
+
+            Vector3 groundDir = diffXZ.normalized;
+            s0 = groundDir * Mathf.Cos(lowAng) * projSpeed + Vector3.up * Mathf.Sin(lowAng) * projSpeed;
+            time = groundDist / Mathf.Cos(lowAng) / projSpeed;
             return numSolutions;
         }
 

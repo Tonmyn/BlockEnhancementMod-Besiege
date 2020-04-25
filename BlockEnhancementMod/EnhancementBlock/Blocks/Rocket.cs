@@ -34,7 +34,7 @@ namespace BlockEnhancementMod
         //Guide related setting
         MSlider TorqueSlider;
         MToggle StabilityToggle;
-        MSlider PredictionSlider;
+        //MSlider PredictionSlider;
         MToggle ShowRadarToggle;
         MToggle ShowPredictionToggle;
         MSlider ProjectileSpeedSlider;
@@ -110,7 +110,7 @@ namespace BlockEnhancementMod
 
             GuideDelaySlider = AddSlider(LanguageManager.Instance.CurrentLanguage.GuideDelay, "guideDelay", 0f, 0, 2);
 
-            PredictionSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Prediction, "prediction", 10, 0, 50);
+            //PredictionSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Prediction, "prediction", 10, 0, 50);
 
             ProximityFuzeRangeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.CloseRange, "closeRange", 0f, 0, 10f);
 
@@ -154,7 +154,7 @@ namespace BlockEnhancementMod
             //Display when radar setting is selected
             SPTeamKey.DisplayInMapper = _value1 && (!StatMaster.isMP || Playerlist.Players.Count == 1);
             RadarTypeMenu.DisplayInMapper = _value1;
-            PredictionSlider.DisplayInMapper = _value1;
+            //PredictionSlider.DisplayInMapper = _value1;
             TorqueSlider.DisplayInMapper = _value1;
             GuideDelaySlider.DisplayInMapper = _value1;
 
@@ -247,7 +247,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(TorqueSlider.Value, 0, 100), PredictionSlider.Value, false);
+                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(TorqueSlider.Value, 0, 100), false);
 
                 StopAllCoroutines();
             }

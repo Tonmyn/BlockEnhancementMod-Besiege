@@ -16,7 +16,6 @@ namespace BlockEnhancementMod
         private Rigidbody parentRigidbody;
         private BlockBehaviour parentBlock;
         private RadarScript blockRadar;
-        public float prediction = 10f;
         public float searchAngle = 0f;
         public float torque = 0f;
         public float maxTorque = 1500f;
@@ -36,7 +35,8 @@ namespace BlockEnhancementMod
         public bool enableAerodynamicEffect = false;
         public bool constantForce = false;
 
-        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction, bool constantForce)
+        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar,
+            float sourceSearchAngle, float sourceTorque, bool constantForce)
         {
             parentBlock = sourceBlock;
             parentRigidbody = sourceRigidbody;
@@ -44,7 +44,6 @@ namespace BlockEnhancementMod
             enableAerodynamicEffect = false;
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
-            prediction = sourcePrediction;
             this.constantForce = constantForce;
             preTargetBlock = new BlockBehaviour();
             pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
@@ -65,7 +64,17 @@ namespace BlockEnhancementMod
             {
                 if (blockRadar.target != null && Switch != false)
                 {
-                    StartCoroutine(AddGuideForce());
+                    if (blockRadar.target.block != null)
+                    {
+                        if (blockRadar.target.block != parentBlock)
+                        {
+                            StartCoroutine(AddGuideForce());
+                        }
+                    }
+                    else
+                    {
+                        StartCoroutine(AddGuideForce());
+                    }
                 }
             }
             if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
@@ -83,14 +92,12 @@ namespace BlockEnhancementMod
 
             Vector3 addedForce;
 
-            //RadarScript.SolveBallisticArc(parentBlock.transform.position, 1000f, blockRadar.target.transform.position, blockRadar.target.rigidbody.velocity, Physics.gravity.magnitude, out Vector3 dir, out float time);
-
-
-
             // Calculating the rotating axis
             Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
-            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
+            Vector3 targetVelocity = blockRadar.target.rigidbody == null ?
+                (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime : blockRadar.target.rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
+            Vector3 relVelocity = targetVelocity - parentBlock.Rigidbody.velocity;
 
             float speed;
             bool turretMode;
@@ -98,6 +105,7 @@ namespace BlockEnhancementMod
             {
                 turretMode = blockRadar.ShowBulletLanding;
                 speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+                //speed = turretMode ? blockRadar.cannonBallSpeed : 1000;
             }
             else
             {
@@ -112,26 +120,33 @@ namespace BlockEnhancementMod
                 speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
             }
 
+            // Get the predicted point
             float time;
+            Vector3 positionDiffPredicted;
             if (turretMode)
             {
-                RadarScript.SolveBallisticArc(parentBlock.transform.position, speed, blockRadar.target.transform.position, blockRadar.target.rigidbody.velocity, Physics.gravity.magnitude, out Vector3 dir, out time);
+                //RadarScript.SolveBallisticArc(parentBlock.transform.position, speed, blockRadar.target.transform.position, targetVelocity, Physics.gravity.magnitude, out turrentDirection, out time);
+                Vector3 aimDir;
+                if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
+                {
+                    aimDir = blockRadar.aimDir;
+                }
+                else
+                {
+                    aimDir = blockRadar.passiveSourceRadar == null ? Vector3.zero : blockRadar.passiveSourceRadar.aimDir;
+                }
+                positionDiffPredicted = parentBlock.transform.position + aimDir * 100;
             }
             else
             {
-                time = FirstOrderInterceptTime(speed, positionDiff, velocity);
+                time = FirstOrderInterceptTime(speed, positionDiff, relVelocity);
+                positionDiffPredicted = positionDiff + relVelocity * time;
             }
-
-            // Get the predicted point
-            //float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
-            //float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
-            //Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
-
-            Vector3 positionDiffPredicted = positionDiff + velocity * time;
+            positionDiffPredicted = positionDiffPredicted.normalized;
 
             // Get the angle difference
-            float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted.normalized);
-            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted.normalized - ForwardDirection) * Mathf.Sign(dotProduct);
+            float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted);
+            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted - ForwardDirection) * Mathf.Sign(dotProduct);
             towardsPositionDiff = towardsPositionDiff.normalized;
 
             if (constantForce)
