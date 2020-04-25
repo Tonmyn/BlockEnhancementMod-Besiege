@@ -64,6 +64,7 @@
     <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\UnpoweredCog.cs" />
     <Compile Include="EnhancementBlock\GenericScript\CanonBlock.cs" />
+    <Compile Include="EnhancementBlock\GenericScript\InterceptionCalculation.cs" />
     <Compile Include="EnhancementBlock\GenericScript\GuideController.cs" />
     <Compile Include="EnhancementBlock\GenericScript\DelayCollision.cs" />
     <Compile Include="EnhancementBlock\GenericScript\RadarScript.cs" />
