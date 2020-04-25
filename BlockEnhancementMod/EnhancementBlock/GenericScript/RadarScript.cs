@@ -39,6 +39,9 @@ namespace BlockEnhancementMod
         public bool ShowBulletLanding { get; set; } = false;
         public float cannonBallSpeed;
         public Vector3 aimDir;
+        private Vector3 sqrMarkerPosition;
+        private Vector3 hitPosition;
+        private bool foundHitPosition = false;
         private float drag;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
@@ -118,6 +121,12 @@ namespace BlockEnhancementMod
                 {
                     ClearTarget(true);
                 }
+            }
+
+            if (target != null && ShowBulletLanding)
+            {
+                sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
+                foundHitPosition = GetBulletLandingPosition(sqrMarkerPosition, out hitPosition);
             }
 
             if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
@@ -219,24 +228,24 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (RadarType == RadarTypes.PassiveRadar) return;
             if (!Switch) return;
-            if (!MarkTarget) return;
+            if (RadarType == RadarTypes.PassiveRadar) return;
             if (target == null) return;
 
             Vector3 onScreenPosition;
-
-            Vector3 sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
-
             if (Vector3.Dot(Camera.main.transform.forward, sqrMarkerPosition - Camera.main.transform.position) > 0)
             {
-                onScreenPosition = Camera.main.WorldToScreenPoint(sqrMarkerPosition);
-                GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
+                if (MarkTarget)
+                {
+                    onScreenPosition = Camera.main.WorldToScreenPoint(sqrMarkerPosition);
+                    GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
+                }
 
-                if (!ShowBulletLanding) return;
-                if (!GetBulletLandingPosition(sqrMarkerPosition, out Vector3 landingPosition)) return;
-                onScreenPosition = Camera.main.WorldToScreenPoint(landingPosition);
-                GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
+                if (ShowBulletLanding && foundHitPosition)
+                {
+                    onScreenPosition = Camera.main.WorldToScreenPoint(hitPosition);
+                    GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
+                }
             }
         }
 
