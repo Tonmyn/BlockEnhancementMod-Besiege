@@ -126,7 +126,7 @@ namespace BlockEnhancementMod
                 {
                     aimDir = blockRadar.passiveSourceRadar == null ? Vector3.zero : blockRadar.passiveSourceRadar.aimDir;
                 }
-                positionDiffPredicted = parentBlock.transform.position + aimDir * 100;
+                positionDiffPredicted = parentBlock.transform.position + aimDir * parentBlock.transform.position.magnitude * 10000;
             }
             else
             {

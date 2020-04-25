@@ -234,13 +234,13 @@ namespace BlockEnhancementMod
                 GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
 
                 if (!ShowBulletLanding) return;
-                if (!GetBulletLandingPosition(out Vector3 landingPosition)) return;
+                if (!GetBulletLandingPosition(sqrMarkerPosition, out Vector3 landingPosition)) return;
                 onScreenPosition = Camera.main.WorldToScreenPoint(landingPosition);
                 GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
             }
         }
 
-        bool GetBulletLandingPosition(out Vector3 position)
+        bool GetBulletLandingPosition(Vector3 targetPosition, out Vector3 position)
         {
             position = Vector3.zero;
             if (target == null) return false;
@@ -258,13 +258,12 @@ namespace BlockEnhancementMod
 
             //Get an initial position
             Vector3 initialPosition = parentBlock.transform.position;
-            Vector3 targetPosition = target.transform.position;
 
             //Assume no air resistance
             //int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out aimDir, out float time);
             int noSol;
             float time;
-            if (targetVelocity.magnitude > 0.1f)
+            if (targetVelocity.magnitude > 0.25f)
             {
                 noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, targetVelocity, Physics.gravity.magnitude, out aimDir, out time);
             }
