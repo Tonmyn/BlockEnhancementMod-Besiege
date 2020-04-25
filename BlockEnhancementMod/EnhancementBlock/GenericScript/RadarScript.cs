@@ -113,21 +113,17 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || RadarType == RadarTypes.PassiveRadar || canBeOverridden) return;
+            if (!Switch) return;
 
-            if (Switch && target != null)
-            {
-                if (!InRadarRange(target))
-                {
-                    ClearTarget(true);
-                }
-            }
-
-            if (target != null && ShowBulletLanding)
+            if (target != null)
             {
                 sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
-                foundHitPosition = GetBulletLandingPosition(sqrMarkerPosition, out hitPosition);
+                if (ShowBulletLanding) foundHitPosition = GetBulletLandingPosition(sqrMarkerPosition, out hitPosition);
             }
+
+            if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
+
+            if (!InRadarRange(target)) ClearTarget(true);
 
             if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
             {
@@ -228,9 +224,9 @@ namespace BlockEnhancementMod
             if (RadarType == RadarTypes.PassiveRadar) return;
             if (target == null) return;
 
-            Vector3 onScreenPosition;
             if (Vector3.Dot(Camera.main.transform.forward, sqrMarkerPosition - Camera.main.transform.position) > 0)
             {
+                Vector3 onScreenPosition;
                 if (MarkTarget)
                 {
                     onScreenPosition = Camera.main.WorldToScreenPoint(sqrMarkerPosition);
