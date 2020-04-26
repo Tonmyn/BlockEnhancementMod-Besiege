@@ -247,7 +247,7 @@ namespace BlockEnhancementMod
                 guideObject.transform.rotation = transform.rotation;
                 guideObject.transform.localScale = Vector3.one;
                 guideController = guideObject.GetComponent<GuideController>() ?? guideObject.AddComponent<GuideController>();
-                guideController.Setup(rocket, rocketRigidbody, radar, searchAngle, Mathf.Clamp(TorqueSlider.Value, 0, 100), false);
+                guideController.Setup(rocket, rocketRigidbody, radar, rocket.PowerSlider.Value, searchAngle, Mathf.Clamp(TorqueSlider.Value, 0, 100), false);
 
                 StopAllCoroutines();
             }
@@ -305,11 +305,14 @@ namespace BlockEnhancementMod
         {
             if (gameObject.activeInHierarchy)
             {
-                if ((GroupFireKey.IsHeld || GroupFireKey.EmulationHeld()) && !StatMaster.isClient)
+                if (!GroupFireKey.Ignored)
                 {
-                    if (!RocketsController.Instance.launchStarted)
+                    if ((GroupFireKey.IsHeld || GroupFireKey.EmulationHeld()) && !StatMaster.isClient)
                     {
-                        StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                        if (!RocketsController.Instance.launchStarted)
+                        {
+                            StartCoroutine(RocketsController.Instance.LaunchRocketFromGroup(rocket.ParentMachine.PlayerID, GroupFireKey.GetKey(0)));
+                        }
                     }
                 }
 

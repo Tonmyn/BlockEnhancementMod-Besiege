@@ -16,6 +16,7 @@ namespace BlockEnhancementMod
         private Rigidbody parentRigidbody;
         private BlockBehaviour parentBlock;
         private RadarScript blockRadar;
+        private float sourceSpeedPower;
         public float searchAngle = 0f;
         public float torque = 0f;
         public float maxTorque = 1500f;
@@ -35,12 +36,13 @@ namespace BlockEnhancementMod
         public bool enableAerodynamicEffect = false;
         public bool constantForce = false;
 
-        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar,
+        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSpeedPower,
             float sourceSearchAngle, float sourceTorque, bool constantForce)
         {
             parentBlock = sourceBlock;
             parentRigidbody = sourceRigidbody;
             blockRadar = sourceRadar;
+            this.sourceSpeedPower = sourceSpeedPower;
             enableAerodynamicEffect = false;
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
@@ -108,7 +110,7 @@ namespace BlockEnhancementMod
             }
             else
             {
-                turretMode = blockRadar.passiveSourceRadar == null ? false : blockRadar.passiveSourceRadar.ShowBulletLanding;
+                turretMode = blockRadar.passiveSourceRadar == null ? false : blockRadar.passiveSourceRadar.ShowBulletLanding && sourceSpeedPower < 0.1f;
                 speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
             }
 
