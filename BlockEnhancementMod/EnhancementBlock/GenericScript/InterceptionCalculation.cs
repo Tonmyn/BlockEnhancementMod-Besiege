@@ -363,13 +363,13 @@ namespace BlockEnhancementMod
         public static float FirstOrderInterceptTime(float shotSpeed, Vector3 targetRelativePosition, Vector3 targetRelativeVelocity)
         {
             float velocitySquared = targetRelativeVelocity.sqrMagnitude;
-            if (velocitySquared < 0.001f)
+            if (velocitySquared < 0.1f)
                 return 0f;
 
             float a = velocitySquared - shotSpeed * shotSpeed;
 
             //handle similar velocities
-            if (Mathf.Abs(a) < 0.001f)
+            if (Mathf.Abs(a) < 0.1f)
             {
                 float t = -targetRelativePosition.sqrMagnitude / (2f * Vector3.Dot(targetRelativeVelocity, targetRelativePosition));
                 return Mathf.Max(t, 0f); //don't shoot back in time
