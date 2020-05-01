@@ -23,7 +23,7 @@ namespace BlockEnhancementMod
         private Vector3 previousPosition = Vector3.zero;
         private Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
 
-        private BlockBehaviour preTargetBlock = null;
+        private Transform preTargetTransform = null;
         public bool Switch { get; set; } = false;
 
         public float pFactor, iFactor, dFactor;
@@ -47,10 +47,10 @@ namespace BlockEnhancementMod
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
             this.constantForce = constantForce;
-            preTargetBlock = new BlockBehaviour();
-            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
-            iFactor = /*10f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl I Factor");
-            dFactor =/*5f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl D Factor");
+            //preTargetTransform = new BlockBehaviour();
+            pFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
+            iFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl I Factor");
+            dFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl D Factor");
         }
 
         void FixedUpdate()
@@ -84,10 +84,10 @@ namespace BlockEnhancementMod
 
         private IEnumerator AddGuideForce()
         {
-            if (blockRadar.target.block != preTargetBlock)
+            if (blockRadar.target.transform != preTargetTransform)
             {
                 previousPosition = Vector3.zero;
-                preTargetBlock = blockRadar.target.block;
+                preTargetTransform = blockRadar.target.transform;
                 integral = 0;
                 lastError = 0;
             }

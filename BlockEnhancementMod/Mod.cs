@@ -36,31 +36,32 @@ namespace BlockEnhancementMod
 
     public class Configuration
     {
-        internal static ArrayList Propertises { get; private set; } = new ArrayList()
+        internal static ArrayList Properties { get; private set; } = new ArrayList()
         {
-            new Propertise<bool>("Enhance More",  false ),
-            new Propertise<bool>("ShowUI",true ),
-            new Propertise<bool>("Friction",  false ),
-            new Propertise<bool>("Display Warning", true ),
-            new Propertise<bool>("Mark Target", true ),
-            new Propertise<bool>("Display Rocket Count", true ),
+            new Property<bool>("Enhance More",  false),
+            new Property<bool>("ShowUI", true),
+            new Property<bool>("Friction", false),
+            new Property<bool>("Display Warning", true),
+            new Property<bool>("Mark Target", true),
+            new Property<bool>("Display Rocket Count", true),
 
-            new Propertise<float>("GuideControl P Factor",  1.25f),
-            new Propertise<float>("GuideControl I Factor",  10f),
-            new Propertise<float>("GuideControl D Factor",0f),
-            new Propertise<float>("Rocket Smoke Emission Constant",80f),
-            new Propertise<float>("Rocket Smoke Lifetime",1f),
-            new Propertise<float>("Rocket Smoke Size",3.5f),
+            new Property<float>("GuideControl P Factor", 1.25f),
+            new Property<float>("GuideControl I Factor", 10f),
+            new Property<float>("GuideControl D Factor", 0f),
 
-            new Propertise<int>("Radar Fequency",20),
+            new Property<float>("Rocket Smoke Emission Constant", 80f),
+            new Property<float>("Rocket Smoke Lifetime", 1f),
+            new Property<float>("Rocket Smoke Size", 3.5f),
+
+            new Property<int>("Radar Fequency", 20),
         };
 
-        public class Propertise<T>
+        public class Property<T>
         {
             public string Key = "";
             public T Value = default;
 
-            public Propertise(string key, T value) { Key = key; Value = value; }
+            public Property(string key, T value) { Key = key; Value = value; }
             public override string ToString()
             {
                 return Key + " - " + Value.ToString();
@@ -71,11 +72,11 @@ namespace BlockEnhancementMod
         {
             T value = default;
 
-            foreach (var pro in Propertises)
+            foreach (var pro in Properties)
             {
-                if (pro is Propertise<T>)
+                if (pro is Property<T>)
                 {
-                    var _pro = pro as Propertise<T>;
+                    var _pro = pro as Property<T>;
                     if (_pro.Key == key)
                     {
                         value = _pro.Value;
@@ -90,11 +91,11 @@ namespace BlockEnhancementMod
         {
             var exist = false;
 
-            foreach (var pro in Propertises)
+            foreach (var pro in Properties)
             {
-                if (pro is Propertise<T>)
+                if (pro is Property<T>)
                 {
-                    var _pro = pro as Propertise<T>;
+                    var _pro = pro as Property<T>;
                     if (_pro.Key == key)
                     {
                         _pro.Value = value;
@@ -106,7 +107,7 @@ namespace BlockEnhancementMod
 
             if (!exist)
             {
-                Propertises.Add(new Propertise<T>(key, value));
+                Properties.Add(new Property<T>(key, value));
             }
 
             Modding.Configuration.GetData().Write(key, value);
@@ -130,38 +131,38 @@ namespace BlockEnhancementMod
                 config = new Configuration();
             }
 
-            for (int i = 0; i < Propertises.Count; i++)
+            for (int i = 0; i < Properties.Count; i++)
             {
-                var value = Propertises[i];
+                var value = Properties[i];
 
-                if (value is Propertise<int>)
+                if (value is Property<int>)
                 {
-                    value = getValue(value as Propertise<int>);
+                    value = getValue(value as Property<int>);
                 }
-                else if (value is Propertise<bool>)
+                else if (value is Property<bool>)
                 {
-                    value = getValue(value as Propertise<bool>);
+                    value = getValue(value as Property<bool>);
                 }
-                else if (value is Propertise<float>)
+                else if (value is Property<float>)
                 {
-                    value = getValue(value as Propertise<float>);
+                    value = getValue(value as Property<float>);
                 }
-                else if (value is Propertise<string>)
+                else if (value is Property<string>)
                 {
-                    value = getValue(value as Propertise<string>);
+                    value = getValue(value as Property<string>);
                 }
-                else if (value is Propertise<Vector3>)
+                else if (value is Property<Vector3>)
                 {
-                    value = getValue(value as Propertise<Vector3>);
+                    value = getValue(value as Property<Vector3>);
                 }
-                Propertises[i] = value;
+                Properties[i] = value;
             }
 
             if (needWrite) Modding.Configuration.Save();
 
             return config;
 
-            Propertise<T> getValue<T>(Propertise<T> propertise)
+            Property<T> getValue<T>(Property<T> propertise)
             {
                 var key = propertise.Key;
                 var defaultValue = propertise.Value;
@@ -176,7 +177,7 @@ namespace BlockEnhancementMod
                     needWrite = true;
                 }
 
-                return new Propertise<T>(key, defaultValue);
+                return new Property<T>(key, defaultValue);
             }
         }
         private static Dictionary<Type, Func<XDataHolder, string, object>> typeSpecialAction = new Dictionary<Type, Func<XDataHolder, string, object>>

@@ -39,7 +39,7 @@ namespace BlockEnhancementMod
         public bool ShowBulletLanding { get; set; } = false;
         public float cannonBallSpeed;
         public Vector3 aimDir;
-        private Vector3 sqrMarkerPosition;
+        private Vector3 targetPosition;
         private Vector3 hitPosition;
         private bool foundHitPosition = false;
         private float drag;
@@ -96,8 +96,8 @@ namespace BlockEnhancementMod
             if (!Switch) return;
             if (target == null) return;
 
-            sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
-            if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(sqrMarkerPosition, out hitPosition);
+            targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
+            if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
         }
 
         private void Update()
@@ -212,10 +212,11 @@ namespace BlockEnhancementMod
         }
         private void OnTriggerEnter(Collider collider)
         {
-            if (RadarType != RadarTypes.ActiveRadar || !Switch) return;
+            if (!Switch) return;
+            if (RadarType != RadarTypes.ActiveRadar) return;
             if (!isQualifiedCollider(collider)) return;
-            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
+            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
             if (!isQualifiedBlock(block)) return;
             blockList.Add(block);
         }
@@ -229,12 +230,12 @@ namespace BlockEnhancementMod
             if (RadarType == RadarTypes.PassiveRadar) return;
             if (target == null) return;
 
-            if (Vector3.Dot(Camera.main.transform.forward, sqrMarkerPosition - Camera.main.transform.position) > 0)
+            if (Vector3.Dot(Camera.main.transform.forward, targetPosition - Camera.main.transform.position) > 0)
             {
                 Vector3 onScreenPosition;
                 if (MarkTarget)
                 {
-                    onScreenPosition = Camera.main.WorldToScreenPoint(sqrMarkerPosition);
+                    onScreenPosition = Camera.main.WorldToScreenPoint(targetPosition);
                     GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
                 }
 
