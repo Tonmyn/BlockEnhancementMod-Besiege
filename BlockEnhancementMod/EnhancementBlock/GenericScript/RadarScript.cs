@@ -12,7 +12,9 @@ namespace BlockEnhancementMod
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
+        public Rigidbody parentRigidBody;
         public bool ShowRadar { get; set; } = false;
+
         public float SearchRadius { get; set; } = 2000f;
         public float SafetyRadius { get; set; } = 30f;
         public float SearchAngle { get; set; } = 0f;
@@ -34,8 +36,18 @@ namespace BlockEnhancementMod
         public MeshRenderer meshRenderer;
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
+        public bool ShowBulletLanding { get; set; } = false;
+        public float cannonBallSpeed;
+        public Vector3 aimDir;
+        private Vector3 targetPosition;
+        private Vector3 hitPosition;
+        private bool foundHitPosition = false;
+        private float drag;
         public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
         private Texture2D redSquareAim;
+        private Texture2D redCircleAim;
+        private int squareWidth = 40;
+        private int circleWidth = 64;
 
         public bool Switch { get; set; } = false;
         bool lastSwitchState = false;
@@ -47,7 +59,7 @@ namespace BlockEnhancementMod
         public static event Action<KeyCode> OnSetPassiveRadarTarget;
         public static event Action<KeyCode> OnClearPassiveRadarTarget;
         public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
-        private RadarScript passiveSourceRadar;
+        public RadarScript passiveSourceRadar;
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
@@ -69,6 +81,7 @@ namespace BlockEnhancementMod
         {
             gameObject.layer = CollisionLayer;
             redSquareAim = RocketsController.redSquareAim;
+            redCircleAim = RocketsController.redCircleAim;
         }
         private void Start()
         {
@@ -76,6 +89,17 @@ namespace BlockEnhancementMod
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
         }
+
+        private void FixedUpdate()
+        {
+            if (!parentBlock.isSimulating) return;
+            if (!Switch) return;
+            if (target == null) return;
+
+            targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
+            if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
+        }
+
         private void Update()
         {
             if (!parentBlock.isSimulating) return;
@@ -100,15 +124,11 @@ namespace BlockEnhancementMod
                 }
             }
 
-            if (!Switch || RadarType == RadarTypes.PassiveRadar || canBeOverridden) return;
+            if (!Switch) return;
 
-            if (Switch && target != null)
-            {
-                if (!InRadarRange(target))
-                {
-                    ClearTarget(true);
-                }
-            }
+            if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
+
+            if (!InRadarRange(target)) ClearTarget(true);
 
             if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
             {
@@ -192,10 +212,11 @@ namespace BlockEnhancementMod
         }
         private void OnTriggerEnter(Collider collider)
         {
-            if (RadarType != RadarTypes.ActiveRadar || !Switch) return;
+            if (!Switch) return;
+            if (RadarType != RadarTypes.ActiveRadar) return;
             if (!isQualifiedCollider(collider)) return;
-            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
 
+            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
             if (!isQualifiedBlock(block)) return;
             blockList.Add(block);
         }
@@ -203,33 +224,67 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isMP && StatMaster.isHosting)
             {
-                if (transform.parent.gameObject.GetComponent<BlockBehaviour>().ParentMachine.PlayerID != 0)
-                {
-                    return;
-                }
+                if (parentBlock.ParentMachine.PlayerID != 0) return;
             }
-
+            if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
+            if (target == null) return;
 
-            DrawTargetRedSquare();
-
-            void DrawTargetRedSquare()
+            if (Vector3.Dot(Camera.main.transform.forward, targetPosition - Camera.main.transform.position) > 0)
             {
+                Vector3 onScreenPosition;
                 if (MarkTarget)
                 {
-                    if (target != null)
-                    {
-                        Vector3 markerPosition = target.collider/*.bounds*/ != null ? target.collider.bounds.center : target.transform.position;
-                        if (Vector3.Dot(Camera.main.transform.forward, markerPosition - Camera.main.transform.position) > 0)
-                        {
-                            int squareWidth = 16;
-                            Vector3 itemScreenPosition = Camera.main.WorldToScreenPoint(markerPosition);
-                            GUI.DrawTexture(new Rect(itemScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - itemScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
-                        }
-                    }
+                    onScreenPosition = Camera.main.WorldToScreenPoint(targetPosition);
+                    GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
+                }
+
+                if (ShowBulletLanding && foundHitPosition)
+                {
+                    onScreenPosition = Camera.main.WorldToScreenPoint(hitPosition);
+                    GUI.DrawTexture(new Rect(onScreenPosition.x - circleWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - circleWidth * 0.5f, circleWidth, circleWidth), redCircleAim);
                 }
             }
         }
+
+        bool GetBulletHitPosition(Vector3 targetPosition, out Vector3 position)
+        {
+            position = Vector3.zero;
+            if (target == null) return false;
+            if (target.block != null)
+            {
+                if (target.block == parentBlock) return false;
+            }
+            if (parentBlock == null) return false;
+            if (parentRigidBody == null) return false;
+
+            //Get an initial velocity
+            Vector3 targetVelocity = target.rigidbody == null ? Vector3.zero : target.rigidbody.velocity;
+            Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
+            //Vector3 relVelocity = targetVelocity - parentRigidBody.velocity;
+
+            //Get an initial position
+            Vector3 initialPosition = parentBlock.transform.position;
+
+            //Assume no air resistance
+            //int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out aimDir, out float time);
+            int noSol;
+            float time;
+            if (targetVelocity.magnitude > 0.25f)
+            {
+                noSol = InterceptionCalculation.SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, targetVelocity, Physics.gravity.magnitude, out aimDir, out time);
+            }
+            else
+            {
+                noSol = InterceptionCalculation.SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, Physics.gravity.magnitude, out aimDir, out time);
+            }
+
+            //dir = (direction + parentBlock.transform.position).normalized;
+            //position = initialPosition + initialBulletV * (1 - drag * time) * time + 0.5f * gravity * time * time - relVelocity * time;
+            position = initialPosition + initialBulletV * time + 0.5f * Physics.gravity * time * time - targetVelocity * time;
+            return noSol > 0;
+        }
+
         private void OnDestroy()
         {
             OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
@@ -241,9 +296,10 @@ namespace BlockEnhancementMod
             blockList.Clear();
         }
 
-        public void Setup(BlockBehaviour parentBlock, float searchRadius, float searchAngle, int radarType, bool showRadar, float safetyRadius = 30f)
+        public void Setup(BlockBehaviour parentBlock, Rigidbody sourceRigidBody, float searchRadius, float searchAngle, int radarType, bool showRadar, float safetyRadius = 30f)
         {
             this.parentBlock = parentBlock;
+            this.parentRigidBody = sourceRigidBody;
             this.SearchAngle = searchAngle;
             this.ShowRadar = showRadar;
             this.SearchRadius = searchRadius;
@@ -344,6 +400,13 @@ namespace BlockEnhancementMod
             }
         }
 
+        public void Setup(bool showPrediction, float cannonBallSpeed, float drag)
+        {
+            this.ShowBulletLanding = showPrediction;
+            this.cannonBallSpeed = cannonBallSpeed;
+            this.drag = drag;
+        }
+
         public void SetTarget(Target tempTarget)
         {
             if (tempTarget == null) return;
@@ -360,6 +423,7 @@ namespace BlockEnhancementMod
                 OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
+
         public void SetTargetManual()
         {
             ClearTarget(true);
@@ -477,11 +541,13 @@ namespace BlockEnhancementMod
                 yield break;
             }
         }
+
         private void DeactivateDetectionZone()
         {
             meshCollider.enabled = false;
             meshRenderer.enabled = false;
         }
+
         private Target ProcessTarget(Collider collider)
         {
             if (!isQualifiedCollider(collider))
@@ -495,6 +561,7 @@ namespace BlockEnhancementMod
                 return isQualifiedBlock(block) ? ProcessTarget(block) : null;
             }
         }
+
         private Target ProcessTarget(BlockBehaviour block)
         {
             if (!isQualifiedBlock(block) || !isQualifiedCollider(block.GetComponentInChildren<Collider>())) return null;
@@ -581,14 +648,17 @@ namespace BlockEnhancementMod
         {
             return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic || collider.gameObject.layer == 29);
         }
+
         private bool isQualifiedRigidbody(Rigidbody rigidbody)
         {
             return !(rigidbody == null || rigidbody.isKinematic == true);
         }
+
         private bool isQualifiedFireTag(FireTag fireTag)
         {
             return !(fireTag == null || fireTag.burning || fireTag.hasBeenBurned);
         }
+
         private bool isQualifiedBlock(BlockBehaviour block)
         {
             var value = true;
@@ -651,6 +721,7 @@ namespace BlockEnhancementMod
 
             return value;
         }
+
         private bool isQualifiedEntity(LevelEntity levelEntity)
         {
             if (levelEntity != null)
@@ -692,15 +763,18 @@ namespace BlockEnhancementMod
             }
             return false;
         }
+
         public bool InRadarRange(BlockBehaviour block)
         {
             return block == null ? false : InRadarRange(ProcessTarget(block));
         }
+
         public bool InRadarRange(Collider collider)
         {
             if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return false;
             return InRadarRange(collider.bounds.center);
         }
+
         public bool InRadarRange(Target target)
         {
             bool value = false;
@@ -728,28 +802,6 @@ namespace BlockEnhancementMod
                         value = !(target.block.blockJoint == null);
                     }
                 }
-
-                //if (!target.isRocket && !target.isBomb && target.block.blockJoint == null)
-                //{
-                //    value = false;
-                //}
-                //else
-                //{
-                //    value = true;
-                //}
-
-                //if (target.hasFireTag && !target.isRocket && !target.isBomb)
-                //{
-                //    value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
-                //    //if (target.fireTag.burning || target.fireTag.hasBeenBurned)
-                //    //{
-                //    //    value = false;
-                //    //}
-                //    //else
-                //    //{
-                //    //    value = true;
-                //    //}
-                //}
             }
             return value;
         }

@@ -21,6 +21,7 @@ namespace BlockEnhancementMod
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
         public Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>> playerGroupedRockets;
+        Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets;
         public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;
@@ -31,6 +32,7 @@ namespace BlockEnhancementMod
         private static readonly Rect warningRect = new Rect(Screen.width - screenOffset - warningWidth, Screen.height - screenOffset - warningHeight, warningWidth, warningHeight);
         private static Texture2D redTexture;
         public static Texture2D redSquareAim = new Texture2D(16, 16);
+        public static Texture2D redCircleAim = new Texture2D(64, 64);
 
         private static Texture2D RedTexture
         {
@@ -57,6 +59,8 @@ namespace BlockEnhancementMod
             void InitRedSquareAndLayer()
             {
                 redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+                redCircleAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Circle-Red.png"));
+
                 SetRadarIgnoreCollosionLayer();
 
                 void SetRadarIgnoreCollosionLayer()
@@ -165,40 +169,38 @@ namespace BlockEnhancementMod
 
         private void OnGUI()
         {
-            if (iAmLockedByRocket && DisplayWarning)
-            {
-                if (cameraController != null)
-                {
-                    if (cameraController.activeCamera != null)
-                    {
-                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
-                        {
-                            DrawBorder();
-                            GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
-                        }
-                    }
-                }
-            }
-            if (DisplayRocketCount)
-            {
-                if (cameraController != null)
-                {
-                    if (cameraController.activeCamera != null)
-                    {
-                        if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
-                        {
-                            if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets))
-                            {
-                                string textString = "";
-                                foreach (var group in groupedRockets)
-                                {
-                                    textString += KeyCodeConverter.GetKey(group.Key).ToString() + ": " + group.Value.Count + Environment.NewLine;
-                                }
-                                GUI.Box(counterRect, LanguageManager.Instance.CurrentLanguage.RemainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
-                            }
+            DisplayMissleAlert();
+            DisplayRemainingRocketCount();
+        }
 
-                        }
+        private void DisplayMissleAlert()
+        {
+            if (!DisplayWarning) return;
+            if (!iAmLockedByRocket) return;
+            if (cameraController == null) return;
+            if (cameraController.activeCamera == null) return;
+            if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+            {
+                DrawBorder();
+                GUI.Box(warningRect, "Missile Alert", missileWarningStyle);
+            }
+        }
+
+        private void DisplayRemainingRocketCount()
+        {
+            if (!DisplayRocketCount) return;
+            if (cameraController == null) return;
+            if (cameraController.activeCamera == null) return;
+            if (cameraController.activeCamera.CamMode == FixedCameraBlock.Mode.FirstPerson)
+            {
+                if (playerGroupedRockets.TryGetValue(StatMaster.isMP ? PlayerMachine.GetLocal().Player.NetworkId : 0, out groupedRockets))
+                {
+                    string textString = "";
+                    foreach (var group in groupedRockets)
+                    {
+                        textString += KeyCodeConverter.GetKey(group.Key).ToString() + ": " + group.Value.Count + Environment.NewLine;
                     }
+                    GUI.Box(counterRect, LanguageManager.Instance.CurrentLanguage.RemainingRockets + Environment.NewLine + textString, groupedRocketsCounterStyle);
                 }
             }
         }
@@ -271,46 +273,57 @@ namespace BlockEnhancementMod
             {
                 rocket = timedRockets.First();
                 timedRockets.Remove(rocket);
-                if (rocket != null)
-                {
-                    rocketScript = rocket.GetComponent<RocketScript>();
-                    if (rocketScript != null)
-                    {
-                        if (rocketScript.AutoEjectToggle.IsActive)
-                        {
-                            if (rocket.grabbers.Count > 0)
-                            {
-                                List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
-                                foreach (var grabber in allGrabbers)
-                                {
-                                    grabber?.OnKeyPressed();
-                                }
-                            }
+                if (rocket == null) yield return null;
 
-                            List<Joint> joinedBlocks = new List<Joint>(rocket.iJointTo);
-                            joinedBlocks.AddRange(rocket.jointsToMe);
-                            foreach (var joint in joinedBlocks)
-                            {
-                                if (joint == null) continue;
-                                ExplosiveBolt bolt = joint.gameObject.GetComponent<ExplosiveBolt>();
-                                if (bolt == null) continue;
-                                bolt?.Explode();
-                                break;
-                            }
-                        }
-                        defaultDelay = Mathf.Clamp(rocketScript.GroupFireRateSlider.Value, 0.1f, 1f);
-                        rocket.LaunchMessage();
-                    }
+                rocketScript = rocket.GetComponent<RocketScript>();
+                if (rocketScript == null) yield return null;
+
+                if (rocketScript.AutoEjectToggle.IsActive)
+                {
+                    StartCoroutine(ReleaseGrabbers(rocket));
+                    StartCoroutine(ReleaseEjectors(rocket));
                 }
+                defaultDelay = Mathf.Clamp(rocketScript.GroupFireRateSlider.Value, 0.1f, 1f);
+                rocket.LaunchMessage();
             }
             StartCoroutine(ResetLaunchState(defaultDelay));
             yield return null;
         }
 
-        public IEnumerator ResetLaunchState(float delay)
+        private IEnumerator ResetLaunchState(float delay)
         {
             yield return new WaitForSeconds(delay);
             launchStarted = false;
+        }
+
+        private IEnumerator ReleaseGrabbers(TimedRocket rocket)
+        {
+            //if (rocket == null) yield return null;
+            if (rocket.grabbers.Count > 0) yield return null;
+
+            List<JoinOnTriggerBlock> allGrabbers = new List<JoinOnTriggerBlock>(rocket.grabbers);
+            foreach (var grabber in allGrabbers)
+            {
+                grabber?.OnKeyPressed();
+            }
+            yield return null;
+        }
+
+        private IEnumerator ReleaseEjectors(TimedRocket rocket)
+        {
+            //if (rocket == null) yield return null;
+
+            List<Joint> joinedBlocks = new List<Joint>(rocket.iJointTo);
+            joinedBlocks.AddRange(rocket.jointsToMe);
+            foreach (var joint in joinedBlocks)
+            {
+                if (joint == null) continue;
+                ExplosiveBolt bolt = joint.gameObject.GetComponent<ExplosiveBolt>();
+                if (bolt == null) continue;
+                bolt?.Explode();
+                break;
+            }
+            yield return null;
         }
     }
 }

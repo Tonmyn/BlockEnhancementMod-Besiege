@@ -16,14 +16,14 @@ namespace BlockEnhancementMod
         private Rigidbody parentRigidbody;
         private BlockBehaviour parentBlock;
         private RadarScript blockRadar;
-        public float prediction = 10f;
+        private float sourceSpeedPower;
         public float searchAngle = 0f;
         public float torque = 0f;
         public float maxTorque = 1500f;
         private Vector3 previousPosition = Vector3.zero;
         private Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
 
-        private BlockBehaviour preTargetBlock = null;
+        private Transform preTargetTransform = null;
         public bool Switch { get; set; } = false;
 
         public float pFactor, iFactor, dFactor;
@@ -36,20 +36,21 @@ namespace BlockEnhancementMod
         public bool enableAerodynamicEffect = false;
         public bool constantForce = false;
 
-        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSearchAngle, float sourceTorque, float sourcePrediction, bool constantForce)
+        public void Setup(BlockBehaviour sourceBlock, Rigidbody sourceRigidbody, RadarScript sourceRadar, float sourceSpeedPower,
+            float sourceSearchAngle, float sourceTorque, bool constantForce)
         {
             parentBlock = sourceBlock;
             parentRigidbody = sourceRigidbody;
             blockRadar = sourceRadar;
+            this.sourceSpeedPower = sourceSpeedPower;
             enableAerodynamicEffect = false;
             searchAngle = sourceSearchAngle;
             torque = sourceTorque;
-            prediction = sourcePrediction;
             this.constantForce = constantForce;
-            preTargetBlock = new BlockBehaviour();
-            pFactor =/* 1.25f*/BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
-            iFactor = /*10f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl I Factor");
-            dFactor =/*5f*/BlockEnhancementMod.Configuration.GetValue<float>(" GuideControl D Factor");
+            //preTargetTransform = new BlockBehaviour();
+            pFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
+            iFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl I Factor");
+            dFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl D Factor");
         }
 
         void FixedUpdate()
@@ -65,7 +66,17 @@ namespace BlockEnhancementMod
             {
                 if (blockRadar.target != null && Switch != false)
                 {
-                    StartCoroutine(AddGuideForce());
+                    if (blockRadar.target.block != null)
+                    {
+                        if (blockRadar.target.block != parentBlock)
+                        {
+                            StartCoroutine(AddGuideForce());
+                        }
+                    }
+                    else
+                    {
+                        StartCoroutine(AddGuideForce());
+                    }
                 }
             }
             if (enableAerodynamicEffect) StartCoroutine(AddAerodynamicsToRocketVelocity());
@@ -73,10 +84,10 @@ namespace BlockEnhancementMod
 
         private IEnumerator AddGuideForce()
         {
-            if (blockRadar.target.block != preTargetBlock)
+            if (blockRadar.target.transform != preTargetTransform)
             {
                 previousPosition = Vector3.zero;
-                preTargetBlock = blockRadar.target.block;
+                preTargetTransform = blockRadar.target.transform;
                 integral = 0;
                 lastError = 0;
             }
@@ -85,17 +96,50 @@ namespace BlockEnhancementMod
 
             // Calculating the rotating axis
             Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
-            Vector3 velocity = (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime - parentBlock.Rigidbody.velocity;
+            Vector3 targetVelocity = blockRadar.target.rigidbody == null ?
+                (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime : blockRadar.target.rigidbody.velocity;
             previousPosition = blockRadar.target.transform.position;
+            Vector3 relVelocity = targetVelocity - parentBlock.Rigidbody.velocity;
+
+            float speed;
+            bool turretMode;
+            if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
+            {
+                turretMode = blockRadar.ShowBulletLanding;
+                speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+            }
+            else
+            {
+                turretMode = blockRadar.passiveSourceRadar == null ? false : blockRadar.passiveSourceRadar.ShowBulletLanding && sourceSpeedPower < 0.1f;
+                speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+            }
 
             // Get the predicted point
-            float factor_Distance = Mathf.Clamp01(blockRadar.TargetDistance / blockRadar.target.initialDistance);
-            float pathPredictionTime = Time.fixedDeltaTime * prediction * factor_Distance;
-            Vector3 positionDiffPredicted = positionDiff + velocity * pathPredictionTime;
+            float time;
+            Vector3 positionDiffPredicted;
+            if (turretMode)
+            {
+                Vector3 aimDir;
+                if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
+                {
+                    aimDir = blockRadar.aimDir;
+                }
+                else
+                {
+                    aimDir = blockRadar.passiveSourceRadar == null ? Vector3.zero : blockRadar.passiveSourceRadar.aimDir;
+                }
+                positionDiffPredicted = parentBlock.transform.position + aimDir * parentBlock.transform.position.magnitude * 10000;
+            }
+            else
+            {
+                time = InterceptionCalculation.FirstOrderInterceptTime(speed, positionDiff, relVelocity);
+                positionDiffPredicted = positionDiff + relVelocity * time;
+            }
+            positionDiffPredicted = positionDiffPredicted.normalized;
 
             // Get the angle difference
-            float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted.normalized);
-            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted.normalized - ForwardDirection) * Mathf.Sign(dotProduct);
+            float dotProduct = Vector3.Dot(ForwardDirection, positionDiffPredicted);
+            Vector3 towardsPositionDiff = (dotProduct * positionDiffPredicted - ForwardDirection) * Mathf.Sign(dotProduct);
             towardsPositionDiff = towardsPositionDiff.normalized;
 
             if (constantForce)
