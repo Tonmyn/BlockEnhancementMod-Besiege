@@ -89,6 +89,17 @@ namespace BlockEnhancementMod
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
         }
+
+        private void FixedUpdate()
+        {
+            if (!parentBlock.isSimulating) return;
+            if (!Switch) return;
+            if (target == null) return;
+
+            sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
+            if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(sqrMarkerPosition, out hitPosition);
+        }
+
         private void Update()
         {
             if (!parentBlock.isSimulating) return;
@@ -114,12 +125,6 @@ namespace BlockEnhancementMod
             }
 
             if (!Switch) return;
-
-            if (target != null)
-            {
-                sqrMarkerPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
-                if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(sqrMarkerPosition, out hitPosition);
-            }
 
             if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
 
