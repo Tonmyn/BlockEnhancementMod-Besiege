@@ -60,11 +60,11 @@ namespace BlockEnhancementMod
 
             //if (blockRadar == null) return;
             //if (blockRadar.target == null) return;
-            if (Switch == false) return;
+            if (!Switch) return;
 
             if (blockRadar != null)
             {
-                if (blockRadar.target != null && Switch != false)
+                if (blockRadar.target != null && Switch)
                 {
                     if (blockRadar.target.block != null)
                     {
@@ -101,17 +101,17 @@ namespace BlockEnhancementMod
             previousPosition = blockRadar.target.transform.position;
             Vector3 relVelocity = targetVelocity - parentBlock.Rigidbody.velocity;
 
-            float speed;
+            //float speed;
             bool turretMode;
             if (blockRadar.RadarType == RadarScript.RadarTypes.ActiveRadar)
             {
                 turretMode = blockRadar.ShowBulletLanding;
-                speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+                //speed = turretMode ? blockRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
             }
             else
             {
                 turretMode = blockRadar.passiveSourceRadar == null ? false : blockRadar.passiveSourceRadar.ShowBulletLanding && sourceSpeedPower < 0.1f;
-                speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
+                //speed = turretMode ? blockRadar.passiveSourceRadar.cannonBallSpeed : parentRigidbody.velocity.magnitude;
             }
 
             // Get the predicted point
@@ -132,7 +132,7 @@ namespace BlockEnhancementMod
             }
             else
             {
-                time = InterceptionCalculation.FirstOrderInterceptTime(speed, positionDiff, relVelocity);
+                time = InterceptionCalculation.FirstOrderInterceptTime(parentRigidbody.velocity.magnitude, positionDiff, relVelocity);
                 positionDiffPredicted = positionDiff + relVelocity * time;
             }
             positionDiffPredicted = positionDiffPredicted.normalized;
