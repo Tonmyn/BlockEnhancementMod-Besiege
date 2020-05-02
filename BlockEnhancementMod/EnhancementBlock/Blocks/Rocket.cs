@@ -284,7 +284,7 @@ namespace BlockEnhancementMod
             }
 
             //Initialise Dict in RocketsController
-            if (GroupFireKey.GetKey(0) != KeyCode.None)
+            if (GroupFireKey.GetKey(0) != KeyCode.None && !GroupFireKey.Ignored)
             {
                 if (!RocketsController.Instance.playerGroupedRockets.ContainsKey(rocket.ParentMachine.PlayerID))
                 {

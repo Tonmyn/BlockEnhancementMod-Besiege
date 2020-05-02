@@ -128,7 +128,13 @@ namespace BlockEnhancementMod
 
             if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
 
-            if (!InRadarRange(target)) ClearTarget(true);
+            if (target != null)
+            {
+                if (!InRadarRange(target))
+                {
+                    ClearTarget(true);
+                }
+            }
 
             if (blockList.Count > 0 && (!blockList.SetEquals(lastBlockList) || target == null))
             {
@@ -499,25 +505,17 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
 
-            if (RemoveTargetFromList)
-            {
-                if (target != null) blockList.Remove(target.block);
-            }
+            if (RemoveTargetFromList) blockList.Remove(target.block);
+
             SendClientTargetNull();
             target = null;
 
+            if (RadarType == RadarTypes.PassiveRadar) return;
             var rs = parentBlock.GetComponent<RocketScript>();
             if (rs == null) return;
 
             KeyCode key = rs.GroupFireKey.GetKey(0);
-            if (RadarType == RadarTypes.ActiveRadar)
-            {
-                OnClearPassiveRadarTarget?.Invoke(key);
-            }
-            else
-            {
-                OnNotifyActiveRadarForNewTarget?.Invoke(key);
-            }
+            OnClearPassiveRadarTarget?.Invoke(key);
 #if DEBUG
             Debug.Log("clear target");
 #endif
@@ -584,17 +582,18 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
-            if (target == null) return;
-
+            if (target == null)
+            {
+                tempRadarSet.Remove(this);
+                return;
+            }
             KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
             if (key != keyCode) return;
 
-            tempRadarSet.Clear();
             StartCoroutine(DelayedAddSelfToSet());
 
             IEnumerator DelayedAddSelfToSet()
             {
-                yield return new WaitForFixedUpdate();
                 tempRadarSet.Add(this);
                 yield return new WaitForFixedUpdate();
                 OnSetPassiveRadarTarget?.Invoke(key);
@@ -626,6 +625,7 @@ namespace BlockEnhancementMod
                     passiveSourceRadar = tempRadarSet.ElementAt(index);
                 }
                 SetTarget(passiveSourceRadar?.target);
+                yield return null;
             }
         }
 
@@ -634,13 +634,13 @@ namespace BlockEnhancementMod
             if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
-            if (RadarType == RadarTypes.PassiveRadar)
+            if (RadarType == RadarTypes.ActiveRadar) return;
+
+            KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
+            if (key == keyCode)
             {
-                KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
-                if (key == keyCode)
-                {
-                    ClearTarget();
-                }
+                ClearTarget();
+                OnNotifyActiveRadarForNewTarget?.Invoke(key);
             }
         }
 
