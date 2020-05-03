@@ -22,6 +22,7 @@ namespace BlockEnhancementMod
         public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
         public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
         public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
+        public Color TrailSmokeColor { get { return BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Color"); } }
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -268,6 +269,20 @@ namespace BlockEnhancementMod
                     if (value.name.ToLower() == "smoketrail")
                     {
                         smokeTrail = value;
+                        var colt = smokeTrail.colorOverLifetime;
+                        colt.color = new ParticleSystem.MinMaxGradient(new Gradient()
+                        { 
+                            alphaKeys = new GradientAlphaKey[] 
+                            {
+                                new GradientAlphaKey(TrailSmokeColor.a,0.5f),
+                                new GradientAlphaKey(0f,smokeTrail.startLifetime)
+                            },
+                            colorKeys = new GradientColorKey[]
+                            { 
+                            new GradientColorKey(TrailSmokeColor,0.5f),
+                            new GradientColorKey(TrailSmokeColor,smokeTrail.startLifetime)
+                            }
+                        });
                         break;
                     }
                 }
