@@ -88,6 +88,8 @@ namespace BlockEnhancementMod
             OnSetPassiveRadarTarget += OnSetPassiveRadarTargetEvent;
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
+
+            tempRadarSet.Clear();
         }
 
         private void FixedUpdate()
@@ -296,9 +298,8 @@ namespace BlockEnhancementMod
             OnSetPassiveRadarTarget -= OnSetPassiveRadarTargetEvent;
             OnNotifyActiveRadarForNewTarget -= OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget -= OnClearPassiveRadarTargetEvent;
-
             Switch = false;
-            ClearTarget(true);
+            ClearTarget();
             blockList.Clear();
         }
 
@@ -419,7 +420,6 @@ namespace BlockEnhancementMod
 
             target = tempTarget;
             blockList.Add(tempTarget.block);
-            if (target.collider != null) target.initialDistance = Vector3.Distance(target.collider.bounds.center, transform.position);
 
             if (receivedRayFromClient) SendTargetToClient();
             receivedRayFromClient = false;
@@ -432,7 +432,7 @@ namespace BlockEnhancementMod
 
         public void SetTargetManual()
         {
-            ClearTarget(true);
+            ClearTarget(false);
             SetTarget(GetTargetManual());
 
             Target GetTargetManual()
@@ -505,17 +505,22 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
 
-            if (RemoveTargetFromList) blockList.Remove(target.block);
+            if (target != null)
+            {
+                if (RemoveTargetFromList && target.block != null) blockList.Remove(target.block);
+                SendClientTargetNull();
+                target = null;
+                if (RadarType == RadarTypes.PassiveRadar) passiveSourceRadar = null;
+            }
 
-            SendClientTargetNull();
-            target = null;
+            if (RadarType == RadarTypes.ActiveRadar)
+            {
+                var rs = parentBlock.GetComponent<RocketScript>();
+                if (rs == null) return;
 
-            if (RadarType == RadarTypes.PassiveRadar) return;
-            var rs = parentBlock.GetComponent<RocketScript>();
-            if (rs == null) return;
-
-            KeyCode key = rs.GroupFireKey.GetKey(0);
-            OnClearPassiveRadarTarget?.Invoke(key);
+                KeyCode key = rs.GroupFireKey.GetKey(0);
+                OnClearPassiveRadarTarget?.Invoke(key);
+            }
 #if DEBUG
             Debug.Log("clear target");
 #endif
@@ -582,11 +587,7 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
-            if (target == null)
-            {
-                tempRadarSet.Remove(this);
-                return;
-            }
+
             KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
             if (key != keyCode) return;
 
@@ -594,9 +595,15 @@ namespace BlockEnhancementMod
 
             IEnumerator DelayedAddSelfToSet()
             {
-                tempRadarSet.Add(this);
+                tempRadarSet.Remove(this);
                 yield return new WaitForFixedUpdate();
-                OnSetPassiveRadarTarget?.Invoke(key);
+                if (target != null)
+                {
+                    tempRadarSet.Add(this);
+                    yield return new WaitForFixedUpdate();
+                    OnSetPassiveRadarTarget?.Invoke(key);
+                }
+                yield return null;
             }
         }
 
@@ -639,7 +646,7 @@ namespace BlockEnhancementMod
             KeyCode key = parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0);
             if (key == keyCode)
             {
-                ClearTarget();
+                ClearTarget(false);
                 OnNotifyActiveRadarForNewTarget?.Invoke(key);
             }
         }
@@ -885,7 +892,6 @@ namespace BlockEnhancementMod
         public bool isBomb = false;
         public TimedRocket rocket;
         public ExplodeOnCollideBlock bomb;
-        public float initialDistance = 0f;
 
         public category Category { get; private set; }
 
@@ -934,7 +940,6 @@ namespace BlockEnhancementMod
             go.AddComponent<DestroyIfEditMode>();
             go.transform.position = point;
             transform = go.transform;
-            initialDistance = 500f;
             WarningLevel = warningLevel.dummyValue;
         }
         public Target(Transform transform)
@@ -945,7 +950,6 @@ namespace BlockEnhancementMod
             this.rigidbody = transform.GetComponentInParent<Rigidbody>();
             this.fireTag = transform.GetComponentInParent<FireTag>();
             this.hasFireTag = (this.fireTag != null);
-            initialDistance = 500f;
 
             WarningLevel = warningLevel.normalBlockValue;
         }
