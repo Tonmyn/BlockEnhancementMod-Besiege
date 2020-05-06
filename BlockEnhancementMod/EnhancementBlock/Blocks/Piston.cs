@@ -42,13 +42,13 @@ namespace BlockEnhancementMod.Blocks
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    HardnessMenu.DisplayInMapper = value;
-        //    DamperSlider.DisplayInMapper = value;
-        //    LimitSlider.DisplayInMapper = value;
-        //    base.DisplayInMapper(value);
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            HardnessMenu.DisplayInMapper = value;
+            DamperSlider.DisplayInMapper = value;
+            LimitSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+        }
 
         public override void OnSimulateStartClient()
         {

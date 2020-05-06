@@ -37,13 +37,13 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    HardnessMenu.DisplayInMapper = value;
-        //    FrictionSlider.DisplayInMapper = value;
-        //    base.DisplayInMapper(value);
-        //}
-       
+        public override void DisplayInMapper(bool value)
+        {
+            HardnessMenu.DisplayInMapper = value;
+            FrictionSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+        }
+
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)

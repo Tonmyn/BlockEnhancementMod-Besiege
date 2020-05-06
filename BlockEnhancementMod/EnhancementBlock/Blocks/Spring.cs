@@ -29,10 +29,10 @@ namespace BlockEnhancementMod.Blocks
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    DragSlider.DisplayInMapper = value;
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            DragSlider.DisplayInMapper = value;
+        }
 
         public override void OnSimulateStartClient()
         {

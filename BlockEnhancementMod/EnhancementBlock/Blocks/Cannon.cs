@@ -103,6 +103,8 @@ namespace BlockEnhancementMod.Blocks
         }
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             var isSingle = StatMaster.IsLevelEditorOnly || !StatMaster.isMP;
             var isCustomBullet = isSingle && BullerCustomBulletToggle.IsActive;
 

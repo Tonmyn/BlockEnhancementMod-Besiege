@@ -42,6 +42,13 @@ namespace BlockEnhancementMod
             };
         }
 
+        public override void DisplayInMapper(bool value)
+        {
+            IntervalSlider.DisplayInMapper = value;
+            RandomDelaySlider.DisplayInMapper = value;
+            KnockBackSpeedSlider.DisplayInMapper = value;
+        }
+
         public override void OnSimulateStart_EnhancementEnabled()
         {
             if (StatMaster.isClient) return;

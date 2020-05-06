@@ -142,12 +142,16 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             var _value = value && GuidedRocketToggle.IsActive; //for guided rocket
             var _value1 = _value && SettingMenu.Value == 1; //Radar setting
             var _value2 = _value1 && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar); //for active radar
             var _value3 = _value && SettingMenu.Value == 0; //Rocket setting guided
             var _value4 = (GuidedRocketToggle.IsActive ? _value3 : value);
             var _value5 = (Enhancement.IsActive ? _value4 : true);
+
+            GuidedRocketToggle.DisplayInMapper = value;
 
             //Display when guided is ON
             SettingMenu.DisplayInMapper = _value;
@@ -190,6 +194,7 @@ namespace BlockEnhancementMod
             //Tried to hide colour slider, but failed.
             //try { rocket.ColourSlider.DisplayInMapper = _value5; }
             //catch (System.Exception) { }
+
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
