@@ -73,12 +73,14 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             var _value = value && HydraulicToggle.IsActive;
-            //HardnessMenu.DisplayInMapper = value;
-            //DamperSlider.DisplayInMapper = value;
+
+            DamperSlider.DisplayInMapper = value;
             ExtendKey.DisplayInMapper = _value;
             ShrinkKey.DisplayInMapper = _value;
-            //HydraulicToggle.DisplayInMapper = value;
+            HydraulicToggle.DisplayInMapper = value;
             R2CToggle.DisplayInMapper = _value;
             FeedSlider.DisplayInMapper = _value;
             ExtendLimitSlider.DisplayInMapper = _value;

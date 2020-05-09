@@ -30,10 +30,10 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    SpeedSlider.DisplayInMapper = value;
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            SpeedSlider.DisplayInMapper = value;
+        }
 
         public override void OnSimulateStartClient()
         {

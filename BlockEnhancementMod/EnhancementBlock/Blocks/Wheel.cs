@@ -54,10 +54,12 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            //ColliderToggle.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+
+            ColliderToggle.DisplayInMapper = value;
             ShowColliderToggle.DisplayInMapper = value && ColliderToggle.IsActive;
-            //FrictionSlider.DisplayInMapper = value;
-            //BouncinessSlider.DisplayInMapper = value;
+            FrictionSlider.DisplayInMapper = value;
+            BouncinessSlider.DisplayInMapper = value;
         }
 
 

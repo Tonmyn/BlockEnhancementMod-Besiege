@@ -52,6 +52,7 @@ namespace BlockEnhancementMod
             new Property<float>("Rocket Smoke Emission Constant", 80f),
             new Property<float>("Rocket Smoke Lifetime", 1f),
             new Property<float>("Rocket Smoke Size", 3.5f),
+            new Property<Color>("Rocket Smoke Color", Color.black),
 
             new Property<int>("Radar Fequency", 20),
         };
@@ -155,6 +156,10 @@ namespace BlockEnhancementMod
                 {
                     value = getValue(value as Property<Vector3>);
                 }
+                else if (value is Property<Color>)
+                {
+                    value = getValue(value as Property<Color>);
+                }
                 Properties[i] = value;
             }
 
@@ -186,6 +191,7 @@ namespace BlockEnhancementMod
             { typeof(bool), (xDataHolder,key)=>xDataHolder.ReadBool(key)},
             { typeof(float), (xDataHolder,key)=>xDataHolder.ReadFloat(key)},
             { typeof(string), (xDataHolder,key)=>xDataHolder.ReadString(key)},
+            { typeof(Color),(xDataHolder,key)=>xDataHolder.ReadColor(key) } ,
             { typeof(Vector3), (xDataHolder,key)=>xDataHolder.ReadVector3(key)},
         };
     }

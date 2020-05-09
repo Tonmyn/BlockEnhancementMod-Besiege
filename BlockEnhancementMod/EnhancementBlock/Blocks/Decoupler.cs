@@ -33,11 +33,11 @@ namespace BlockEnhancementMod.Blocks
 
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    ExplodeForceSlider.DisplayInMapper = value;
-        //    ExplodeTorqueSlider.DisplayInMapper = value;
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            ExplodeForceSlider.DisplayInMapper = value;
+            ExplodeTorqueSlider.DisplayInMapper = value;
+        }
 
         public override void OnSimulateStartClient()
         {         

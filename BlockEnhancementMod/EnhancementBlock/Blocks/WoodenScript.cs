@@ -24,11 +24,11 @@ namespace BlockEnhancementMod
 
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    HardnessMenu.DisplayInMapper = value;
-        //    base.DisplayInMapper(value);
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            //HardnessMenu.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+        }
 
         public override void OnSimulateStartClient()
         {

@@ -22,6 +22,7 @@ namespace BlockEnhancementMod
         public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
         public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
         public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
+        public Color TrailSmokeColor { get { return BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Color"); } }
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -141,12 +142,16 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             var _value = value && GuidedRocketToggle.IsActive; //for guided rocket
             var _value1 = _value && SettingMenu.Value == 1; //Radar setting
             var _value2 = _value1 && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar); //for active radar
             var _value3 = _value && SettingMenu.Value == 0; //Rocket setting guided
             var _value4 = (GuidedRocketToggle.IsActive ? _value3 : value);
             var _value5 = (Enhancement.IsActive ? _value4 : true);
+
+            GuidedRocketToggle.DisplayInMapper = value;
 
             //Display when guided is ON
             SettingMenu.DisplayInMapper = _value;
@@ -189,6 +194,7 @@ namespace BlockEnhancementMod
             //Tried to hide colour slider, but failed.
             //try { rocket.ColourSlider.DisplayInMapper = _value5; }
             //catch (System.Exception) { }
+
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -268,6 +274,20 @@ namespace BlockEnhancementMod
                     if (value.name.ToLower() == "smoketrail")
                     {
                         smokeTrail = value;
+                        var colt = smokeTrail.colorOverLifetime;
+                        colt.color = new ParticleSystem.MinMaxGradient(new Gradient()
+                        { 
+                            alphaKeys = new GradientAlphaKey[] 
+                            {
+                                new GradientAlphaKey(TrailSmokeColor.a,0.5f),
+                                new GradientAlphaKey(0f,smokeTrail.startLifetime)
+                            },
+                            colorKeys = new GradientColorKey[]
+                            { 
+                            new GradientColorKey(TrailSmokeColor,0.5f),
+                            new GradientColorKey(TrailSmokeColor,smokeTrail.startLifetime)
+                            }
+                        });
                         break;
                     }
                 }

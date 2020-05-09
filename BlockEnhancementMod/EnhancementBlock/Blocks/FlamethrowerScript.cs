@@ -38,12 +38,12 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    thrustForceSlider.DisplayInMapper = value;
-        //    flameColorSlider.DisplayInMapper = value;
-        //    base.DisplayInMapper(value);
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            thrustForceSlider.DisplayInMapper = value;
+            flameColorSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+        }
 
         public override void OnSimulateStartClient()
         {   

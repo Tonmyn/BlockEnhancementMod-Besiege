@@ -26,11 +26,11 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    BoilingToggle.DisplayInMapper = value;
-        //    base.DisplayInMapper(value);
-        //}
+        public override void DisplayInMapper(bool value)
+        {
+            BoilingToggle.DisplayInMapper = value;
+            base.DisplayInMapper(value);
+        }
 
         public override void OnSimulateStartClient()
         {

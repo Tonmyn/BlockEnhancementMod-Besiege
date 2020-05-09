@@ -25,6 +25,11 @@ namespace BlockEnhancementMod
 #endif
         }
 
+        public override void DisplayInMapper(bool value)
+        {
+            RotationToggle.DisplayInMapper = value;
+        }
+
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
