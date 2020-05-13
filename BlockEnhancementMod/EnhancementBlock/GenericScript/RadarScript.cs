@@ -5,6 +5,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Modding.Levels;
 
 namespace BlockEnhancementMod
 {
@@ -94,9 +95,10 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (!parentBlock.isSimulating) return;
+            if (StatMaster.isClient) return;
             if (!Switch) return;
             if (target == null) return;
+            if (target.transform == null) return;
 
             targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
             if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
@@ -104,7 +106,7 @@ namespace BlockEnhancementMod
 
         private void Update()
         {
-            if (!parentBlock.isSimulating) return;
+            if (StatMaster.isClient) return;
 
             if (lastSwitchState != Switch)
             {
@@ -786,6 +788,11 @@ namespace BlockEnhancementMod
         {
             bool value = false;
             if (target == null) return value;
+            if (target.transform == null) return value;
+            if (target.block != null)
+            {
+                if (!target.block.SimPhysics) return value;
+            }
 
             if (InRadarRange(target.collider))
             {
@@ -825,13 +832,12 @@ namespace BlockEnhancementMod
             {
                 if (target != null)
                 {
-                    if (target.transform.transform.GetComponent<BlockBehaviour>())
+                    if (target.block != null)
                     {
-                        BlockBehaviour targetBB = target.transform.transform.GetComponent<BlockBehaviour>();
-                        int id = targetBB.ParentMachine.PlayerID;
+                        int id = target.block.ParentMachine.PlayerID;
                         if (parentBlock.ParentMachine.PlayerID != 0)
                         {
-                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(targetBB, parentBlock);
+                            Message targetBlockBehaviourMsg = Messages.rocketTargetBlockBehaviourMsg.CreateMessage(target.block, parentBlock);
                             foreach (var player in Player.GetAllPlayers())
                             {
                                 if (player.NetworkId == parentBlock.ParentMachine.PlayerID)
@@ -843,9 +849,9 @@ namespace BlockEnhancementMod
                         ModNetworking.SendToAll(Messages.rocketLockOnMeMsg.CreateMessage(parentBlock, id));
                         RocketsController.Instance.UpdateRocketTarget(parentBlock, id);
                     }
-                    if (target.transform.transform.GetComponent<LevelEntity>())
+                    if (target.entity != null)
                     {
-                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.transform.transform.GetComponent<LevelEntity>(), parentBlock);
+                        Message targetEntityMsg = Messages.rocketTargetEntityMsg.CreateMessage(target.entity, parentBlock);
                         foreach (var player in Player.GetAllPlayers())
                         {
                             if (player.NetworkId == parentBlock.ParentMachine.PlayerID)
@@ -970,7 +976,14 @@ namespace BlockEnhancementMod
         }
         public Target(GenericEntity entity)
         {
+            collider = block.gameObject.GetComponent<Collider>() ?? block.gameObject.GetComponentInChildren<Collider>();
+            fireTag = block.gameObject.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
+            rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
+            hasFireTag = (fireTag != null);
+            transform = block.transform;
+            this.entity = entity;
 
+            SetTargetWarningLevel();
         }
 
         public void SetTargetWarningLevel()
