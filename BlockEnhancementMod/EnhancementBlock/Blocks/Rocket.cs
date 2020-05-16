@@ -338,7 +338,10 @@ namespace BlockEnhancementMod
 
                 if (radar != null)
                 {
-                    radar.Switch = rocket.hasFired;
+                    if (!StatMaster.isClient)
+                    {
+                        radar.Switch = rocket.hasFired;
+                    }
 
                     if (GuidedRocketToggle.IsActive)
                     {

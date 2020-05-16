@@ -95,19 +95,16 @@ namespace BlockEnhancementMod
 
         private void FixedUpdate()
         {
-            if (StatMaster.isClient) return;
             if (!Switch) return;
             if (target == null) return;
             if (target.transform == null) return;
-
+            
             targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
             if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
         }
 
         private void Update()
         {
-            if (StatMaster.isClient) return;
-
             if (lastSwitchState != Switch)
             {
                 lastSwitchState = Switch;
@@ -129,6 +126,8 @@ namespace BlockEnhancementMod
             }
 
             if (!Switch) return;
+
+            if (StatMaster.isClient) return;
 
             if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
 
@@ -260,24 +259,21 @@ namespace BlockEnhancementMod
         bool GetBulletHitPosition(Vector3 targetPosition, out Vector3 position)
         {
             position = Vector3.zero;
+            if (parentBlock == null) return false;
             if (target == null) return false;
             if (target.block != null)
             {
                 if (target.block == parentBlock) return false;
             }
-            if (parentBlock == null) return false;
-            if (parentRigidBody == null) return false;
 
             //Get an initial velocity
             Vector3 targetVelocity = target.rigidbody == null ? Vector3.zero : target.rigidbody.velocity;
             Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
-            //Vector3 relVelocity = targetVelocity - parentRigidBody.velocity;
 
             //Get an initial position
             Vector3 initialPosition = parentBlock.transform.position;
 
             //Assume no air resistance
-            //int noSol = SolveBallisticArc(initialPosition, cannonBallSpeed, targetPosition, relVelocity, Physics.gravity.magnitude, out aimDir, out float time);
             int noSol;
             float time;
             if (targetVelocity.magnitude > 0.25f)
@@ -423,8 +419,12 @@ namespace BlockEnhancementMod
             target = tempTarget;
             blockList.Add(tempTarget.block);
 
-            if (receivedRayFromClient) SendTargetToClient();
-            receivedRayFromClient = false;
+            if (StatMaster.isHosting)
+            {
+                SendTargetToClient();
+            }
+
+            if (receivedRayFromClient) receivedRayFromClient = false;
 
             if (RadarType == RadarTypes.ActiveRadar)
             {
@@ -531,6 +531,9 @@ namespace BlockEnhancementMod
         private void ActivateDetectionZone()
         {
             meshRenderer.enabled = ShowRadar && !canBeOverridden;
+
+            if (StatMaster.isClient) return;
+
             StopCoroutine("intervalActivateDetectionZone");
             StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
 
@@ -549,6 +552,8 @@ namespace BlockEnhancementMod
 
         private void DeactivateDetectionZone()
         {
+            if (StatMaster.isClient) return;
+
             meshCollider.enabled = false;
             meshRenderer.enabled = false;
         }
@@ -585,6 +590,7 @@ namespace BlockEnhancementMod
 
         private void OnNotifyActiveRadarToAssignTargetEvent(KeyCode keyCode)
         {
+            if (StatMaster.isClient) return;
             if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
@@ -611,6 +617,7 @@ namespace BlockEnhancementMod
 
         private void OnSetPassiveRadarTargetEvent(KeyCode keyCode)
         {
+            if (StatMaster.isClient) return;
             if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (!Switch) return;
@@ -640,6 +647,7 @@ namespace BlockEnhancementMod
 
         private void OnClearPassiveRadarTargetEvent(KeyCode keyCode)
         {
+            if (StatMaster.isClient) return;
             if (!Machine.Active().isSimulating) return;
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
@@ -823,7 +831,7 @@ namespace BlockEnhancementMod
         #region Networking Method
         private void SendRayToHost(Ray ray)
         {
-            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/transform.parent.GetComponent<BlockBehaviour>());
+            Message rayToHostMsg = Messages.rocketRayToHostMsg.CreateMessage(ray.origin, ray.direction, /*BB*/parentBlock);
             ModNetworking.SendToHost(rayToHostMsg);
         }
         private void SendTargetToClient()
@@ -870,7 +878,11 @@ namespace BlockEnhancementMod
             if (StatMaster.isHosting)
             {
                 Message rocketTargetNullMsg = Messages.rocketTargetNullMsg.CreateMessage(parentBlock);
-                ModNetworking.SendTo(Player.GetAllPlayers().Find(player => player.NetworkId == parentBlock.ParentMachine.PlayerID), rocketTargetNullMsg);
+                Player player1 = Player.GetAllPlayers().Find(player => player.NetworkId == parentBlock.ParentMachine.PlayerID);
+                if (player1 != null)
+                {
+                    ModNetworking.SendTo(player1, rocketTargetNullMsg);
+                }
                 ModNetworking.SendToAll(Messages.rocketLostTargetMsg.CreateMessage(parentBlock));
             }
             RocketsController.Instance.RemoveRocketTarget(parentBlock);

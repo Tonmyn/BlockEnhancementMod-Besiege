@@ -72,6 +72,9 @@ namespace BlockEnhancementMod
                 Block rocketBlock = (Block)msg.GetData(0);
                 TimedRocket rocket = rocketBlock.GameObject.GetComponent<TimedRocket>();
                 RocketsController.Instance.UpdateRocketFiredStatus(rocket);
+
+                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
+                radar.Switch = true;
             };
 
             ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
@@ -80,7 +83,7 @@ namespace BlockEnhancementMod
                 Debug.Log("Receive block target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(1);
-                RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
+                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
 
                 Block target = ((Block)msg.GetData(0));
 
@@ -96,7 +99,7 @@ namespace BlockEnhancementMod
                 Debug.Log("Receive entity target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(1);
-                RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
+                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
 
                 GenericEntity target = ((GenericEntity)msg.GetData(0));
 
@@ -109,10 +112,14 @@ namespace BlockEnhancementMod
             ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
             {
 #if DEBUG
-                Debug.Log("Receive entity target");
+                Debug.Log("Clear Target");
 #endif
                 Block rocketBlock = (Block)msg.GetData(0);
-                RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
+                if (rocketBlock == null) return;
+
+                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
+                if (radar == null) return;
+
                 radar.ClearTarget();
                 //radar.target.transform = null;
                 //radar.target.collider = null;
@@ -122,22 +129,24 @@ namespace BlockEnhancementMod
             ModNetworking.Callbacks[Messages.rocketRayToHostMsg] += (Message msg) =>
             {
                 Block rocketBlock = (Block)msg.GetData(2);
-                RadarScript radar = rocketBlock.GameObject.GetComponent<RadarScript>();
+                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
                 radar.rayFromClient = new Ray((Vector3)msg.GetData(0), (Vector3)msg.GetData(1));
                 radar.receivedRayFromClient = true;
             };
 
             ModNetworking.Callbacks[Messages.rocketLockOnMeMsg] += (Message msg) =>
             {
-                Block rocket = (Block)msg.GetData(0);
+                Block rocketBlock = (Block)msg.GetData(0);
                 int targetMachineID = (int)msg.GetData(1);
-                RocketsController.Instance.UpdateRocketTarget(rocket.InternalObject, targetMachineID);
+                RocketsController.Instance.UpdateRocketTarget(rocketBlock.InternalObject, targetMachineID);
 
             };
             ModNetworking.Callbacks[Messages.rocketLostTargetMsg] += (Message msg) =>
             {
-                Block rocket = (Block)msg.GetData(0);
-                RocketsController.Instance.RemoveRocketTarget(rocket.InternalObject);
+                Block rocketBlock = (Block)msg.GetData(0);
+                if (rocketBlock == null) return;
+
+                RocketsController.Instance.RemoveRocketTarget(rocketBlock.InternalObject);
             };
         }
     }
