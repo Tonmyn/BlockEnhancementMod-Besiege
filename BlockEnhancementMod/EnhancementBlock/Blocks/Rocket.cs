@@ -350,8 +350,8 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && rocket.hasFired;
-                                radar.meshCollider.enabled = radar.canBeOverridden && rocket.hasFired;
+                                radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
+                                radar.meshCollider.enabled = radar.canBeOverridden && radar.Switch;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {
