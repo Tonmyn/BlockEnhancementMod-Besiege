@@ -53,7 +53,7 @@ namespace BlockEnhancementMod
         }
         void Update()
         {
-            if (BB.isSimulating)
+            if (BB.SimPhysics)
             {
                 if (isFirstFrame)
                 {
@@ -81,13 +81,13 @@ namespace BlockEnhancementMod
         {
             if (!EnhancementEnabled) return;
 
-            if (BB.isSimulating && !isFirstFrame) { SimulateFixedUpdate_EnhancementEnabled(); }
+            if (BB.SimPhysics && !isFirstFrame) { SimulateFixedUpdate_EnhancementEnabled(); }
         }
         private void LateUpdate()
         {
             if (!EnhancementEnabled) return;
 
-            if (BB.isSimulating && !isFirstFrame) { SimulateLateUpdate_EnhancementEnabled(); }
+            if (BB.SimPhysics && !isFirstFrame) { SimulateLateUpdate_EnhancementEnabled(); }
         }
         [Obsolete]
         private void SaveConfiguration(PlayerMachineInfo pmi)
