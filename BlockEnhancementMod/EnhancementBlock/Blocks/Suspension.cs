@@ -39,31 +39,26 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
 
+
             HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/0, LanguageManager.Instance.CurrentLanguage.MetalHardness/*, false*/);
-            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
             ExtendKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.Extend, "Extend", KeyCode.E);
             ShrinkKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.Retract, "Shrink", KeyCode.F);           
 
             HydraulicToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.HydraulicMode, "Pressure", /*Hydraulic*/false);
-            //HydraulicToggle.Toggled += (bool value) => { Hydraulic /*= R2CToggle.DisplayInMapper = ExtendKey.DisplayInMapper = ShrinkKey.DisplayInMapper = FeedSlider.DisplayInMapper = ExtendLimitSlider.DisplayInMapper = ShrinkLimitSlider.DisplayInMapper*/ = value; DisplayInMapper(EnhancementEnabled); ChangedProperties(); };
 
             R2CToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center",/* R2C*/false);
-            //R2CToggle.Toggled += (bool value) => { R2C = value; ChangedProperties(); };
 
             DamperSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", /*Damper*/1f, 0f, 5f);
-            //DamperSlider.ValueChanged += (value) => { Damper = value; ChangedProperties(); };
 
             FeedSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", /*Feed*/0.5f, 0f, 2f);
-            //FeedSlider.ValueChanged += (float value) => { Feed = value; ChangedProperties(); };
 
             ExtendLimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.ExtendLimit, "ExtendLimit", /*ExtendLimit*/1f, 0f, 3f);
-            //ExtendLimitSlider.ValueChanged += (float value) => { ExtendLimit = value; ChangedProperties(); };
 
             ShrinkLimitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.RetractLimit, "ShrinkLimit", /*RetractLimit*/1f, 0f, 3f);
-            //ShrinkLimitSlider.ValueChanged += (float value) => { RetractLimit = value; ChangedProperties(); };
 
             SpeedSlider = FeedSlider;
+
             base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("悬挂添加进阶属性");
@@ -77,6 +72,8 @@ namespace BlockEnhancementMod
 
             var _value = value && HydraulicToggle.IsActive;
 
+            HardnessMenu.DisplayInMapper = value;
+
             DamperSlider.DisplayInMapper = value;
             ExtendKey.DisplayInMapper = _value;
             ShrinkKey.DisplayInMapper = _value;
@@ -85,9 +82,6 @@ namespace BlockEnhancementMod
             FeedSlider.DisplayInMapper = _value;
             ExtendLimitSlider.DisplayInMapper = _value;
             ShrinkLimitSlider.DisplayInMapper = _value;
-            AddSpeedKey.DisplayInMapper = _value;
-            ReduceSpeedKey.DisplayInMapper = _value;
-            ChangeSpeedValue.DisplayInMapper = _value;
         }
 
         public override void OnSimulateStartClient()

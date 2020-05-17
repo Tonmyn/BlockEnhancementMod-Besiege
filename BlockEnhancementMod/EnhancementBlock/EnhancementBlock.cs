@@ -213,7 +213,7 @@ namespace BlockEnhancementMod
         /// 显示在Mapper里面
         /// </summary>
         /// <param name="value">EnhancementEnabled.value</param>
-        public virtual void DisplayInMapper(bool value) { }
+        public virtual void DisplayInMapper(bool value) {  }
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
@@ -227,42 +227,36 @@ namespace BlockEnhancementMod
         {
             var mapper = BB.AddKey(displayName, key, defaultValue);
             mapper.KeysChanged += () => { PropertiseChangedEvent(); };
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MSlider AddSlider(string displayName,string key ,float defaultValue,float min,float max)
         {
             var mapper = BB.AddSlider(displayName, key, defaultValue, min, max);
             mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MToggle AddToggle(string displayName, string key, bool defaultValue)
         {
             var mapper = BB.AddToggle(displayName, key, defaultValue);
-            mapper.Toggled += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent();  };
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            mapper.Toggled += (value) => {PropertiseChangedEvent();  };
             return mapper;
         }
         public MMenu AddMenu(string key, int defaultIndex, List<string> items)
         {
             var mapper = BB.AddMenu(key, defaultIndex, items);
-            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent();};
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); };
             return mapper;
         }
         public MColourSlider AddColourSlider(string displayName, string key, Color defaultValue,bool snapColors)
         {
             var mapper = BB.AddColourSlider(displayName, key, defaultValue,snapColors);
             mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
             return mapper;
         }
         public MValue AddValue(string displayName, string key, float defaultValue)
         {
             var mapper = BB.AddValue(displayName, key, defaultValue);
-            mapper.ValueChanged += (value) => { if(Input.GetKeyUp(KeyCode.Mouse0))PropertiseChangedEvent(); };
-            //PropertiseChangedEvent += () => { mapper.DisplayInMapper = EnhancementEnabled; };
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); };
             return mapper;
         }
     }
@@ -292,8 +286,10 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
             try
             {
+                Debug.Log("??");
                 AddSpeedKey.DisplayInMapper = ReduceSpeedKey.DisplayInMapper = ChangeSpeedValue.DisplayInMapper = value;
             }
             catch { }
@@ -334,6 +330,7 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
         }
 

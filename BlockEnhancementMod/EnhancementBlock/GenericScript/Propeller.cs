@@ -9,32 +9,18 @@ namespace BlockEnhancementMod
     class Propeller_GenericEnhanceScript : ChangeHardnessBlock
     {
         MKey SwitchKey;
-        //MMenu HardnessMenu;
         MToggle EffectToggle;
         MToggle ToggleToggle;
         MToggle LiftIndicatorToggle;
-
-        //int HardnessIndex = 1;
-        //bool Effect = true,Toggle = true,LiftIndicator = false;
 
         public override void SafeAwake()
         {
 
             SwitchKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.Enabled, "Switch", KeyCode.O);
-            //SwitchKey.KeysChanged += ChangedProperties;
-
             HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
-            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
-
             EffectToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.EnabledOnAwake, "Effect", /*Effect*/true);
-            //EffectToggle.Toggled += (bool value) => { Effect = value; ChangedProperties(); };
-
             ToggleToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ToggleMode, "Toggle Mode", /*Toggle*/true);
-            //ToggleToggle.Toggled += (value) => { Toggle = value; ChangedProperties(); };
-
             LiftIndicatorToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.LiftIndicator, "Lift Indicator", /*LiftIndicator*/false);
-            //LiftIndicatorToggle.Toggled += (value) => { LiftIndicator = value; ChangedProperties(); };
-
             base.SafeAwake();
 
 #if DEBUG
@@ -44,48 +30,49 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             SwitchKey.DisplayInMapper = value;
-            HardnessMenu.DisplayInMapper = value;
             EffectToggle.DisplayInMapper = value;
             ToggleToggle.DisplayInMapper = value;
             LiftIndicatorToggle.DisplayInMapper = value;
         }
 
-        //private ConfigurableJoint ConfigurableJoint;
         private LineRenderer LR;
         private AxialDrag AD;
         
         private Vector3 liftVector;
         private Vector3 axisDragOrgin;
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
-            if (EnhancementEnabled)
+            ConfigurableJoint = GetComponent<ConfigurableJoint>();
+            AD = GetComponent<AxialDrag>();
+            axisDragOrgin = AD.AxisDrag;
+
+            SetVelocityCap(/*Effect*/EffectToggle.IsActive);
+
+            hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
+
+            initLineRenderer();
+
+            if (LiftIndicatorToggle.IsActive)
             {
-                ConfigurableJoint = GetComponent<ConfigurableJoint>();
-                AD = GetComponent<AxialDrag>();
-                axisDragOrgin = AD.AxisDrag;
+                LR.enabled = true;
+            }
 
-                SetVelocityCap(/*Effect*/EffectToggle.IsActive);
-
-                hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
-
-                if (/*LiftIndicator*/LiftIndicatorToggle.IsActive)
-                {
-                    LR = GetComponent<LineRenderer>() ?? gameObject.AddComponent<LineRenderer>();
-
-                    LR.useWorldSpace = true;
-                    LR.SetVertexCount(2);
-                    LR.material = new Material(Shader.Find("Particles/Additive"));
-                    LR.SetColors(Color.red, Color.yellow);
-                    LR.SetWidth(0.5f, 0.5f);
-                    LR.enabled = true;
-                }
-                else
-                {
-                    if (LR != null) Destroy(LR);
-                }
-            }        
+            void initLineRenderer()
+            {
+                var go = new GameObject("Lift Indicator");
+                go.transform.SetParent(transform);
+                LR = go.GetComponent<LineRenderer>() ?? go.AddComponent<LineRenderer>();
+                LR.useWorldSpace = true;
+                LR.SetVertexCount(2);
+                LR.material = new Material(Shader.Find("Particles/Additive"));
+                LR.SetColors(Color.red, Color.yellow);
+                LR.SetWidth(0.5f, 0.5f);
+                LR.enabled = false;
+            }
         }
         public override void SimulateUpdateAlways_EnhancementEnable()
         {

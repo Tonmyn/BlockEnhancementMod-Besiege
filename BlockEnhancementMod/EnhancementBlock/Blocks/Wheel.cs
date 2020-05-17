@@ -30,16 +30,12 @@ namespace BlockEnhancementMod.Blocks
             Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
 
             ColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", false);
-            //ColliderToggle.Toggled += (value) => { Collider = ShowColliderToggle.DisplayInMapper = value; ChangedProperties(); };
 
             ShowColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", true);
-            //ShowColliderToggle.Toggled += (value) => { ShowCollider = value; ChangedProperties(); };
 
             FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
-            //FrictionSlider.ValueChanged += (float value) => { Friction = value; ChangedProperties(); };
 
             BouncinessSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", /*Bounciness*/0f, 0f, 1f);
-            //BouncinessSlider.ValueChanged += (float value) => { Bounciness = value; ChangedProperties(); };
 
             if (WheelColliderOrgin == null)
             {
