@@ -66,16 +66,20 @@ namespace BlockEnhancementMod
             {
                 if (blockRadar.target != null && Switch)
                 {
-                    if (blockRadar.target.block != null)
+                    if (blockRadar.target.transform != null)
                     {
-                        if (blockRadar.target.block != parentBlock)
+                        if (blockRadar.target.block != null)
                         {
+                            if (blockRadar.target.block != parentBlock)
+                            {
+                                StartCoroutine(AddGuideForce());
+                            }
+                        }
+                        else
+                        {
+
                             StartCoroutine(AddGuideForce());
                         }
-                    }
-                    else
-                    {
-                        StartCoroutine(AddGuideForce());
                     }
                 }
             }

@@ -40,16 +40,16 @@ namespace BlockEnhancementMod
 #if DEBUG
             ConsoleController.ShowMessage("桨叶添加进阶属性");
 #endif
-        } 
-     
-        //public override void DisplayInMapper(bool value)
-        //{
-        //    SwitchKey.DisplayInMapper = value;
-        //    HardnessMenu.DisplayInMapper = value;
-        //    EffectToggle.DisplayInMapper = value;
-        //    ToggleToggle.DisplayInMapper = value;
-        //    LiftIndicatorToggle.DisplayInMapper = value;
-        //}
+        }
+
+        public override void DisplayInMapper(bool value)
+        {
+            SwitchKey.DisplayInMapper = value;
+            HardnessMenu.DisplayInMapper = value;
+            EffectToggle.DisplayInMapper = value;
+            ToggleToggle.DisplayInMapper = value;
+            LiftIndicatorToggle.DisplayInMapper = value;
+        }
 
         //private ConfigurableJoint ConfigurableJoint;
         private LineRenderer LR;
