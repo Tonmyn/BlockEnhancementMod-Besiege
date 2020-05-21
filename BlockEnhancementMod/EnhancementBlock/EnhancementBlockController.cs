@@ -135,6 +135,7 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPanel,typeof(WoodenScript)},
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
+            { (int)BlockType.ArmorPlateSmall,typeof(ArmorScript) },
         };
     }
 }
