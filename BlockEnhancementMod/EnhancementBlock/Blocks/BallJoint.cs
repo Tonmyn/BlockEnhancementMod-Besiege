@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    class BallJointScript : EnhancementBlock
+    public class BallJointScript : EnhancementBlock
     {
 
         public MToggle RotationToggle;

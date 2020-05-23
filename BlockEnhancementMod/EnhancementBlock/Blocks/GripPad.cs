@@ -6,7 +6,7 @@ using UnityEngine;
 using Modding;
 using Modding.Blocks;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
     public class GripPadScript : ChangeSpeedBlock,IChangeHardness
     {
