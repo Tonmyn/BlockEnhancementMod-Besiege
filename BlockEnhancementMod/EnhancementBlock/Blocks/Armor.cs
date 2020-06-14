@@ -85,7 +85,7 @@ namespace BlockEnhancementMod
 
             if (fcc == null) return;
 
-            if (changeChannelKey.isEmulator || changeChannelKey.IsPressed)
+            if (changeChannelKey.IsPressed|| changeChannelKey.EmulationPressed())
             {
                 if (++channelIndex > fcc.cameras.Count - 1)
                 {
