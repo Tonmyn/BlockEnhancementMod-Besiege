@@ -25,10 +25,10 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            changeChannelKey = AddKey("Change Channel", "Change Channel", KeyCode.C);
+            changeChannelKey = AddKey(LanguageManager.Instance.CurrentLanguage.ChangeChannel, "Change Channel", KeyCode.C);
 
-            widthPixelValue = AddValue("Width Pixel", "Width", 800f);
-            heightPixelValue = AddValue("Height Pixel", "Height", 800f);
+            widthPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.WidthPixel, "Width", 800f);
+            heightPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.HeightPixel, "Height", 800f);
 
 #if DEBUG
             ConsoleController.ShowMessage("盔甲添加进阶属性");

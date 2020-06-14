@@ -233,6 +233,11 @@ namespace BlockEnhancementMod
         string ChangeSpeed { get; }
         string AddSpeed { get; }
         string ReduceSpeed { get; }
+
+        //Armor
+        string ChangeChannel { get; }
+        string WidthPixel { get; }
+        string HeightPixel { get; }
     }
 
     public class Chinese : ILanguage
@@ -426,6 +431,11 @@ namespace BlockEnhancementMod
         public string ChangeSpeed { get; } = "改变速度";
         public string AddSpeed { get; } = "加速";
         public string ReduceSpeed { get; } = "减速";
+
+        //Armor
+        public string ChangeChannel { get; } = "更换频道";
+        public string WidthPixel { get; } = "宽度像素";
+        public string HeightPixel { get; } = "高度像素";
     }
 
     public class English : ILanguage
@@ -620,6 +630,11 @@ namespace BlockEnhancementMod
         public string AddSpeed { get; } = "Add Speed";
 
         public string ReduceSpeed { get; } = "Reduce Speed";
+
+        //Armor
+        public string ChangeChannel { get; } = "Change Channel";
+        public string WidthPixel { get; } = "Width Pixel";
+        public string HeightPixel { get; } = "Height Pixel";
     }
 
     public class Japanese : ILanguage
@@ -814,5 +829,10 @@ namespace BlockEnhancementMod
 
         public string AddSpeed { get; } = "速度を加える";
         public string ReduceSpeed { get; } = "速度を落とす";
+
+        //Armor
+        public string ChangeChannel { get; } = "チャンネル変更";
+        public string WidthPixel { get; } = "幅ピクセル";
+        public string HeightPixel { get; } = "高さピクセル";
     }
 }
