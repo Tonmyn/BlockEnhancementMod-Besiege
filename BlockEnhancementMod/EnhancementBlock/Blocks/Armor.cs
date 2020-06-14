@@ -9,113 +9,106 @@ namespace BlockEnhancementMod
 {
     class ArmorScript : EnhancementBlock
     {
-        Camera c;
+        Camera watchCamera;
+        GameObject cameraObject;
+        GameObject screenObject;
+        int channelIndex=0;
 
-        GameObject go;
 
-        GameObject screen;
+        MeshRenderer mr;
+        RenderTexture rt;
+        FixedCameraController fcc;
+
+        MValue widthPixelValue;
+        MValue heightPixelValue;
+        MKey changeChannelKey;
+
         public override void SafeAwake()
         {
+            changeChannelKey = AddKey("Change Channel", "Change Channel", KeyCode.C);
 
-
-
+            widthPixelValue = AddValue("Width Pixel", "Width", 800f);
+            heightPixelValue = AddValue("Height Pixel", "Height", 800f);
 
 #if DEBUG
             ConsoleController.ShowMessage("盔甲添加进阶属性");
 #endif
         }
 
-        MeshRenderer mr;
-        RenderTexture rt;
-        FixedCameraController fcc;
+        public override void DisplayInMapper(bool value)
+        {
+            base.DisplayInMapper(value);
+
+            changeChannelKey.DisplayInMapper = value;
+
+            widthPixelValue.DisplayInMapper = value;
+            heightPixelValue.DisplayInMapper = value;
+        }
+
+
         public override void OnSimulateStart_EnhancementEnabled()
         {
             base.OnSimulateStart_EnhancementEnabled();
-            Debug.Log("??");
-
-
-            screen = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            screen.name = "Screen";
-            Destroy(screen.GetComponent<MeshCollider>());
-            screen.transform.SetParent(transform);
-            screen.transform.position = transform.position;
-            screen.transform.rotation = transform.rotation;
-            screen.transform.localPosition = Vector3.forward * 0.25f;
-            screen.transform.localEulerAngles = new Vector3(90, 0, 0);
-            screen.transform.localScale = Vector3.one * 0.07f;
-
-
-            go = new GameObject("camera");
-            go.transform.SetParent(transform);
-            c = go.AddComponent<Camera>();
-            c.CopyFrom(Camera.main);
 
             fcc = GameObject.FindObjectOfType<FixedCameraController>();
-            mr =screen.transform.GetComponent<MeshRenderer>();
-            mr.material.shader = Shader.Find("Diffuse");
-            rt = new RenderTexture(800, 800,0);
-
-            c.targetTexture = rt;
 
             if (fcc != null)
             {
-                var target = fcc.cameras[0];
-                var tran = target.CompositeTracker2;
-                go.transform.SetParent(target.CompositeTracker);
-                go.transform.position = tran.transform.position;
-                go.transform.rotation = tran.transform.rotation;
-                go.transform.localEulerAngles = tran.localEulerAngles;
+                rt = new RenderTexture(Mathf.Clamp((int)widthPixelValue.Value, 0, 1920), Mathf.Clamp((int)heightPixelValue.Value, 0, 1080), 0);
 
-            }
+                cameraObject = new GameObject("WatchCamera");
+                cameraObject.transform.SetParent(transform);
+                watchCamera = cameraObject.AddComponent<Camera>();
+                watchCamera.CopyFrom(Camera.main);
+                watchCamera.targetTexture = rt;
 
-            if (mr != null)
-            {
+                screenObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                screenObject.name = "Screen";
+                Destroy(screenObject.GetComponent<MeshCollider>());
+                screenObject.transform.SetParent(transform);
+                screenObject.transform.position = transform.position;
+                screenObject.transform.rotation = transform.rotation;
+                screenObject.transform.localPosition = Vector3.forward * 0.25f;
+                screenObject.transform.localEulerAngles = new Vector3(90, 0, 0);
+                screenObject.transform.localScale = Vector3.one * 0.07f;
+                mr = screenObject.transform.GetComponent<MeshRenderer>();
+                mr.material.shader = Shader.Find("Particles/Alpha Blended");
                 mr.material.mainTexture = rt;
+
+                stickToCamera(0);
             }
         }
-        Texture2D screenShot;
+
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             base.SimulateUpdateAlways_EnhancementEnable();
 
-            //if (fcc != null)
-            //{
-            //    Debug.Log(fcc.cameras[0]. targetPosition);
-            //}
+            if (fcc == null) return;
 
-
-
-            //RenderTexture.active = rt;
-            //screenShot = new Texture2D((int)800, (int)800, TextureFormat.RGB24, false);
-            //screenShot.ReadPixels(new Rect(100, 100, 800, 800), 0, 0);
-            //screenShot.Apply();
-
-            //Camera.main.targetTexture = null;
-            //RenderTexture.active = null;
-
-            //Destroy(rt);
-
-
-
-
-            if (Input.GetKeyDown(KeyCode.I))
+            if (changeChannelKey.isEmulator || changeChannelKey.IsPressed)
             {
-                Debug.Log("...");
-
-                Debug.Log(Camera.allCamerasCount);
+                if (++channelIndex > fcc.cameras.Count - 1)
+                {
+                    channelIndex = 0;
+                }
+                stickToCamera(channelIndex);
             }
         }
 
-        public override void SimulateLateUpdate_EnhancementEnabled()
+        private void stickToCamera(int index)
         {
-            base.SimulateLateUpdate_EnhancementEnabled();
+            if (fcc != null)
+            {
+                index = Mathf.Clamp(index, 0, fcc.cameras.Count - 1);
 
+                var target = fcc.cameras[index];
+                var tran = target.CompositeTracker2;
+                cameraObject.transform.SetParent(target.CompositeTracker);
+                cameraObject.transform.position = tran.transform.position;
+                cameraObject.transform.rotation = tran.transform.rotation;
+                cameraObject.transform.localEulerAngles = tran.localEulerAngles;
 
-
-
-
-
+            }
         }
-
     }
 }
