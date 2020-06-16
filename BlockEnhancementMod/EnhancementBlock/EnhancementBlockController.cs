@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
     {
         public override string Name { get; } = "Enhancement Block Controller";
 
-        [Obsolete]
+        //[Obsolete]
         /// <summary>存档信息</summary>
         internal PlayerMachineInfo PMI;
 
@@ -23,8 +23,9 @@ namespace BlockEnhancementMod
 
         private void Awake()
         {
-            ////加载配置
+            //加载配置
             //Events.OnMachineLoaded += LoadConfiguration;
+            Events.OnMachineLoaded += (pmi) => { PMI = pmi; };
             ////储存配置
             //Events.OnMachineSave += SaveConfiguration;
             //添加零件初始化事件委托

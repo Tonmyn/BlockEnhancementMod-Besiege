@@ -1,6 +1,7 @@
 ﻿using Modding;
 using Modding.Blocks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace BlockEnhancementMod
         GameObject cameraObject;
         GameObject screenObject;
         int channelIndex=0;
-        List<string> channelList = new List<string> { "-1","0" ,"1","2","3"};
+        List<string> channelList = new List<string> { "-1"};
 
         MeshRenderer mr;
         RenderTexture rt;
@@ -30,27 +31,18 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
             changeChannelKey = AddKey(LanguageManager.Instance.CurrentLanguage.ChangeChannel, "Change Channel", KeyCode.C);
+            switchKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Switch", KeyCode.E);
 
             channelMenu = AddMenu("Channel Menu", 0, channelList);
             widthPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.WidthPixel, "Width", 800f);
             heightPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.HeightPixel, "Height", 800f);
 
-            switchKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Switch", KeyCode.E);
+            StartCoroutine(initChannelInBuilding());
 
-       
-
-            RefreshCameraChannelList(null);
-            /*channelMenu.Value = channelIndex =*/
-
-            //Debug.Log(Machine.Active().MachineData.ReadInt("Channel Menu"));
-
-            Events.OnBlockPlaced += RefreshCameraChannelList;
-            Events.OnBlockRemoved += RefreshCameraChannelList;
 #if DEBUG
             ConsoleController.ShowMessage("盔甲添加进阶属性");
 #endif
         }
-
         public override void DisplayInMapper(bool value)
         {
             base.DisplayInMapper(value);
@@ -61,8 +53,6 @@ namespace BlockEnhancementMod
             heightPixelValue.DisplayInMapper = value;
             switchKey.DisplayInMapper = value;
         }
-
-
         public override void OnSimulateStart_EnhancementEnabled()
         {
             base.OnSimulateStart_EnhancementEnabled();
@@ -96,7 +86,6 @@ namespace BlockEnhancementMod
                 stickToCamera(channelIndex);
             }
         }
-
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             base.SimulateUpdateAlways_EnhancementEnable();
@@ -117,7 +106,6 @@ namespace BlockEnhancementMod
                 mr.enabled = !mr.enabled;
             }
         }
-
         private void stickToCamera(int index)
         {
             if (fcc != null)
@@ -133,7 +121,6 @@ namespace BlockEnhancementMod
 
             }
         }
-
         public void RefreshCameraChannelList(Block  block)
         {
             fcc = GameObject.FindObjectOfType<FixedCameraController>();
@@ -162,6 +149,26 @@ namespace BlockEnhancementMod
             {
                 channelMenu.Value = channelIndex;
             }
+        }
+
+        private IEnumerator initChannelInBuilding()
+        {
+            if (!Machine.Active().isSimulating)
+            {
+                int defaultChannelIndex = EnhancementBlockController.Instance.PMI.Blocks.ToList().Find(match => match.Guid == BB.Guid).Data.ReadInt("bmt-Channel Menu");
+
+                for (int i = 0; i < 10; i++)
+                {
+                    yield return 0;
+                }
+                RefreshCameraChannelList(null);
+                if (defaultChannelIndex < channelList.Count)
+                {
+                    channelMenu.Value = channelIndex = defaultChannelIndex;
+                }
+                yield break;
+            }
+            yield break;
         }
     }
 }
