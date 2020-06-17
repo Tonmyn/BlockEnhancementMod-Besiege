@@ -39,6 +39,9 @@ namespace BlockEnhancementMod
 
             StartCoroutine(initChannelInBuilding());
 
+            Events.OnBlockPlaced += RefreshCameraChannelList;
+            Events.OnBlockRemoved += RefreshCameraChannelList;
+
 #if DEBUG
             ConsoleController.ShowMessage("盔甲添加进阶属性");
 #endif
