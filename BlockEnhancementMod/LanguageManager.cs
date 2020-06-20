@@ -239,6 +239,7 @@ namespace BlockEnhancementMod
         string WidthPixel { get; }
         string HeightPixel { get; }
         string Switch { get; }
+        List<string> NullChannelList { get; }
     }
 
     public class Chinese : ILanguage
@@ -438,6 +439,7 @@ namespace BlockEnhancementMod
         public string WidthPixel { get; } = "宽度像素";
         public string HeightPixel { get; } = "高度像素";
         public string Switch { get; } = "开关";
+        public List<string> NullChannelList { get; } = new List<string> { "无信号" };
     }
 
     public class English : ILanguage
@@ -638,6 +640,7 @@ namespace BlockEnhancementMod
         public string WidthPixel { get; } = "Width Pixel";
         public string HeightPixel { get; } = "Height Pixel";
         public string Switch { get; } = "Switch";
+        public List<string> NullChannelList { get; } = new List<string> { "No Channel" };
     }
 
     public class Japanese : ILanguage
@@ -838,5 +841,6 @@ namespace BlockEnhancementMod
         public string WidthPixel { get; } = "幅ピクセル";
         public string HeightPixel { get; } = "高さピクセル";
         public string Switch { get; } = "スイッチ";
+        public List<string> NullChannelList { get; } = new List<string> { "チャンネルなし" };
     }
 }

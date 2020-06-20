@@ -42,6 +42,8 @@ namespace BlockEnhancementMod
             Events.OnBlockPlaced += RefreshCameraChannelList;
             Events.OnBlockRemoved += RefreshCameraChannelList;
 
+
+
 #if DEBUG
             ConsoleController.ShowMessage("盔甲添加进阶属性");
 #endif
@@ -59,45 +61,46 @@ namespace BlockEnhancementMod
         public override void OnSimulateStart_EnhancementEnabled()
         {
             base.OnSimulateStart_EnhancementEnabled();
+            channelList = BB.BuildingBlock.GetComponent<ArmorScript>().channelList;
+            channelIndex = BB.BuildingBlock.GetComponent<ArmorScript>().channelIndex;
 
             fcc = GameObject.FindObjectOfType<FixedCameraController>();
 
-            if (fcc != null)
-            {
-                rt = new RenderTexture(Mathf.Clamp((int)widthPixelValue.Value, 0, 1920), Mathf.Clamp((int)heightPixelValue.Value, 0, 1080), 0);
+            if (channelIndex < 0 || fcc == null) return;
 
-                cameraObject = new GameObject("WatchCamera");
-                cameraObject.transform.SetParent(transform);
-                watchCamera = cameraObject.AddComponent<Camera>();
-                watchCamera.CopyFrom(Camera.main);
-                watchCamera.targetTexture = rt;
+            rt = new RenderTexture(Mathf.Clamp((int)widthPixelValue.Value, 0, 1920), Mathf.Clamp((int)heightPixelValue.Value, 0, 1080), 0);
 
-                screenObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                screenObject.name = "Screen";
-                Destroy(screenObject.GetComponent<MeshCollider>());
-                screenObject.transform.SetParent(transform);
-                screenObject.transform.position = transform.position;
-                screenObject.transform.rotation = transform.rotation;
-                screenObject.transform.localPosition = Vector3.forward * 0.25f;
-                screenObject.transform.localEulerAngles = new Vector3(90, 0, 0);
-                screenObject.transform.localScale = Vector3.one * 0.07f;
-                mr = screenObject.transform.GetComponent<MeshRenderer>();
-                mr.material.shader = Shader.Find("Particles/Alpha Blended");
-                mr.material.mainTexture = rt;
+            cameraObject = new GameObject("WatchCamera");
+            cameraObject.transform.SetParent(transform);
+            watchCamera = cameraObject.AddComponent<Camera>();
+            watchCamera.CopyFrom(Camera.main);
+            watchCamera.targetTexture = rt;
 
-                channelIndex = BB.BuildingBlock.GetComponent<ArmorScript>().channelMenu .Value;
-                stickToCamera(channelIndex);
-            }
+            screenObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            screenObject.name = "Screen";
+            Destroy(screenObject.GetComponent<MeshCollider>());
+            screenObject.transform.SetParent(transform);
+            screenObject.transform.position = transform.position;
+            screenObject.transform.rotation = transform.rotation;
+            screenObject.transform.localPosition = Vector3.forward * 0.25f;
+            screenObject.transform.localEulerAngles = new Vector3(90, 0, 0);
+            screenObject.transform.localScale = Vector3.one * 0.07f;
+            mr = screenObject.transform.GetComponent<MeshRenderer>();
+            mr.material.shader = Shader.Find("Particles/Alpha Blended");
+            mr.material.mainTexture = rt;
+
+            stickToCamera(channelIndex);
+
         }
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             base.SimulateUpdateAlways_EnhancementEnable();
 
-            if (fcc == null) return;
+            if (channelIndex < 0) return;
 
             if (changeChannelKey.IsPressed|| changeChannelKey.EmulationPressed())
             {
-                if (++channelIndex > fcc.cameras.Count - 1)
+                if (++channelIndex >channelList.Count - 1)
                 {
                     channelIndex = 0;
                 }
@@ -126,31 +129,58 @@ namespace BlockEnhancementMod
         }
         public void RefreshCameraChannelList(Block  block)
         {
-            fcc = GameObject.FindObjectOfType<FixedCameraController>();
-            if (fcc == null) return;
-
-            if (fcc.cameras.Count > 0)
+            try
             {
-                channelList = new List<string> { };
+                StartCoroutine(waitThreeFrame());
+            }
+            catch { }
 
-                for (int i = 0; i < fcc.cameras.Count; i++)
+            IEnumerator waitThreeFrame()
+            {
+                for (int i = 0; i < 3; i++)
                 {
-                    channelList.Add(i.ToString());
+                    yield return 0;
                 }
-            }
-            else
-            {
-                channelList = new List<string> { "-1" };
-            }
-            channelMenu.Items = channelList;
 
-            if (channelIndex > channelList.Count + 1)
-            {
-                channelIndex = channelMenu.Value = 0;
+                refreshChannelList();
             }
-            else
+            void refreshChannelList()
             {
-                channelMenu.Value = channelIndex;
+                if (!Machine.Active().isSimulating)
+                {
+                    channelList = new List<string> { };
+                    int index = -1;
+
+                    foreach (var bb in Machine.Active().BuildingBlocks)
+                    {
+                        if (bb.name == "CameraBlock")
+                        {
+                            index++;
+                            channelList.Add(index.ToString());
+                        }
+                    }
+        
+                    if (index < 0)
+                    {
+                        channelList = LanguageManager.Instance.CurrentLanguage.NullChannelList;
+                        channelIndex = -1;
+                    }
+
+                    channelMenu.Items = channelList;
+
+                    if ((channelIndex > channelList.Count + 1))
+                    {
+                        channelIndex = channelMenu.Value = 0;
+                    }
+                    else if (channelIndex < 0)
+                    {
+                        channelMenu.Value = 0;
+                    }
+                    else
+                    {
+                        channelMenu.Value = channelIndex;
+                    }
+                }
             }
         }
 
@@ -158,17 +188,34 @@ namespace BlockEnhancementMod
         {
             if (!Machine.Active().isSimulating)
             {
-                int defaultChannelIndex = EnhancementBlockController.Instance.PMI.Blocks.ToList().Find(match => match.Guid == BB.Guid).Data.ReadInt("bmt-Channel Menu");
+                int defaultChannelIndex = 0;
+                try
+                {
+                    defaultChannelIndex = EnhancementBlockController.Instance.PMI.Blocks.ToList().Find(match => match.Guid == BB.Guid).Data.ReadInt("bmt-Channel Menu");
+                }
+                catch
+                { 
+                
+                }
 
                 for (int i = 0; i < 10; i++)
                 {
                     yield return 0;
                 }
                 RefreshCameraChannelList(null);
-                if (defaultChannelIndex < channelList.Count)
+                if (channelList != null)
                 {
-                    channelMenu.Value = channelIndex = defaultChannelIndex;
+                    if (defaultChannelIndex < channelList.Count)
+                    {
+                        channelMenu.Value = channelIndex = defaultChannelIndex;
+                    }
                 }
+                else
+                {
+                    channelList = LanguageManager.Instance.CurrentLanguage.NullChannelList;
+                    channelMenu.Value = channelIndex = 0;
+                }
+       
                 yield break;
             }
             yield break;
