@@ -88,6 +88,7 @@ namespace BlockEnhancementMod
             mr = screenObject.transform.GetComponent<MeshRenderer>();
             mr.material.shader = Shader.Find("Particles/Alpha Blended");
             mr.material.mainTexture = rt;
+            mr.sortingOrder =50;
 
             stickToCamera(channelIndex);
 
@@ -159,11 +160,18 @@ namespace BlockEnhancementMod
                             channelList.Add(index.ToString());
                         }
                     }
-        
+
                     if (index < 0)
                     {
                         channelList = LanguageManager.Instance.CurrentLanguage.NullChannelList;
                         channelIndex = -1;
+                    }
+                    else
+                    {
+                        if (channelIndex < 0)
+                        {
+                            channelIndex = 0;
+                        }
                     }
 
                     channelMenu.Items = channelList;
