@@ -621,14 +621,13 @@ namespace BlockEnhancementMod
             {
                 while (Switch && RadarType == RadarTypes.ActiveRadar)
                 {
-                    meshCollider.enabled = true;
-                    meshRenderer.enabled = true;
+                    //meshCollider.enabled = true;
+                    //meshRenderer.enabled = true;
                     getRadarTargetList().ForEach(action => blockList.Add(action));
                     yield return 0;
-                    meshCollider.enabled = false;
-                    meshRenderer.enabled = false;
+                    //meshCollider.enabled = false;
+                    //meshRenderer.enabled = false;
                     var fps = PerformanceAnalyser.Instance.FPS;
-                    Debug.Log(RadarFrequency);
                     var single = fps / Mathf.Clamp(RadarFrequency, 1f, fps);
                     var single1 = Mathf.Clamp(single - 1, 0f, single);
                     yield return new WaitForSeconds(single1 * Time.smoothDeltaTime);
@@ -642,8 +641,9 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
 
-            meshCollider.enabled = false;
+            //meshCollider.enabled = false;
             meshRenderer.enabled = false;
+            StopCoroutine("intervalActivateDetectionZone");
         }
 
         private Target ProcessTarget(Collider collider)
