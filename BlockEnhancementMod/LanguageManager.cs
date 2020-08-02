@@ -459,7 +459,7 @@ namespace BlockEnhancementMod
 
         public string AsRadar { get; } = "As Radar";
 
-        public string MarkTarget { get; } = " Display Rocket Target & Lead-computing Gunsight";
+        public string MarkTarget { get; } = " Display Rocket Target & Projectile Interception Point";
 
         public string DisplayRocketCount { get; } = " Display Rocket Count";
 
