@@ -98,7 +98,7 @@ namespace BlockEnhancementMod
             if (!Switch) return;
             if (target == null) return;
             if (target.transform == null) return;
-            
+
             targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
             if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
         }
@@ -231,6 +231,7 @@ namespace BlockEnhancementMod
         }
         private void OnGUI()
         {
+            if (!MarkTarget) return;
             if (StatMaster.isMP && StatMaster.isHosting)
             {
                 if (parentBlock.ParentMachine.PlayerID != 0) return;
@@ -242,11 +243,8 @@ namespace BlockEnhancementMod
             if (Vector3.Dot(Camera.main.transform.forward, targetPosition - Camera.main.transform.position) > 0)
             {
                 Vector3 onScreenPosition;
-                if (MarkTarget)
-                {
-                    onScreenPosition = Camera.main.WorldToScreenPoint(targetPosition);
-                    GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
-                }
+                onScreenPosition = Camera.main.WorldToScreenPoint(targetPosition);
+                GUI.DrawTexture(new Rect(onScreenPosition.x - squareWidth * 0.5f, Camera.main.pixelHeight - onScreenPosition.y - squareWidth * 0.5f, squareWidth, squareWidth), redSquareAim);
 
                 if (ShowBulletLanding && foundHitPosition)
                 {

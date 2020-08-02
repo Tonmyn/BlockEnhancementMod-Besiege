@@ -259,7 +259,7 @@ namespace BlockEnhancementMod
 
         public string AsRadar { get; } = "作为雷达";
 
-        public string MarkTarget { get; } = " 标记火箭目标";
+        public string MarkTarget { get; } = " 标记火箭目标及着弹点";
 
         public string DisplayRocketCount { get; } = " 显示剩余火箭量";
 
@@ -459,7 +459,7 @@ namespace BlockEnhancementMod
 
         public string AsRadar { get; } = "As Radar";
 
-        public string MarkTarget { get; } = " Mark Rocket Target";
+        public string MarkTarget { get; } = " Display Rocket Target & Lead-computing Gunsight";
 
         public string DisplayRocketCount { get; } = " Display Rocket Count";
 
