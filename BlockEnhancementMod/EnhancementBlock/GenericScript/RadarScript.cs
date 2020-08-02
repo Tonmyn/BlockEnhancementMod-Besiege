@@ -236,10 +236,7 @@ namespace BlockEnhancementMod
         {
             var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
 
-            var targetList = colliders.ToList().FindAll(match => match.isTrigger == false);
-            targetList = targetList.FindAll(match => isKinematicRigidbody(match));
-            targetList = targetList.FindAll(match => isInRadarBound(match));
-
+            var targetList = colliders.ToList().FindAll(match => !match.isTrigger && isKinematicRigidbody(match) && isInRadarBound(match));
             var blockList = targetList.ConvertAll(converter => converter.GetComponentInChildren<BlockBehaviour>() ?? converter.GetComponentInParent<BlockBehaviour>());
 
             return blockList;
@@ -621,6 +618,7 @@ namespace BlockEnhancementMod
             //    }
             //    yield break;
             //}
+
             IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             {
                 while (Switch && RadarType == RadarTypes.ActiveRadar)
