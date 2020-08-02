@@ -289,7 +289,6 @@ namespace BlockEnhancementMod
             base.DisplayInMapper(value);
             try
             {
-                Debug.Log("??");
                 AddSpeedKey.DisplayInMapper = ReduceSpeedKey.DisplayInMapper = ChangeSpeedValue.DisplayInMapper = value;
             }
             catch { }
