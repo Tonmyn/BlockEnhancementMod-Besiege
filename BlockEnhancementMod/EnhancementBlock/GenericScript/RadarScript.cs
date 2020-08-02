@@ -46,7 +46,7 @@ namespace BlockEnhancementMod
         private Vector3 hitPosition;
         private bool foundHitPosition = false;
         private float drag;
-        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
+        public static int RadarFrequency { get; } = Mathf.Clamp(BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency"), 1, 60);
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
         private int squareWidth = 40;
@@ -605,7 +605,7 @@ namespace BlockEnhancementMod
             if (StatMaster.isClient) return;
 
             StopCoroutine("intervalActivateDetectionZone");
-            StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
+            StartCoroutine(intervalActivateDetectionZone());
 
             //IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             //{
@@ -619,17 +619,21 @@ namespace BlockEnhancementMod
             //    yield break;
             //}
 
-            IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
+            IEnumerator intervalActivateDetectionZone()
             {
                 while (Switch && RadarType == RadarTypes.ActiveRadar)
                 {
                     meshCollider.enabled = true;
-                    //meshRenderer.enabled = true;
+                    meshRenderer.enabled = true;
                     getRadarTargetList().ForEach(action => blockList.Add(action));
-                    yield return new WaitForSeconds(workTime);
+                    yield return 0;
                     meshCollider.enabled = false;
-                    //meshRenderer.enabled = false;
-                    yield return new WaitForSeconds(stopTime);
+                    meshRenderer.enabled = false;
+                    var fps = PerformanceAnalyser.Instance.FPS;
+                    Debug.Log(RadarFrequency);
+                    var single = fps / Mathf.Clamp(RadarFrequency, 1f, fps);
+                    var single1 = Mathf.Clamp(single - 1, 0f, single);
+                    yield return new WaitForSeconds(single1 * Time.smoothDeltaTime);
                 }
                 yield break;
             }
