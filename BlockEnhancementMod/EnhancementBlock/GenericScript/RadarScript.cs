@@ -46,7 +46,7 @@ namespace BlockEnhancementMod
         private Vector3 hitPosition;
         private bool foundHitPosition = false;
         private float drag;
-        public static int RadarFrequency { get; } = BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency");
+        public static int RadarFrequency { get; } = Mathf.Clamp(BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency"), 1, 60);
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
         private int squareWidth = 40;
@@ -236,10 +236,7 @@ namespace BlockEnhancementMod
         {
             var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
 
-            var targetList = colliders.ToList().FindAll(match => match.isTrigger == false);
-            targetList = targetList.FindAll(match => isKinematicRigidbody(match));
-            targetList = targetList.FindAll(match => isInRadarBound(match));
-
+            var targetList = colliders.ToList().FindAll(match => !match.isTrigger && isKinematicRigidbody(match) && isInRadarBound(match));
             var blockList = targetList.ConvertAll(converter => converter.GetComponentInChildren<BlockBehaviour>() ?? converter.GetComponentInParent<BlockBehaviour>());
 
             return blockList;
@@ -606,7 +603,7 @@ namespace BlockEnhancementMod
             if (StatMaster.isClient) return;
 
             StopCoroutine("intervalActivateDetectionZone");
-            StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
+            StartCoroutine(intervalActivateDetectionZone());
 
             //IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             //{
@@ -619,17 +616,21 @@ namespace BlockEnhancementMod
             //    }
             //    yield break;
             //}
-            IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
+
+            IEnumerator intervalActivateDetectionZone()
             {
                 while (Switch && RadarType == RadarTypes.ActiveRadar)
                 {
-                    meshCollider.enabled = true;
+                    //meshCollider.enabled = true;
                     //meshRenderer.enabled = true;
                     getRadarTargetList().ForEach(action => blockList.Add(action));
-                    yield return new WaitForSeconds(workTime);
-                    meshCollider.enabled = false;
+                    yield return 0;
+                    //meshCollider.enabled = false;
                     //meshRenderer.enabled = false;
-                    yield return new WaitForSeconds(stopTime);
+                    var fps = PerformanceAnalyser.Instance.FPS;
+                    var single = fps / Mathf.Clamp(RadarFrequency, 1f, fps);
+                    var single1 = Mathf.Clamp(single - 1, 0f, single);
+                    yield return new WaitForSeconds(single1 * Time.smoothDeltaTime);
                 }
                 yield break;
             }
@@ -640,8 +641,9 @@ namespace BlockEnhancementMod
         {
             if (StatMaster.isClient) return;
 
-            meshCollider.enabled = false;
+            //meshCollider.enabled = false;
             meshRenderer.enabled = false;
+            StopCoroutine("intervalActivateDetectionZone");
         }
 
         private Target ProcessTarget(Collider collider)
