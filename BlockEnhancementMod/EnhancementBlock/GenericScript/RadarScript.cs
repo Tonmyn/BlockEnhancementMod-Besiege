@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Modding.Levels;
+using System.Text.RegularExpressions;
+using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
@@ -221,14 +223,85 @@ namespace BlockEnhancementMod
         }
         private void OnTriggerEnter(Collider collider)
         {
-            if (!Switch) return;
-            if (RadarType != RadarTypes.ActiveRadar) return;
-            if (!isQualifiedCollider(collider)) return;
+            //if (!Switch) return;
+            //if (RadarType != RadarTypes.ActiveRadar) return;
+            //if (!isQualifiedCollider(collider)) return;
 
-            var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-            if (!isQualifiedBlock(block)) return;
-            blockList.Add(block);
+            //var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
+            //if (!isQualifiedBlock(block)) return;
+            //blockList.Add(block);
         }
+
+        private List<BlockBehaviour> getRadarTargetList()
+        {
+            var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
+
+            var targetList = colliders.ToList().FindAll(match => match.isTrigger == false);
+            targetList = targetList.FindAll(match => isKinematicRigidbody(match));
+            targetList = targetList.FindAll(match => isInRadarBound(match));
+
+            var blockList = targetList.ConvertAll(converter => converter.GetComponentInChildren<BlockBehaviour>() ?? converter.GetComponentInParent<BlockBehaviour>());
+
+            return blockList;
+
+            bool isInRadarBound(Collider collider)
+            {
+                var value = false;
+
+                var distance = Vector3.Distance(transform.position, collider.transform.position);
+                var angle = Vector3.Angle(transform.up, collider.transform.position - transform.position);
+                var forward = Vector3.Dot(transform.up, collider.transform.position - transform.position);
+
+                if (forward > 0)
+                {
+                    if (distance < SearchRadius && distance > SafetyRadius)
+                    {
+                        if (angle <= SearchAngle)
+                        {
+                            value = true;
+                        }
+                    }
+                }
+                return value;
+            }
+            bool isKinematicRigidbody(Collider collider)
+            {
+                var value = false;
+                var  rigidbody = collider.GetComponentInChildren<Rigidbody>() ?? collider.GetComponentInParent<Rigidbody>();
+
+                if (rigidbody != null)
+                {
+                    if (rigidbody.isKinematic == false)
+                    {
+                        value = true;
+                    }
+                }
+                return value;
+            }
+            bool isBlock(Collider collider)
+            {
+                var value = false;
+                 var blockBehaviour = collider.GetComponentInChildren<BlockBehaviour>() ?? collider.GetComponentInParent<BlockBehaviour>();
+
+                if (blockBehaviour != null)
+                {
+                    value = true;
+                }
+                return value;
+            }
+            bool isEntity(Collider collider, out EntityBehaviour entityBehaviour)
+            {
+                var value = false;
+
+                entityBehaviour = collider.GetComponentInChildren<EntityBehaviour>() ?? collider.GetComponentInParent<EntityBehaviour>();
+                if (entityBehaviour != null)
+                {
+                    value = true;
+                }
+                return value;
+            }
+        }
+        
         private void OnGUI()
         {
             if (!MarkTarget) return;
@@ -535,17 +608,32 @@ namespace BlockEnhancementMod
             StopCoroutine("intervalActivateDetectionZone");
             StartCoroutine(intervalActivateDetectionZone(Time.deltaTime * 10f, Time.deltaTime * 1f));
 
+            //IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
+            //{
+            //    while (Switch && RadarType == RadarTypes.ActiveRadar)
+            //    {
+            //        meshCollider.enabled = true;
+            //        yield return new WaitForSeconds(workTime);
+            //        meshCollider.enabled = false;
+            //        yield return new WaitForSeconds(stopTime);
+            //    }
+            //    yield break;
+            //}
             IEnumerator intervalActivateDetectionZone(float stopTime, float workTime)
             {
                 while (Switch && RadarType == RadarTypes.ActiveRadar)
                 {
                     meshCollider.enabled = true;
+                    //meshRenderer.enabled = true;
+                    getRadarTargetList().ForEach(action => blockList.Add(action));
                     yield return new WaitForSeconds(workTime);
                     meshCollider.enabled = false;
+                    //meshRenderer.enabled = false;
                     yield return new WaitForSeconds(stopTime);
                 }
                 yield break;
             }
+
         }
 
         private void DeactivateDetectionZone()
