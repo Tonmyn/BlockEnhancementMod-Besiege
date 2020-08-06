@@ -35,8 +35,8 @@ namespace BlockEnhancementMod
         /// <returns>Angle value</returns>
         public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
 
-        public MeshCollider meshCollider;
-        public MeshRenderer meshRenderer;
+        private MeshCollider meshCollider;
+        private MeshRenderer meshRenderer;
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
         public bool ShowBulletLanding { get; set; } = false;
@@ -221,20 +221,12 @@ namespace BlockEnhancementMod
                 }
             }
         }
-        private void OnTriggerEnter(Collider collider)
-        {
-            //if (!Switch) return;
-            //if (RadarType != RadarTypes.ActiveRadar) return;
-            //if (!isQualifiedCollider(collider)) return;
-
-            //var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-            //if (!isQualifiedBlock(block)) return;
-            //blockList.Add(block);
-        }
 
         private List<BlockBehaviour> getRadarTargetList()
         {
             var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
+
+            colliders.ToList().ForEach(item => new Target(item));
 
             var targetList = colliders.ToList().FindAll(match => !match.isTrigger && isKinematicRigidbody(match) && isInRadarBound(match));
             var blockList = targetList.ConvertAll(converter => converter.GetComponentInChildren<BlockBehaviour>() ?? converter.GetComponentInParent<BlockBehaviour>());
@@ -987,23 +979,23 @@ namespace BlockEnhancementMod
 
     class Target
     {
-        public Transform transform;
-        public Collider collider;
-        public BlockBehaviour block;
-        public GenericEntity entity;
-        public Rigidbody rigidbody;
-        public FireTag fireTag;
-        public bool hasFireTag = false;
-        public bool isRocket = false;
-        public bool isBomb = false;
-        public TimedRocket rocket;
-        public ExplodeOnCollideBlock bomb;
+        private Transform transform;
+        private Collider collider;
+        private BlockBehaviour block;
+        private GenericEntity entity;
+        private Rigidbody rigidbody;
+        private FireTag fireTag;
+        private bool hasFireTag = false;
+        private bool isRocket = false;
+        private bool isBomb = false;
+        private TimedRocket rocket;
+        private ExplodeOnCollideBlock bomb;
 
+        public Vector3 Position { get { return rigidbody.centerOfMass; } }
+        public Vector3 Velocity { get { return rigidbody.velocity; } }
         public category Category { get; private set; }
-
-        public warningLevel WarningLevel { get; private set; } = 0;
-
         public int WarningValue { get { return getWarningValue(); } }
+        public warningLevel WarningLevel { get { return calculateWarningLevel(); } private set { } }
 
         public enum category
         {
@@ -1062,6 +1054,48 @@ namespace BlockEnhancementMod
         public Target(warningLevel warningLevel)
         {
             WarningLevel = warningLevel;
+        }
+        public Target(Collider collider)
+        {
+            if (collider.isTrigger) return;
+            else if (!isKinematicRigidbody(collider,out rigidbody)) return;
+            else
+            {
+                this.collider = collider;
+                this.transform = collider.transform;
+                block = getComponent<BlockBehaviour>(collider);
+                entity = getComponent<GenericEntity>(collider);
+                fireTag = getComponent<FireTag>(collider);
+                rocket = getComponent<TimedRocket>(collider);
+                bomb = getComponent<ExplodeOnCollideBlock>(collider);
+
+
+            }
+
+            bool isKinematicRigidbody(Collider _collider ,out Rigidbody rigidbody)
+            {
+                var value = false;
+                rigidbody = _collider.GetComponentInChildren<Rigidbody>() ?? _collider.GetComponentInParent<Rigidbody>();
+
+                if (rigidbody != null)
+                {
+                    if (rigidbody.isKinematic == false)
+                    {
+                        value = true;
+                    }
+                }
+                return value;
+            }
+
+            T getComponent<T>(Collider _collider)
+            {
+                T component = _collider.GetComponentInChildren<T>();
+                if (component == null)
+                {
+                    component = _collider.GetComponentInParent<T>();
+                }
+                return component;
+            }
         }
         public Target(BlockBehaviour block)
         {
@@ -1139,6 +1173,10 @@ namespace BlockEnhancementMod
             {
                 WarningLevel = warningLevel.normalBlockValue;
             }
+        }
+        private warningLevel calculateWarningLevel()
+        {
+            return warningLevel.dummyValue;
         }
 
         private int getWarningValue()
