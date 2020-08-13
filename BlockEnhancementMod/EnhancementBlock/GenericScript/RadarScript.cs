@@ -66,7 +66,7 @@ namespace BlockEnhancementMod
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        public static Dictionary<KeyCode, HashSet<RadarScript>> tempRadarSet = new Dictionary<KeyCode, HashSet<RadarScript>>();
+        public static Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> tempRadarSet = new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -92,13 +92,19 @@ namespace BlockEnhancementMod
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
 
-            
+
             var rs = parentBlock.GetComponent<RocketScript>();
             if (rs == null) return;
+            int id = parentBlock.ParentMachine.PlayerID;
             KeyCode key = rs.GroupFireKey.GetKey(0);
-            if (!tempRadarSet.ContainsKey(key))
+            if (!tempRadarSet.ContainsKey(id))
             {
-                tempRadarSet.Add(key, new HashSet<RadarScript>());
+                tempRadarSet.Add(id, new Dictionary<KeyCode, HashSet<RadarScript>>());
+                
+            }
+            if (!tempRadarSet[id].ContainsKey(key))
+            {
+                tempRadarSet[id].Add(key, new HashSet<RadarScript>());
             }
         }
 
@@ -698,11 +704,11 @@ namespace BlockEnhancementMod
 
             IEnumerator DelayedAddSelfToSet()
             {
-                tempRadarSet[key].Remove(this);
+                tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Remove(this);
                 yield return new WaitForFixedUpdate();
                 if (target != null)
                 {
-                    tempRadarSet[key].Add(this);
+                    tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Add(this);
                     yield return new WaitForFixedUpdate();
                     OnSetPassiveRadarTarget?.Invoke(key);
                 }
@@ -725,15 +731,15 @@ namespace BlockEnhancementMod
             IEnumerator DelayedSetTarget()
             {
                 yield return new WaitForFixedUpdate();
-                if (tempRadarSet[key].Count > 0 && target == null)
+                if (tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count > 0 && target == null)
                 {
                     System.Random random = new System.Random();
-                    int index = random.Next(tempRadarSet[key].Count);
+                    int index = random.Next(tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count);
 #if DEBUG
                     Debug.Log("Available Radar: " + tempRadarSet.Count);
                     Debug.Log("Choose: " + index);
 #endif
-                    passiveSourceRadar = tempRadarSet[key].ElementAt(index);
+                    passiveSourceRadar = tempRadarSet[parentBlock.ParentMachine.PlayerID][key].ElementAt(index);
                 }
                 SetTarget(passiveSourceRadar?.target);
                 yield return null;
