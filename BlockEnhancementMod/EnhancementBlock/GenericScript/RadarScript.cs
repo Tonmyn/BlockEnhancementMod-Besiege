@@ -66,7 +66,7 @@ namespace BlockEnhancementMod
 
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        static HashSet<RadarScript> tempRadarSet = new HashSet<RadarScript>();
+        public static Dictionary<KeyCode, HashSet<RadarScript>> tempRadarSet = new Dictionary<KeyCode, HashSet<RadarScript>>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -92,7 +92,14 @@ namespace BlockEnhancementMod
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
 
-            tempRadarSet.Clear();
+            
+            var rs = parentBlock.GetComponent<RocketScript>();
+            if (rs == null) return;
+            KeyCode key = rs.GroupFireKey.GetKey(0);
+            if (!tempRadarSet.ContainsKey(key))
+            {
+                tempRadarSet.Add(key, new HashSet<RadarScript>());
+            }
         }
 
         private void FixedUpdate()
@@ -264,7 +271,7 @@ namespace BlockEnhancementMod
             bool isKinematicRigidbody(Collider collider)
             {
                 var value = false;
-                var  rigidbody = collider.GetComponentInChildren<Rigidbody>() ?? collider.GetComponentInParent<Rigidbody>();
+                var rigidbody = collider.GetComponentInChildren<Rigidbody>() ?? collider.GetComponentInParent<Rigidbody>();
 
                 if (rigidbody != null)
                 {
@@ -278,7 +285,7 @@ namespace BlockEnhancementMod
             bool isBlock(Collider collider)
             {
                 var value = false;
-                 var blockBehaviour = collider.GetComponentInChildren<BlockBehaviour>() ?? collider.GetComponentInParent<BlockBehaviour>();
+                var blockBehaviour = collider.GetComponentInChildren<BlockBehaviour>() ?? collider.GetComponentInParent<BlockBehaviour>();
 
                 if (blockBehaviour != null)
                 {
@@ -298,7 +305,7 @@ namespace BlockEnhancementMod
                 return value;
             }
         }
-        
+
         private void OnGUI()
         {
             if (!MarkTarget) return;
@@ -691,11 +698,11 @@ namespace BlockEnhancementMod
 
             IEnumerator DelayedAddSelfToSet()
             {
-                tempRadarSet.Remove(this);
+                tempRadarSet[key].Remove(this);
                 yield return new WaitForFixedUpdate();
                 if (target != null)
                 {
-                    tempRadarSet.Add(this);
+                    tempRadarSet[key].Add(this);
                     yield return new WaitForFixedUpdate();
                     OnSetPassiveRadarTarget?.Invoke(key);
                 }
@@ -718,15 +725,15 @@ namespace BlockEnhancementMod
             IEnumerator DelayedSetTarget()
             {
                 yield return new WaitForFixedUpdate();
-                if (tempRadarSet.Count > 0 && target == null)
+                if (tempRadarSet[key].Count > 0 && target == null)
                 {
                     System.Random random = new System.Random();
-                    int index = random.Next(tempRadarSet.Count);
+                    int index = random.Next(tempRadarSet[key].Count);
 #if DEBUG
                     Debug.Log("Available Radar: " + tempRadarSet.Count);
                     Debug.Log("Choose: " + index);
 #endif
-                    passiveSourceRadar = tempRadarSet.ElementAt(index);
+                    passiveSourceRadar = tempRadarSet[key].ElementAt(index);
                 }
                 SetTarget(passiveSourceRadar?.target);
                 yield return null;
