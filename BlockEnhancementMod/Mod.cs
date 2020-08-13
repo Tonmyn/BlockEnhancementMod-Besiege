@@ -54,7 +54,7 @@ namespace BlockEnhancementMod
             new Property<float>("Rocket Smoke Size", 3.5f),
             new Property<Color>("Rocket Smoke Color", Color.black),
 
-            new Property<int>("Radar Frequency", 1),
+            new Property<int>("Radar Frequency", 5),
         };
 
         public class Property<T>
