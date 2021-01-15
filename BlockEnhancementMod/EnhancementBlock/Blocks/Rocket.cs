@@ -2,6 +2,7 @@
 using Modding.Common;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BlockEnhancementMod
@@ -218,7 +219,7 @@ namespace BlockEnhancementMod
                 float searchRange = EnhanceMore ? 5000f : 2000f;
 
                 //Add radar
-                Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
+                //Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
                 radarObject = new GameObject("RocketRadar");
                 radarObject.transform.SetParent(rocket.transform);
                 radarObject.transform.position = transform.position;
@@ -238,13 +239,13 @@ namespace BlockEnhancementMod
                 rigidbody.drag = 0f;
 
                 //Stop colliding with its own colliders
-                if (selfColliders.Length > 0)
-                {
-                    foreach (var collider in selfColliders)
-                    {
-                        Physics.IgnoreCollision(collider, radar.meshCollider, true);
-                    }
-                }
+                //if (selfColliders.Length > 0)
+                //{
+                //    foreach (var collider in selfColliders)
+                //    {
+                //        Physics.IgnoreCollision(collider, radar.meshCollider, true);
+                //    }
+                //}
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -274,20 +275,26 @@ namespace BlockEnhancementMod
                     if (value.name.ToLower() == "smoketrail")
                     {
                         smokeTrail = value;
+
                         var colt = smokeTrail.colorOverLifetime;
                         colt.color = new ParticleSystem.MinMaxGradient(new Gradient()
-                        { 
-                            alphaKeys = new GradientAlphaKey[] 
+                        {
+                            alphaKeys = new GradientAlphaKey[]
                             {
-                                new GradientAlphaKey(TrailSmokeColor.a,0.5f),
+                                new GradientAlphaKey(/*TrailSmokeColor.a*/0.4f,0.5f),
                                 new GradientAlphaKey(0f,smokeTrail.startLifetime)
                             },
                             colorKeys = new GradientColorKey[]
-                            { 
-                            new GradientColorKey(TrailSmokeColor,0.5f),
-                            new GradientColorKey(TrailSmokeColor,smokeTrail.startLifetime)
+                            {
+                            new GradientColorKey(/*TrailSmokeColor*/Color.gray,0.5f),
+                            new GradientColorKey(/*TrailSmokeColor*/Color.gray,smokeTrail.startLifetime)
                             }
                         });
+                        //Debug.Log(colt.color.color);
+                        //Debug.Log(colt.color.colorMax);
+                        //Debug.Log(colt.color.colorMin);
+                        //Debug.Log(colt.color.mode);
+                        //Debug.Log(colt.color.gradient.alphaKeys.ToList().ForEach(key =>Debug.Log(key.alpha + "|"+key.time)));
                         break;
                     }
                 }
@@ -350,8 +357,9 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
-                                radar.meshCollider.enabled = radar.canBeOverridden && radar.Switch;
+                                //radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
+                                radar.DisplayRadarZone = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
+                                //radar.meshCollider.enabled = radar.canBeOverridden && radar.Switch;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {

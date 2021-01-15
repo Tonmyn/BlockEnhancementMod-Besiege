@@ -4,6 +4,7 @@ using Modding.Levels;
 using System.Collections.Generic;
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace BlockEnhancementMod
 {
@@ -195,4 +196,40 @@ namespace BlockEnhancementMod
             { typeof(Vector3), (xDataHolder,key)=>xDataHolder.ReadVector3(key)},
         };
     }
+
+    public static  class ExtensionMethods
+    {
+        /// <summary>
+        /// Get component in self,children and parent
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="component"></param>
+        /// <returns></returns>
+        public static T GetComponentInAll<T>(this Component component)
+        {
+            T _component = component.GetComponentInChildren<T>();
+            if (_component == null)
+            {
+                _component = component.GetComponentInParent<T>();
+            }
+            return _component;
+        }
+
+        /// <summary>
+        /// Get component in self,children and parent
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="component"></param>
+        /// <returns></returns>
+        public static T GetComponentInAll<T>(this GameObject gameObject)
+        {
+            T _component = gameObject.GetComponentInChildren<T>();
+            if (_component == null)
+            {
+                _component = gameObject.GetComponentInParent<T>();
+            }
+            return _component;
+        }
+    }
 }
+

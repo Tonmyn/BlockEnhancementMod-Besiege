@@ -6,6 +6,7 @@ using System.Threading;
 using UnityEngine;
 using Modding;
 using Modding.Common;
+using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
@@ -66,20 +67,28 @@ namespace BlockEnhancementMod
             {
                 if (blockRadar.target != null && Switch)
                 {
-                    if (blockRadar.target.transform != null)
-                    {
-                        if (blockRadar.target.block != null)
-                        {
-                            if (blockRadar.target.block != parentBlock)
-                            {
-                                StartCoroutine(AddGuideForce());
-                            }
-                        }
-                        else
-                        {
+                    //if (blockRadar.target.transform != null)
+                    //{
+                    //    if (blockRadar.target.block != null)
+                    //    {
+                    //        if (blockRadar.target.block != parentBlock)
+                    //        {
+                    //            StartCoroutine(AddGuideForce());
+                    //        }
+                    //    }
+                    //    else
+                    //    {
 
-                            StartCoroutine(AddGuideForce());
-                        }
+                    //        StartCoroutine(AddGuideForce());
+                    //    }
+                    //}
+                    if (blockRadar.target.Enable)
+                    {
+                        StartCoroutine(AddGuideForce());
+                    }
+                    else
+                    {
+                        StopCoroutine(AddGuideForce());
                     }
                 }
             }
@@ -88,21 +97,22 @@ namespace BlockEnhancementMod
 
         private IEnumerator AddGuideForce()
         {
-            if (blockRadar.target.transform != preTargetTransform)
-            {
+            //if (blockRadar.target.transform != preTargetTransform)
+            //{
                 previousPosition = Vector3.zero;
-                preTargetTransform = blockRadar.target.transform;
+                //preTargetTransform = blockRadar.target.transform;
                 integral = 0;
                 lastError = 0;
-            }
+            //}
 
             Vector3 addedForce;
 
             // Calculating the rotating axis
-            Vector3 positionDiff = blockRadar.target.transform.position - parentBlock.transform.position;
-            Vector3 targetVelocity = blockRadar.target.rigidbody == null ?
-                (blockRadar.target.transform.position - previousPosition) / Time.fixedDeltaTime : blockRadar.target.rigidbody.velocity;
-            previousPosition = blockRadar.target.transform.position;
+            Vector3 positionDiff = blockRadar.target.Position - parentBlock.transform.position;
+            //Vector3 targetVelocity = blockRadar.target.rigidbody == null ?
+            //    (blockRadar.target.Position - previousPosition) / Time.fixedDeltaTime : blockRadar.target.Velocity;
+            Vector3 targetVelocity = blockRadar.target.Velocity;
+            previousPosition = blockRadar.target.Position;
             Vector3 relVelocity = targetVelocity - parentBlock.Rigidbody.velocity;
 
             //float speed;
