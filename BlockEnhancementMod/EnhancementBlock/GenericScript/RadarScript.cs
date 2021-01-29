@@ -11,7 +11,7 @@ using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-    class RadarScript : MonoBehaviour, IComparer<Target>
+    class RadarScript : MonoBehaviour
     {
         public static int CollisionLayer = 10;
         public BlockBehaviour parentBlock;
@@ -23,20 +23,20 @@ namespace BlockEnhancementMod
         public float SearchAngle { get; set; } = 0f;
 
         public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
-        public Vector3 TargetPosition { get { return target.collider.bounds.center - transform.position; } }
+        public Vector3 TargetPosition { get { return target.Position - transform.position; } }
         /// <summary>
         /// Distance of Radar to Target
         /// </summary>
         /// <returns>Distance value</returns>
-        public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.transform.position); } }
+        public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.Position); } }
         /// <summary>
         /// Angle of Radar to Target
         /// </summary>
         /// <returns>Angle value</returns>
         public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
 
-        public MeshCollider meshCollider;
-        public MeshRenderer meshRenderer;
+        private MeshCollider meshCollider;
+        private MeshRenderer meshRenderer;
 
         public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
         public bool ShowBulletLanding { get; set; } = false;
@@ -64,6 +64,7 @@ namespace BlockEnhancementMod
         public static event Action<KeyCode> OnNotifyActiveRadarForNewTarget;
         public RadarScript passiveSourceRadar;
 
+        private HashSet<Target> targetList = new HashSet<Target>();
         private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
         public static Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> tempRadarSet = new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
@@ -112,9 +113,9 @@ namespace BlockEnhancementMod
         {
             if (!Switch) return;
             if (target == null) return;
-            if (target.transform == null) return;
+            if (target.Position == null) return;
 
-            targetPosition = target.collider != null ? target.collider.bounds.center : target.transform.position;
+            targetPosition = target.Position;
             if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
         }
 
@@ -192,8 +193,8 @@ namespace BlockEnhancementMod
                             }
                             else if (itemTarget.WarningLevel == tempTarget.WarningLevel)
                             {
-                                float itemTargetDistance = Vector3.Distance(itemTarget.transform.position, parentBlock.transform.position);
-                                float tempTargetDistance = Vector3.Distance(tempTarget.transform.position, parentBlock.transform.position);
+                                float itemTargetDistance = Vector3.Distance(itemTarget.Position, parentBlock.transform.position);
+                                float tempTargetDistance = Vector3.Distance(tempTarget.Position, parentBlock.transform.position);
 
                                 if (itemTargetDistance < tempTargetDistance)
                                 {
@@ -211,7 +212,7 @@ namespace BlockEnhancementMod
                             }
                         }
 
-                        if (tempTarget != null && tempTarget.transform != null)
+                        if (tempTarget != null && tempTarget.Position != null)
                         {
                             SetTarget(tempTarget);
                         }
@@ -234,20 +235,12 @@ namespace BlockEnhancementMod
                 }
             }
         }
-        private void OnTriggerEnter(Collider collider)
-        {
-            //if (!Switch) return;
-            //if (RadarType != RadarTypes.ActiveRadar) return;
-            //if (!isQualifiedCollider(collider)) return;
-
-            //var block = collider.gameObject.GetComponentInParent<BlockBehaviour>();
-            //if (!isQualifiedBlock(block)) return;
-            //blockList.Add(block);
-        }
 
         private List<BlockBehaviour> getRadarTargetList()
         {
             var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
+
+            colliders.ToList().ForEach(item => new Target(item));
 
             var targetList = colliders.ToList().FindAll(match => !match.isTrigger && isKinematicRigidbody(match) && isInRadarBound(match));
             var blockList = targetList.ConvertAll(converter => converter.GetComponentInChildren<BlockBehaviour>() ?? converter.GetComponentInParent<BlockBehaviour>());
@@ -348,7 +341,7 @@ namespace BlockEnhancementMod
             }
 
             //Get an initial velocity
-            Vector3 targetVelocity = target.rigidbody == null ? Vector3.zero : target.rigidbody.velocity;
+            Vector3 targetVelocity = target.Velocity;
             Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
 
             //Get an initial position
@@ -532,7 +525,8 @@ namespace BlockEnhancementMod
 
                     if (Physics.Raycast(receivedRayFromClient ? rayFromClient : ray, out RaycastHit rayHit, SearchRadius, Game.BlockEntityLayerMask, QueryTriggerInteraction.Ignore))
                     {
-                        tempTarget = ConvertRaycastHitToTarget(rayHit);
+                        //tempTarget = ConvertRaycastHitToTarget(rayHit);
+                        tempTarget = new Target(rayHit.collider);
                     }
                     if (tempTarget == null)
                     {
@@ -543,7 +537,8 @@ namespace BlockEnhancementMod
                         {
                             for (int i = 0; i < hits.Length; i++)
                             {
-                                tempTarget = ConvertRaycastHitToTarget(hits[i]);
+                                //tempTarget = ConvertRaycastHitToTarget(hits[i]);
+                                tempTarget = new Target(hits[i].collider);
                                 if (tempTarget != null) break;
                             }
                         }
@@ -556,30 +551,30 @@ namespace BlockEnhancementMod
                     return tempTarget;
                 }
 
-                Target ConvertRaycastHitToTarget(RaycastHit raycastHit)
-                {
-                    if (isQualifiedBlock(raycastHit.transform.GetComponentInParent<BlockBehaviour>()))
-                    {
-                        return new Target(raycastHit.transform);
-                    }
-                    else if (isQualifiedEntity(raycastHit.transform.GetComponentInParent<LevelEntity>()))
-                    {
-                        return new Target(raycastHit.transform);
-                    }
-                    else if (isQualifiedFireTag(raycastHit.transform.gameObject.GetComponentInParent<FireTag>()))
-                    {
-                        return new Target(raycastHit.transform);
-                    }
-                    else if (isQualifiedRigidbody(raycastHit.rigidbody))
-                    {
-                        return new Target(raycastHit.transform);
-                    }
-                    else if (isQualifiedCollider(raycastHit.collider))
-                    {
-                        return new Target(raycastHit.transform);
-                    }
-                    return null;
-                }
+                //Target ConvertRaycastHitToTarget(RaycastHit raycastHit)
+                //{
+                //    if (isQualifiedBlock(raycastHit.transform.GetComponentInParent<BlockBehaviour>()))
+                //    {
+                //        return new Target(raycastHit.transform);
+                //    }
+                //    else if (isQualifiedEntity(raycastHit.transform.GetComponentInParent<LevelEntity>()))
+                //    {
+                //        return new Target(raycastHit.transform);
+                //    }
+                //    else if (isQualifiedFireTag(raycastHit.transform.gameObject.GetComponentInParent<FireTag>()))
+                //    {
+                //        return new Target(raycastHit.transform);
+                //    }
+                //    else if (isQualifiedRigidbody(raycastHit.rigidbody))
+                //    {
+                //        return new Target(raycastHit.transform);
+                //    }
+                //    else if (isQualifiedCollider(raycastHit.collider))
+                //    {
+                //        return new Target(raycastHit.transform);
+                //    }
+                //    return null;
+                //}
             }
         }
 
@@ -608,6 +603,35 @@ namespace BlockEnhancementMod
             Debug.Log("clear target");
 #endif
         }
+
+        public bool InRadarRange(Target target)
+        {
+            bool value = false;
+
+            if (RadarType == RadarTypes.PassiveRadar) return true;
+            if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
+            {
+                var distance = target.Position - transform.position;
+
+                if (distance.magnitude < SearchRadius)
+                {
+                    if (distance.magnitude > 5f)
+                    {
+                        if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
+            return value;
+        }
+
+  
 
         private void ActivateDetectionZone()
         {
@@ -689,6 +713,27 @@ namespace BlockEnhancementMod
             return tempTarget;
         }
 
+        private void Comparer(Target other)
+        {
+            if (InRadarRange(other))
+            {
+                if (other.WarningValue > target.WarningValue)
+                {
+                    target = other;
+                    return;
+                }
+                else if (other.WarningValue == target.WarningValue)
+                {
+                    var distance = (other.Position - transform.position).magnitude;
+
+                    if (distance < TargetDistance)
+                    {
+                        target = other;
+                    }
+                }
+            }
+        }
+
         private void OnNotifyActiveRadarToAssignTargetEvent(KeyCode keyCode)
         {
             if (StatMaster.isClient) return;
@@ -762,172 +807,174 @@ namespace BlockEnhancementMod
             }
         }
 
-        private bool isQualifiedCollider(Collider collider)
-        {
-            return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic || collider.gameObject.layer == 29);
-        }
+        //private bool isQualifiedCollider(Collider collider)
+        //{
+        //    return collider == null ? false : !(collider.isTrigger || !collider.enabled || collider.gameObject.isStatic || collider.gameObject.layer == 29);
+        //}
 
-        private bool isQualifiedRigidbody(Rigidbody rigidbody)
-        {
-            return !(rigidbody == null || rigidbody.isKinematic == true);
-        }
+        //private bool isQualifiedRigidbody(Rigidbody rigidbody)
+        //{
+        //    return !(rigidbody == null || rigidbody.isKinematic == true);
+        //}
 
-        private bool isQualifiedFireTag(FireTag fireTag)
-        {
-            return !(fireTag == null || fireTag.burning || fireTag.hasBeenBurned);
-        }
+        //private bool isQualifiedFireTag(FireTag fireTag)
+        //{
+        //    return !(fireTag == null || fireTag.burning || fireTag.hasBeenBurned);
+        //}
 
-        private bool isQualifiedBlock(BlockBehaviour block)
-        {
-            var value = true;
+        //private bool isQualifiedBlock(BlockBehaviour block)
+        //{
+        //    var value = true;
 
-            // If not a block
-            if (block == null) return false;
+        //    // If not a block
+        //    if (block == null) return false;
 
-            // if not a rocket and have nothing connected to
-            if (block.BlockID != (int)BlockType.Rocket)
-            {
-                if (block.blockJoint == null)
-                {
-                    return false;
-                }
-                else if (block.blockJoint.connectedBody == null)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                if (Playerlist.Players.Count < 2 && parentBlock.BlockID == (int)BlockType.Rocket)
-                {
-                    RocketScript targetRocketScript = block.GetComponent<RocketScript>();
-                    RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
-                    if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
-                    {
-                        if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return false;
-                    }
-                }
-            }
+        //    // if not a rocket and have nothing connected to
+        //    if (block.BlockID != (int)BlockType.Rocket)
+        //    {
+        //        if (block.blockJoint == null)
+        //        {
+        //            return false;
+        //        }
+        //        else if (block.blockJoint.connectedBody == null)
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (Playerlist.Players.Count < 2 && parentBlock.BlockID == (int)BlockType.Rocket)
+        //        {
+        //            RocketScript targetRocketScript = block.GetComponent<RocketScript>();
+        //            RocketScript selfRocketScript = parentBlock.GetComponent<RocketScript>();
+        //            if (!selfRocketScript.SPTeamKey.HasKey(KeyCode.None))
+        //            {
+        //                if (targetRocketScript.SPTeamKey.GetKey(0) == selfRocketScript.SPTeamKey.GetKey(0)) return false;
+        //            }
+        //        }
+        //    }
 
-            // if is own machine
-            if (block != null)
-            {
-                if (StatMaster.isMP && !StatMaster.isClient && Playerlist.Players.Count > 1)
-                {
-                    if (block.Team == MPTeam.None)
-                    {
-                        if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        if (block.Team == parentBlock.Team)
-                        {
-                            return false;
-                        }
-                    }
-                }
+        //    // if is own machine
+        //    if (block != null)
+        //    {
+        //        if (StatMaster.isMP && !StatMaster.isClient && Playerlist.Players.Count > 1)
+        //        {
+        //            if (block.Team == MPTeam.None)
+        //            {
+        //                if (block.ParentMachine.PlayerID == parentBlock.ParentMachine.PlayerID)
+        //                {
+        //                    return false;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (block.Team == parentBlock.Team)
+        //                {
+        //                    return false;
+        //                }
+        //            }
+        //        }
 
-                FireTag fireTag = block.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
-                Rigidbody rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
+        //        FireTag fireTag = block.GetComponent<FireTag>() ?? block.gameObject.GetComponentInChildren<FireTag>();
+        //        Rigidbody rigidbody = block.GetComponent<Rigidbody>() ?? block.gameObject.GetComponentInChildren<Rigidbody>();
 
-                if (fireTag == null || fireTag.burning || fireTag.hasBeenBurned) return false;
-                if (rigidbody == null || rigidbody.gameObject.layer == 2) return false;
-            }
+        //        if (fireTag == null || fireTag.burning || fireTag.hasBeenBurned) return false;
+        //        if (rigidbody == null || rigidbody.gameObject.layer == 2) return false;
+        //    }
 
-            return value;
-        }
+        //    return value;
+        //}
 
-        private bool isQualifiedEntity(LevelEntity levelEntity)
-        {
-            if (levelEntity != null)
-            {
-                if (levelEntity.isStatic || levelEntity.IsDestroyed) return false;
-                if (levelEntity.fireTag.burning || levelEntity.fireTag.hasBeenBurned) return false;
-                if (!isQualifiedCollider(levelEntity.GetComponentInParent<Collider>())) return false;
-                if (!isQualifiedRigidbody(levelEntity.GetComponentInParent<Rigidbody>())) return false;
+        //private bool isQualifiedEntity(LevelEntity levelEntity)
+        //{
+        //    if (levelEntity != null)
+        //    {
+        //        if (levelEntity.isStatic || levelEntity.IsDestroyed) return false;
+        //        if (levelEntity.fireTag.burning || levelEntity.fireTag.hasBeenBurned) return false;
+        //        if (!isQualifiedCollider(levelEntity.GetComponentInParent<Collider>())) return false;
+        //        if (!isQualifiedRigidbody(levelEntity.GetComponentInParent<Rigidbody>())) return false;
 
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        return false;
+        //    }
+        //}
 
-        public bool InRadarRange(Vector3 positionInWorld)
-        {
-            if (RadarType == RadarTypes.PassiveRadar) return true;
-            if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
-            {
-                var distance = positionInWorld - transform.position;
+        //public bool InRadarRange(Vector3 positionInWorld)
+        //{
+        //    if (RadarType == RadarTypes.PassiveRadar) return true;
+        //    if (Vector3.Dot(positionInWorld - transform.position, ForwardDirection) > 0)
+        //    {
+        //        var distance = positionInWorld - transform.position;
 
-                if (distance.magnitude < SearchRadius)
-                {
-                    if (distance.magnitude > 5f)
-                    {
-                        if (Vector3.Angle(positionInWorld - transform.position, ForwardDirection) < (SearchAngle / 2f))
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+        //        if (distance.magnitude < SearchRadius)
+        //        {
+        //            if (distance.magnitude > 5f)
+        //            {
+        //                if (Vector3.Angle(positionInWorld - transform.position, ForwardDirection) < (SearchAngle / 2f))
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //    }
+        //    return false;
+        //}
 
-        public bool InRadarRange(BlockBehaviour block)
-        {
-            return block == null ? false : InRadarRange(ProcessTarget(block));
-        }
+        //public bool InRadarRange(BlockBehaviour block)
+        //{
+        //    return block == null ? false : InRadarRange(ProcessTarget(block));
+        //}
 
-        public bool InRadarRange(Collider collider)
-        {
-            if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return false;
-            return InRadarRange(collider.bounds.center);
-        }
+        //public bool InRadarRange(Collider collider)
+        //{
+        //    if (!collider.enabled || collider.isTrigger || collider.gameObject.isStatic) return false;
+        //    return InRadarRange(collider.bounds.center);
+        //}
 
-        public bool InRadarRange(Target target)
-        {
-            bool value = false;
-            if (target == null) return value;
-            if (target.transform == null) return value;
-            if (target.block != null)
-            {
-                if (!target.block.SimPhysics) return value;
-            }
+        //public bool InRadarRange(Target target)
+        //{
+        //    bool value = false;
+        //    if (target == null) return value;
+        //    if (target.transform == null) return value;
+        //    if (target.block != null)
+        //    {
+        //        if (!target.block.SimPhysics) return value;
+        //    }
 
-            if (InRadarRange(target.collider))
-            {
-                if (target.isRocket)
-                {
-                    value = !target.rocket.hasExploded;
-                }
-                else if (target.isBomb)
-                {
-                    value = !target.bomb.hasExploded;
-                }
-                else
-                {
-                    if (target.hasFireTag)
-                    {
-                        value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
-                    }
-                    if (value)
-                    {
-                        target.block.CheckJoints();
-                        value = !(target.block.blockJoint == null);
-                    }
-                }
-            }
-            return value;
-        }
+        //    if (InRadarRange(target.collider))
+        //    {
+        //        if (target.isRocket)
+        //        {
+        //            value = !target.rocket.hasExploded;
+        //        }
+        //        else if (target.isBomb)
+        //        {
+        //            value = !target.bomb.hasExploded;
+        //        }
+        //        else
+        //        {
+        //            if (target.hasFireTag)
+        //            {
+        //                value = !(target.fireTag.burning || target.fireTag.hasBeenBurned);
+        //            }
+        //            if (value)
+        //            {
+        //                target.block.CheckJoints();
+        //                value = !(target.block.blockJoint == null);
+        //            }
+        //        }
+        //    }
+        //    return value;
+        //}
+
+
 
         #region Networking Method
         private void SendRayToHost(Ray ray)
@@ -989,34 +1036,30 @@ namespace BlockEnhancementMod
             RocketsController.Instance.RemoveRocketTarget(parentBlock);
         }
 
-        public int Compare(Target x, Target y)
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
     }
 
     class Target
     {
-        public Transform transform;
-        public Collider collider;
-        public BlockBehaviour block;
-        public GenericEntity entity;
-        public Rigidbody rigidbody;
-        public FireTag fireTag;
-        public bool hasFireTag = false;
-        public bool isRocket = false;
-        public bool isBomb = false;
-        public TimedRocket rocket;
-        public ExplodeOnCollideBlock bomb;
+        private Transform transform;
+        private Collider collider;
+        private BlockBehaviour block;
+        private GenericEntity entity;
+        private Rigidbody rigidbody;
+        private FireTag fireTag;
+        private bool hasFireTag = false;
+        private bool isRocket = false;
+        private bool isBomb = false;
+        private TimedRocket rocket;
+        private ExplodeOnCollideBlock bomb;
 
+        public Vector3 Position { get { return rigidbody.centerOfMass; } }
+        public Vector3 Velocity { get { return rigidbody.velocity; } }
         public category Category { get; private set; }
-
-        public warningLevel WarningLevel { get; private set; } = 0;
-
         public int WarningValue { get { return getWarningValue(); } }
+        //public warningLevel WarningLevel { get { return calculateWarningValue(); } private set { } }
+        public bool Enable { get { return isEnable(); } private set { Enable = value; } }
 
         public enum category
         {
@@ -1075,6 +1118,20 @@ namespace BlockEnhancementMod
         public Target(warningLevel warningLevel)
         {
             WarningLevel = warningLevel;
+        }
+        public Target(Collider collider)
+        {
+            if (Enable)
+            {
+                this.collider = collider;
+                this.transform = collider.transform;
+                block = getComponent<BlockBehaviour>(collider);
+                entity = getComponent<GenericEntity>(collider);
+                fireTag = getComponent<FireTag>(collider);
+                rocket = getComponent<TimedRocket>(collider);
+                bomb = getComponent<ExplodeOnCollideBlock>(collider);
+            }
+
         }
         public Target(BlockBehaviour block)
         {
@@ -1153,7 +1210,48 @@ namespace BlockEnhancementMod
                 WarningLevel = warningLevel.normalBlockValue;
             }
         }
+        //private int calculateWarningValue()
+        //{
+        //    return -1;
+        //}
+        private bool isEnable()
+        {
+            var value = false;
 
+            if (collider != null && collider.transform != null)
+            {
+                if (!collider.isTrigger && isKinematicRigidbody(collider))
+                {
+                    value = true;
+                }
+            }
+  
+            return value;
+
+            bool isKinematicRigidbody(Collider _collider)
+            {
+                var _value = false;
+                var rigidbody = _collider.GetComponentInChildren<Rigidbody>() ?? _collider.GetComponentInParent<Rigidbody>();
+
+                if (rigidbody != null)
+                {
+                    if (rigidbody.isKinematic == false)
+                    {
+                        _value = true;
+                    }
+                }
+                return _value;
+            }
+        }
+        private T getComponent<T>(Collider _collider)
+        {
+            T component = _collider.GetComponentInChildren<T>();
+            if (component == null)
+            {
+                component = _collider.GetComponentInParent<T>();
+            }
+            return component;
+        }
         private int getWarningValue()
         {
             var value = 0;
