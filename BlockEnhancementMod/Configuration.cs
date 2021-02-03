@@ -144,7 +144,7 @@ namespace BlockEnhancementMod
             }
 
             if (needWrite) Modding.Configuration.Save();
-            Debug.Log("????");
+          
             return config;
 
             Property<T> getValue<T>(Property<T> propertise)

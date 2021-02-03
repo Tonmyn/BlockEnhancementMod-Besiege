@@ -33,7 +33,7 @@ namespace BlockEnhancementMod
             {
                 Dictionary<string, Action<string[]>> commandOfAction = new Dictionary<string, Action<string[]>>
                 {
-                    { "RefreshConfiguration".ToLower(),   (args)=>{ Debug.Log( Modding.Configuration.GetData().ReadColor("Rocket Smoke Start Color").ToString()); } },
+                    { "srssc",   (args)=>{Modding.Configuration.GetData().Write("Rocket Smoke Start Color",new Color (float.Parse( args[1]),float.Parse( args[2]),float.Parse( args[3])));} },
                 };
 
                 if (commandOfAction.ContainsKey(value[0].ToLower()))
@@ -47,7 +47,7 @@ namespace BlockEnhancementMod
             }),
           "<color=#FF6347>" +
           "Enhancement Mod Commands\n" +
-          "  Usage: be RefreshConfiguration :  Refresh configuration param in config file.\n" +
+          "  Usage: be srssc :  set rocket smoke start color.\n" +
           "</color>"
           );
         }
