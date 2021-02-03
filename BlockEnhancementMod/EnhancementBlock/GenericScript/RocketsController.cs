@@ -80,6 +80,10 @@ namespace BlockEnhancementMod
                 {
                     playerGroupedRockets.Clear();
                 }
+                if (RadarScript.tempRadarSet.Count > 0)
+                {
+                    RadarScript.tempRadarSet.Clear();
+                }
             }
             if (PlayerMachine.GetLocal() != null)
             {
