@@ -77,37 +77,37 @@ namespace BlockEnhancementMod
                 radar.Switch = true;
             };
 
-            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive block target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
+//            ModNetworking.Callbacks[Messages.rocketTargetBlockBehaviourMsg] += (Message msg) =>
+//            {
+//#if DEBUG
+//                Debug.Log("Receive block target");
+//#endif
+//                Block rocketBlock = (Block)msg.GetData(1);
+//                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
 
-                Block target = ((Block)msg.GetData(0));
+//                Block target = ((Block)msg.GetData(0));
 
-                radar.SetTarget(new Target(target.InternalObject));
-                //radar.target.transform = ((Block)msg.GetData(0)).GameObject.transform;
-                //radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
+//                radar.SetTarget(new Target(target.InternalObject));
+//                //radar.target.transform = ((Block)msg.GetData(0)).GameObject.transform;
+//                //radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
 
-            };
+//            };
 
-            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
-            {
-#if DEBUG
-                Debug.Log("Receive entity target");
-#endif
-                Block rocketBlock = (Block)msg.GetData(1);
-                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
+//            ModNetworking.Callbacks[Messages.rocketTargetEntityMsg] += (Message msg) =>
+//            {
+//#if DEBUG
+//                Debug.Log("Receive entity target");
+//#endif
+//                Block rocketBlock = (Block)msg.GetData(1);
+//                RadarScript radar = rocketBlock.GameObject.GetComponentInChildren<RadarScript>();
 
-                GenericEntity target = ((GenericEntity)msg.GetData(0));
+//                GenericEntity target = ((GenericEntity)msg.GetData(0));
 
-                radar.SetTarget(new Target(target));
+//                radar.SetTarget(new Target(target));
 
-                //radar.target.transform = ((Entity)msg.GetData(0)).GameObject.transform;
-                //radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
-            };
+//                //radar.target.transform = ((Entity)msg.GetData(0)).GameObject.transform;
+//                //radar.target.collider = radar.target.transform.GetComponentInChildren<Collider>(true);
+//            };
 
             ModNetworking.Callbacks[Messages.rocketTargetNullMsg] += (Message msg) =>
             {

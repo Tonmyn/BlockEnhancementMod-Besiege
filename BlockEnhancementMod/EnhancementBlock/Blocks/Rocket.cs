@@ -2,6 +2,7 @@
 using Modding.Common;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BlockEnhancementMod
@@ -19,10 +20,31 @@ namespace BlockEnhancementMod
         public Rigidbody rocketRigidbody;
 
         ParticleSystem smokeTrail;
-        public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
-        public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
-        public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
-        public Color TrailSmokeColor { get { return BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Color"); } }
+        public TrailSmokePropertise trailSmokePropertise = new TrailSmokePropertise
+        {
+            EmissionConstant = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"),
+            Lifetime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"),
+            Size = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"),
+            StartColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Start Color"),
+            EndColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke End Color"),
+            StartColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Color Time"),
+            EndColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Color Time"),
+            StartAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha"),
+            EndAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha"),
+            StartAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha Time"),
+            EndAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha Time"),
+        };
+    
+        //public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
+        //public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
+        //public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
+        //public Color TrailSmokeStartColor { get { return BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Start Color"); } }
+        //public Color TrailSmokeEndColor { get { return BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke End Color"); } }
+        //public float TrailSmokeStartAlpha { get { return BlockEnhancementMod.Configuration.GetValue<float >("Rocket Smoke Start Alpha"); } }
+        //public float TrailSmokeEndAlpha { get { return BlockEnhancementMod.Configuration.GetValue<float >("Rocket Smoke End Alpha"); } }
+        //public float TrailSmokeStartAlphaTime { get { return BlockEnhancementMod.Configuration.GetValue<float >("Rocket Smoke Start Color Time"); } }
+        //public float TrailSmokeEndAlphaTime { get { return BlockEnhancementMod.Configuration.GetValue<float >("Rocket Smoke Start Color Alpha"); } }
+
 
         //No smoke mode related
         MToggle NoSmokeToggle;
@@ -77,6 +99,25 @@ namespace BlockEnhancementMod
         private readonly float torquePower = 100000f;
         private readonly float upPower = 0.25f;
 
+        public struct TrailSmokePropertise
+        {
+            public float EmissionConstant;
+            public float Lifetime;
+            public float Size;
+            public Color StartColor;
+            public Color EndColor;
+            public float StartColorTime;
+            public float EndColorTime;
+            public float StartAlpha;
+            public float EndAlpha;
+            public float StartAlphaTime;
+            public float EndAlphaTime;
+
+            public override string ToString()
+            {
+                return StartAlphaTime + "-" + EndAlphaTime;
+            }
+        }
         public override void SafeAwake()
         {
             //Key mapper setup
@@ -218,7 +259,7 @@ namespace BlockEnhancementMod
                 float searchRange = EnhanceMore ? 5000f : 2000f;
 
                 //Add radar
-                Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
+                //Collider[] selfColliders = rocket.gameObject.GetComponentsInChildren<Collider>();
                 radarObject = new GameObject("RocketRadar");
                 radarObject.transform.SetParent(rocket.transform);
                 radarObject.transform.position = transform.position;
@@ -238,13 +279,13 @@ namespace BlockEnhancementMod
                 rigidbody.drag = 0f;
 
                 //Stop colliding with its own colliders
-                if (selfColliders.Length > 0)
-                {
-                    foreach (var collider in selfColliders)
-                    {
-                        Physics.IgnoreCollision(collider, radar.meshCollider, true);
-                    }
-                }
+                //if (selfColliders.Length > 0)
+                //{
+                //    foreach (var collider in selfColliders)
+                //    {
+                //        Physics.IgnoreCollision(collider, radar.meshCollider, true);
+                //    }
+                //}
 
                 //Set up Guide controller
                 guideObject = new GameObject("GuideController");
@@ -274,20 +315,35 @@ namespace BlockEnhancementMod
                     if (value.name.ToLower() == "smoketrail")
                     {
                         smokeTrail = value;
+
                         var colt = smokeTrail.colorOverLifetime;
+
+                        //Debug.Log(colt.color.colorMin + "||" + colt.color.colorMax);
+                        //Debug.Log(colt.color.mode);
+                        //Debug.Log(colt.color.gradient.alphaKeys.Length);
+                        //colt.color.gradient.alphaKeys.ToList().ForEach(key => Debug.Log(key.alpha + "-" + key.time));
+                        //Debug.Log(colt.color.gradient.colorKeys.Length);
+                        //colt.color.gradient.colorKeys.ToList().ForEach(key => Debug.Log(key.color + "-" + key.time));
+
+                        //Debug.Log("??" + trailSmokePropertise.ToString());
                         colt.color = new ParticleSystem.MinMaxGradient(new Gradient()
-                        { 
-                            alphaKeys = new GradientAlphaKey[] 
+                        {
+                            alphaKeys = new GradientAlphaKey[]
                             {
-                                new GradientAlphaKey(TrailSmokeColor.a,0.5f),
-                                new GradientAlphaKey(0f,smokeTrail.startLifetime)
+                                new GradientAlphaKey(0f,0f),
+                                new GradientAlphaKey(0.5f,0.01f),
+                                new GradientAlphaKey(trailSmokePropertise.StartAlpha,trailSmokePropertise.StartAlphaTime),
+                                new GradientAlphaKey(trailSmokePropertise.EndAlpha,trailSmokePropertise.EndAlphaTime),
+                                new GradientAlphaKey(0f,0.8f)
                             },
                             colorKeys = new GradientColorKey[]
-                            { 
-                            new GradientColorKey(TrailSmokeColor,0.5f),
-                            new GradientColorKey(TrailSmokeColor,smokeTrail.startLifetime)
+                            {
+                                   new GradientColorKey(new Color(1f,1f,0f,1f),0f),
+                                     new GradientColorKey(new Color(0.882f,0.365f,0.176f,1f),0.019f),
+                            new GradientColorKey(trailSmokePropertise.StartColor,trailSmokePropertise.StartColorTime),
+                            new GradientColorKey(trailSmokePropertise.EndColor,trailSmokePropertise.EndColorTime)
                             }
-                        });
+                        }); ;
                         break;
                     }
                 }
@@ -350,8 +406,9 @@ namespace BlockEnhancementMod
                         {
                             if (radar.RadarType == RadarScript.RadarTypes.ActiveRadar)
                             {
-                                radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
-                                radar.meshCollider.enabled = radar.canBeOverridden && radar.Switch;
+                                //radar.meshRenderer.enabled = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
+                                radar.DisplayRadarZone = radar.canBeOverridden && ShowRadarToggle.IsActive && radar.Switch;
+                                //radar.meshCollider.enabled = radar.canBeOverridden && radar.Switch;
                                 radar.canBeOverridden = !radar.canBeOverridden;
                                 if (!radar.canBeOverridden)
                                 {
@@ -443,10 +500,10 @@ namespace BlockEnhancementMod
                 {
                     var em = smokeTrail.emission;
                     var r = em.rate;
-                    r.constant = TrailSmokeEmissionConstant;
+                    r.constant = /*TrailSmokeEmissionConstant*/trailSmokePropertise.EmissionConstant;
                     em.rate = r;
-                    smokeTrail.startLifetime = TrailSmokeLifetime;
-                    smokeTrail.startSize = TrailSmokeSize;
+                    smokeTrail.startLifetime = /*TrailSmokeLifetime*/trailSmokePropertise.Lifetime;
+                    smokeTrail.startSize = /*TrailSmokeSize*/trailSmokePropertise.Size;
                 }
             }
         }
