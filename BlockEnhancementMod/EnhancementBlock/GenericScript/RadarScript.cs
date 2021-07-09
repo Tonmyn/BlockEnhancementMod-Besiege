@@ -95,7 +95,20 @@ namespace BlockEnhancementMod
             OnNotifyActiveRadarForNewTarget += OnNotifyActiveRadarToAssignTargetEvent;
             OnClearPassiveRadarTarget += OnClearPassiveRadarTargetEvent;
 
-            tempRadarSet.Clear();
+
+            var rs = parentBlock.GetComponent<RocketScript>();
+            if (rs == null) return;
+            int id = parentBlock.ParentMachine.PlayerID;
+            KeyCode key = rs.GroupFireKey.GetKey(0);
+            if (!tempRadarSet.ContainsKey(id))
+            {
+                tempRadarSet.Add(id, new Dictionary<KeyCode, HashSet<RadarScript>>());
+                
+            }
+            if (!tempRadarSet[id].ContainsKey(key))
+            {
+                tempRadarSet[id].Add(key, new HashSet<RadarScript>());
+            }
         }
 
         private void FixedUpdate()
@@ -190,7 +203,6 @@ namespace BlockEnhancementMod
                 }
             }
         }
-
 
         private void OnGUI()
         {
@@ -618,11 +630,11 @@ namespace BlockEnhancementMod
 
             IEnumerator DelayedAddSelfToSet()
             {
-                tempRadarSet.Remove(this);
+                tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Remove(this);
                 yield return new WaitForFixedUpdate();
                 if (target != null)
                 {
-                    tempRadarSet.Add(this);
+                    tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Add(this);
                     yield return new WaitForFixedUpdate();
                     OnSetPassiveRadarTarget?.Invoke(key);
                 }
@@ -645,15 +657,15 @@ namespace BlockEnhancementMod
             IEnumerator DelayedSetTarget()
             {
                 yield return new WaitForFixedUpdate();
-                if (tempRadarSet.Count > 0 && target == null)
+                if (tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count > 0 && target == null)
                 {
                     System.Random random = new System.Random();
-                    int index = random.Next(tempRadarSet.Count);
+                    int index = random.Next(tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count);
 #if DEBUG
                     Debug.Log("Available Radar: " + tempRadarSet.Count);
                     Debug.Log("Choose: " + index);
 #endif
-                    passiveSourceRadar = tempRadarSet.ElementAt(index);
+                    passiveSourceRadar = tempRadarSet[parentBlock.ParentMachine.PlayerID][key].ElementAt(index);
                 }
                 SetTarget(passiveSourceRadar?.target);
                 yield return null;
