@@ -3,23 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using Modding;
-using Modding.Blocks;
 
 namespace BlockEnhancementMod
 {
-
-    class SteeringHinge : EnhancementBlock
+    [Obsolete]
+    class SteeringHinge : SteeringWheel_GenericEnhanceScript
     {
 
         SteeringWheel steeringWheel;
 
         MToggle r2cToggle;
         MToggle NearToggle;
+        MKey addSpeedKey, reduceSpeedKey;
 
         public bool ReturnToCenter = false;
         public bool Near = true;
-        private bool orginReturnToCenter = false;
+        //private bool orginReturnToCenter = false;
 
 
 
@@ -33,10 +32,10 @@ namespace BlockEnhancementMod
         {
             steeringWheel = GetComponent<SteeringWheel>();
 
-            r2cToggle = BB.AddToggle(LanguageManager.returnToCenter, "Return to center", ReturnToCenter);
+            r2cToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center", ReturnToCenter);
             r2cToggle.Toggled += (bool value) => { ReturnToCenter = NearToggle.DisplayInMapper = value; ChangedProperties(); };
 
-            NearToggle = BB.AddToggle(LanguageManager.near, "Near", Near);
+            NearToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Near, "Near", Near);
             NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(); };
 
             leftKey = steeringWheel.KeyList.Find(match => match.Key == "left");
@@ -50,25 +49,30 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
+            base.DisplayInMapper(value);
+
             r2cToggle.DisplayInMapper = value;
             NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartClient()
         {
+            if (EnhancementEnabled)
+            {
+                rigidbody = GetComponent<Rigidbody>();
 
-            rigidbody = GetComponent<Rigidbody>();
+                //if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
+            }
 
-            if (!EnhancementEnabled) { ReturnToCenter = orginReturnToCenter; }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
 
             getLastKey();
 
-            if (!(leftKey.IsDown || rightKey.IsDown) && ReturnToCenter && steeringWheel.AngleToBe != 0)
+            if (!(leftKey.IsHeld || rightKey.IsHeld) && ReturnToCenter && steeringWheel.AngleToBe != 0)
             {
                 rigidbody.WakeUp();
 
@@ -114,6 +118,5 @@ namespace BlockEnhancementMod
             }
         }
     }
-
 
 }

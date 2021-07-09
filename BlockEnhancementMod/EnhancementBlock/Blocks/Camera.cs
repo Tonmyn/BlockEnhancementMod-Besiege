@@ -43,7 +43,7 @@ namespace BlockEnhancementMod
         MMenu ZoomControlModeMenu;
         private int zoomControlModeIndex = 0;
         private float zoomSpeed = 2f;
-        public List<string> zoomControlMode = new List<string>() { LanguageManager.mouseWheelZoomControl, LanguageManager.keyboardZoomControl };
+        public List<string> zoomControlMode = new List<string>() { LanguageManager.Instance.CurrentLanguage.MouseWheelZoomControl, LanguageManager.Instance.CurrentLanguage.KeyboardZoomControl };
         private bool firstPersonMode = false;
         private bool targetInitialCJOrHJ = false;
         public float firstPersonSmooth = 0.25f;
@@ -71,7 +71,7 @@ namespace BlockEnhancementMod
 
         public override void SafeAwake()
         {
-            CameraLookAtToggle = BB.AddToggle(LanguageManager.trackTarget, "TrackingCamera", cameraLookAtToggled);
+            CameraLookAtToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.TrackTarget, "TrackingCamera", cameraLookAtToggled);
             CameraLookAtToggle.Toggled += (bool value) =>
             {
                 cameraLookAtToggled =
@@ -83,27 +83,27 @@ namespace BlockEnhancementMod
                 ChangedProperties();
             };
 
-            ZoomControlModeMenu = BB.AddMenu(LanguageManager.zoomControlMode, zoomControlModeIndex, zoomControlMode, false);
+            ZoomControlModeMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.ZoomControlMode, zoomControlModeIndex, zoomControlMode, false);
             ZoomControlModeMenu.ValueChanged += (int value) =>
             {
                 zoomControlModeIndex = value;
                 ChangedProperties();
             };
 
-            NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.firstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
+            NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FirstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
             NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
 
-            LockTargetKey = BB.AddKey(LanguageManager.lockTarget, "LockTarget", KeyCode.Delete);
+            LockTargetKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "LockTarget", KeyCode.Delete);
 
-            PauseTrackingKey = BB.AddKey(LanguageManager.pauseTracking, "ResetView", KeyCode.X);
+            PauseTrackingKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.PauseTracking, "ResetView", KeyCode.X);
 
-            AutoLookAtKey = BB.AddKey(LanguageManager.switchGuideMode, "ActiveSearchKey", KeyCode.RightShift);
+            AutoLookAtKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ManualOverride, "ActiveSearchKey", KeyCode.RightShift);
 
-            ZoomInKey = BB.AddKey(LanguageManager.zoomIn, "ZoomInKey", KeyCode.Equals);
+            ZoomInKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ZoomIn, "ZoomInKey", KeyCode.Equals);
 
-            ZoomOutKey = BB.AddKey(LanguageManager.zoomOut, "ZoomOutKey", KeyCode.Minus);
+            ZoomOutKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ZoomOut, "ZoomOutKey", KeyCode.Minus);
 
-            ZoomSpeedSlider = BB.AddSlider(LanguageManager.zoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
+            ZoomSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ZoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
             ZoomSpeedSlider.ValueChanged += (float value) => { zoomSpeed = value; ChangedProperties(); };
 
             // Add reference to the camera's buildindex
@@ -134,7 +134,7 @@ namespace BlockEnhancementMod
             PauseTrackingKey.DisplayInMapper = value && cameraLookAtToggled;
         }
 
-        public override void BuildingUpdate()
+        public override void BuildingUpdateAlways_EnhancementEnabled()
         {
             if (fixedCamera.CamMode != FixedCameraBlock.Mode.FirstPerson && firstPersonMode)
             {
@@ -165,7 +165,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void OnSimulateStart()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
             firstPerson = fixedCamera.CamMode == FixedCameraBlock.Mode.FirstPerson;
 
@@ -212,7 +212,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (fixedCameraController?.activeCamera?.CompositeTracker3 == smoothLook)
             {
@@ -228,11 +228,11 @@ namespace BlockEnhancementMod
                     }
                     else
                     {
-                        if (ZoomInKey.IsDown)
+                        if (ZoomInKey.IsHeld || ZoomInKey.EmulationHeld())
                         {
                             newCamFOV = Mathf.Clamp(activeCam.fieldOfView - zoomSpeed, 1, orgCamFOV);
                         }
-                        if (ZoomOutKey.IsDown)
+                        if (ZoomOutKey.IsHeld || ZoomOutKey.EmulationHeld())
                         {
                             newCamFOV = Mathf.Clamp(activeCam.fieldOfView + zoomSpeed, 1, orgCamFOV);
                         }
@@ -249,16 +249,16 @@ namespace BlockEnhancementMod
                         switchTime = Time.time;
                         activateTimeRecorded = true;
                     }
-                    if (AutoLookAtKey.IsReleased)
+                    if (AutoLookAtKey.IsReleased || AutoLookAtKey.EmulationReleased())
                     {
                         autoSearch = !autoSearch;
                         switchTime = Time.time;
                     }
-                    if (PauseTrackingKey.IsReleased)
+                    if (PauseTrackingKey.IsReleased || PauseTrackingKey.EmulationReleased())
                     {
                         pauseTracking = !pauseTracking;
                     }
-                    if (LockTargetKey.IsReleased)
+                    if (LockTargetKey.IsReleased || LockTargetKey.EmulationReleased())
                     {
                         target = null;
                         if (autoSearch)
@@ -346,7 +346,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateFixedUpdateAlways()
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (cameraLookAtToggled)
             {
@@ -358,6 +358,7 @@ namespace BlockEnhancementMod
                     }
                     if (target != null)
                     {
+                        Debug.Log("??");
                         try
                         {
                             if (targetInitialCJOrHJ)
@@ -423,7 +424,7 @@ namespace BlockEnhancementMod
             }
         }
 
-        public override void SimulateLateUpdateAlways()
+        public override void SimulateLateUpdate_EnhancementEnabled()
         {
             if (cameraLookAtToggled)
             {
@@ -685,7 +686,7 @@ namespace BlockEnhancementMod
             //Some blocks weights more than others
             GameObject targetObj = block.gameObject;
             //A bomb
-            if (block.Type == BlockType.Bomb)
+            if (/*block.Type*/block.BlockID == (int)BlockType.Bomb)
             {
                 if (!targetObj.GetComponent<ExplodeOnCollideBlock>().hasExploded)
                 {
@@ -693,11 +694,11 @@ namespace BlockEnhancementMod
                 }
             }
             //A fired and unexploded rocket
-            if (block.Type == BlockType.Rocket)
+            if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
             {
                 if (targetObj.GetComponent<TimedRocket>().hasFired)
                 {
-                    if (targetObj.GetComponent<RocketScript>().targetAquired)
+                    if (targetObj.GetComponent<RocketScript>().radar != null)
                     {
                         clusterValue *= guidedRocketValue;
                     }
@@ -708,7 +709,7 @@ namespace BlockEnhancementMod
                 }
             }
             //A watering watercannon
-            if (block.Type == BlockType.WaterCannon)
+            if (/*block.Type*/block.BlockID == (int)BlockType.WaterCannon)
             {
                 if (targetObj.GetComponent<WaterCannonController>().isActive)
                 {
@@ -716,7 +717,7 @@ namespace BlockEnhancementMod
                 }
             }
             //A flying flying-block
-            if (block.Type == BlockType.FlyingBlock)
+            if (/*block.Type*/block.BlockID == (int)BlockType.FlyingBlock)
             {
                 if (targetObj.GetComponent<FlyingController>().canFly)
                 {
@@ -724,7 +725,7 @@ namespace BlockEnhancementMod
                 }
             }
             //A flaming flamethrower
-            if (block.Type == BlockType.Flamethrower)
+            if (/*block.Type*/block.BlockID == (int)BlockType.Flamethrower)
             {
                 if (targetObj.GetComponent<FlamethrowerController>().isFlaming)
                 {
@@ -746,7 +747,7 @@ namespace BlockEnhancementMod
         {
             try
             {
-                if (block.Type == BlockType.Rocket)
+                if (/*block.Type*/block.BlockID == (int)BlockType.Rocket)
                 {
                     if (block.gameObject.GetComponent<TimedRocket>().hasExploded)
                     {
