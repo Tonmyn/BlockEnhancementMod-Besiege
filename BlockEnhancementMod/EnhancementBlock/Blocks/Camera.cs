@@ -80,18 +80,18 @@ namespace BlockEnhancementMod
                 NonCustomModeSmoothSlider.DisplayInMapper =
                 AutoLookAtKey.DisplayInMapper =
                 value;
-                ChangedProperties();
+                ChangedProperties(CameraLookAtToggle);
             };
 
             ZoomControlModeMenu = BB.AddMenu(LanguageManager.Instance.CurrentLanguage.ZoomControlMode, zoomControlModeIndex, zoomControlMode, false);
             ZoomControlModeMenu.ValueChanged += (int value) =>
             {
                 zoomControlModeIndex = value;
-                ChangedProperties();
+                ChangedProperties(ZoomControlModeMenu);
             };
 
             NonCustomModeSmoothSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.FirstPersonSmooth, "nonCustomSmooth", firstPersonSmooth, 0, 1);
-            NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(); };
+            NonCustomModeSmoothSlider.ValueChanged += (float value) => { firstPersonSmooth = value; ChangedProperties(NonCustomModeSmoothSlider); };
 
             LockTargetKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.LockTarget, "LockTarget", KeyCode.Delete);
 
@@ -104,7 +104,7 @@ namespace BlockEnhancementMod
             ZoomOutKey = BB.AddKey(LanguageManager.Instance.CurrentLanguage.ZoomOut, "ZoomOutKey", KeyCode.Minus);
 
             ZoomSpeedSlider = BB.AddSlider(LanguageManager.Instance.CurrentLanguage.ZoomSpeed, "ZoomSpeed", zoomSpeed, 0, 20);
-            ZoomSpeedSlider.ValueChanged += (float value) => { zoomSpeed = value; ChangedProperties(); };
+            ZoomSpeedSlider.ValueChanged += (float value) => { zoomSpeed = value; ChangedProperties(ZoomSpeedSlider); };
 
             // Add reference to the camera's buildindex
             fixedCamera = GetComponent<FixedCameraBlock>();

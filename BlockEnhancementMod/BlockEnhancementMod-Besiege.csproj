@@ -58,7 +58,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="AssetManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Armor.cs" />
+    <Compile Include="EnhancementBlock\Blocks\ArmorRound.cs" />
     <Compile Include="EnhancementBlock\Blocks\Balloon.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
     <Compile Include="EnhancementBlock\Blocks\FlyingBlock.cs" />
