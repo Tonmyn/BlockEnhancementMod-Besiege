@@ -69,7 +69,7 @@ namespace BlockEnhancementMod
         private HashSet<Target> lastTargetList = new HashSet<Target>();
         //private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        static HashSet<RadarScript> tempRadarSet = new HashSet<RadarScript>();
+        internal static /*HashSet<RadarScript>*/Dictionary<int, Dictionary< KeyCode,HashSet<RadarScript>>>  tempRadarSet = /*new HashSet<RadarScript>()*/new Dictionary<int,Dictionary< KeyCode, HashSet<RadarScript>>>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
