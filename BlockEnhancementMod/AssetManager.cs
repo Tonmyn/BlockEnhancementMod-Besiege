@@ -16,17 +16,11 @@ namespace BlockEnhancementMod
 
         public Dictionary<string, List<string>> AudioClipDic = new Dictionary<string, List<string>>();
 
-        public Action OnReload;
+        public event Action OnReread;
 
         void Awake()
         {
-            if (!ModIO.ExistsDirectory("Audio Clips", Data))
-            {
-                ModIO.CreateDirectory("Audio Clips", Data);
-            }
-            //Debug.Log(getExtention("asdasd.mp3"));
-            AudioClipDic = readAudioClips();
-            
+            RereadAudioClipAsset();
         }
 
         private Dictionary<string,List<string>> readAudioClips()
@@ -53,38 +47,35 @@ namespace BlockEnhancementMod
                     audioClipDic.Add(dir, files);
                 }
             }
+
+            ExtensionMethods.ShowMessage("Audio Clip Asset Read Complete", Color.green);
             return audioClipDic;
         }
 
-        public ModAudioClip LoadModAudioClip(string name,string path,bool data = false)
+        public ModAudioClip LoadModAudioClip(string name,string path, bool data = false)
         {
-            var ac = ModResource.CreateAudioClipResource(name, path, data);
             try
             {
+                var ac = ModResource.CreateAudioClipResource(name, path, data);
                 return ac;
             }
             catch (Exception e)
             {
-                Debug.Log(e.Message);
-                return ac;
+                ExtensionMethods.ShowMessage(e.Message, Color.red);
+                return null;
             }
         }
 
-        //private string getExtention(string path,bool data = false)
-        //{
+        public void RereadAudioClipAsset()
+        {
+            if (!ModIO.ExistsDirectory("Audio Clips", Data))
+            {
+                ModIO.CreateDirectory("Audio Clips", Data);
+            }
 
-        //    try
-        //    {
-        //        return PathHelper.GetExtension(path);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Debug.Log(e.Message);
-        //        return "123";
-        //    }
+            AudioClipDic = readAudioClips();
 
-
-        //}
-
+            OnReread?.Invoke();
+        }
     }
 }

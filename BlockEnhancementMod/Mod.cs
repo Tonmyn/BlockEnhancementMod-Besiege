@@ -35,6 +35,7 @@ namespace BlockEnhancementMod
                 Dictionary<string, Action<string[]>> commandOfAction = new Dictionary<string, Action<string[]>>
                 {
                     { "srssc",   (args)=>{Modding.Configuration.GetData().Write("Rocket Smoke Start Color",new Color (float.Parse( args[1]),float.Parse( args[2]),float.Parse( args[3])));} },
+                    { "rfa",    (args)=>{ AssetManager.Instance.RereadAudioClipAsset(); } },
                 };
 
                 if (commandOfAction.ContainsKey(value[0].ToLower()))
@@ -49,6 +50,7 @@ namespace BlockEnhancementMod
           "<color=#FF6347>" +
           "Enhancement Mod Commands\n" +
           "  Usage: be srssc :  set rocket smoke start color.\n" +
+          "  Usage: be rfa:  Refresh asset resource.\n" +
           "</color>"
           );
         }
@@ -89,6 +91,11 @@ namespace BlockEnhancementMod
             return _component;
         }
 
+        //public static string SetColor(this string str, Color color)
+        //{ 
+        
+        //}
+
         ///<summary>
         ///生成随机字符串 
         ///</summary>
@@ -117,6 +124,12 @@ namespace BlockEnhancementMod
                 s += str.Substring(r.Next(0, str.Length - 1), 1);
             }
             return s;
+        }
+
+        public static void ShowMessage(string message,Color color = default(Color))
+        {
+            var _color = ColorUtility.ToHtmlStringRGB(color);
+            ConsoleController.ShowMessage(string.Format("<color=#{0}>{1}{2}</color>", _color, message, " -- Form Block Enhancement Mod"));
         }
     }
 }

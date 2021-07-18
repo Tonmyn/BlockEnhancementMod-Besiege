@@ -21,13 +21,16 @@ namespace BlockEnhancementMod
 
         AudioSource audioSource;
 
-        //List<string> audioClipNames;
+        Dictionary<string, List<string>> audioClipDic;
 
         public override void SafeAwake()
         {
-            directoryMenu = AddMenu("Directory", 0, formatList(AssetManager.Instance.AudioClipDic.Keys.ToList()));
-            fileMenu = AddMenu("File", 0, formatList(AssetManager.Instance.AudioClipDic["Audio Clips"].ToList(), true));
-            
+
+            directoryMenu = AddMenu("Directory", 0, new List<string>() { "" });
+            fileMenu = AddMenu("File", 0, new List<string>() { "" });
+
+            refeshMenu();
+
             playKey = AddKey(LanguageManager.Instance.CurrentLanguage.Play, "Play", KeyCode.P);
             stopKey = AddKey(LanguageManager.Instance.CurrentLanguage.Stop, "Stop", KeyCode.C);
             muteKey = AddKey(LanguageManager.Instance.CurrentLanguage.Mute, "Mute", KeyCode.M);
@@ -45,7 +48,9 @@ namespace BlockEnhancementMod
             spatialBlendSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.SpatialBlend, "Spatial Blend", 1f, 0f, 1f);
 
             audioSource = transform.gameObject.GetComponent<AudioSource>() ?? transform.gameObject.AddComponent<AudioSource>();
-            
+
+            AssetManager.Instance.OnReread += refeshMenu;
+
 #if DEBUG
             ConsoleController.ShowMessage("圆盔甲添加进阶属性");
 #endif
@@ -66,21 +71,30 @@ namespace BlockEnhancementMod
 
         public override void ChangedProperties(MapperType mapper)
         {
-            if (mapper.Key == directoryMenu.Key)
+            if (audioClipDic.Keys.Count == 0)
             {
-                var key = AssetManager.Instance.AudioClipDic.Keys.ToList()[directoryMenu.Value];
-                var list = AssetManager.Instance.AudioClipDic[key];
+                Enhancement.DisplayInMapper = false;
+                Enhancement.IsActive = false;
+                DisplayInMapper(false);
+            }
+            else
+            {
+                if (mapper.Key == directoryMenu.Key)
+                {
+                    var key = audioClipDic.Keys.ToList()[directoryMenu.Value];
+                    var list = formatList(audioClipDic[key]);
 
-                fileMenu.Items = formatList(list, true, key);
-                fileMenu.Value = 0;
-                fileMenu.DisplayInMapper = false;
-                fileMenu.DisplayInMapper = true;
+                    directoryMenu.DisplayInMapper = true;
+                    fileMenu.Items = formatList(list, true, key);
+                    fileMenu.Value = 0;
+                    fileMenu.DisplayInMapper = false;
+                    fileMenu.DisplayInMapper = true;
+                }
             }
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
-            //audioClipNames = new List<string>();
             var ac = loadAudioClip(directoryMenu.Value, fileMenu.Value);
             ac.OnLoad += () => { audioSource.clip = ac; };
             //audioSource.clip = ModResource.GetAudioClip(audioClipNames[0]);
@@ -93,7 +107,6 @@ namespace BlockEnhancementMod
             //audioSource.rolloffMode = AudioRolloffMode.Custom;
             audioSource.dopplerLevel = dopplerSlider.Value;
 
-          
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
@@ -136,6 +149,32 @@ namespace BlockEnhancementMod
           //  Debug.Log("??" + other.gameObject.name);
         }
 
+        private void refeshMenu()
+        {
+            audioClipDic = new Dictionary<string, List<string>>(AssetManager.Instance.AudioClipDic);
+            var isNull = audioClipDic.Keys.Count == 0;
+
+            directoryMenu.Items =!isNull ? formatList(audioClipDic.Keys.ToList()) : new List<string>() { "" };
+            directoryMenu.Value = 0;
+
+            fileMenu.Items = !isNull ? formatList(audioClipDic["Audio Clips"], true) : new List<string>() { "" };
+            fileMenu.Value = 0;
+
+            if (Enhancement != null)
+            {
+                if (!isNull)
+                {
+                    Enhancement.DisplayInMapper = true;
+                    DisplayInMapper(Enhancement.IsActive);
+                }
+                else
+                {
+                    Enhancement.DisplayInMapper = false;
+                    Enhancement.IsActive = false;
+                    DisplayInMapper(false);
+                }
+            }
+        }
         private ModAudioClip loadAudioClip(int index_directoryMenu,int index_fileMenu)
         {
             var key = AssetManager.Instance.AudioClipDic.Keys.ToList()[index_directoryMenu];
@@ -154,7 +193,14 @@ namespace BlockEnhancementMod
             foreach (var str in list)
             {
                 var _str = Regex.Replace(str, path, "");
-                if (extention) _str = _str.Substring(1, _str.Length - 4);
+                if (extention)
+                {
+                    try
+                    {
+                        _str = _str.Substring(1, _str.Length - 4);
+                    }
+                    catch { }
+                } 
                 strs.Add(_str);
             }
             return strs;
