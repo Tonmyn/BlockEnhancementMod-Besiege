@@ -48,7 +48,10 @@ namespace BlockEnhancementMod
                         files.Add(file);
                     }
                 }
-               audioClipDic.Add(dir, files);
+                if (files.Count != 0)
+                {
+                    audioClipDic.Add(dir, files);
+                }
             }
             return audioClipDic;
         }

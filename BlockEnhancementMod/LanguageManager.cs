@@ -240,6 +240,21 @@ namespace BlockEnhancementMod
         string HeightPixel { get; }
         string Switch { get; }
         List<string> NullChannelList { get; }
+
+        //ArmorRound
+        string Play { get; }
+        string Stop { get; }
+        string Mute { get; }
+        string Next { get; }
+        string Last { get; }
+        string Loop { get; }
+        string OneShot { get; }
+        string OnCollision { get; }
+        string Volume { get; }
+        string Pitch { get; }
+        string Distance { get; }
+        string Doppler { get; }
+        string SpatialBlend { get; }
     }
 
     public class Chinese : ILanguage
@@ -440,6 +455,21 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "高度像素";
         public string Switch { get; } = "开关";
         public List<string> NullChannelList { get; } = new List<string> { "无信号" };
+
+        //ArmorRound
+        public string Play { get; } = "播放";
+        public string Stop { get; } = "停止";
+        public string Mute { get; } = "静音";
+        public string Next { get; } = "下一个";
+        public string Last { get; } = "上一个";
+        public string Loop { get; } = "循环";
+        public string OneShot { get; } = "单次播放";
+        public string OnCollision { get; } = "碰撞时";
+        public string Volume { get; } = "音量";
+        public string Pitch { get; } = "音调";
+        public string Distance { get; } = "传播距离";
+        public string Doppler { get; } = "多普勒效应";
+        public string SpatialBlend { get; } = "空间衰减";
     }
 
     public class English : ILanguage
@@ -641,6 +671,21 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "Height Pixel";
         public string Switch { get; } = "Switch";
         public List<string> NullChannelList { get; } = new List<string> { "No Channel" };
+
+        //ArmorRound
+        public string Play { get; } = "Play";
+        public string Stop { get; } = "Stop";
+        public string Mute { get; } = "Mute";
+        public string Next { get; } = "Next";
+        public string Last { get; } = "Last";
+        public string Loop { get; } = "Loop";
+        public string OneShot { get; } = "OneShot";
+        public string OnCollision { get; } = "On Collision";
+        public string Volume { get; } = "Volume";
+        public string Pitch { get; } = "Pitch";
+        public string Distance { get; } = "Distance";
+        public string Doppler { get; } = "Doppler";
+        public string SpatialBlend { get; } = "Spatial Blend";
     }
 
     public class Japanese : ILanguage
@@ -842,5 +887,20 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "高さピクセル";
         public string Switch { get; } = "スイッチ";
         public List<string> NullChannelList { get; } = new List<string> { "チャンネルなし" };
+
+        //ArmorRound
+        public string Play { get; } = "遊び";
+        public string Stop { get; } = "ストップ";
+        public string Mute { get; } = "ミュート";
+        public string Next { get; } = "次の方";
+        public string Last { get; } = "前の方";
+        public string Loop { get; } = "ループ";
+        public string OneShot { get; } = "ワンショット";
+        public string OnCollision { get; } = "衝突に関して";
+        public string Volume { get; } = "体積";
+        public string Pitch { get; } = "ピッチ";
+        public string Distance { get; } = "ディスタンス";
+        public string Doppler { get; } = "ドップラー";
+        public string SpatialBlend { get; } = "空間ブレンド";
     }
 }

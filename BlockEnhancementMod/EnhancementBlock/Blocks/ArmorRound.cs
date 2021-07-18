@@ -12,11 +12,12 @@ namespace BlockEnhancementMod
     class ArmorRoundScript : EnhancementBlock
     {
         MMenu directoryMenu, fileMenu;
-        MToggle collisionToggle,oneShotToggle,loopToggle;
-        MSlider volumeSlider, pitchSlider,distanceSlider,dopplerSlider;
+        MToggle onCollisionToggle,oneShotToggle,loopToggle;
+        MSlider volumeSlider, pitchSlider,distanceSlider,dopplerSlider, spatialBlendSlider;
         MKey addVolumeKey, reduceVolumeKey;
         MKey playKey, muteKey,stopKey;
         MKey nextKey, lastKey;
+        
 
         AudioSource audioSource;
 
@@ -27,19 +28,24 @@ namespace BlockEnhancementMod
             directoryMenu = AddMenu("Directory", 0, formatList(AssetManager.Instance.AudioClipDic.Keys.ToList()));
             fileMenu = AddMenu("File", 0, formatList(AssetManager.Instance.AudioClipDic["Audio Clips"].ToList(), true));
             
-            playKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Play", KeyCode.P);
-            stopKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Stop", KeyCode.C);
-            muteKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Mute", KeyCode.M);
+            playKey = AddKey(LanguageManager.Instance.CurrentLanguage.Play, "Play", KeyCode.P);
+            stopKey = AddKey(LanguageManager.Instance.CurrentLanguage.Stop, "Stop", KeyCode.C);
+            muteKey = AddKey(LanguageManager.Instance.CurrentLanguage.Mute, "Mute", KeyCode.M);
             //nextKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Next", KeyCode.N);
             //lastKey = AddKey(LanguageManager.Instance.CurrentLanguage.Switch, "Last", KeyCode.L);
 
-            volumeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.AddSpeed, "Volume", 1f, 0f, 5f);
-            //channelMenu = AddMenu("Channel Menu", 0, channelList);
-            //widthPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.WidthPixel, "Width", 800f);
-            //heightPixelValue = AddValue(LanguageManager.Instance.CurrentLanguage.HeightPixel, "Height", 800f);
+            loopToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.Loop, "Loop", false);
+            oneShotToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.OneShot, "One Shot", false);
+            //onCollisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.OnCollision ,"On Collision", false);
 
-            audioSource = transform.gameObject.AddComponent<AudioSource>();
-          
+            volumeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Volume, "Volume", 1f, 0f, 1f);
+            pitchSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Pitch, "Pitch", 1f, 0f, 5f);
+            distanceSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Distance, "Distance", 5f, 0f, 10f);
+            dopplerSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Doppler, "Doppler", 1f, 0f, 5f);
+            spatialBlendSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.SpatialBlend, "Spatial Blend", 1f, 0f, 1f);
+
+            audioSource = transform.gameObject.GetComponent<AudioSource>() ?? transform.gameObject.AddComponent<AudioSource>();
+            
 #if DEBUG
             ConsoleController.ShowMessage("圆盔甲添加进阶属性");
 #endif
@@ -50,7 +56,12 @@ namespace BlockEnhancementMod
             directoryMenu.DisplayInMapper = fileMenu.DisplayInMapper = value;
             playKey.DisplayInMapper = stopKey.DisplayInMapper = muteKey.DisplayInMapper = value;
             //nextKey.DisplayInMapper = lastKey.DisplayInMapper = value;
-            volumeSlider.DisplayInMapper = value;
+
+            oneShotToggle.DisplayInMapper = !loopToggle.IsActive&& value;
+            loopToggle.DisplayInMapper = !oneShotToggle.IsActive && value;
+
+            volumeSlider.DisplayInMapper = pitchSlider.DisplayInMapper = value;
+            distanceSlider.DisplayInMapper = dopplerSlider.DisplayInMapper = spatialBlendSlider.DisplayInMapper = value;
         }
 
         public override void ChangedProperties(MapperType mapper)
@@ -70,47 +81,45 @@ namespace BlockEnhancementMod
         public override void OnSimulateStart_EnhancementEnabled()
         {
             //audioClipNames = new List<string>();
-           var ac = loadAudioClip(directoryMenu.Value, fileMenu.Value);
+            var ac = loadAudioClip(directoryMenu.Value, fileMenu.Value);
             ac.OnLoad += () => { audioSource.clip = ac; };
             //audioSource.clip = ModResource.GetAudioClip(audioClipNames[0]);
-            audioSource.loop = false;
-            audioSource.pitch = 1;
+            audioSource.loop = loopToggle.IsActive;
+            audioSource.pitch = pitchSlider.Value;
             audioSource.volume = volumeSlider.Value;
-            audioSource.spatialBlend = 1f;
-            audioSource.minDistance = 10f;
-            audioSource.maxDistance = 11f;
+            audioSource.spatialBlend = spatialBlendSlider.Value;
+            audioSource.minDistance = distanceSlider.Value;
+            audioSource.maxDistance = distanceSlider.Value * 3f;
             //audioSource.rolloffMode = AudioRolloffMode.Custom;
-            audioSource.dopplerLevel = 5;
+            audioSource.dopplerLevel = dopplerSlider.Value;
+
+          
         }
 
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (playKey.IsPressed|| playKey.EmulationPressed())
             {
-                if (audioSource.time == 0 && !audioSource.isPlaying)
+                if (!oneShotToggle.IsActive)
                 {
-                    audioSource.Play();
+                    if (audioSource.time == 0 && !audioSource.isPlaying)
+                    {
+                        audioSource.Play();
+                    }
+                    else if (audioSource.time > 0 && audioSource.isPlaying)
+                    {
+                        audioSource.Pause();
+                    }
+                    else if (audioSource.time > 0 && !audioSource.isPlaying)
+                    {
+                        audioSource.UnPause();
+                    }
                 }
-                else if (audioSource.time > 0 && audioSource.isPlaying)
+                else
                 {
-                    audioSource.Pause();
+                    audioSource.PlayOneShot(audioSource.clip);
                 }
-                else if (audioSource.time > 0 && !audioSource.isPlaying)
-                {
-                    audioSource.UnPause();
-                }
-                //if (audioSource.isPlaying)
-                //{
-                //    audioSource.Pause();
-                //}
-                //else
-                //{
-
-                //    audioSource.PlayOneShot(audioSource.clip);
-                //}
-
             }
-
             if (stopKey.IsPressed || stopKey.EmulationPressed())
             {
                 audioSource.Stop();
@@ -120,8 +129,11 @@ namespace BlockEnhancementMod
             {
                 audioSource.mute = !audioSource.mute;
             }
+        }
 
-
+        void OnCollisionEnter(Collision other)
+        {
+          //  Debug.Log("??" + other.gameObject.name);
         }
 
         private ModAudioClip loadAudioClip(int index_directoryMenu,int index_fileMenu)
