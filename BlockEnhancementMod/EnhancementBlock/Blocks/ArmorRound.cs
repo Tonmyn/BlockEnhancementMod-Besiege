@@ -22,6 +22,7 @@ namespace BlockEnhancementMod
         AudioSource audioSource;
 
         Dictionary<string, List<string>> audioClipDic;
+        public static float GlobleAudioPitchValue = 1f;
 
         public override void SafeAwake()
         {
@@ -99,7 +100,7 @@ namespace BlockEnhancementMod
             ac.OnLoad += () => { audioSource.clip = ac; };
             //audioSource.clip = ModResource.GetAudioClip(audioClipNames[0]);
             audioSource.loop = loopToggle.IsActive;
-            audioSource.pitch = pitchSlider.Value;
+            audioSource.pitch = pitchSlider.Value * GlobleAudioPitchValue;
             audioSource.volume = volumeSlider.Value;
             audioSource.spatialBlend = spatialBlendSlider.Value;
             audioSource.minDistance = distanceSlider.Value;

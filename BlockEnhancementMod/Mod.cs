@@ -36,6 +36,7 @@ namespace BlockEnhancementMod
                 {
                     { "srssc",   (args)=>{Modding.Configuration.GetData().Write("Rocket Smoke Start Color",new Color (float.Parse( args[1]),float.Parse( args[2]),float.Parse( args[3])));} },
                     { "rfa",    (args)=>{ AssetManager.Instance.RereadAudioClipAsset(); } },
+                    { "setgap",     (args)=>{ ArmorRoundScript.GlobleAudioPitchValue = Mathf.Clamp( float.Parse(args[1]),0f,2f); } },
                 };
 
                 if (commandOfAction.ContainsKey(value[0].ToLower()))
@@ -51,6 +52,7 @@ namespace BlockEnhancementMod
           "Enhancement Mod Commands\n" +
           "  Usage: be srssc :  set rocket smoke start color.\n" +
           "  Usage: be rfa:  Refresh asset resource.\n" +
+          "  Usage: be setgap [value]:  Set Globle Audio Pitch Value(default value:1,interval:[0,2]).\n" +
           "</color>"
           );
         }
