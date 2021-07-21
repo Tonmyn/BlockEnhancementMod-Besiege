@@ -249,6 +249,8 @@ namespace BlockEnhancementMod
         string Last { get; }
         string Loop { get; }
         string OneShot { get; }
+        string ReleaseToPause { get; }
+        string ReleaseToStop { get; }
         string OnCollision { get; }
         string Volume { get; }
         string Pitch { get; }
@@ -464,6 +466,8 @@ namespace BlockEnhancementMod
         public string Last { get; } = "上一个";
         public string Loop { get; } = "循环";
         public string OneShot { get; } = "单次播放";
+        public string ReleaseToPause { get; } = "放开暂停";
+        public string ReleaseToStop { get; } = "放开停止";
         public string OnCollision { get; } = "碰撞时";
         public string Volume { get; } = "音量";
         public string Pitch { get; } = "音调";
@@ -680,6 +684,8 @@ namespace BlockEnhancementMod
         public string Last { get; } = "Last";
         public string Loop { get; } = "Loop";
         public string OneShot { get; } = "OneShot";
+        public string ReleaseToPause { get; } = "ReleaseToPause";
+        public string ReleaseToStop { get; } = "ReleaseToStop";
         public string OnCollision { get; } = "On Collision";
         public string Volume { get; } = "Volume";
         public string Pitch { get; } = "Pitch";
@@ -896,6 +902,8 @@ namespace BlockEnhancementMod
         public string Last { get; } = "前の方";
         public string Loop { get; } = "ループ";
         public string OneShot { get; } = "ワンショット";
+        public string ReleaseToPause { get; } = "休止する";
+        public string ReleaseToStop { get; } = "停止する";
         public string OnCollision { get; } = "衝突に関して";
         public string Volume { get; } = "体積";
         public string Pitch { get; } = "ピッチ";

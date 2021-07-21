@@ -48,7 +48,7 @@ namespace BlockEnhancementMod
                 }
             }
 
-            ExtensionMethods.ShowMessage("Audio Clip Asset Read Complete", Color.green);
+            ExtensionMethods.ShowMessageWithColor("Audio Clip Asset Read Complete", Color.green);
             return audioClipDic;
         }
 
@@ -61,7 +61,7 @@ namespace BlockEnhancementMod
             }
             catch (Exception e)
             {
-                ExtensionMethods.ShowMessage(e.Message, Color.red);
+                ExtensionMethods.ShowMessageWithColor(e.Message, Color.red);
                 return null;
             }
         }

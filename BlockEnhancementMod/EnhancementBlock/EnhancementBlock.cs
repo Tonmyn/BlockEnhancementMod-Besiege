@@ -213,7 +213,7 @@ namespace BlockEnhancementMod
         /// 显示在Mapper里面
         /// </summary>
         /// <param name="value">EnhancementEnabled.value</param>
-        public virtual void DisplayInMapper(bool value) {  }
+        public virtual void DisplayInMapper(bool enhance) {  }
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>

@@ -93,10 +93,11 @@ namespace BlockEnhancementMod
             return _component;
         }
 
-        //public static string SetColor(this string str, Color color)
-        //{ 
-        
-        //}
+        public static string SetColor(this string str, Color color)
+        {
+            var _color = ColorUtility.ToHtmlStringRGB(color);
+            return string.Format("<color=#{0}>{1}</color>", _color, str);
+        }
 
         ///<summary>
         ///生成随机字符串 
@@ -128,7 +129,7 @@ namespace BlockEnhancementMod
             return s;
         }
 
-        public static void ShowMessage(string message,Color color = default(Color))
+        public static void ShowMessageWithColor(string message,Color color = default(Color))
         {
             var _color = ColorUtility.ToHtmlStringRGB(color);
             ConsoleController.ShowMessage(string.Format("<color=#{0}>{1}{2}</color>", _color, message, " -- Form Block Enhancement Mod"));

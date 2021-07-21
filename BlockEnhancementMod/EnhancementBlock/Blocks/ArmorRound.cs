@@ -12,7 +12,7 @@ namespace BlockEnhancementMod
     class ArmorRoundScript : EnhancementBlock
     {
         MMenu directoryMenu, fileMenu;
-        MToggle onCollisionToggle,oneShotToggle,loopToggle;
+        MToggle onCollisionToggle,oneShotToggle,loopToggle,releaseToPauseToggle,releaseToStopToggle;
         MSlider volumeSlider, pitchSlider,distanceSlider,dopplerSlider, spatialBlendSlider;
         MKey addVolumeKey, reduceVolumeKey;
         MKey playKey, muteKey,stopKey;
@@ -41,6 +41,8 @@ namespace BlockEnhancementMod
             loopToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.Loop, "Loop", false);
             oneShotToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.OneShot, "One Shot", false);
             //onCollisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.OnCollision ,"On Collision", false);
+            releaseToPauseToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ReleaseToPause, "Release To Pause", false);
+            releaseToStopToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ReleaseToStop, "Release To Stop", false);
 
             volumeSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Volume, "Volume", 1f, 0f, 1f);
             pitchSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Pitch, "Pitch", 1f, 0f, 5f);
@@ -63,8 +65,10 @@ namespace BlockEnhancementMod
             playKey.DisplayInMapper = stopKey.DisplayInMapper = muteKey.DisplayInMapper = value;
             //nextKey.DisplayInMapper = lastKey.DisplayInMapper = value;
 
-            oneShotToggle.DisplayInMapper = !loopToggle.IsActive&& value;
+            oneShotToggle.DisplayInMapper = !loopToggle.IsActive && !releaseToPauseToggle.IsActive && !releaseToStopToggle.IsActive && value;
             loopToggle.DisplayInMapper = !oneShotToggle.IsActive && value;
+            releaseToPauseToggle.DisplayInMapper = !oneShotToggle.IsActive && !releaseToStopToggle.IsActive && value;
+            releaseToStopToggle.DisplayInMapper = !oneShotToggle.IsActive && !releaseToPauseToggle.IsActive && value;
 
             volumeSlider.DisplayInMapper = pitchSlider.DisplayInMapper = value;
             distanceSlider.DisplayInMapper = dopplerSlider.DisplayInMapper = spatialBlendSlider.DisplayInMapper = value;
@@ -142,6 +146,19 @@ namespace BlockEnhancementMod
             if (muteKey.IsPressed || muteKey.EmulationPressed())
             {
                 audioSource.mute = !audioSource.mute;
+            }
+
+            if ( playKey.IsReleased)
+            {
+                if (releaseToPauseToggle.IsActive)
+                {
+                    audioSource.Pause();
+                }
+
+                if (releaseToStopToggle.IsActive)
+                {
+                    audioSource.Stop();
+                }
             }
         }
 
