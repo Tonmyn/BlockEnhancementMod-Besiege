@@ -684,8 +684,8 @@ namespace BlockEnhancementMod
         public string Last { get; } = "Last";
         public string Loop { get; } = "Loop";
         public string OneShot { get; } = "OneShot";
-        public string ReleaseToPause { get; } = "ReleaseToPause";
-        public string ReleaseToStop { get; } = "ReleaseToStop";
+        public string ReleaseToPause { get; } = "Release" + Environment.NewLine + "To Pause";
+        public string ReleaseToStop { get; } = "Release" + Environment.NewLine + "To Stop";
         public string OnCollision { get; } = "On Collision";
         public string Volume { get; } = "Volume";
         public string Pitch { get; } = "Pitch";
