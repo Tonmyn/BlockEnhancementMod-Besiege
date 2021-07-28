@@ -175,7 +175,7 @@ namespace BlockEnhancementMod
             directoryMenu.Items =!isNull ? formatList(audioClipDic.Keys.ToList()) : new List<string>() { "" };
             directoryMenu.Value = 0;
 
-            fileMenu.Items = !isNull ? formatList(audioClipDic["Audio Clips"], true) : new List<string>() { "" };
+            fileMenu.Items = !isNull ? formatList(audioClipDic[audioClipDic.Keys.ToList()[0]], true) : new List<string>() { "" };
             fileMenu.Value = 0;
 
             if (Enhancement != null)

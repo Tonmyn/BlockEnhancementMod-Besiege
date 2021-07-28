@@ -26,9 +26,7 @@ namespace BlockEnhancementMod
         private Dictionary<string,List<string>> readAudioClips()
         {
             var audioClipDic = new Dictionary<string, List<string>>();
-
             var extentionType = new List<string>() { /*".mp3",*/ ".ogg", ".wav"/*, ".txt" */};
-
             var dirs = ModIO.GetDirectories(@"Audio Clips", Data).ToList();
             dirs.Insert(0, @"Audio Clips");
    
