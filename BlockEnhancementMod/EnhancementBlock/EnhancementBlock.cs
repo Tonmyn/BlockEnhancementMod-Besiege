@@ -27,7 +27,7 @@ namespace BlockEnhancementMod
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataSaveEvent;
 
-        public Action PropertiseChangedEvent;
+        public Action<MapperType> PropertiseChangedEvent;
 
         private bool isFirstFrame = true;
 
@@ -41,13 +41,13 @@ namespace BlockEnhancementMod
             //if (BB.isSimulating ) { return; }        
 
             Enhancement = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Enhancement, "Enhancement", EnhancementEnabled);
-            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; PropertiseChangedEvent(); /*DisplayInMapper(value);*/ };
+            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; PropertiseChangedEvent(Enhancement); /*DisplayInMapper(value);*/ };
 
             //LoadConfiguration();    
 
             PropertiseChangedEvent += ChangedProperties;
-            PropertiseChangedEvent += () => { DisplayInMapper(EnhancementEnabled); };
-            PropertiseChangedEvent?.Invoke();
+            PropertiseChangedEvent += (mapperType) => { DisplayInMapper(EnhancementEnabled); };
+            PropertiseChangedEvent?.Invoke(Enhancement);
 
             //Controller.Instance.OnSave += SaveConfiguration;
         }
@@ -213,11 +213,11 @@ namespace BlockEnhancementMod
         /// 显示在Mapper里面
         /// </summary>
         /// <param name="value">EnhancementEnabled.value</param>
-        public virtual void DisplayInMapper(bool value) {  }
+        public virtual void DisplayInMapper(bool enhance) {  }
         /// <summary>
         /// 属性改变（滑条值改变脚本属性随之改变）
         /// </summary>
-        public virtual void ChangedProperties() { }
+        public virtual void ChangedProperties(MapperType mapperType) { }
         /// <summary>
         /// 参数改变（联机模拟时主机对模块的一些参数初始化）
         /// </summary>
@@ -226,37 +226,37 @@ namespace BlockEnhancementMod
         public MKey AddKey(string displayName, string key, KeyCode defaultValue)
         {
             var mapper = BB.AddKey(displayName, key, defaultValue);
-            mapper.KeysChanged += () => { PropertiseChangedEvent(); };
+            mapper.KeysChanged += () => { PropertiseChangedEvent(mapper); };
             return mapper;
         }
         public MSlider AddSlider(string displayName,string key ,float defaultValue,float min,float max)
         {
             var mapper = BB.AddSlider(displayName, key, defaultValue, min, max);
-            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
+            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(mapper); };
             return mapper;
         }
         public MToggle AddToggle(string displayName, string key, bool defaultValue)
         {
             var mapper = BB.AddToggle(displayName, key, defaultValue);
-            mapper.Toggled += (value) => {PropertiseChangedEvent();  };
+            mapper.Toggled += (value) => {PropertiseChangedEvent(mapper);  };
             return mapper;
         }
         public MMenu AddMenu(string key, int defaultIndex, List<string> items)
         {
             var mapper = BB.AddMenu(key, defaultIndex, items);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); };
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(mapper); };
             return mapper;
         }
         public MColourSlider AddColourSlider(string displayName, string key, Color defaultValue,bool snapColors)
         {
             var mapper = BB.AddColourSlider(displayName, key, defaultValue,snapColors);
-            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(); };
+            mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(mapper); };
             return mapper;
         }
         public MValue AddValue(string displayName, string key, float defaultValue)
         {
             var mapper = BB.AddValue(displayName, key, defaultValue);
-            mapper.ValueChanged += (value) => { PropertiseChangedEvent(); };
+            mapper.ValueChanged += (value) => { PropertiseChangedEvent(mapper); };
             return mapper;
         }
     }
