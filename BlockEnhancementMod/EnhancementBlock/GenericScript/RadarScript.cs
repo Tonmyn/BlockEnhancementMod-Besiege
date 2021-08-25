@@ -202,18 +202,20 @@ namespace BlockEnhancementMod
                         bool CheckIfSameGroupRocket(Target target)
                         {
                             if (StatMaster.isMP) return false;
-                            if (target.ReturnTimedrocket() == null) return false;
+                            if (target.GetTimedrocket() == null) return false;
 
-                            Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets;
-                            if (!RocketsController.Instance.playerGroupedRockets.TryGetValue(0, out groupedRockets)) return false;
+                            RocketScript rs = target.ReturnBlockBehaviour().GetComponentInAll<RocketScript>();
+                            RocketScript selfRS = parentBlock.GetComponentInAll<RocketScript>();
 
-                            HashSet<TimedRocket> groupRocketsSingleKey;
-                            if (!groupedRockets.TryGetValue(0, out groupRocketsSingleKey)) return false;
+                            if (selfRS == null) return false;
+                            if (rs == null) return false;
 
-                            if (groupRocketsSingleKey.Contains(target.ReturnTimedrocket()))
+                            if (selfRS.SPTeamKey.GetKey(0) == rs.SPTeamKey.GetKey(0))
                             {
-                                return true;
+                                Debug.Log("Found Same Group");
+                                return true; 
                             }
+
                             return false;
                         }
                     }
@@ -494,32 +496,32 @@ namespace BlockEnhancementMod
 #endif
         }
 
-        public bool InRadarRange(Target target)
-        {
-            bool value = false;
+        //public bool InRadarRange(Target target)
+        //{
+        //    bool value = false;
 
-            if (RadarType == RadarTypes.PassiveRadar) return true;
-            if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
-            {
-                var distance = target.Position - transform.position;
+        //    if (RadarType == RadarTypes.PassiveRadar) return true;
+        //    if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
+        //    {
+        //        var distance = Vector3.Distance(target.Position,transform.position);
 
-                if (distance.magnitude < SearchRadius)
-                {
-                    if (distance.magnitude > 5f)
-                    {
-                        if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-            return value;
-        }
+        //        if (distance < SearchRadius)
+        //        {
+        //            if (distance > 5f)
+        //            {
+        //                if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
+        //                {
+        //                    return true;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //    }
+        //    return value;
+        //}
         public bool InRadarRange(Collider collider)
         {
             var value = false;
@@ -540,7 +542,6 @@ namespace BlockEnhancementMod
             }
             return value;
         }
-
 
         private void ActivateDetectionZone()
         {
@@ -862,7 +863,7 @@ namespace BlockEnhancementMod
             return block;
         }
 
-        public TimedRocket ReturnTimedrocket()
+        public TimedRocket GetTimedrocket()
         {
             return rocket;
         }
