@@ -21,7 +21,7 @@ namespace BlockEnhancementMod
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
         public Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>> playerGroupedRockets;
-        Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets;
+        public Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets;
         public bool launchStarted = false;
         private static readonly float transparancy = 0.5f;
         private static readonly float screenOffset = 128f;

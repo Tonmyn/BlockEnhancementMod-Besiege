@@ -67,9 +67,11 @@ namespace BlockEnhancementMod
 
         private HashSet<Target> targetList = new HashSet<Target>();
         private HashSet<Target> lastTargetList = new HashSet<Target>();
+        private List<string> ignoreList = new List<string>(new string[] { "Bullet" });
+        private HashSet<BlockBehaviour> friendlyBlocks = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        internal static /*HashSet<RadarScript>*/Dictionary<int, Dictionary< KeyCode,HashSet<RadarScript>>>  tempRadarSet = /*new HashSet<RadarScript>()*/new Dictionary<int,Dictionary< KeyCode, HashSet<RadarScript>>>();
+        internal static /*HashSet<RadarScript>*/Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> tempRadarSet = /*new HashSet<RadarScript>()*/new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -103,7 +105,6 @@ namespace BlockEnhancementMod
             if (!tempRadarSet.ContainsKey(id))
             {
                 tempRadarSet.Add(id, new Dictionary<KeyCode, HashSet<RadarScript>>());
-                
             }
             if (!tempRadarSet[id].ContainsKey(key))
             {
@@ -175,29 +176,45 @@ namespace BlockEnhancementMod
                     {
                         foreach (var itemTarget in targets)
                         {
-                            ComparerTarget(itemTarget);
+                            CompareTarget(itemTarget);
                         }
                         isChoosingBlock = false;
 
-                        void ComparerTarget(Target other)
+                        void CompareTarget(Target other)
                         {
+                            if (ignoreList.Contains(other.ReturnTargetName())) return;
+                            if (CheckIfSameGroupRocket(other)) return;
+
                             target.RefreshWarningValue();
                             other.RefreshWarningValue();
+
                             if (other.WarningValue > target.WarningValue)
                             {
                                 target = other;
-                                return;
                             }
                             else if (other.WarningValue == target.WarningValue)
                             {
                                 var distance = (other.Position - transform.position).magnitude;
-
-                                if (distance < TargetDistance)
-                                {
-                                    target = other;
-                                    return;
-                                }
+                                if (distance < TargetDistance) target = other;
                             }
+                        }
+
+                        bool CheckIfSameGroupRocket(Target target)
+                        {
+                            if (StatMaster.isMP) return false;
+                            if (target.ReturnTimedrocket() == null) return false;
+
+                            Dictionary<KeyCode, HashSet<TimedRocket>> groupedRockets;
+                            if (!RocketsController.Instance.playerGroupedRockets.TryGetValue(0, out groupedRockets)) return false;
+
+                            HashSet<TimedRocket> groupRocketsSingleKey;
+                            if (!groupedRockets.TryGetValue(0, out groupRocketsSingleKey)) return false;
+
+                            if (groupRocketsSingleKey.Contains(target.ReturnTimedrocket()))
+                            {
+                                return true;
+                            }
+                            return false;
                         }
                     }
                 }
@@ -405,6 +422,7 @@ namespace BlockEnhancementMod
                 OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
+
         public void SetTargetManual()
         {
             ClearTarget(false);
@@ -580,7 +598,7 @@ namespace BlockEnhancementMod
                 }
 
                 return targets;
-    
+
                 bool isBlock(Collider collider)
                 {
                     var value = false;
@@ -762,8 +780,6 @@ namespace BlockEnhancementMod
         private Rigidbody rigidbody;
         private FireTag fireTag;
         private bool hasFireTag = false;
-        private bool isRocket = false;
-        private bool isBomb = false;
         private TimedRocket rocket;
         private ExplodeOnCollideBlock bomb;
 
@@ -829,8 +845,28 @@ namespace BlockEnhancementMod
 
                 RefreshWarningValue();
             }
-
         }
+
+        public string ReturnTargetName()
+        {
+            return collider.name;
+        }
+
+        public bool ReturnIfRocket()
+        {
+            return rocket != null;
+        }
+
+        public BlockBehaviour ReturnBlockBehaviour()
+        {
+            return block;
+        }
+
+        public TimedRocket ReturnTimedrocket()
+        {
+            return rocket;
+        }
+
         public void RefreshWarningValue()
         {
             Category = calculateCategory();
