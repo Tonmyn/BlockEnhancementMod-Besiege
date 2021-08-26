@@ -497,30 +497,30 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Target target)
         {
-            bool value = false; /*InRadarRange(target.ReturnCollider());*/
             if (RadarType == RadarTypes.PassiveRadar) return true;
             if (target.HasFireTag() && (target.ReturnFireTag().burning || target.ReturnFireTag().hasBeenBurned)) return false;
 
-            if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
-            {
-                var distance = Vector3.Distance(target.Position, transform.position);
 
-                if (distance < SearchRadius)
-                {
-                    if (distance > 5f)
-                    {
-                        if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-            return value;
+            //if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
+            //{
+            //    var distance = Vector3.Distance(target.Position, transform.position);
+
+            //    if (distance < SearchRadius)
+            //    {
+            //        if (distance > 5f)
+            //        {
+            //            if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
+            //            {
+            //                return true;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            return true;
+            //        }
+            //    }
+            //}
+            return InRadarRange(target.ReturnCollider());
         }
 
         public bool InRadarRange(Collider collider)
@@ -533,9 +533,9 @@ namespace BlockEnhancementMod
 
             if (forward > 0)
             {
-                if (distance < SearchRadius && distance > SafetyRadius)
+                if (distance < SearchRadius)
                 {
-                    if (angle <= SearchAngle / 2)
+                    if (angle <= SearchAngle / 2 && distance > SafetyRadius / Mathf.Cos(angle / 180 * Mathf.PI))
                     {
                         value = true;
                     }
