@@ -231,7 +231,7 @@ namespace BlockEnhancementMod
             }
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
-            if (RadarTarget == null) return;
+            if (RadarTarget.IsNullTarget()) return;
 
 
             if (Vector3.Dot(Camera.main.transform.forward, targetPosition - Camera.main.transform.position) > 0)
@@ -498,28 +498,8 @@ namespace BlockEnhancementMod
         public bool InRadarRange(Target target)
         {
             if (RadarType == RadarTypes.PassiveRadar) return true;
+            if (target.ReturnCollider() == null) return false;
             if (target.HasFireTag() && (target.ReturnFireTag().burning || target.ReturnFireTag().hasBeenBurned)) return false;
-
-
-            //if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
-            //{
-            //    var distance = Vector3.Distance(target.Position, transform.position);
-
-            //    if (distance < SearchRadius)
-            //    {
-            //        if (distance > 5f)
-            //        {
-            //            if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
-            //            {
-            //                return true;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            return true;
-            //        }
-            //    }
-            //}
             return InRadarRange(target.ReturnCollider());
         }
 
@@ -535,7 +515,7 @@ namespace BlockEnhancementMod
             {
                 if (distance < SearchRadius)
                 {
-                    if (angle <= SearchAngle / 2 && distance > SafetyRadius / Mathf.Cos(angle / 180 * Mathf.PI))
+                    if (angle <= SearchAngle / 2 && distance > SafetyRadius / Mathf.Cos(angle * Mathf.Deg2Rad))
                     {
                         value = true;
                     }
@@ -780,7 +760,7 @@ namespace BlockEnhancementMod
         private GenericEntity entity;
         private Rigidbody rigidbody;
         private FireTag fireTag;
-        private bool hasFireTag = false;
+        //private bool hasFireTag = false;
         private TimedRocket rocket;
         private ExplodeOnCollideBlock bomb;
 
@@ -880,13 +860,18 @@ namespace BlockEnhancementMod
 
         public bool HasFireTag()
         {
-            return hasFireTag;
+            return fireTag != null;
         }
 
         public void RefreshWarningValue()
         {
             Category = CalculateCategory();
             WarningValue = CalculateWarningValue();
+        }
+
+        public bool IsNullTarget()
+        {
+            return transform == null;
         }
         //public void SetTargetWarningLevel()
         //{
@@ -990,7 +975,7 @@ namespace BlockEnhancementMod
         {
             var base1 = (float)Category;
 
-            var factor1 = (hasFireTag && !fireTag.burning && !fireTag.hasBeenBurned) ? 3f : 0.5f;
+            var factor1 = (fireTag != null && !fireTag.burning && !fireTag.hasBeenBurned) ? 3f : 0f;
 
             var factor2 = 1f;
             if (rocket != null)
