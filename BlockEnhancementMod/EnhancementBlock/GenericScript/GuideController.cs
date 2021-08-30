@@ -65,7 +65,7 @@ namespace BlockEnhancementMod
 
             if (blockRadar != null)
             {
-                if (blockRadar.target != null && Switch)
+                if (blockRadar.RadarTarget != null && Switch)
                 {
                     //if (blockRadar.target.transform != null)
                     //{
@@ -82,7 +82,7 @@ namespace BlockEnhancementMod
                     //        StartCoroutine(AddGuideForce());
                     //    }
                     //}
-                    if (blockRadar.target.Enable)
+                    if (blockRadar.RadarTarget.Enable)
                     {
                         StartCoroutine(AddGuideForce());
                     }
@@ -108,11 +108,11 @@ namespace BlockEnhancementMod
             Vector3 addedForce;
 
             // Calculating the rotating axis
-            Vector3 positionDiff = blockRadar.target.Position - parentBlock.transform.position;
+            Vector3 positionDiff = blockRadar.RadarTarget.Position - parentBlock.transform.position;
             //Vector3 targetVelocity = blockRadar.target.rigidbody == null ?
             //    (blockRadar.target.Position - previousPosition) / Time.fixedDeltaTime : blockRadar.target.Velocity;
-            Vector3 targetVelocity = blockRadar.target.Velocity;
-            previousPosition = blockRadar.target.Position;
+            Vector3 targetVelocity = blockRadar.RadarTarget.Velocity;
+            previousPosition = blockRadar.RadarTarget.Position;
             Vector3 relVelocity = targetVelocity - parentBlock.Rigidbody.velocity;
 
             //float speed;
