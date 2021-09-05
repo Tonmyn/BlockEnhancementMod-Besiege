@@ -500,6 +500,7 @@ namespace BlockEnhancementMod
             if (RadarType == RadarTypes.PassiveRadar) return true;
             if (target.ReturnCollider() == null) return false;
             if (target.HasFireTag() && (target.ReturnFireTag().burning || target.ReturnFireTag().hasBeenBurned)) return false;
+
             return InRadarRange(target.ReturnCollider());
         }
 
@@ -760,7 +761,7 @@ namespace BlockEnhancementMod
         private GenericEntity entity;
         private Rigidbody rigidbody;
         private FireTag fireTag;
-        //private bool hasFireTag = false;
+        private Joint joint;
         private TimedRocket rocket;
         private ExplodeOnCollideBlock bomb;
 
@@ -823,6 +824,7 @@ namespace BlockEnhancementMod
                 fireTag = collider.GetComponentInAll<FireTag>();
                 rocket = collider.GetComponentInAll<TimedRocket>();
                 bomb = collider.GetComponentInAll<ExplodeOnCollideBlock>();
+                joint = collider.GetComponentInAll<Joint>();
 
                 RefreshWarningValue();
             }
@@ -861,6 +863,13 @@ namespace BlockEnhancementMod
         public bool HasFireTag()
         {
             return fireTag != null;
+        }
+
+        public bool JointBroken()
+        {
+            if (ReturnIfRocket()) return false;
+            if (joint == null) return true;
+            return joint.connectedBody == null;
         }
 
         public void RefreshWarningValue()
@@ -992,7 +1001,9 @@ namespace BlockEnhancementMod
 
             var factor3 = (bomb != null && !bomb.hasExploded) ? 4f : 1f;
 
-            var value = base1 * factor1 * factor2 * factor3;
+            var factor4 = JointBroken() ? -1f : 1f;
+
+            var value = base1 * factor1 * factor2 * factor3 * factor4;
 
             return value;
         }
