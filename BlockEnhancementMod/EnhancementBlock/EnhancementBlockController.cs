@@ -138,6 +138,7 @@ namespace BlockEnhancementMod
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
             { (int)BlockType.ArmorPlateSmall,typeof(ArmorScript) },
             { (int)BlockType.ArmorPlateRound,typeof(ArmorRoundScript) },
+            {  (int)BlockType.BuildSurface,typeof(BuildSurfaceScript)},
         };
     }
 }
