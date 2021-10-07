@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,28 @@ namespace BlockEnhancementMod
                 {
                     //col.enabled = false;
                     col.isTrigger = true;
+                }
+                var mcols = gameObject.GetComponentsInChildren<MeshCollider>();
+                foreach (var mcol in mcols)
+                {
+                    mcol.isTrigger = mcol.convex = true;
+                }
+          
+                StartCoroutine(wait());
+
+                IEnumerator wait()
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        yield return 0;
+                    }
+                    var joint = transform.GetComponent<ConfigurableJoint>();
+                    joint.projectionMode = JointProjectionMode.PositionAndRotation;
+                    joint.projectionDistance = joint.projectionAngle = 0f;
+                    joint.breakForce *= 3f;
+                    joint.breakTorque *= 3f;
+
+                    yield break;
                 }
             }
           
