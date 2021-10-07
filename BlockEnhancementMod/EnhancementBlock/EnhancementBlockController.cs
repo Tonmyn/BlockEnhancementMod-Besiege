@@ -118,7 +118,7 @@ namespace BlockEnhancementMod
             {(int)BlockType.SpinningBlock,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
             {(int)BlockType.SteeringHinge,typeof(SteeringWheel_GenericEnhanceScript) },
-            {(int)BlockType.SteeringBlock,typeof(SteeringWheel_GenericEnhanceScript) },
+            {(int)BlockType.SteeringBlock,typeof(SteeringBlockScript) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
             {(int)BlockType.RopeWinch,typeof(SpringCode_GenericEnhanceScript) },
             { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},

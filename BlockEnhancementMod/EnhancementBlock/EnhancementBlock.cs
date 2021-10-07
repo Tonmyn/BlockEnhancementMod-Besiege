@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public  class EnhancementBlock : MonoBehaviour
+    public  class EnhancementBlock : MonoBehaviour ,ILimitsDisplay
     {
         public static bool EnhanceMore { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Enhance More"); } internal set { BlockEnhancementMod.Configuration.SetValue("Enhance More", value); } } 
 
@@ -235,6 +235,13 @@ namespace BlockEnhancementMod
             mapper.ValueChanged += (value) => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(mapper); };
             return mapper;
         }
+        public MLimits AddLimits(string displayName, string key, float defaultMin, float defaultMax, float highestAngle, FauxTransform fauxTransform)
+        {
+            var mapper = BB.AddLimits(displayName, key, defaultMin, defaultMax, highestAngle,fauxTransform, this);
+            mapper.LimitsChanged += () => { if (Input.GetKeyUp(KeyCode.Mouse0)) PropertiseChangedEvent(mapper); };
+            return mapper;
+        }
+
         public MToggle AddToggle(string displayName, string key, bool defaultValue)
         {
             var mapper = BB.AddToggle(displayName, key, defaultValue);
@@ -258,6 +265,10 @@ namespace BlockEnhancementMod
             var mapper = BB.AddValue(displayName, key, defaultValue);
             mapper.ValueChanged += (value) => { PropertiseChangedEvent(mapper); };
             return mapper;
+        }
+        public Transform GetLimitsDisplay()
+        {
+            return BB.VisualController.Block.MeshRenderer.transform;
         }
     }
     public interface IChangeSpeed

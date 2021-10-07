@@ -10,7 +10,7 @@ namespace BlockEnhancementMod
 {
     class SteeringWheel_GenericEnhanceScript : ChangeSpeedBlock
     {
-        private SteeringWheel steeringWheel;
+        internal SteeringWheel steeringWheel;
         public override void SafeAwake()
         {
             steeringWheel = GetComponent<SteeringWheel>();
