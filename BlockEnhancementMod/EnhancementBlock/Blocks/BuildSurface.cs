@@ -31,7 +31,8 @@ namespace BlockEnhancementMod
                 var cols = transform.FindChild("SimColliders").GetComponentsInChildren<Collider>();
                 foreach (var col in cols)
                 {
-                    col.enabled = false;
+                    //col.enabled = false;
+                    col.isTrigger = true;
                 }
             }
           
