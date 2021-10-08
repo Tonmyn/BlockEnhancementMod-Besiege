@@ -67,7 +67,7 @@ namespace BlockEnhancementMod
 
         private HashSet<Target> targetList = new HashSet<Target>();
         private HashSet<Target> lastTargetList = new HashSet<Target>();
-        private List<string> ignoreList = new List<string>(new string[] { "Bullet" });
+        private List<string> ignoreList = new List<string>(new string[] { "Bullet", "bullet" });
         private HashSet<BlockBehaviour> friendlyBlocks = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
