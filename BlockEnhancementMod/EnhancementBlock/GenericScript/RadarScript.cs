@@ -67,7 +67,7 @@ namespace BlockEnhancementMod
 
         private HashSet<Target> targetList = new HashSet<Target>();
         private HashSet<Target> lastTargetList = new HashSet<Target>();
-        private List<string> ignoreList = new List<string>(new string[] { "Bullet", "bullet" });
+        private List<string> ignoreList = new List<string>() { "Bullet", "CanonBall" }.ConvertAll(d => d.ToLower());
         private HashSet<BlockBehaviour> friendlyBlocks = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
@@ -182,7 +182,9 @@ namespace BlockEnhancementMod
 
                         void CompareTarget(Target other)
                         {
-                            if (ignoreList.Contains(other.ReturnTargetName())) return;
+
+                            //Debug.Log(ignoreList.Contains(other.ReturnTargetName()) + " exist");
+                            //if (ignoreList.Contains(other.ReturnTargetName())) return;
                             if (CheckIfSameGroupRocket(other)) return;
 
                             RadarTarget.RefreshWarningValue();
@@ -507,6 +509,9 @@ namespace BlockEnhancementMod
         public bool InRadarRange(Collider collider)
         {
             var value = false;
+
+            if (!collider.enabled || collider.isTrigger) return value;
+            if (!ignoreList.TrueForAll(str => !collider.name.ToLower().Contains(str))) return value;
 
             var distance = Vector3.Distance(transform.position, collider.transform.position);
             var angle = Vector3.Angle(transform.up, collider.transform.position - transform.position);
