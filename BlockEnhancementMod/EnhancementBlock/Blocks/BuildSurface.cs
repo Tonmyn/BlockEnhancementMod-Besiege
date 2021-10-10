@@ -35,10 +35,16 @@ namespace BlockEnhancementMod
 
             if (colliderToggle.IsActive)
             {
+                //buildSurface.BlockHealth.health = Mathf.Infinity;
+                var ctr = fragmentController;
+                ctr.fragments.ToList().ForEach(fra => fra.IsBroken = fra.IsIndependent = fra.HasOwnBody = true);
 
-                buildSurface.isValid = false;
-                buildSurface.BlockHealth.health = Mathf.Infinity;
-
+                var type = buildSurface.currentType;
+                type.breakImpactSettings = BuildSurface.BreakImpactSettings.Disabled;
+                type.breakable = type.burnable = type.dentable = false;
+                type.fragmentBreakImpactThreshold = Mathf.Infinity;
+                type.hasHealth = true;
+               
                 foreach (var joint in buildSurface.Joints)
                 {
                     joint.projectionMode = JointProjectionMode.PositionAndRotation;
@@ -50,7 +56,6 @@ namespace BlockEnhancementMod
                 var cols = transform.FindChild("SimColliders").GetComponentsInChildren<Collider>();
                 foreach (var col in cols)
                 {
-                    //col.enabled = false;
                     col.isTrigger = true;
                 }
                 var mcols = gameObject.GetComponentsInChildren<MeshCollider>();
