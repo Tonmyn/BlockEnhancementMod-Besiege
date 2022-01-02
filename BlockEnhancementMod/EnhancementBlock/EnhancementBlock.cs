@@ -49,7 +49,14 @@ namespace BlockEnhancementMod
             PropertiseChangedEvent += (mapperType) => { DisplayInMapper(EnhancementEnabled); };
             PropertiseChangedEvent?.Invoke(Enhancement);
 
+            StartCoroutine(onPlaced());
             //Controller.Instance.OnSave += SaveConfiguration;
+            IEnumerator onPlaced()
+            {
+                yield return new WaitUntil(() => BB.PlacementComplete);
+                if (!BB.ParentMachine.isSimulating) { OnPlaced(); }
+                yield break;
+            }
         }
         void Update()
         {
@@ -177,6 +184,10 @@ namespace BlockEnhancementMod
         /// 安全唤醒 模块只需要关心自己要添加什么控件就行了
         /// </summary>
         public virtual void SafeAwake() { }
+        /// <summary>
+        /// 在方块放置时要做的事
+        /// </summary>
+        public virtual void OnPlaced() { }
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>
