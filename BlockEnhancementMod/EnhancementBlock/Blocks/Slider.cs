@@ -76,9 +76,11 @@ namespace BlockEnhancementMod
                 {
                     ConfigurableJoint.xMotion = ConfigurableJointMotion.Locked;
                 }
-
-                ConfigurableJoint.autoConfigureConnectedAnchor = false;
-                ConfigurableJoint.connectedAnchor += Vector3.right * extendSlider.Value;
+                else
+                {
+                    ConfigurableJoint.autoConfigureConnectedAnchor = false;
+                    ConfigurableJoint.connectedAnchor += Vector3.right * extendSlider.Value;
+                }
 
                 SoftJointLimit limit = ConfigurableJoint.linearLimit;
                 limit.limit = /*Limit =*/ Mathf.Abs(/*Limit*/limitSlider.Value);
