@@ -30,7 +30,7 @@ namespace BlockEnhancementMod
         public Action<MapperType> PropertiseChangedEvent;
 
         private bool isFirstFrame = true;
-
+        private bool mapperMe = false;
         private void Awake()
         {
 
@@ -80,7 +80,26 @@ namespace BlockEnhancementMod
             }
             else
             {
-                if (EnhancementEnabled) { BuildingUpdateAlways_EnhancementEnabled(); }
+                if (EnhancementEnabled) 
+                {
+                    BuildingUpdateAlways_EnhancementEnabled();
+
+                    if (BlockMapper.IsOpen && BB == BlockMapper.CurrentInstance.Block.BuildingBlock)
+                    {
+                        if (InputManager.CopyKeys()) OnCopy();
+                        if (InputManager.PasteKeys()) OnPaste();
+                       
+                        if (!mapperMe)
+                        {
+                            BlockMapper.CurrentInstance.CopyButton.Released += OnCopy;
+                            BlockMapper.CurrentInstance.PasteButton.Released += OnPaste;
+                            mapperMe = true;
+                            Debug.Log("mapper me " + mapperMe);
+                        }
+                    }
+                    else
+                    { mapperMe = false; }
+                }
                 isFirstFrame = true;
             }
         }
@@ -188,6 +207,8 @@ namespace BlockEnhancementMod
         /// 在方块放置时要做的事
         /// </summary>
         public virtual void OnPlaced() { }
+        public virtual void OnCopy() { }
+        public virtual void OnPaste() { Debug.Log(mapperMe); }
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>

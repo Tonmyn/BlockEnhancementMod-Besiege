@@ -11,7 +11,7 @@ namespace BlockEnhancementMod
 {
     class SliderScript : ChangeHardnessBlock
     {
-
+        SliderBlock sliderBlock;
         //MMenu HardnessMenu;
 
         MSlider limitSlider;
@@ -21,12 +21,14 @@ namespace BlockEnhancementMod
         //private int orginHardnessIndex = 1;
         //public float Limit = 1;
         //private float orginLimit = 1;
-
         //ConfigurableJoint ConfigurableJoint;
         private float lastValue = 0f;
         private float deltaValue = 0f;
+
         public override void SafeAwake()
         {
+            base.SafeAwake();
+
             lockToggle = AddToggle("Lock", LanguageManager.Instance.CurrentLanguage.LockTarget, false);
             limitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", /*Limit*/1f, 0f, 2f);
             //LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
@@ -35,7 +37,8 @@ namespace BlockEnhancementMod
             HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
             //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            base.SafeAwake();
+            sliderBlock = GetComponent<SliderBlock>();
+
 #if DEBUG
             ConsoleController.ShowMessage("滑块添加进阶属性");
 #endif
@@ -53,6 +56,14 @@ namespace BlockEnhancementMod
         {
             extendValueChanged(extendSlider.Value);
         }
+
+        public override void OnPaste()
+        {
+            ////base.OnPaste();
+            //Debug.Log("粘贴");
+
+            //extendValueChanged(extendSlider.Value);
+        }
         public override void OnSimulateStartClient()
         {
             if (EnhancementEnabled)
@@ -60,12 +71,16 @@ namespace BlockEnhancementMod
                 ConfigurableJoint = GetComponent<ConfigurableJoint>();
                 hardness = new Hardness(ConfigurableJoint);
 
-                StartCoroutine(wait());
+                StartCoroutine(wait());                                
             }    
 
             IEnumerator wait()
             {
-             
+                var orginPos = Vector3.zero;
+                if (sliderBlock.jointTrigger != null)
+                {
+                    orginPos = sliderBlock.jointTrigger.position;
+                }
                 yield return new WaitUntil(() => ConfigurableJoint.connectedBody != null);
                 //if (!EnhancementEnabled)
                 //{
@@ -79,7 +94,8 @@ namespace BlockEnhancementMod
                 else
                 {
                     ConfigurableJoint.autoConfigureConnectedAnchor = false;
-                    ConfigurableJoint.connectedAnchor += Vector3.right * extendSlider.Value;
+                    //ConfigurableJoint.connectedAnchor -= transform.forward * extendSlider.Value;
+                    ConfigurableJoint.connectedAnchor = ConfigurableJoint.connectedBody.transform.InverseTransformPoint(orginPos);
                 }
 
                 SoftJointLimit limit = ConfigurableJoint.linearLimit;
@@ -90,17 +106,18 @@ namespace BlockEnhancementMod
                 yield break;
             }
         }
-
         private void extendValueChanged(float value)
         {
+            //Debug.Log("??" + BB.PlacementComplete + EnhancementEnabled);
             if (!BB.PlacementComplete) return;
             deltaValue = value - lastValue;
             lastValue = value;
-
+         
             if (EnhancementEnabled == false) return;
-
+            //Debug.Log(deltaValue);
             transform.position += transform.forward * deltaValue;
-            var triggerForJoint = transform.FindChild("TriggerForJoint");
+            sliderBlock.Position += transform.forward * deltaValue;
+            var triggerForJoint = sliderBlock.jointTrigger;
             if (triggerForJoint != null)
             {
                 triggerForJoint.position -= triggerForJoint.forward * deltaValue;
