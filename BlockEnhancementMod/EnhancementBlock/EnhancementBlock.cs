@@ -1,5 +1,4 @@
-﻿using Modding;
-using Modding.Blocks;
+﻿using Modding.Blocks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -84,22 +83,25 @@ namespace BlockEnhancementMod
                 {
                     BuildingUpdateAlways_EnhancementEnabled();
 
-                    if (BlockMapper.IsOpen && BB == BlockMapper.CurrentInstance.Block.BuildingBlock)
-                    {
-                        if (InputManager.CopyKeys()) OnCopy();
-                        if (InputManager.PasteKeys()) OnPaste();
-                       
-                        if (!mapperMe)
-                        {
-                            BlockMapper.CurrentInstance.CopyButton.Released += OnCopy;
-                            BlockMapper.CurrentInstance.PasteButton.Released += OnPaste;
-                            mapperMe = true;
-                            Debug.Log("mapper me " + mapperMe);
-                        }
-                    }
-                    else
-                    { mapperMe = false; }
+   
                 }
+
+                if (BlockMapper.IsOpen && BB == BlockMapper.CurrentInstance.Block)
+                {
+                    if (InputManager.CopyKeys()) OnCopy();
+                    if (InputManager.PasteKeys()) OnPaste();
+
+                    if (!mapperMe)
+                    {
+                        BlockMapper.CurrentInstance.CopyButton.Click += OnCopy;
+                        BlockMapper.CurrentInstance.PasteButton.Click += OnPaste;
+                        mapperMe = true;
+                        Debug.Log("mapper me ");
+                    }
+                }
+                else
+                { mapperMe = false; }
+
                 isFirstFrame = true;
             }
         }

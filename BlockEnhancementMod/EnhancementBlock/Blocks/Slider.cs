@@ -24,7 +24,7 @@ namespace BlockEnhancementMod
         //ConfigurableJoint ConfigurableJoint;
         private float lastValue = 0f;
         private float deltaValue = 0f;
-
+        private bool mapperMe = false;
         public override void SafeAwake()
         {
             base.SafeAwake();
@@ -59,10 +59,8 @@ namespace BlockEnhancementMod
 
         public override void OnPaste()
         {
-            ////base.OnPaste();
-            //Debug.Log("粘贴");
-
-            //extendValueChanged(extendSlider.Value);
+            Debug.Log(extendSlider.Value);
+            extendValueChanged(extendSlider.Value);
         }
         public override void OnSimulateStartClient()
         {
@@ -111,7 +109,6 @@ namespace BlockEnhancementMod
             //Debug.Log("??" + BB.PlacementComplete + EnhancementEnabled);
             if (!BB.PlacementComplete) return;
             deltaValue = value - lastValue;
-            lastValue = value;
          
             if (EnhancementEnabled == false) return;
             //Debug.Log(deltaValue);
@@ -122,6 +119,9 @@ namespace BlockEnhancementMod
             {
                 triggerForJoint.position -= triggerForJoint.forward * deltaValue;
             }
+            lastValue = value;
         }
+
+
     }
 }

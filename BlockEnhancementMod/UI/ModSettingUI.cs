@@ -42,6 +42,11 @@ namespace BlockEnhancementMod
             windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9";
             LanguageManager.Instance.OnLanguageChanged += (value) => { windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9"; };
         }
+
+        public override void OnGUI()
+        {
+            base.OnGUI();
+        }
         private void Update()
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.F9))
