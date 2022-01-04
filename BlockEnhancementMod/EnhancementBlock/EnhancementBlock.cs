@@ -82,8 +82,6 @@ namespace BlockEnhancementMod
                 if (EnhancementEnabled) 
                 {
                     BuildingUpdateAlways_EnhancementEnabled();
-
-   
                 }
 
                 if (BlockMapper.IsOpen && BB == BlockMapper.CurrentInstance.Block)
@@ -96,7 +94,6 @@ namespace BlockEnhancementMod
                         BlockMapper.CurrentInstance.CopyButton.Click += OnCopy;
                         BlockMapper.CurrentInstance.PasteButton.Click += OnPaste;
                         mapperMe = true;
-                        Debug.Log("mapper me ");
                     }
                 }
                 else
