@@ -11,19 +11,30 @@ namespace BlockEnhancementMod
     {
 
         MToggle colliderToggle,kinematicToggle;
+        MSlider alphaSlider;
         BuildSurface buildSurface;
         SurfaceFragmentController fragmentController;
+        MeshRenderer materialRenderer;
 
+        private bool isWood = false;
+        private Shader oldShader;
         public override void SafeAwake()
         {
             base.SafeAwake();
+            buildSurface = GetComponent<BuildSurface>();
 
             colliderToggle = AddToggle("Collider", "collider", false);
             kinematicToggle = AddToggle("Kinematic", "kinematic", false);
+
+            alphaSlider = AddSlider("Alpha", "Alpha", 1f, 0f, 1f);
+            alphaSlider.ValueChanged += alphaValueChanged;
+            buildSurface.material.ValueChanged += materialChanged;
+            materialChanged(buildSurface.material.Value);
         }
         public override void DisplayInMapper(bool enhance)
         {
             colliderToggle.DisplayInMapper = kinematicToggle.DisplayInMapper = enhance;
+            materialChanged(buildSurface.material.Value);
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -95,6 +106,36 @@ namespace BlockEnhancementMod
                 }
              
             }
+        }
+
+        private void materialChanged(int value)
+        {
+            isWood = value == 0 ? true : false;
+            alphaSlider.DisplayInMapper = isWood && EnhancementEnabled;
+
+            if (EnhancementEnabled == false) return;
+            if (isWood)
+            {
+                materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
+                oldShader = materialRenderer.material.shader;
+                alphaValueChanged(alphaSlider.Value);
+            }
+        }
+
+        private void alphaValueChanged(float value)
+        {
+            if (materialRenderer == null || EnhancementEnabled == false) return;
+
+            if (value >= 0.99f)
+            {
+                materialRenderer.material.shader = oldShader;
+            }
+            else
+            {
+                materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
+                var color = materialRenderer.material.color;
+                materialRenderer.material.color = new Color(color.r, color.g, color.b, value * 6f);
+            }   
         }
     }
 }
