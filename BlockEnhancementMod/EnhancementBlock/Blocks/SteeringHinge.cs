@@ -55,7 +55,7 @@ namespace BlockEnhancementMod
             NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

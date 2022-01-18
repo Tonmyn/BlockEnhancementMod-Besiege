@@ -84,7 +84,7 @@ namespace BlockEnhancementMod
             ShrinkLimitSlider.DisplayInMapper = _value;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

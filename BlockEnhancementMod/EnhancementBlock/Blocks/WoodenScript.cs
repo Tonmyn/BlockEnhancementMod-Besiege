@@ -30,7 +30,7 @@ namespace BlockEnhancementMod
             base.DisplayInMapper(value);
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

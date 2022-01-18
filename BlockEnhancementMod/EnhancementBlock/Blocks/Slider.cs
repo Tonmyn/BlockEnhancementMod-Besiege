@@ -62,7 +62,7 @@ namespace BlockEnhancementMod
             Debug.Log(extendSlider.Value);
             extendValueChanged(extendSlider.Value);
         }
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

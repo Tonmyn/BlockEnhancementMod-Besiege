@@ -34,7 +34,7 @@ namespace BlockEnhancementMod
         //    SwitchKey.DisplayInMapper = HeldToggle.DisplayInMapper = value;
         //}
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (!EnhancementEnabled) return;
             hinge = GetComponent<ConfigurableJoint>();

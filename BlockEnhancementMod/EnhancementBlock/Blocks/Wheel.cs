@@ -97,7 +97,7 @@ namespace BlockEnhancementMod.Blocks
 
         public GameObject WheelCollider;
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {
@@ -143,7 +143,7 @@ namespace BlockEnhancementMod.Blocks
                     //Destroy(WheelCollider);
                     //设置原有碰撞的参数
                     foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
-                }            
+                }
             }
             //else
             //{
@@ -155,12 +155,6 @@ namespace BlockEnhancementMod.Blocks
             //    Destroy(WheelCollider);
             //}
         }
-
-        //public override void SimulateUpdateAlways_EnhancementEnable()
-        //{
-        //    base.SimulateUpdateAlways_EnhancementEnable();
-        //}
-
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)
         {
             PhysicMaterial PM = new PhysicMaterial

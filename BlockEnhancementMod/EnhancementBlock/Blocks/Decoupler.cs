@@ -39,7 +39,7 @@ namespace BlockEnhancementMod.Blocks
             ExplodeTorqueSlider.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {         
             if (EnhancementEnabled)
             {

@@ -34,7 +34,7 @@ namespace BlockEnhancementMod.Blocks
             DragSlider.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if(EnhancementEnabled)
             {
