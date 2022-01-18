@@ -11,7 +11,7 @@ namespace BlockEnhancementMod
     {
 
         MToggle colliderToggle,kinematicToggle;
-        MSlider alphaSlider;
+        MSlider alphaSlider,radiusSlider;
         BuildSurface buildSurface;
         SurfaceFragmentController fragmentController;
         MeshRenderer materialRenderer;
@@ -28,12 +28,21 @@ namespace BlockEnhancementMod
 
             alphaSlider = AddSlider("Alpha", "Alpha", 1f, 0f, 1f);
             alphaSlider.ValueChanged += alphaValueChanged;
+            radiusSlider = AddSlider("Radius", "Radius", 1f, 0.1f, 1f);
+            radiusSlider.ValueChanged += radiusChanged;
             buildSurface.material.ValueChanged += materialChanged;
             materialChanged(buildSurface.material.Value);
         }
+        public override void ChangedProperties(MapperType mapperType)
+        {
+            if (mapperType.Key == "Enhancement" && (mapperType as MToggle).IsActive == false)
+            {
+                radiusSlider.Value = 1f;
+            }
+        }
         public override void DisplayInMapper(bool enhance)
         {
-            colliderToggle.DisplayInMapper = kinematicToggle.DisplayInMapper = enhance;
+            colliderToggle.DisplayInMapper = kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
             materialChanged(buildSurface.material.Value);
         }
 
@@ -136,6 +145,19 @@ namespace BlockEnhancementMod
                 var color = materialRenderer.material.color;
                 materialRenderer.material.color = new Color(color.r, color.g, color.b, value * 6f);
             }   
+        }
+
+        private void radiusChanged(float value)
+        {
+            foreach (var tri in buildSurface.JointTriggers)
+            {
+                tri.transform.localScale = Vector3.one * value;
+            }
+
+            foreach (var point in buildSurface.AddingPoints)
+            {
+                point.transform.localScale = Vector3.one * value;
+            }
         }
     }
 }

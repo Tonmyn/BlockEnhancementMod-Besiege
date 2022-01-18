@@ -26,7 +26,7 @@ namespace BlockEnhancementMod
         /// <summary>模块数据储存事件 传入参数类型:XDataHolder</summary>
         public Action<XDataHolder> BlockDataSaveEvent;
 
-        public Action<MapperType> PropertiseChangedEvent;
+        public event Action<MapperType> PropertiseChangedEvent;
 
         private bool isFirstFrame = true;
         private bool mapperMe = false;
