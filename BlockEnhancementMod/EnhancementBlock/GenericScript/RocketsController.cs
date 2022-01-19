@@ -58,8 +58,8 @@ namespace BlockEnhancementMod
 
             void InitRedSquareAndLayer()
             {
-                redSquareAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
-                redCircleAim.LoadImage(ModIO.ReadAllBytes(@"Resources/Circle-Red.png"));
+                redSquareAim.LoadImage(Modding.ModIO.ReadAllBytes(@"Resources/Square-Red.png"));
+                redCircleAim.LoadImage(Modding.ModIO.ReadAllBytes(@"Resources/Circle-Red.png"));
 
                 SetRadarIgnoreCollosionLayer();
 

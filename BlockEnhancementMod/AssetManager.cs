@@ -11,15 +11,12 @@ namespace BlockEnhancementMod
     {
 
         public override string Name { get; } = "Asset Manager";
-
         public bool Data = true;
-
         public Dictionary<string, List<string>> AudioClipDic = new Dictionary<string, List<string>>();
-
         public event Action OnReread;
 
         void Awake()
-        {
+        { 
             RereadAudioClipAsset();
         }
 
@@ -27,13 +24,13 @@ namespace BlockEnhancementMod
         {
             var audioClipDic = new Dictionary<string, List<string>>();
             var extentionType = new List<string>() { /*".mp3",*/ ".ogg", ".wav"/*, ".txt" */};
-            var dirs = ModIO.GetDirectories(@"Audio Clips", Data).ToList();
+            var dirs = Modding.ModIO.GetDirectories(@"Audio Clips", Data).ToList();
             dirs.Insert(0, @"Audio Clips");
    
             foreach (var dir in dirs)
             {
                 var files = new List<string>();
-                foreach (var file in ModIO.GetFiles(dir, Data))
+                foreach (var file in Modding.ModIO.GetFiles(dir, Data))
                 {
                     if (extentionType.Contains(PathHelper.GetExtension(file)))
                     {
@@ -66,9 +63,9 @@ namespace BlockEnhancementMod
 
         public void RereadAudioClipAsset()
         {
-            if (!ModIO.ExistsDirectory("Audio Clips", Data))
+            if (!Modding.ModIO.ExistsDirectory("Audio Clips", Data))
             {
-                ModIO.CreateDirectory("Audio Clips", Data);
+                Modding.ModIO.CreateDirectory("Audio Clips", Data);
             }
 
             AudioClipDic = readAudioClips();

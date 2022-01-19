@@ -24,7 +24,7 @@ namespace BlockEnhancementMod
         //ConfigurableJoint ConfigurableJoint;
         private float lastValue = 0f;
         private float deltaValue = 0f;
-        private bool mapperMe = false;
+
         public override void SafeAwake()
         {
             base.SafeAwake();
@@ -32,7 +32,7 @@ namespace BlockEnhancementMod
             lockToggle = AddToggle("Lock", LanguageManager.Instance.CurrentLanguage.LockTarget, false);
             limitSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Limit, "Limit", /*Limit*/1f, 0f, 2f);
             //LimitSlider.ValueChanged += (float value) => { Limit = value; ChangedProperties(); };
-            extendSlider = AddSlider("Extend", LanguageManager.Instance.CurrentLanguage.Extend, 0f, 0f, limitSlider.Value);
+            extendSlider = AddSlider(LanguageManager.Instance.CurrentLanguage.Extend, "Extend", 0f, 0f, limitSlider.Value);
             extendSlider.ValueChanged += extendValueChanged;
             HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
             //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
