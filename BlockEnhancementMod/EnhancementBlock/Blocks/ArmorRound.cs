@@ -78,8 +78,8 @@ namespace BlockEnhancementMod
         {
             if (audioClipDic.Keys.Count == 0)
             {
-                Enhancement.DisplayInMapper = false;
-                Enhancement.IsActive = false;
+                EnhancementToggle.DisplayInMapper = false;
+                EnhancementToggle.IsActive = false;
                 DisplayInMapper(false);
             }
             else
@@ -178,17 +178,17 @@ namespace BlockEnhancementMod
             fileMenu.Items = !isNull ? formatList(audioClipDic[audioClipDic.Keys.ToList()[0]], true) : new List<string>() { "" };
             fileMenu.Value = 0;
 
-            if (Enhancement != null)
+            if (EnhancementToggle != null)
             {
                 if (!isNull)
                 {
-                    Enhancement.DisplayInMapper = true;
-                    DisplayInMapper(Enhancement.IsActive);
+                    EnhancementToggle.DisplayInMapper = true;
+                    DisplayInMapper(EnhancementToggle.IsActive);
                 }
                 else
                 {
-                    Enhancement.DisplayInMapper = false;
-                    Enhancement.IsActive = false;
+                    EnhancementToggle.DisplayInMapper = false;
+                    EnhancementToggle.IsActive = false;
                     DisplayInMapper(false);
                 }
             }

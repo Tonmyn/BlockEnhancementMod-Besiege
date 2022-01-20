@@ -14,7 +14,7 @@ namespace BlockEnhancementMod
         public BlockBehaviour BB { get; internal set; } 
 
         /// <summary>进阶属性按钮</summary>
-        public MToggle Enhancement;
+        public MToggle EnhancementToggle;
 
         /// <summary>进阶属性激活</summary>
         public bool EnhancementEnabled { get; set; } = false;
@@ -39,14 +39,14 @@ namespace BlockEnhancementMod
 
             //if (BB.isSimulating ) { return; }        
 
-            Enhancement = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Enhancement, "Enhancement", EnhancementEnabled);
-            Enhancement.Toggled += (bool value) => { EnhancementEnabled = value; PropertiseChangedEvent(Enhancement); /*DisplayInMapper(value);*/ };
+            EnhancementToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Enhancement, "Enhancement", EnhancementEnabled);
+            EnhancementToggle.Toggled += (bool value) => { EnhancementEnabled = value; PropertiseChangedEvent(EnhancementToggle); /*DisplayInMapper(value);*/ };
 
             //LoadConfiguration();    
 
             PropertiseChangedEvent += ChangedProperties;
             PropertiseChangedEvent += (mapperType) => { DisplayInMapper(EnhancementEnabled); };
-            PropertiseChangedEvent?.Invoke(Enhancement);
+            PropertiseChangedEvent?.Invoke(EnhancementToggle);
 
             StartCoroutine(onPlaced());
             //Controller.Instance.OnSave += SaveConfiguration;

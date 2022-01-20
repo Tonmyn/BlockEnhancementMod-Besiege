@@ -190,7 +190,7 @@ namespace BlockEnhancementMod
             var _value2 = _value1 && (RadarTypeMenu.Value == (int)RadarScript.RadarTypes.ActiveRadar); //for active radar
             var _value3 = _value && SettingMenu.Value == 0; //Rocket setting guided
             var _value4 = (GuidedRocketToggle.IsActive ? _value3 : value);
-            var _value5 = (Enhancement.IsActive ? _value4 : true);
+            var _value5 = (EnhancementToggle.IsActive ? _value4 : true);
 
             GuidedRocketToggle.DisplayInMapper = value;
 
@@ -510,7 +510,7 @@ namespace BlockEnhancementMod
 
         private void OnCollisionEnter(Collision collision)
         {
-            if (!Enhancement.IsActive) return;
+            if (!EnhancementToggle.IsActive) return;
             if (!rocket.hasFired) return;
             if (rocket.PowerSlider.Value > 0.1f)
             {
