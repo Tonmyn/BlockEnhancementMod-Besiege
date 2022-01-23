@@ -14,10 +14,14 @@ namespace BlockEnhancementMod
         MSlider redSlider, greenSlider, blueSlider;
         MSlider alphaSlider,radiusSlider;
         BuildSurface buildSurface;
+        [SerializeField]
         MeshRenderer materialRenderer;
         SurfaceFragmentController fragmentController;
 
+        [SerializeField]
         private bool isGlass = false;
+        [SerializeField]
+        private bool isDefaultSkin = false;
         private Shader oldShader;
         public override void SafeAwake()
         {
@@ -38,7 +42,7 @@ namespace BlockEnhancementMod
 
             radiusSlider = AddSlider("Radius", "Radius", 1f, 0.1f, 1f);
             radiusSlider.ValueChanged += radiusChanged;
-  
+
             buildSurface.material.ValueChanged += materialChanged;
             materialChanged(buildSurface.material.Value);
 
@@ -46,7 +50,6 @@ namespace BlockEnhancementMod
 
             IEnumerator wait()
             {
-                //skinChanged(0);
                 yield return new WaitUntil(() => BB.Visual != null);
 
                 BB.Visual.ValueChanged += skinChanged;
@@ -62,21 +65,13 @@ namespace BlockEnhancementMod
             if (mapperType.Key == EnhancementToggle.Key && (mapperType as MToggle).IsActive == false)
             {
                 radiusSlider.Value = 1f;
-                redSlider.Value = 1f;
-                greenSlider.Value = 1f;
-                blueSlider.Value = 1f;
-                alphaSlider.Value = 1f;
+                refreshColorSlider(false);
             }
-
-            //if (mapperType.Key == redSlider.Key || mapperType.Key == greenSlider.Key || mapperType.Key == blueSlider.Key)
-            //{
-            //    colorChanged(new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f));
-            //}
         }
         public override void DisplayInMapper(bool enhance)
         {
             colliderToggle.DisplayInMapper = kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
-            //materialChanged(buildSurface.material.Value);
+            redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper = alphaSlider.DisplayInMapper = enhance && isGlass && !isDefaultSkin;
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -125,9 +120,6 @@ namespace BlockEnhancementMod
                     {
                         yield return 0;
                     }
-
-       
-
                     yield break;
                 }
             }
@@ -146,62 +138,39 @@ namespace BlockEnhancementMod
                     buildSurface.gameObject.isStatic = true;
                     yield break;
                 }
-             
             }
         }
-        public override void BuildingUpdateAlways_EnhancementEnabled()
+        public override void OnSimulateStartAlways()
         {
-            base.BuildingUpdateAlways_EnhancementEnabled();
+            base.OnSimulateStartAlways();
+            if (!EnhancementEnabled) return;
 
-            //Debug.Log(StatMaster.collapseSkinMapper);
+            if (isGlass && !isDefaultSkin)
+            {
+                colorChanged(0);
+            }
         }
         private void materialChanged(int value)
         {
             isGlass = value == 1 ? true : false;
-            //var flag = isGlass && EnhancementEnabled && BB.Visual != null && BB.Visual.Value != 0;
-            //alphaSlider.DisplayInMapper = flag;
-            //redSlider.DisplayInMapper = flag;
-            //greenSlider.DisplayInMapper = flag;
-            //blueSlider.DisplayInMapper = flag;
 
-            //if (EnhancementEnabled == false && BB.Visual == null) return;
-            //if (isGlass)
-            //{
-            //    materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
-            //    oldShader = materialRenderer.material.shader;
-            //    //alphaChanged(alphaSlider.Value);
-            //}
+            var flag = isGlass && !isDefaultSkin && EnhancementEnabled;
+            refreshColorSlider(flag);
         }
         private void colorChanged(float value)
         {
-            //if (materialRenderer == null || EnhancementEnabled == false) return;
-
-            //if (alphaSlider. Value >= 0.99f)
-            //{
-            //    materialRenderer.material.shader = oldShader;
-            //}
-            //else
-            //{
-            //    materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
-            //}
-
-            //var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f);
-            //materialRenderer.material.color = color;
-        }
-        private void alphaChanged(float value)
-        {
             if (materialRenderer == null || EnhancementEnabled == false) return;
 
-            if (value >= 0.99f)
+            if (alphaSlider.Value >= 0.99f)
             {
                 materialRenderer.material.shader = oldShader;
             }
             else
             {
                 materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
-                var color = materialRenderer.material.color;
-                materialRenderer.material.color = new Color(color.r, color.g, color.b, value * 6f);
-            }   
+            }
+            var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value/* * 6f*/);
+            materialRenderer.material.color = color;
         }
         private void radiusChanged(float value)
         {
@@ -219,40 +188,43 @@ namespace BlockEnhancementMod
         {
             if (!EnhancementEnabled) return;
 
-            Debug.Log(value);
-            var flag = isGlass && value != 0;
-
-            //if (value == 0)
-            //{
-            //    materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
-            //    oldShader = materialRenderer.material.shader;
-            //    //alphaChanged(alphaSlider.Value);
-            //}
+            isDefaultSkin = value == 0 ? true : false;
+            var flag = isGlass && !isDefaultSkin;
+  
             StartCoroutine(wait());
-            //alphaSlider.DisplayInMapper = flag;
-            //redSlider.DisplayInMapper = flag;
-            //greenSlider.DisplayInMapper = flag;
-            //blueSlider.DisplayInMapper = flag;
-
-            //if (flag)
-            //{
-            //    redSlider.Value = 1f;
-            //    greenSlider.Value = 1f;
-            //    blueSlider.Value = 1f;
-            //    alphaSlider.Value = 1f;
-            //}
 
             IEnumerator wait()
             {
                 yield return new WaitForSeconds(Time.deltaTime * 3f);
-
-                alphaSlider.DisplayInMapper = flag;
-                redSlider.DisplayInMapper = flag;
-                greenSlider.DisplayInMapper = flag;
-                blueSlider.DisplayInMapper = flag;
-
+                refreshColorSlider(flag);
                 yield break;
             }
+        }
+
+        private void refreshColorSlider(bool display)
+        {
+            if (display)
+            {
+                materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
+                oldShader = materialRenderer.material.shader;
+            }
+            else
+            {
+                if (oldShader != null)
+                {
+                    //materialRenderer.material.shader = oldShader;
+                }
+            }
+
+            redSlider.DisplayInMapper = display;
+            greenSlider.DisplayInMapper = display;
+            blueSlider.DisplayInMapper = display;
+            alphaSlider.DisplayInMapper = display;
+
+            redSlider.Value = 1f;
+            greenSlider.Value = 1f;
+            blueSlider.Value = 1f;
+            alphaSlider.Value = 1f;
         }
     }
 }
