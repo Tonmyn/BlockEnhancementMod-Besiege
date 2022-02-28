@@ -131,7 +131,7 @@ namespace BlockEnhancementMod
                 CalculationTarget();
                 if (target != null)
                 {
-                    SuspensionMoveTowards((float)target, /*Feed*/FeedSlider.Value);
+                    SuspensionMoveTowards((float)target, /*Feed*/FeedSlider.Value * (ConfigurableJoint.swapBodies ? -1f : 1f));
                 }
 
                 void CalculationTarget()

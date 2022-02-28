@@ -10,25 +10,26 @@ namespace BlockEnhancementMod
     class BuildSurfaceScript : EnhancementBlock
     {
 
-        MToggle colliderToggle,kinematicToggle;
+        MToggle /*colliderToggle,*/ kinematicToggle;
         MSlider redSlider, greenSlider, blueSlider;
         MSlider alphaSlider,radiusSlider;
         BuildSurface buildSurface;
         [SerializeField]
         MeshRenderer materialRenderer;
-        SurfaceFragmentController fragmentController;
+        //SurfaceFragmentController fragmentController;
 
         [SerializeField]
         private bool isGlass = false;
         [SerializeField]
         private bool isDefaultSkin = false;
+        private int lastSkinValue = 0;
         private Shader oldShader;
         public override void SafeAwake()
         {
             base.SafeAwake();
             buildSurface = GetComponent<BuildSurface>();
 
-            colliderToggle = AddToggle("Collider", "collider", false);
+            //colliderToggle = AddToggle("Collider", "collider", false);
             kinematicToggle = AddToggle("Kinematic", "kinematic", false);
 
             redSlider = AddSlider("red", "red", 1f, 0f, 1f);
@@ -66,11 +67,12 @@ namespace BlockEnhancementMod
             {
                 radiusSlider.Value = 1f;
                 refreshColorSlider(false);
+                Debug.Log("reset");
             }
         }
         public override void DisplayInMapper(bool enhance)
         {
-            colliderToggle.DisplayInMapper = kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
+            /*colliderToggle.DisplayInMapper =*/ kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
             redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper = alphaSlider.DisplayInMapper = enhance && isGlass && !isDefaultSkin;
         }
 
@@ -79,50 +81,52 @@ namespace BlockEnhancementMod
             base.OnSimulateStart_EnhancementEnabled();
 
             buildSurface = GetComponent<BuildSurface>();
-            fragmentController = GetComponent<SurfaceFragmentController>();
+            //fragmentController = GetComponent<SurfaceFragmentController>();
 
-            if (colliderToggle.IsActive)
-            {
-                //buildSurface.BlockHealth.health = Mathf.Infinity;
-                var ctr = fragmentController;
-                ctr.fragments.ToList().ForEach(fra => fra.IsBroken = fra.IsIndependent = fra.HasOwnBody = true);
 
-                var type = buildSurface.currentType;
-                type.breakImpactSettings = BuildSurface.BreakImpactSettings.Disabled;
-                type.breakable = type.burnable = type.dentable = false;
-                type.fragmentBreakImpactThreshold = Mathf.Infinity;
-                type.hasHealth = true;
-               
-                foreach (var joint in buildSurface.Joints)
-                {
-                    joint.projectionMode = JointProjectionMode.PositionAndRotation;
-                    joint.projectionDistance = joint.projectionAngle = 0f;
-                    joint.breakForce = Mathf.Infinity;
-                    joint.breakTorque = Mathf.Infinity;
-                }
+            //Debug.Log(buildSurface.hasCollision.IsActive);
+            //if (colliderToggle.IsActive)
+            //{
+            //    ////buildSurface.BlockHealth.health = Mathf.Infinity;
+            //    //var ctr = fragmentController;
+            //    //ctr.fragments.ToList().ForEach(fra => fra.IsBroken = fra.IsIndependent = fra.HasOwnBody = true);
 
-                var cols = transform.FindChild("SimColliders").GetComponentsInChildren<Collider>();
-                foreach (var col in cols)
-                {
-                    col.isTrigger = true;
-                }
-                var mcols = gameObject.GetComponentsInChildren<MeshCollider>();
-                foreach (var mcol in mcols)
-                {
-                    mcol.isTrigger = mcol.convex = true;
-                }
+            //    var type = buildSurface.currentType;
+            //    type.breakImpactSettings = BuildSurface.BreakImpactSettings.Disabled;
+            //    type.breakable = type.burnable = type.dentable = false;
+            //    type.fragmentBreakImpactThreshold = Mathf.Infinity;
+            //    type.hasHealth = true;
 
-                StartCoroutine(wait());
+            //    foreach (var joint in buildSurface.Joints)
+            //    {
+            //        joint.projectionMode = JointProjectionMode.PositionAndRotation;
+            //        joint.projectionDistance = joint.projectionAngle = 0f;
+            //        joint.breakForce = Mathf.Infinity;
+            //        joint.breakTorque = Mathf.Infinity;
+            //    }
 
-                IEnumerator wait()
-                {
-                    for (int i = 0; i < 3; i++)
-                    {
-                        yield return 0;
-                    }
-                    yield break;
-                }
-            }
+            //    var cols = transform.FindChild("SimColliders").GetComponentsInChildren<Collider>();
+            //    foreach (var col in cols)
+            //    {
+            //        col.isTrigger = true;
+            //    }
+            //    var mcols = gameObject.GetComponentsInChildren<MeshCollider>();
+            //    foreach (var mcol in mcols)
+            //    {
+            //        mcol.isTrigger = mcol.convex = true;
+            //    }
+
+            //    StartCoroutine(wait());
+
+            //    IEnumerator wait()
+            //    {
+            //        for (int i = 0; i < 3; i++)
+            //        {
+            //            yield return 0;
+            //        }
+            //        yield break;
+            //    }
+            //}
 
             if (kinematicToggle.IsActive)
             {
@@ -152,6 +156,7 @@ namespace BlockEnhancementMod
         }
         private void materialChanged(int value)
         {
+            Debug.Log("material");
             isGlass = value == 1 ? true : false;
 
             var flag = isGlass && !isDefaultSkin && EnhancementEnabled;
@@ -169,7 +174,7 @@ namespace BlockEnhancementMod
             {
                 materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
             }
-            var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value/* * 6f*/);
+            var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f);
             materialRenderer.material.color = color;
         }
         private void radiusChanged(float value)
@@ -186,11 +191,12 @@ namespace BlockEnhancementMod
         }
         private void skinChanged(int value)
         {
+            Debug.Log("skin " + value);
             if (!EnhancementEnabled) return;
 
             isDefaultSkin = value == 0 ? true : false;
-            var flag = isGlass && !isDefaultSkin;
-  
+            var flag = isGlass && !isDefaultSkin && lastSkinValue == value;
+            lastSkinValue = value;
             StartCoroutine(wait());
 
             IEnumerator wait()
@@ -225,6 +231,8 @@ namespace BlockEnhancementMod
             greenSlider.Value = 1f;
             blueSlider.Value = 1f;
             alphaSlider.Value = 1f;
+
+            Debug.Log("refresh");
         }
     }
 }

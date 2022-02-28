@@ -16,6 +16,7 @@ namespace BlockEnhancementMod
         public override bool ShouldShowGUI { get; set; } = true;
         public bool showGUI { get { return BlockEnhancementMod.Configuration.GetValue<bool>("ShowUI"); } set { BlockEnhancementMod.Configuration.SetValue("ShowUI", value); } }
         public bool Friction { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Friction"); } set { BlockEnhancementMod.Configuration.SetValue("Friction", value); } }
+        public bool BuildSurface_Collision_Mass { get { return BlockEnhancementMod.Configuration.GetValue<bool>("BuildSurface"); } set { BlockEnhancementMod.Configuration.SetValue("BuildSurface", value); } }
 
         public Action<bool> OnFrictionToggle;
         private void FrictionToggle(bool value)
@@ -87,7 +88,12 @@ namespace BlockEnhancementMod
                         OnFrictionToggle(Friction);
                     }
                 }
-                 RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
+                if (BuildSurface_Collision_Mass != AddToggle(BuildSurface_Collision_Mass, new GUIContent(LanguageManager.Instance.CurrentLanguage.BuildSurface)))
+                {
+                    BuildSurface_Collision_Mass = !BuildSurface_Collision_Mass;
+                    BuildSurface.ShowCollisionToggle = BuildSurface.ShowMassSlider = BuildSurface_Collision_Mass;
+                }
+                RocketsController.DisplayWarning = AddToggle(RocketsController.DisplayWarning, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayWarning));
                 RadarScript.MarkTarget = AddToggle(RadarScript.MarkTarget, new GUIContent(LanguageManager.Instance.CurrentLanguage.MarkTarget));
                 RocketsController.DisplayRocketCount = AddToggle(RocketsController.DisplayRocketCount, new GUIContent(LanguageManager.Instance.CurrentLanguage.DisplayRocketCount));
             }

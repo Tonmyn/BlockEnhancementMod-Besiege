@@ -65,6 +65,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         string Enhancement { get; }
         string AdditionalFunction { get; }
+        string BuildSurface { get; }
 
         //Rocket & Camera
         string DisplayWarning { get; }
@@ -268,6 +269,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "进阶属性";
         public string AdditionalFunction { get; } = " 增强性能";
+        public string BuildSurface { get; } = " 蒙皮块的碰撞和质量";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " 第一人称下显示火箭警告";
@@ -485,6 +487,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "Enhancement";
         public string AdditionalFunction { get; } = " Enhance More";
+        public string BuildSurface { get; } = " BuildSurface's Collision and Mass";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " Rocket Warning in First Person Camera";
@@ -703,6 +706,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "機能拡張";
         public string AdditionalFunction { get; } = " さらに拡張する";
+        public string BuildSurface { get; } = " けんちくひょうめん 衝突と質量";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " 一人称カメラでロケット警告表示";
