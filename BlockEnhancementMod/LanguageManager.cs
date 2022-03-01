@@ -173,9 +173,8 @@ namespace BlockEnhancementMod
         //string hardness { get; }
 
         string Friction { get; }
-
         string Bounciness { get; }
-
+        string Collision { get; }
         //string softWood { get; }
 
         //string midSoftWood { get; }
@@ -391,8 +390,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "硬度" ;
 
         public string Friction { get; } = "摩擦力";
-
         public string Bounciness { get; } = "弹力";
+        public string Collision { get; } = "碰撞";
 
         //public  string softWood {get;}= "朽木" ;
 
@@ -609,9 +608,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "Hardness";
 
         public string Friction { get; } = "Friction";
-
         public string Bounciness { get; } = "Bounciness";
-
+        public string Collision { get; } = "Collision";
         //public  string softWood {get;}= "Soft Wood";
 
         //public  string midSoftWood {get;}= "Median-Soft Wood";
@@ -828,8 +826,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "硬さ";
 
         public string Friction { get; } = "摩擦";
-
         public string Bounciness { get; } = "弾性";
+        public string Collision { get; } = "衝突";
 
         //public  string softWood {get;}= "軟質";
 

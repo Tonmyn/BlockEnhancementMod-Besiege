@@ -15,11 +15,10 @@ namespace BlockEnhancementMod
             {
                 cmcl = GetComponent<CogMotorControllerHinge>();
                 SpeedSlider = cmcl.SpeedSlider;
-
-                base.SafeAwake();
             }
             catch { }
 
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("动力铰链添加进阶属性");
 #endif

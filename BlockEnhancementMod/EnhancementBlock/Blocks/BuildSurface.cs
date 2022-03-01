@@ -11,7 +11,7 @@ namespace BlockEnhancementMod
     {
 
         MToggle /*colliderToggle,*/ kinematicToggle;
-        MSlider redSlider, greenSlider, blueSlider;
+        //MSlider redSlider, greenSlider, blueSlider;
         MSlider alphaSlider,radiusSlider;
         BuildSurface buildSurface;
         [SerializeField]
@@ -19,7 +19,7 @@ namespace BlockEnhancementMod
         //SurfaceFragmentController fragmentController;
 
         [SerializeField]
-        private bool isGlass = false;
+        private bool isWood = false;
         [SerializeField]
         private bool isDefaultSkin = false;
         private int lastSkinValue = 0;
@@ -32,12 +32,12 @@ namespace BlockEnhancementMod
             //colliderToggle = AddToggle("Collider", "collider", false);
             kinematicToggle = AddToggle("Kinematic", "kinematic", false);
 
-            redSlider = AddSlider("red", "red", 1f, 0f, 1f);
-            redSlider.ValueChanged += colorChanged;
-            greenSlider = AddSlider("green", "green", 1f, 0f, 1f);
-            greenSlider.ValueChanged += colorChanged;
-            blueSlider = AddSlider("blue", "blue", 1f, 0f, 1f);
-            blueSlider.ValueChanged += colorChanged;
+            //redSlider = AddSlider("red", "red", 1f, 0f, 1f);
+            //redSlider.ValueChanged += colorChanged;
+            //greenSlider = AddSlider("green", "green", 1f, 0f, 1f);
+            //greenSlider.ValueChanged += colorChanged;
+            //blueSlider = AddSlider("blue", "blue", 1f, 0f, 1f);
+            //blueSlider.ValueChanged += colorChanged;
             alphaSlider = AddSlider("Alpha", "Alpha", 1f, 0f, 1f);
             alphaSlider.ValueChanged += colorChanged;
 
@@ -73,7 +73,7 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool enhance)
         {
             /*colliderToggle.DisplayInMapper =*/ kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
-            redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper = alphaSlider.DisplayInMapper = enhance && isGlass && !isDefaultSkin;
+            /*redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper =*/ alphaSlider.DisplayInMapper = enhance && isWood /*&& !isDefaultSkin*/;
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -149,17 +149,17 @@ namespace BlockEnhancementMod
             base.OnSimulateStartAlways();
             if (!EnhancementEnabled) return;
 
-            if (isGlass && !isDefaultSkin)
+            if (isWood && !isDefaultSkin)
             {
-                colorChanged(0);
+                //colorChanged(0);
             }
         }
         private void materialChanged(int value)
         {
             Debug.Log("material");
-            isGlass = value == 1 ? true : false;
+            isWood = value == 0 ? true : false;
 
-            var flag = isGlass && !isDefaultSkin && EnhancementEnabled;
+            var flag = isWood &&/* !isDefaultSkin &&*/ EnhancementEnabled;
             refreshColorSlider(flag);
         }
         private void colorChanged(float value)
@@ -174,7 +174,9 @@ namespace BlockEnhancementMod
             {
                 materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
             }
-            var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f);
+            //var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f);
+            var color = materialRenderer.material.color;
+            color = new Color(color.r, color.g, color.b, alphaSlider.Value * 6f);
             materialRenderer.material.color = color;
         }
         private void radiusChanged(float value)
@@ -195,7 +197,7 @@ namespace BlockEnhancementMod
             if (!EnhancementEnabled) return;
 
             isDefaultSkin = value == 0 ? true : false;
-            var flag = isGlass && !isDefaultSkin && lastSkinValue == value;
+            var flag = isWood/* && !isDefaultSkin*/ && lastSkinValue == value;
             lastSkinValue = value;
             StartCoroutine(wait());
 
@@ -222,14 +224,14 @@ namespace BlockEnhancementMod
                 }
             }
 
-            redSlider.DisplayInMapper = display;
-            greenSlider.DisplayInMapper = display;
-            blueSlider.DisplayInMapper = display;
+            //redSlider.DisplayInMapper = display;
+            //greenSlider.DisplayInMapper = display;
+            //blueSlider.DisplayInMapper = display;
             alphaSlider.DisplayInMapper = display;
 
-            redSlider.Value = 1f;
-            greenSlider.Value = 1f;
-            blueSlider.Value = 1f;
+            //redSlider.Value = 1f;
+            //greenSlider.Value = 1f;
+            //blueSlider.Value = 1f;
             alphaSlider.Value = 1f;
 
             Debug.Log("refresh");
