@@ -9,17 +9,11 @@ namespace BlockEnhancementMod
 {
     class UnpoweredWheel : EnhancementBlock
     {
-        MSlider FrictionSlider;
-        MSlider BouncinessSlider;
         MToggle collisionToggle;
-        float Friction = 0.8f;
 
         public override void SafeAwake()
         {
-            FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
-            BouncinessSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", /*Bounciness*/0f, 0f, 1f);
-
-            collisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Collision", true);
+            collisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.Collision, "Collision", true);
             base.SafeAwake();
 
 #if DEBUG
@@ -31,8 +25,7 @@ namespace BlockEnhancementMod
         {
             base.DisplayInMapper(value);
 
-            FrictionSlider.DisplayInMapper = value;
-            BouncinessSlider.DisplayInMapper = value;
+            collisionToggle.DisplayInMapper = value;
         }
 
 
@@ -40,7 +33,7 @@ namespace BlockEnhancementMod
         {
             base.OnSimulateStart_EnhancementEnabled();
 
-            if (collisionToggle.IsActive)
+            if (!collisionToggle.IsActive)
             {
                 Debug.Log("close collision");
                 var cols = BB.transform.GetComponentsInChildren<Collider>();
