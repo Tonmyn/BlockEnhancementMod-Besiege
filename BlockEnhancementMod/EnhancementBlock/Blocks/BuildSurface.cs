@@ -44,36 +44,50 @@ namespace BlockEnhancementMod
             radiusSlider = AddSlider("Radius", "Radius", 1f, 0.1f, 1f);
             radiusSlider.ValueChanged += radiusChanged;
 
-            buildSurface.material.ValueChanged += materialChanged;
-            materialChanged(buildSurface.material.Value);
 
-            StartCoroutine(wait());
+            //buildSurface.material.ValueChanged += materialChanged;
+            buildSurface.material.ValueChanged += (value) => { DisplayInMapper(EnhancementEnabled); };
+            buildSurface.hue.ValueChanged += (color) => { colorChanged(0f); };
+            buildSurface.paint.Toggled += (value) => { DisplayInMapper(EnhancementEnabled); };
 
-            IEnumerator wait()
-            {
-                yield return new WaitUntil(() => BB.Visual != null);
+            //materialChanged(buildSurface.material.Value);
 
-                BB.Visual.ValueChanged += skinChanged;
-                skinChanged(BB.Visual.Value);
-                yield break;
-            }
+            //StartCoroutine(wait());
+
+            //IEnumerator wait()
+            //{
+            //    yield return new WaitUntil(() => BB.Visual != null);
+            //    buildSurface.hue.ValueChanged += (color) => { materialRenderer.material.color = color; };
+            //    BB.Visual.ValueChanged += skinChanged;
+            //    skinChanged(BB.Visual.Value);
+            //    yield break;
+            //}
 #if DEBUG
             ConsoleController.ShowMessage("蒙皮块添加进阶属性");
 #endif
         }
-        public override void ChangedProperties(MapperType mapperType)
-        {
-            if (mapperType.Key == EnhancementToggle.Key && (mapperType as MToggle).IsActive == false)
-            {
-                radiusSlider.Value = 1f;
-                refreshColorSlider(false);
-                Debug.Log("reset");
-            }
-        }
+        //public override void ChangedProperties(MapperType mapperType)
+        //{
+        //    if (mapperType.Key == EnhancementToggle.Key && (mapperType as MToggle).IsActive == false)
+        //    {
+        //        radiusSlider.Value = 1f;
+        //        refreshColorSlider(false);
+        //        Debug.Log("reset");
+        //    }
+        //}
         public override void DisplayInMapper(bool enhance)
         {
             /*colliderToggle.DisplayInMapper =*/ kinematicToggle.DisplayInMapper = radiusSlider.DisplayInMapper = enhance;
-            /*redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper =*/ alphaSlider.DisplayInMapper = enhance && isWood /*&& !isDefaultSkin*/;
+            ///*redSlider.DisplayInMapper = greenSlider.DisplayInMapper = blueSlider.DisplayInMapper =*/ alphaSlider.DisplayInMapper = enhance && isWood /*&& !isDefaultSkin*/;
+            ///
+
+            Debug.Log("dim" + buildSurface.paint.IsActive);
+            alphaSlider.DisplayInMapper = enhance && buildSurface.paint.DisplayInMapper && buildSurface.paint.IsActive;
+            if (alphaSlider.DisplayInMapper)
+            {
+                materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
+                oldShader = materialRenderer.material.shader;
+            }
         }
 
         public override void OnSimulateStart_EnhancementEnabled()
@@ -144,26 +158,27 @@ namespace BlockEnhancementMod
                 }
             }
         }
-        public override void OnSimulateStartAlways()
-        {
-            base.OnSimulateStartAlways();
-            if (!EnhancementEnabled) return;
+        //public override void OnSimulateStartAlways()
+        //{
+        //    base.OnSimulateStartAlways();
+        //    if (!EnhancementEnabled) return;
 
-            if (isWood && !isDefaultSkin)
-            {
-                //colorChanged(0);
-            }
-        }
-        private void materialChanged(int value)
-        {
-            Debug.Log("material");
-            isWood = value == 0 ? true : false;
+        //    if (isWood && !isDefaultSkin)
+        //    {
+        //        //colorChanged(0);
+        //    }
+        //}
+        //private void materialChanged(int value)
+        //{
+        //    Debug.Log("material "  + buildSurface.paint.DisplayInMapper);
+        //    isWood = value == 0 ? true : false;
 
-            var flag = isWood &&/* !isDefaultSkin &&*/ EnhancementEnabled;
-            refreshColorSlider(flag);
-        }
+        //    var flag = isWood &&/* !isDefaultSkin &&*/ EnhancementEnabled;
+        //    refreshColorSlider(flag);
+        //}
         private void colorChanged(float value)
         {
+
             if (materialRenderer == null || EnhancementEnabled == false) return;
 
             if (alphaSlider.Value >= 0.99f)
@@ -175,7 +190,8 @@ namespace BlockEnhancementMod
                 materialRenderer.material.shader = Shader.Find("Transparent/Diffuse");
             }
             //var color = new Color(redSlider.Value, greenSlider.Value, blueSlider.Value, alphaSlider.Value * 6f);
-            var color = materialRenderer.material.color;
+            //var color = materialRenderer.material.color;
+            var color = buildSurface.hue.Value;
             color = new Color(color.r, color.g, color.b, alphaSlider.Value * 6f);
             materialRenderer.material.color = color;
         }
@@ -191,50 +207,50 @@ namespace BlockEnhancementMod
                 point.transform.localScale = Vector3.one * value;
             }
         }
-        private void skinChanged(int value)
-        {
-            Debug.Log("skin " + value);
-            if (!EnhancementEnabled) return;
+        //private void skinChanged(int value)
+        //{
+        //    Debug.Log("skin " + value);
+        //    if (!EnhancementEnabled) return;
 
-            isDefaultSkin = value == 0 ? true : false;
-            var flag = isWood/* && !isDefaultSkin*/ && lastSkinValue == value;
-            lastSkinValue = value;
-            StartCoroutine(wait());
+        //    isDefaultSkin = value == 0 ? true : false;
+        //    var flag = isWood/* && !isDefaultSkin*/ && lastSkinValue == value;
+        //    lastSkinValue = value;
+        //    StartCoroutine(wait());
 
-            IEnumerator wait()
-            {
-                yield return new WaitForSeconds(Time.deltaTime * 3f);
-                refreshColorSlider(flag);
-                yield break;
-            }
-        }
+        //    IEnumerator wait()
+        //    {
+        //        yield return new WaitForSeconds(Time.deltaTime * 3f);
+        //        refreshColorSlider(flag);
+        //        yield break;
+        //    }
+        //}
 
-        private void refreshColorSlider(bool display)
-        {
-            if (display)
-            {
-                materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
-                oldShader = materialRenderer.material.shader;
-            }
-            else
-            {
-                if (oldShader != null)
-                {
-                    //materialRenderer.material.shader = oldShader;
-                }
-            }
+        //private void refreshColorSlider(bool display)
+        //{
+        //    if (display)
+        //    {
+        //        materialRenderer = transform.FindChild("Vis").GetComponent<MeshRenderer>();
+        //        oldShader = materialRenderer.material.shader;
+        //    }
+        //    else
+        //    {
+        //        if (oldShader != null)
+        //        {
+        //            //materialRenderer.material.shader = oldShader;
+        //        }
+        //    }
 
-            //redSlider.DisplayInMapper = display;
-            //greenSlider.DisplayInMapper = display;
-            //blueSlider.DisplayInMapper = display;
-            alphaSlider.DisplayInMapper = display;
+        //    //redSlider.DisplayInMapper = display;
+        //    //greenSlider.DisplayInMapper = display;
+        //    //blueSlider.DisplayInMapper = display;
+        //    alphaSlider.DisplayInMapper = display;
 
-            //redSlider.Value = 1f;
-            //greenSlider.Value = 1f;
-            //blueSlider.Value = 1f;
-            alphaSlider.Value = 1f;
+        //    //redSlider.Value = 1f;
+        //    //greenSlider.Value = 1f;
+        //    //blueSlider.Value = 1f;
+        //    alphaSlider.Value = 1f;
 
-            Debug.Log("refresh");
-        }
+        //    Debug.Log("refresh");
+        //}
     }
 }
