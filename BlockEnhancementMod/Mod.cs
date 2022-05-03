@@ -37,7 +37,6 @@ namespace BlockEnhancementMod
             {
                 Dictionary<string, Action<string[]>> commandOfAction = new Dictionary<string, Action<string[]>>
                 {
-
                     { "srsecon",   (args)=>{ ModSetting.RocketSmokeEmissionConstant = float.Parse(args[1]);} },
                     { "srsl",   (args)=>{ ModSetting.RocketSmokeLifetime = float.Parse(args[1]);} },
                     { "srss",   (args)=>{ModSetting.RocketSmokeSize = float.Parse(args[1]);} },

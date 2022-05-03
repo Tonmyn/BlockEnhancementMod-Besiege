@@ -18,26 +18,9 @@ namespace BlockEnhancementMod
         public bool BuildSurface_Collision_Mass = BlockEnhancementMod.ModSetting.BuildSurface_Collision_Mass;
 
         public Action<bool> OnFrictionToggle;
-        //private void FrictionToggle(bool value)
-        //{
-        //    PhysicMaterialCombine physicMaterialCombine = value ? PhysicMaterialCombine.Average : PhysicMaterialCombine.Maximum;
-
-        //    //设置地形的摩擦力合并方式
-        //    if (GameObject.Find("Terrain Terraced") != null)
-        //    {
-        //        foreach (var v in GameObject.Find("Terrain Terraced").GetComponentsInChildren<MeshCollider>())
-        //        {
-        //            v.sharedMaterial.frictionCombine = physicMaterialCombine;
-        //            v.sharedMaterial.bounceCombine = physicMaterialCombine;
-        //            break;
-        //        }
-        //    }
-        //}
 
         public override void SafeAwake()
         {
-            //OnFrictionToggle += FrictionToggle;
-
             windowRect = new Rect(15f, 100f, 180f, 50f + 20f);
             windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9";
             LanguageManager.Instance.OnLanguageChanged += (value) => { windowName = LanguageManager.Instance.CurrentLanguage.ModSettings + "  Ctrl+F9"; };
@@ -209,7 +192,6 @@ namespace BlockEnhancementMod
         //}
         private T getValue<T>(string key)
         {
-            Debug.Log("get modsetting...");
             return BlockEnhancementMod.Configuration.GetValue<T>(key);
         }
         private void Changed<T>(string key,T value)

@@ -207,7 +207,7 @@ namespace BlockEnhancementMod
         /// </summary>
         public virtual void OnPlaced() { }
         public virtual void OnCopy() { }
-        public virtual void OnPaste() { Debug.Log(mapperMe); }
+        public virtual void OnPaste() { /*Debug.Log(mapperMe);*/ }
         /// <summary>
         /// 在模拟开始的第一帧 要做的事
         /// </summary>

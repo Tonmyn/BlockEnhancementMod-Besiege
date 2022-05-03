@@ -35,7 +35,9 @@ namespace BlockEnhancementMod
 
             if (!collisionToggle.IsActive)
             {
+#if DEBUG
                 Debug.Log("close collision");
+#endif
                 var cols = BB.transform.GetComponentsInChildren<Collider>();
                 foreach (var col in cols)
                 {
