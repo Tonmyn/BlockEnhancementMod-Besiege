@@ -27,7 +27,7 @@ namespace BlockEnhancementMod
         private Transform preTargetTransform = null;
         public bool Switch { get; set; } = false;
 
-        public float pFactor, iFactor, dFactor;
+        public static float pFactor = BlockEnhancementMod.ModSetting.GuideControl_P_Factor, iFactor = BlockEnhancementMod.ModSetting.GuideControl_I_Factor, dFactor = BlockEnhancementMod.ModSetting.GuideControl_D_Factor;
         public float integral = 0;
         public float lastError = 0;
 
@@ -49,9 +49,9 @@ namespace BlockEnhancementMod
             torque = sourceTorque;
             this.constantForce = constantForce;
             //preTargetTransform = new BlockBehaviour();
-            pFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl P Factor");
-            iFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl I Factor");
-            dFactor = BlockEnhancementMod.Configuration.GetValue<float>("GuideControl D Factor");
+            //pFactor = BlockEnhancementMod.ModSetting.GuideControl_P_Factor;
+            //iFactor = BlockEnhancementMod.ModSetting.GuideControl_I_Factor;
+            //dFactor = BlockEnhancementMod.ModSetting.GuideControl_D_Factor;
         }
 
         void FixedUpdate()

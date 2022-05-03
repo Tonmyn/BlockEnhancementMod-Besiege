@@ -17,7 +17,7 @@ namespace BlockEnhancementMod
 
         private bool iAmLockedByRocket = false;
         private bool isFirstFrame = true;
-        public static bool DisplayWarning { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Display Warning"); } internal set { BlockEnhancementMod.Configuration.SetValue("Display Warning", value); } }
+        public static bool DisplayWarning  = BlockEnhancementMod.ModSetting.DisplayWarning;
         private FixedCameraController cameraController;
         public Dictionary<BlockBehaviour, int> rocketTargetDict;
         public Dictionary<int, Dictionary<KeyCode, HashSet<TimedRocket>>> playerGroupedRockets;
@@ -48,7 +48,7 @@ namespace BlockEnhancementMod
             }
         }
         private Rect counterRect = new Rect(Screen.width - screenOffset - warningWidth, Screen.height - 0.5f * screenOffset - warningHeight, warningWidth, warningHeight);
-        public static bool DisplayRocketCount { get { return BlockEnhancementMod.Configuration.GetValue<bool>(" Display Rocket Count"); } internal set { BlockEnhancementMod.Configuration.SetValue("Display Rocket Count", value); } }
+        public static bool DisplayRocketCount = BlockEnhancementMod.ModSetting.DisplayRocketCount;
 
         public RocketsController()
         {

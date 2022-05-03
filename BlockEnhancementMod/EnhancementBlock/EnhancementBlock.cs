@@ -8,7 +8,7 @@ namespace BlockEnhancementMod
 {
     public  class EnhancementBlock : MonoBehaviour ,ILimitsDisplay
     {
-        public static bool EnhanceMore { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Enhance More"); } internal set { BlockEnhancementMod.Configuration.SetValue("Enhance More", value); } } 
+        public static bool EnhanceMore = BlockEnhancementMod.ModSetting.EnhanceMore;
 
         /// <summary>模块行为</summary>
         public BlockBehaviour BB { get; internal set; } 

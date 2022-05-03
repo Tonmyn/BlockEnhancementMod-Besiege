@@ -39,7 +39,7 @@ namespace BlockEnhancementMod
         private MeshCollider meshCollider;
         private MeshRenderer meshRenderer;
 
-        public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
+        public static bool MarkTarget =BlockEnhancementMod.ModSetting.MarkTarget;
         public bool ShowBulletLanding { get; set; } = false;
         public float cannonBallSpeed;
         public Vector3 aimDir;
@@ -47,7 +47,7 @@ namespace BlockEnhancementMod
         private Vector3 hitPosition;
         private bool foundHitPosition = false;
         private float drag;
-        public static int RadarFrequency { get; } = Mathf.Clamp(BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency"), 1, 60);
+        public static int RadarFrequency { get; internal set; } = BlockEnhancementMod.ModSetting.RadarFrequency;
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
         private int squareWidth = 40;

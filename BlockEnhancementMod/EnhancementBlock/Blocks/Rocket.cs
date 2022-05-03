@@ -20,21 +20,35 @@ namespace BlockEnhancementMod
         public Rigidbody rocketRigidbody;
 
         ParticleSystem smokeTrail;
-        public TrailSmokePropertise trailSmokePropertise = new TrailSmokePropertise
+        //public TrailSmokePropertise trailSmokePropertise = new TrailSmokePropertise
+        //{
+        //    EmissionConstant = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"),
+        //    Lifetime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"),
+        //    Size = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"),
+        //    StartColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Start Color"),
+        //    EndColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke End Color"),
+        //    StartColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Color Time"),
+        //    EndColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Color Time"),
+        //    StartAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha"),
+        //    EndAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha"),
+        //    StartAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha Time"),
+        //    EndAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha Time"),
+        //};
+        public static TrailSmokePropertise trailSmokePropertise = new TrailSmokePropertise
         {
-            EmissionConstant = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"),
-            Lifetime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"),
-            Size = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"),
-            StartColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke Start Color"),
-            EndColor = BlockEnhancementMod.Configuration.GetValue<Color>("Rocket Smoke End Color"),
-            StartColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Color Time"),
-            EndColorTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Color Time"),
-            StartAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha"),
-            EndAlpha = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha"),
-            StartAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Start Alpha Time"),
-            EndAlphaTime = BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke End Alpha Time"),
+            EmissionConstant = BlockEnhancementMod.ModSetting.RocketSmokeEmissionConstant,
+            Lifetime = BlockEnhancementMod.ModSetting.RocketSmokeLifetime,
+            Size = BlockEnhancementMod.ModSetting.RocketSmokeSize,
+            StartColor = BlockEnhancementMod.ModSetting.RocketSmokeStartColor,
+            EndColor = BlockEnhancementMod.ModSetting.RocketSmokeEndColor,
+            StartColorTime = BlockEnhancementMod.ModSetting.RocketSmokeStartColorTime,
+            EndColorTime = BlockEnhancementMod.ModSetting.RocketSmokeEndColorTime,
+            StartAlpha = BlockEnhancementMod.ModSetting.RocketSmokeStartAlpha,
+            EndAlpha = BlockEnhancementMod.ModSetting.RocketSmokeEndAlpha,
+            StartAlphaTime = BlockEnhancementMod.ModSetting.RocketSmokeStartAlphaTime,
+            EndAlphaTime = BlockEnhancementMod.ModSetting.RocketSmokeEndAlphaTime,
         };
-    
+
         //public float TrailSmokeEmissionConstant { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Emission Constant"); } }
         //public float TrailSmokeLifetime { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Lifetime"); } }
         //public float TrailSmokeSize { get { return BlockEnhancementMod.Configuration.GetValue<float>("Rocket Smoke Size"); } }
@@ -101,7 +115,7 @@ namespace BlockEnhancementMod
 
         public struct TrailSmokePropertise
         {
-            public float EmissionConstant;
+            public float EmissionConstant { get; set; }
             public float Lifetime;
             public float Size;
             public Color StartColor;
@@ -344,6 +358,8 @@ namespace BlockEnhancementMod
                             new GradientColorKey(trailSmokePropertise.EndColor,trailSmokePropertise.EndColorTime)
                             }
                         }); ;
+                        //var solt = smokeTrail.sizeOverLifetime;
+                        //solt.size = new ParticleSystem.MinMaxCurve();
                         break;
                     }
                 }
