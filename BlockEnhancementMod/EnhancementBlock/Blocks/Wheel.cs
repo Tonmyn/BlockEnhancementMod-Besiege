@@ -9,8 +9,8 @@ namespace BlockEnhancementMod.Blocks
 
     class WheelScript : CogMotoControllerHinge_GenericEnhanceScript
     {
-
-        MToggle ColliderToggle;
+        MToggle collisionToggle;
+        MToggle CustomColliderToggle;
         MToggle ShowColliderToggle;
         MSlider FrictionSlider;
         MSlider BouncinessSlider;
@@ -29,7 +29,9 @@ namespace BlockEnhancementMod.Blocks
             ID = GetComponent<BlockVisualController>().ID;
             Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
 
-            ColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", false);
+            collisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.Collision, "Collision", true);
+
+            CustomColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", false);
 
             ShowColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", true);
 
@@ -52,8 +54,9 @@ namespace BlockEnhancementMod.Blocks
         {
             base.DisplayInMapper(value);
 
-            ColliderToggle.DisplayInMapper = value;
-            ShowColliderToggle.DisplayInMapper = value && ColliderToggle.IsActive;
+            collisionToggle.DisplayInMapper = value;
+            CustomColliderToggle.DisplayInMapper = value;
+            ShowColliderToggle.DisplayInMapper = value && CustomColliderToggle.IsActive;
             FrictionSlider.DisplayInMapper = value;
             BouncinessSlider.DisplayInMapper = value;
         }
@@ -105,7 +108,7 @@ namespace BlockEnhancementMod.Blocks
                 wheelPhysicMaterialOrgin = Colliders[0].material;
 
                 PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(/*Friction*/FrictionSlider.Value, /*Bounciness*/BouncinessSlider.Value, PhysicMaterialCombine.Average);
-                if (/*Collider*/ColliderToggle.IsActive)
+                if (/*Collider*/CustomColliderToggle.IsActive)
                 {
                     if (WheelCollider != null) return;
 
@@ -123,6 +126,7 @@ namespace BlockEnhancementMod.Blocks
                     mCollider = WheelCollider.GetComponent<MeshCollider>();
                     mCollider.convex = true;
                     mCollider.material = wheelPhysicMaterial;
+                    BB.myBounds.childColliders.Add(mCollider);
 
                     if (/*ShowCollider*/ShowColliderToggle.IsActive)
                     {
@@ -143,6 +147,14 @@ namespace BlockEnhancementMod.Blocks
                     //Destroy(WheelCollider);
                     //设置原有碰撞的参数
                     foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
+                }
+
+                if (!collisionToggle.IsActive)
+                {
+                    foreach (var col in BB.myBounds.childColliders)
+                    {
+                        col.isTrigger = true;
+                    }
                 }
             }
             //else
