@@ -313,6 +313,7 @@ namespace BlockEnhancementMod
     public class ChangeSpeedBlock : EnhancementBlock,IChangeSpeed
     {
         public float Speed { get { return SpeedSlider.Value; } set { SpeedSlider.Value =/* Mathf.Clamp(value, SpeedSlider.Min, SpeedSlider.Max)*/value; } }
+        public bool EnableChangeSpeed { get; internal set; } = false;
         public MSlider SpeedSlider { get; set; }
         public MKey AddSpeedKey { get; set; }
         public MKey ReduceSpeedKey { get; set; }
@@ -321,9 +322,12 @@ namespace BlockEnhancementMod
         public override void SafeAwake()
         {
             base.SafeAwake();
-            AddSpeedKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.AddSpeed,"Add Speed", KeyCode.Equals);
-            ReduceSpeedKey = /*BB.*/AddKey( LanguageManager.Instance.CurrentLanguage.ReduceSpeed, "Reduce Speed",KeyCode.Minus);
-            ChangeSpeedValue = /*BB.*/AddValue(LanguageManager.Instance.CurrentLanguage.ChangeSpeed, "Change Speed", 0.1f);
+            if (EnableChangeSpeed)
+            {
+                AddSpeedKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.AddSpeed, "Add Speed", KeyCode.Equals);
+                ReduceSpeedKey = /*BB.*/AddKey(LanguageManager.Instance.CurrentLanguage.ReduceSpeed, "Reduce Speed", KeyCode.Minus);
+                ChangeSpeedValue = /*BB.*/AddValue(LanguageManager.Instance.CurrentLanguage.ChangeSpeed, "Change Speed", 0.1f);
+            }
         }
 
         public override void DisplayInMapper(bool value)
@@ -331,7 +335,7 @@ namespace BlockEnhancementMod
             base.DisplayInMapper(value);
             try
             {
-                AddSpeedKey.DisplayInMapper = ReduceSpeedKey.DisplayInMapper = ChangeSpeedValue.DisplayInMapper = value;
+                AddSpeedKey.DisplayInMapper = ReduceSpeedKey.DisplayInMapper = ChangeSpeedValue.DisplayInMapper = value && EnableChangeSpeed;
             }
             catch { }
         }
@@ -342,14 +346,17 @@ namespace BlockEnhancementMod
 
             try
             {
-                if (AddSpeedKey.IsPressed || AddSpeedKey.EmulationPressed())
+                if (EnableChangeSpeed)
                 {
-                    Speed += ChangeSpeedValue.Value;
-                }
+                    if (AddSpeedKey.IsPressed || AddSpeedKey.EmulationPressed())
+                    {
+                        Speed += ChangeSpeedValue.Value;
+                    }
 
-                if (ReduceSpeedKey.IsPressed || ReduceSpeedKey.EmulationPressed())
-                {
-                    Speed -= ChangeSpeedValue.Value;
+                    if (ReduceSpeedKey.IsPressed || ReduceSpeedKey.EmulationPressed())
+                    {
+                        Speed -= ChangeSpeedValue.Value;
+                    }
                 }
             }
             catch { }

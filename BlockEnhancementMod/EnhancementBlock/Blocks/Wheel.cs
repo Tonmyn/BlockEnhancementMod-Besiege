@@ -21,7 +21,7 @@ namespace BlockEnhancementMod.Blocks
         //float Bounciness = 0f;
         int ID = 0;
 
-        static GameObject WheelColliderOrgin;
+        private static GameObject WheelColliderOrgin;
 
 
         public override void SafeAwake()
@@ -67,7 +67,7 @@ namespace BlockEnhancementMod.Blocks
         /// </summary>
         /// <param name="id">零件号</param>
         /// <returns></returns>
-        public static bool IsWheel(int id)
+        private static bool IsWheel(int id)
         {
             bool result = false;
 

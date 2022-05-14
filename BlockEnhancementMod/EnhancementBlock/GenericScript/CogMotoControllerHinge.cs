@@ -14,7 +14,11 @@ namespace BlockEnhancementMod
             try
             {
                 cmcl = GetComponent<CogMotorControllerHinge>();
-                SpeedSlider = cmcl.SpeedSlider;
+                if (cmcl != null)
+                {
+                    SpeedSlider = cmcl.SpeedSlider;
+                    EnableChangeSpeed = true;
+                }
             }
             catch { }
 
