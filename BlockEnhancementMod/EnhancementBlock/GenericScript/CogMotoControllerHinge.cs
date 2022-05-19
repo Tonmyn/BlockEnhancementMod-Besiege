@@ -19,6 +19,10 @@ namespace BlockEnhancementMod
                     SpeedSlider = cmcl.SpeedSlider;
                     EnableChangeSpeed = true;
                 }
+                else
+                {
+                    EnableChangeSpeed = false;
+                }
             }
             catch { }
 

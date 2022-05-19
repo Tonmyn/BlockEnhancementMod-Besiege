@@ -68,9 +68,9 @@ namespace BlockEnhancementMod
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
-
             var _value = value && HydraulicToggle.IsActive;
+
+            base.DisplayInMapper(_value);
 
             HardnessMenu.DisplayInMapper = value;
 

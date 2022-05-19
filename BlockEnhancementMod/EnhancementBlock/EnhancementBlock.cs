@@ -313,7 +313,7 @@ namespace BlockEnhancementMod
     public class ChangeSpeedBlock : EnhancementBlock,IChangeSpeed
     {
         public float Speed { get { return SpeedSlider.Value; } set { SpeedSlider.Value =/* Mathf.Clamp(value, SpeedSlider.Min, SpeedSlider.Max)*/value; } }
-        public bool EnableChangeSpeed { get; internal set; } = false;
+        public bool EnableChangeSpeed { get; internal set; } = true;
         public MSlider SpeedSlider { get; set; }
         public MKey AddSpeedKey { get; set; }
         public MKey ReduceSpeedKey { get; set; }
