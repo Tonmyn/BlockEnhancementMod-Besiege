@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
     {
         { "简体中文",new Chinese()},
         { "English",new English()},
-            { "日本語",new Japanese()},
+        { "日本語",new Japanese()},
     };
 
         void Awake()
@@ -65,6 +65,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         string Enhancement { get; }
         string AdditionalFunction { get; }
+        string BuildSurface { get; }
 
         //Rocket & Camera
         string DisplayWarning { get; }
@@ -172,9 +173,8 @@ namespace BlockEnhancementMod
         //string hardness { get; }
 
         string Friction { get; }
-
         string Bounciness { get; }
-
+        string Collision { get; }
         //string softWood { get; }
 
         //string midSoftWood { get; }
@@ -240,6 +240,27 @@ namespace BlockEnhancementMod
         string HeightPixel { get; }
         string Switch { get; }
         List<string> NullChannelList { get; }
+
+        //ArmorRound
+        string Play { get; }
+        string Stop { get; }
+        string Mute { get; }
+        string Next { get; }
+        string Last { get; }
+        string Loop { get; }
+        string OneShot { get; }
+        string ReleaseToPause { get; }
+        string ReleaseToStop { get; }
+        string OnCollision { get; }
+        string Volume { get; }
+        string Pitch { get; }
+        string Distance { get; }
+        string Doppler { get; }
+        string SpatialBlend { get; }
+
+        //Balloon
+        string Effected { get; }
+        string DragTogether { get; }
     }
 
     public class Chinese : ILanguage
@@ -251,6 +272,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "进阶属性";
         public string AdditionalFunction { get; } = " 增强性能";
+        public string BuildSurface { get; } = " 显示蒙皮块的碰撞和质量滑条";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " 第一人称下显示火箭警告";
@@ -372,8 +394,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "硬度" ;
 
         public string Friction { get; } = "摩擦力";
-
         public string Bounciness { get; } = "弹力";
+        public string Collision { get; } = "碰撞";
 
         //public  string softWood {get;}= "朽木" ;
 
@@ -440,6 +462,27 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "高度像素";
         public string Switch { get; } = "开关";
         public List<string> NullChannelList { get; } = new List<string> { "无信号" };
+
+        //ArmorRound
+        public string Play { get; } = "播放";
+        public string Stop { get; } = "停止";
+        public string Mute { get; } = "静音";
+        public string Next { get; } = "下一个";
+        public string Last { get; } = "上一个";
+        public string Loop { get; } = "循环";
+        public string OneShot { get; } = "单次播放";
+        public string ReleaseToPause { get; } = "放开暂停";
+        public string ReleaseToStop { get; } = "放开停止";
+        public string OnCollision { get; } = "碰撞时";
+        public string Volume { get; } = "音量";
+        public string Pitch { get; } = "音调";
+        public string Distance { get; } = "传播距离";
+        public string Doppler { get; } = "多普勒效应";
+        public string SpatialBlend { get; } = "空间衰减";
+
+        //Balloon
+        public string Effected { get; } = "使能开关";
+        public string DragTogether { get; } = "同时关闭阻力";
     }
 
     public class English : ILanguage
@@ -451,6 +494,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "Enhancement";
         public string AdditionalFunction { get; } = " Enhance More";
+        public string BuildSurface { get; } = " Show BuildSurface's Collision and Mass Slider";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " Rocket Warning in First Person Camera";
@@ -572,9 +616,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "Hardness";
 
         public string Friction { get; } = "Friction";
-
         public string Bounciness { get; } = "Bounciness";
-
+        public string Collision { get; } = "Collision";
         //public  string softWood {get;}= "Soft Wood";
 
         //public  string midSoftWood {get;}= "Median-Soft Wood";
@@ -641,6 +684,26 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "Height Pixel";
         public string Switch { get; } = "Switch";
         public List<string> NullChannelList { get; } = new List<string> { "No Channel" };
+
+        //ArmorRound
+        public string Play { get; } = "Play";
+        public string Stop { get; } = "Stop";
+        public string Mute { get; } = "Mute";
+        public string Next { get; } = "Next";
+        public string Last { get; } = "Last";
+        public string Loop { get; } = "Loop";
+        public string OneShot { get; } = "OneShot";
+        public string ReleaseToPause { get; } = "Release" + Environment.NewLine + "To Pause";
+        public string ReleaseToStop { get; } = "Release" + Environment.NewLine + "To Stop";
+        public string OnCollision { get; } = "On Collision";
+        public string Volume { get; } = "Volume";
+        public string Pitch { get; } = "Pitch";
+        public string Distance { get; } = "Distance";
+        public string Doppler { get; } = "Doppler";
+        public string SpatialBlend { get; } = "Spatial Blend";
+        //Balloon
+        public string Effected { get; } = "Enable Switch";
+        public string DragTogether { get; } = "Drag Together";
     }
 
     public class Japanese : ILanguage
@@ -652,6 +715,7 @@ namespace BlockEnhancementMod
         //Enhancement Block
         public string Enhancement { get; } = "機能拡張";
         public string AdditionalFunction { get; } = " さらに拡張する";
+        public string BuildSurface { get; } = " ショーけんちくひょうめん 衝突と質量スライダ";
 
         //Rocket & Camera
         public string DisplayWarning { get; } = " 一人称カメラでロケット警告表示";
@@ -773,8 +837,8 @@ namespace BlockEnhancementMod
         //public  string hardness {get;}= "硬さ";
 
         public string Friction { get; } = "摩擦";
-
         public string Bounciness { get; } = "弾性";
+        public string Collision { get; } = "衝突";
 
         //public  string softWood {get;}= "軟質";
 
@@ -842,5 +906,26 @@ namespace BlockEnhancementMod
         public string HeightPixel { get; } = "高さピクセル";
         public string Switch { get; } = "スイッチ";
         public List<string> NullChannelList { get; } = new List<string> { "チャンネルなし" };
+
+        //ArmorRound
+        public string Play { get; } = "遊び";
+        public string Stop { get; } = "ストップ";
+        public string Mute { get; } = "ミュート";
+        public string Next { get; } = "次の方";
+        public string Last { get; } = "前の方";
+        public string Loop { get; } = "ループ";
+        public string OneShot { get; } = "ワンショット";
+        public string ReleaseToPause { get; } = "休止する";
+        public string ReleaseToStop { get; } = "停止する";
+        public string OnCollision { get; } = "衝突に関して";
+        public string Volume { get; } = "体積";
+        public string Pitch { get; } = "ピッチ";
+        public string Distance { get; } = "ディスタンス";
+        public string Doppler { get; } = "ドップラー";
+        public string SpatialBlend { get; } = "空間ブレンド";
+
+        //Balloon
+        public string Effected { get; } = "イネーブルスイッチ";
+        public string DragTogether { get; } = "一緒にドラッグ";
     }
 }

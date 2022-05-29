@@ -35,6 +35,8 @@ namespace BlockEnhancementMod
             new Property<float>("Rocket Smoke End Alpha Time", 0.26f),
 
             new Property<int>("Radar Frequency", 5),
+            //show build seurface collision and mass slider 
+            new Property<bool>("BuildSurface",false),
         };
 
         public class Property<T>
@@ -65,6 +67,7 @@ namespace BlockEnhancementMod
                     }
                 }
             }
+            
             return value;
         }
 
@@ -81,6 +84,7 @@ namespace BlockEnhancementMod
                     {
                         _pro.Value = value;
                         exist = true;
+
                         break;
                     }
                 }

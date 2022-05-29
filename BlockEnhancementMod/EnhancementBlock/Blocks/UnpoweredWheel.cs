@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 using Modding;
+using BlockEnhancementMod.Blocks;
 using System.Collections;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-
-    class WheelScript : CogMotoControllerHinge_GenericEnhanceScript
+    class UnpoweredWheel : EnhancementBlock
     {
         MToggle collisionToggle;
         MToggle CustomColliderToggle;
@@ -15,39 +17,28 @@ namespace BlockEnhancementMod.Blocks
         MSlider FrictionSlider;
         MSlider BouncinessSlider;
 
-        //bool Collider = false;
-        //bool ShowCollider = true;
         float Friction = 0.8f;
-        //float Bounciness = 0f;
         int ID = 0;
-
         private static GameObject WheelColliderOrgin;
-
-
         public override void SafeAwake()
         {
             ID = GetComponent<BlockVisualController>().ID;
             Friction = PSaF.GetPositionScaleAndFriction(ID).Friction;
 
             collisionToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.Collision, "Collision", true);
-
             CustomColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomCollider, "Custom Collider", false);
-
             ShowColliderToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ShowCollider, "Show Collider", true);
-
             FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", Friction, 0.1f, 3f);
-
             BouncinessSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Bounciness, "Bounciness", /*Bounciness*/0f, 0f, 1f);
-
             if (WheelColliderOrgin == null)
             {
                 StartCoroutine(ReadWheelMesh());
             }
             base.SafeAwake();
-#if DEBUG
-            ConsoleController.ShowMessage("轮子组件添加进阶属性");
-#endif
 
+#if DEBUG
+            ConsoleController.ShowMessage("无动力轮子组件添加进阶属性");
+#endif
         }
 
         public override void DisplayInMapper(bool value)
@@ -60,7 +51,6 @@ namespace BlockEnhancementMod.Blocks
             FrictionSlider.DisplayInMapper = value;
             BouncinessSlider.DisplayInMapper = value;
         }
-
 
         /// <summary>
         /// 是否是轮子零件
@@ -100,74 +90,69 @@ namespace BlockEnhancementMod.Blocks
 
         public GameObject WheelCollider;
 
-        public override void OnSimulateStartAlways()
+        public override void OnSimulateStart_EnhancementEnabled()
         {
-            if (EnhancementEnabled)
+            base.OnSimulateStart_EnhancementEnabled();
+
+            Colliders = GetComponentsInChildren<Collider>();
+            wheelPhysicMaterialOrgin = Colliders[0].material;
+
+            PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(/*Friction*/FrictionSlider.Value, /*Bounciness*/BouncinessSlider.Value, PhysicMaterialCombine.Average);
+            if (/*Collider*/CustomColliderToggle.IsActive)
             {
-                Colliders = GetComponentsInChildren<Collider>();
-                wheelPhysicMaterialOrgin = Colliders[0].material;
+                if (WheelCollider != null) return;
 
-                PhysicMaterial wheelPhysicMaterial = SetPhysicMaterial(/*Friction*/FrictionSlider.Value, /*Bounciness*/BouncinessSlider.Value, PhysicMaterialCombine.Average);
-                if (/*Collider*/CustomColliderToggle.IsActive)
+                //禁用原有碰撞
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = true; }
+
+                WheelCollider = (GameObject)Instantiate(WheelColliderOrgin, transform.position, transform.rotation, transform);
+                WheelCollider.SetActive(true);
+                WheelCollider.name = "Wheel Collider";
+                WheelCollider.transform.SetParent(transform);
+
+                mFilter = WheelCollider.AddComponent<MeshFilter>();
+                mFilter.sharedMesh = WheelCollider.GetComponent<MeshCollider>().sharedMesh;
+
+                mCollider = WheelCollider.GetComponent<MeshCollider>();
+                mCollider.convex = true;
+                mCollider.material = wheelPhysicMaterial;
+                BB.myBounds.childColliders.Add(mCollider);
+
+                if (/*ShowCollider*/ShowColliderToggle.IsActive)
                 {
-                    if (WheelCollider != null) return;
-
-                    //禁用原有碰撞
-                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = true; }
-
-                    WheelCollider = (GameObject)Instantiate(WheelColliderOrgin, transform.position, transform.rotation, transform);
-                    WheelCollider.SetActive(true);
-                    WheelCollider.name = "Wheel Collider";
-                    WheelCollider.transform.SetParent(transform);
-
-                    mFilter = WheelCollider.AddComponent<MeshFilter>();
-                    mFilter.sharedMesh = WheelCollider.GetComponent<MeshCollider>().sharedMesh;
-
-                    mCollider = WheelCollider.GetComponent<MeshCollider>();
-                    mCollider.convex = true;
-                    mCollider.material = wheelPhysicMaterial;
-                    BB.myBounds.childColliders.Add(mCollider);
-
-                    if (/*ShowCollider*/ShowColliderToggle.IsActive)
-                    {
-                        mRenderer = WheelCollider.AddComponent<MeshRenderer>();
-                        mRenderer.material.color = Color.red;
-                    }
-
-                    PSaF pas = PSaF.GetPositionScaleAndFriction(ID);
-
-                    WheelCollider.transform.parent = transform;
-                    WheelCollider.transform.rotation = transform.rotation;
-                    WheelCollider.transform.position = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
-                    WheelCollider.transform.localScale = pas.Scale;
-
-                }
-                else
-                {
-                    //Destroy(WheelCollider);
-                    //设置原有碰撞的参数
-                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
+                    mRenderer = WheelCollider.AddComponent<MeshRenderer>();
+                    mRenderer.material.color = Color.red;
                 }
 
-                if (!collisionToggle.IsActive)
+                PSaF pas = PSaF.GetPositionScaleAndFriction(ID);
+
+                WheelCollider.transform.parent = transform;
+                WheelCollider.transform.rotation = transform.rotation;
+                WheelCollider.transform.position = transform.TransformPoint(transform.InverseTransformPoint(transform.position) + pas.Position);
+                WheelCollider.transform.localScale = pas.Scale;
+
+            }
+            else
+            {
+                //Destroy(WheelCollider);
+                //设置原有碰撞的参数
+                foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterial; }
+            }
+
+            if (!collisionToggle.IsActive)
+            {
+#if DEBUG
+                Debug.Log("close collision");
+#endif
+                var cols = BB.transform.GetComponentsInChildren<Collider>();
+                foreach (var col in cols)
                 {
-                    foreach (var col in BB.myBounds.childColliders)
-                    {
-                        col.isTrigger = true;
-                    }
+                    col.isTrigger = true;
                 }
             }
-            //else
-            //{
-            //    //启用原有碰撞
-            //    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = false; }
-            //    //设置原有碰撞的参数
-            //    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.GetComponent<BoxCollider>().material = wheelPhysicMaterialOrgin; }
-
-            //    Destroy(WheelCollider);
-            //}
         }
-        private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)
+
+        private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness, PhysicMaterialCombine combine)
         {
             PhysicMaterial PM = new PhysicMaterial
             {
@@ -185,6 +170,7 @@ namespace BlockEnhancementMod.Blocks
 
             return PM;
         }
+
         private static PhysicMaterial SetPhysicMaterial(PSaF pSaF)
         {
             PhysicMaterial PM = SetPhysicMaterial(pSaF.Friction, pSaF.Bounciness, PhysicMaterialCombine.Maximum);
@@ -250,20 +236,16 @@ namespace BlockEnhancementMod.Blocks
         {
             WheelColliderOrgin = new GameObject("Wheel Collider Orgin");
             WheelColliderOrgin.transform.SetParent(EnhancementBlockController.Instance.transform);
-            ModMesh modMesh = ModResource.CreateMeshResource("Wheel Mesh", "Resources" + @"/" + "Wheel.obj");
+            ModMesh modMesh = ModResource.CreateMeshResource("Wheel Mesh1", "Resources" + @"/" + "Wheel.obj");
 
             yield return new WaitUntil(() => modMesh.Available);
 
             MeshCollider meshCollider = WheelColliderOrgin.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = ModResource.GetMesh("Wheel Mesh");
+            meshCollider.sharedMesh = ModResource.GetMesh("Wheel Mesh1");
             meshCollider.convex = true;
             WheelColliderOrgin.SetActive(false);
 
 
         }
-
     }
 }
-
-
-

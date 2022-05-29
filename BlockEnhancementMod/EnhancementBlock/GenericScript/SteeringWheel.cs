@@ -10,11 +10,15 @@ namespace BlockEnhancementMod
 {
     class SteeringWheel_GenericEnhanceScript : ChangeSpeedBlock
     {
-        private SteeringWheel steeringWheel;
+        internal SteeringWheel steeringWheel;
         public override void SafeAwake()
         {
             steeringWheel = GetComponent<SteeringWheel>();
-            SpeedSlider = steeringWheel.SpeedSlider;
+            if (steeringWheel != null)
+            {
+                SpeedSlider = steeringWheel.SpeedSlider;
+            }
+      
 
             base.SafeAwake();
 

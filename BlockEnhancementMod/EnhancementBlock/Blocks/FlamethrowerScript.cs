@@ -8,28 +8,30 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    class FlamethrowerScript: EnhancementBlock
+    class FlamethrowerScript: ChangeSpeedBlock
     {
         FlamethrowerController flamethrowerController;
 
         MSlider thrustForceSlider;
         MColourSlider flameColorSlider;
 
-        public float ThrustForce = 0f;       
-        public Color FlameColor = Color.blue;
+        //public float ThrustForce = 0f;       
+        //public Color FlameColor = Color.white;
         public string FlameShader = "Particles/Additive";
-        private Color orginFlameColor = Color.white;
-        private string orginShader = "Particles/Alpha Blended";
+        //private Color orginFlameColor = Color.white;
+        //private string orginShader = "Particles/Alpha Blended";
 
         Rigidbody rigidbody;
 
         public override void SafeAwake()
         {
 
-            thrustForceSlider = BB.AddSlider(LanguageManager.thrustForce, "Thrust Force", ThrustForce, 0f, 5f);
-            thrustForceSlider.ValueChanged += (float value) => { ThrustForce = value; ChangedProperties(); };           
-            flameColorSlider = BB.AddColourSlider(LanguageManager.flameColor, "Flame Color", FlameColor, false);
-            flameColorSlider.ValueChanged += (Color value) => { FlameColor = value; ChangedProperties(); };
+            thrustForceSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.ThrustForce, "Thrust Force", /*ThrustForce*/0f, 0f, 5f);
+            //thrustForceSlider.ValueChanged += (float value) => { ThrustForce = value; ChangedProperties(); };           
+            flameColorSlider = /*BB.*/AddColourSlider(LanguageManager.Instance.CurrentLanguage.FlameColor, "Flame Color", /*FlameColor*/Color.white, false);
+            //flameColorSlider.ValueChanged += (Color value) => { FlameColor = value; ChangedProperties(); };
+
+            base.SafeAwake();
 
 #if DEBUG
             ConsoleController.ShowMessage("喷火器添加进阶属性");
@@ -40,30 +42,28 @@ namespace BlockEnhancementMod
         {
             thrustForceSlider.DisplayInMapper = value;
             flameColorSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
         }
 
-        public override void ChangeParameter()
-        {
-            flamethrowerController = GetComponent<FlamethrowerController>();
-            rigidbody = GetComponent<Rigidbody>();
-
-            if (!EnhancementEnabled)
+        public override void OnSimulateStartAlways()
+        {   
+            if (EnhancementEnabled)
             {
-                FlameColor = orginFlameColor;
-                FlameShader = orginShader;             
-            }
-    
-            flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
-            flamethrowerController.fireParticles.startColor = FlameColor;
-        }
+                flamethrowerController = GetComponent<FlamethrowerController>();
+                rigidbody = GetComponent<Rigidbody>();
+                SpeedSlider = thrustForceSlider;
 
-        public override void SimulateFixedUpdateAlways()
+                flamethrowerController.fireParticles.GetComponent<ParticleSystemRenderer>().material.shader = Shader.Find(FlameShader);
+                flamethrowerController.fireParticles.startColor = /*FlameColor*/flameColorSlider.Value;
+            }
+        }
+        public override void SimulateFixedUpdate_EnhancementEnabled()
         {
             if (StatMaster.isClient) return;
 
-            if (ThrustForce != 0 && flamethrowerController.isFlaming)
+            if (/*ThrustForce*/thrustForceSlider.Value != 0 && flamethrowerController.isFlaming)
             {
-                rigidbody.AddRelativeForce(-Vector3.forward * ThrustForce * 100f);
+                rigidbody.AddRelativeForce(-Vector3.forward * /*ThrustForce*/thrustForceSlider.Value * 100f);
             }
         }   
     }

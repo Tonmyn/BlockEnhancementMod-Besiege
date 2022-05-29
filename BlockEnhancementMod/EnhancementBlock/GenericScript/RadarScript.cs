@@ -23,23 +23,23 @@ namespace BlockEnhancementMod
         public float SearchAngle { get; set; } = 0f;
 
         public Vector3 ForwardDirection { get { return parentBlock.BlockID == (int)BlockType.Rocket ? parentBlock.transform.up : parentBlock.transform.forward; } }
-        public Vector3 TargetPosition { get { return target.Position - transform.position; } }
+        public Vector3 TargetPosition { get { return RadarTarget.Position - transform.position; } }
         /// <summary>
         /// Distance of Radar to Target
         /// </summary>
         /// <returns>Distance value</returns>
-        public float TargetDistance { get { return target == null ? Mathf.Infinity : Vector3.Distance(transform.position, target.Position); } }
+        public float TargetDistance { get { return RadarTarget == null ? Mathf.Infinity : Vector3.Distance(transform.position, RadarTarget.Position); } }
         /// <summary>
         /// Angle of Radar to Target
         /// </summary>
         /// <returns>Angle value</returns>
-        public float TargetAngle { get { return target == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
+        public float TargetAngle { get { return RadarTarget == null ? Mathf.Infinity : Vector3.Angle(TargetPosition, ForwardDirection); } }
         public bool DisplayRadarZone { get { return DisplayRadarZone; } set { meshRenderer.enabled = value; } }
 
         private MeshCollider meshCollider;
         private MeshRenderer meshRenderer;
 
-        public static bool MarkTarget { get { return BlockEnhancementMod.Configuration.GetValue<bool>("Mark Target"); } internal set { BlockEnhancementMod.Configuration.SetValue("Mark Target", value); } }
+        public static bool MarkTarget =BlockEnhancementMod.ModSetting.MarkTarget;
         public bool ShowBulletLanding { get; set; } = false;
         public float cannonBallSpeed;
         public Vector3 aimDir;
@@ -47,7 +47,7 @@ namespace BlockEnhancementMod
         private Vector3 hitPosition;
         private bool foundHitPosition = false;
         private float drag;
-        public static int RadarFrequency { get; } = Mathf.Clamp(BlockEnhancementMod.Configuration.GetValue<int>("Radar Frequency"), 1, 60);
+        public static int RadarFrequency { get; internal set; } = BlockEnhancementMod.ModSetting.RadarFrequency;
         private Texture2D redSquareAim;
         private Texture2D redCircleAim;
         private int squareWidth = 40;
@@ -58,7 +58,7 @@ namespace BlockEnhancementMod
         public RadarTypes RadarType { get; set; } = RadarTypes.ActiveRadar;
         public bool canBeOverridden = false;
 
-        public Target target { get; private set; }
+        public Target RadarTarget { get; private set; }
 
         public static event Action<KeyCode> OnSetPassiveRadarTarget;
         public static event Action<KeyCode> OnClearPassiveRadarTarget;
@@ -67,9 +67,11 @@ namespace BlockEnhancementMod
 
         private HashSet<Target> targetList = new HashSet<Target>();
         private HashSet<Target> lastTargetList = new HashSet<Target>();
+        private List<string> ignoreList = new List<string>() { "Bullet", "CanonBall" }.ConvertAll(d => d.ToLower());
+        private HashSet<BlockBehaviour> friendlyBlocks = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> blockList = new HashSet<BlockBehaviour>();
         //private HashSet<BlockBehaviour> lastBlockList = new HashSet<BlockBehaviour>();
-        internal static /*HashSet<RadarScript>*/Dictionary<int, Dictionary< KeyCode,HashSet<RadarScript>>>  tempRadarSet = /*new HashSet<RadarScript>()*/new Dictionary<int,Dictionary< KeyCode, HashSet<RadarScript>>>();
+        internal static /*HashSet<RadarScript>*/Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>> tempRadarSet = /*new HashSet<RadarScript>()*/new Dictionary<int, Dictionary<KeyCode, HashSet<RadarScript>>>();
         private bool isChoosingBlock = false;
 
         public bool receivedRayFromClient = false;
@@ -103,7 +105,6 @@ namespace BlockEnhancementMod
             if (!tempRadarSet.ContainsKey(id))
             {
                 tempRadarSet.Add(id, new Dictionary<KeyCode, HashSet<RadarScript>>());
-                
             }
             if (!tempRadarSet[id].ContainsKey(key))
             {
@@ -114,10 +115,10 @@ namespace BlockEnhancementMod
         private void FixedUpdate()
         {
             if (!Switch) return;
-            if (target == null) return;
-            if (target.Position == null) return;
+            if (RadarTarget == null) return;
+            if (RadarTarget.Position == null) return;
 
-            targetPosition = target.Position;
+            targetPosition = RadarTarget.Position;
             if (ShowBulletLanding) foundHitPosition = GetBulletHitPosition(targetPosition, out hitPosition);
         }
 
@@ -147,15 +148,15 @@ namespace BlockEnhancementMod
             if (StatMaster.isClient) return;
             if (canBeOverridden || RadarType == RadarTypes.PassiveRadar) return;
 
-            //if (target != null)
-            //{
-            //    if (!InRadarRange(target))
-            //    {
-            //        ClearTarget(true);
-            //    }
-            //}
+            if (RadarTarget != null)
+            {
+                if (!InRadarRange(RadarTarget))
+                {
+                    ClearTarget(true);
+                }
+            }
 
-            if (targetList.Count > 0 && !targetList.SetEquals(lastTargetList) || target == null)
+            if (targetList.Count > 0 && !targetList.SetEquals(lastTargetList) || RadarTarget == null)
             {
 #if DEBUG
                 //Debug.Log(blockList.Count));
@@ -167,37 +168,56 @@ namespace BlockEnhancementMod
 #endif
                     isChoosingBlock = true;
                     lastTargetList = targetList;
-                    if (target == null) target = new Target();
+                    if (RadarTarget == null) RadarTarget = new Target();
 
-                    chooseTargetInTargetList(targetList);
+                    ChooseTargetInTargetList(targetList);
 
-                    void chooseTargetInTargetList(HashSet<Target> targets)
+                    void ChooseTargetInTargetList(HashSet<Target> targets)
                     {
                         foreach (var itemTarget in targets)
                         {
-                            ComparerTarget(itemTarget);
+                            CompareTarget(itemTarget);
                         }
                         isChoosingBlock = false;
 
-                        void ComparerTarget(Target other)
+                        void CompareTarget(Target other)
                         {
-                            target.RefreshWarningValue();
+
+                            //Debug.Log(ignoreList.Contains(other.ReturnTargetName()) + " exist");
+                            //if (ignoreList.Contains(other.ReturnTargetName())) return;
+                            if (CheckIfSameGroupRocket(other)) return;
+
+                            RadarTarget.RefreshWarningValue();
                             other.RefreshWarningValue();
-                            if (other.WarningValue > target.WarningValue)
+
+                            if (other.WarningValue > RadarTarget.WarningValue)
                             {
-                                target = other;
-                                return;
+                                SetTarget(other);
                             }
-                            else if (other.WarningValue == target.WarningValue)
+                            else if (other.WarningValue == RadarTarget.WarningValue)
                             {
                                 var distance = (other.Position - transform.position).magnitude;
-
-                                if (distance < TargetDistance)
-                                {
-                                    target = other;
-                                    return;
-                                }
+                                if (distance < TargetDistance) SetTarget(other);
                             }
+                        }
+
+                        bool CheckIfSameGroupRocket(Target target)
+                        {
+                            if (StatMaster.isMP) return false;
+                            if (target.ReturnTimedrocket() == null) return false;
+
+                            RocketScript rs = target.ReturnBlockBehaviour().GetComponentInAll<RocketScript>();
+                            RocketScript selfRS = parentBlock.GetComponentInAll<RocketScript>();
+
+                            if (selfRS == null) return false;
+                            if (rs == null) return false;
+
+                            if (selfRS.SPTeamKey.GetKey(0) == rs.SPTeamKey.GetKey(0))
+                            {
+                                return true;
+                            }
+
+                            return false;
                         }
                     }
                 }
@@ -213,7 +233,7 @@ namespace BlockEnhancementMod
             }
             if (!Switch) return;
             if (RadarType == RadarTypes.PassiveRadar) return;
-            if (target == null) return;
+            if (RadarTarget.IsNullTarget()) return;
 
 
             if (Vector3.Dot(Camera.main.transform.forward, targetPosition - Camera.main.transform.position) > 0)
@@ -234,14 +254,14 @@ namespace BlockEnhancementMod
         {
             position = Vector3.zero;
             if (parentBlock == null) return false;
-            if (target == null) return false;
+            if (RadarTarget == null) return false;
             //if (target.block != null)
             //{
             //    if (target.block == parentBlock) return false;
             //}
 
             //Get an initial velocity
-            Vector3 targetVelocity = target.Velocity;
+            Vector3 targetVelocity = RadarTarget.Velocity;
             Vector3 initialBulletV = ForwardDirection * cannonBallSpeed;
 
             //Get an initial position
@@ -390,7 +410,7 @@ namespace BlockEnhancementMod
         {
             if (tempTarget == null) return;
 
-            target = tempTarget;
+            RadarTarget = tempTarget;
             //blockList.Add(tempTarget.block);
 
             if (StatMaster.isHosting)
@@ -405,6 +425,7 @@ namespace BlockEnhancementMod
                 OnNotifyActiveRadarForNewTarget?.Invoke(parentBlock.GetComponent<RocketScript>().GroupFireKey.GetKey(0));
             }
         }
+
         public void SetTargetManual()
         {
             ClearTarget(false);
@@ -455,11 +476,11 @@ namespace BlockEnhancementMod
             if (!gameObject.activeSelf) return;
             if (parentBlock == null) return;
 
-            if (target != null)
+            if (RadarTarget != null)
             {
-                if (RemoveTargetFromList /*&& target.block != null*/) /*blockList.Remove(target.block)*/targetList.Remove(target);
+                if (RemoveTargetFromList) targetList.Remove(RadarTarget);
                 SendClientTargetNull();
-                target = null;
+                RadarTarget = null;
                 if (RadarType == RadarTypes.PassiveRadar) passiveSourceRadar = null;
             }
 
@@ -478,33 +499,19 @@ namespace BlockEnhancementMod
 
         public bool InRadarRange(Target target)
         {
-            bool value = false;
-
             if (RadarType == RadarTypes.PassiveRadar) return true;
-            if (Vector3.Dot(target.Position - transform.position, ForwardDirection) > 0 && target.Enable)
-            {
-                var distance = target.Position - transform.position;
+            if (target.ReturnCollider() == null) return false;
+            if (target.HasFireTag() && (target.ReturnFireTag().burning || target.ReturnFireTag().hasBeenBurned)) return false;
 
-                if (distance.magnitude < SearchRadius)
-                {
-                    if (distance.magnitude > 5f)
-                    {
-                        if (Vector3.Angle(target.Position - transform.position, ForwardDirection) < (SearchAngle / 2f))
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-            return value;
+            return InRadarRange(target.ReturnCollider());
         }
+
         public bool InRadarRange(Collider collider)
         {
             var value = false;
+
+            if (!collider.enabled || collider.isTrigger) return value;
+            if (!ignoreList.TrueForAll(str => !collider.name.ToLower().Contains(str))) return value;
 
             var distance = Vector3.Distance(transform.position, collider.transform.position);
             var angle = Vector3.Angle(transform.up, collider.transform.position - transform.position);
@@ -512,9 +519,9 @@ namespace BlockEnhancementMod
 
             if (forward > 0)
             {
-                if (distance < SearchRadius && distance > SafetyRadius)
+                if (distance < SearchRadius)
                 {
-                    if (angle <= SearchAngle)
+                    if (angle <= SearchAngle / 2 && distance > SafetyRadius / Mathf.Cos(angle * Mathf.Deg2Rad))
                     {
                         value = true;
                     }
@@ -522,7 +529,6 @@ namespace BlockEnhancementMod
             }
             return value;
         }
-
 
         private void ActivateDetectionZone()
         {
@@ -551,7 +557,7 @@ namespace BlockEnhancementMod
                 {
                     //meshCollider.enabled = true;
                     //meshRenderer.enabled = true;
-                    targetList = getRadarTargetList();
+                    targetList = GetRadarTargetList();
                     yield return 0;
                     //meshCollider.enabled = false;
                     //meshRenderer.enabled = false;
@@ -563,7 +569,7 @@ namespace BlockEnhancementMod
                 yield break;
             }
 
-            HashSet<Target> getRadarTargetList()
+            HashSet<Target> GetRadarTargetList()
             {
                 var colliders = Physics.OverlapSphere(transform.position, SearchRadius);
 
@@ -580,29 +586,29 @@ namespace BlockEnhancementMod
                 }
 
                 return targets;
-    
-                bool isBlock(Collider collider)
-                {
-                    var value = false;
-                    var blockBehaviour = collider.GetComponentInAll<BlockBehaviour>();
 
-                    if (blockBehaviour != null)
-                    {
-                        value = true;
-                    }
-                    return value;
-                }
-                bool isEntity(Collider collider, out EntityBehaviour entityBehaviour)
-                {
-                    var value = false;
+                //bool isBlock(Collider collider)
+                //{
+                //    var value = false;
+                //    var blockBehaviour = collider.GetComponentInAll<BlockBehaviour>();
 
-                    entityBehaviour = collider.GetComponentInAll<EntityBehaviour>();
-                    if (entityBehaviour != null)
-                    {
-                        value = true;
-                    }
-                    return value;
-                }
+                //    if (blockBehaviour != null)
+                //    {
+                //        value = true;
+                //    }
+                //    return value;
+                //}
+                //bool isEntity(Collider collider, out EntityBehaviour entityBehaviour)
+                //{
+                //    var value = false;
+
+                //    entityBehaviour = collider.GetComponentInAll<EntityBehaviour>();
+                //    if (entityBehaviour != null)
+                //    {
+                //        value = true;
+                //    }
+                //    return value;
+                //}
             }
         }
         private void DeactivateDetectionZone()
@@ -613,7 +619,6 @@ namespace BlockEnhancementMod
             meshRenderer.enabled = false;
             StopCoroutine("intervalActivateDetectionZone");
         }
-
 
         private void OnNotifyActiveRadarToAssignTargetEvent(KeyCode keyCode)
         {
@@ -632,7 +637,7 @@ namespace BlockEnhancementMod
             {
                 tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Remove(this);
                 yield return new WaitForFixedUpdate();
-                if (target != null)
+                if (RadarTarget != null)
                 {
                     tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Add(this);
                     yield return new WaitForFixedUpdate();
@@ -657,7 +662,7 @@ namespace BlockEnhancementMod
             IEnumerator DelayedSetTarget()
             {
                 yield return new WaitForFixedUpdate();
-                if (tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count > 0 && target == null)
+                if (tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count > 0 && RadarTarget == null)
                 {
                     System.Random random = new System.Random();
                     int index = random.Next(tempRadarSet[parentBlock.ParentMachine.PlayerID][key].Count);
@@ -667,7 +672,7 @@ namespace BlockEnhancementMod
 #endif
                     passiveSourceRadar = tempRadarSet[parentBlock.ParentMachine.PlayerID][key].ElementAt(index);
                 }
-                SetTarget(passiveSourceRadar?.target);
+                SetTarget(passiveSourceRadar?.RadarTarget);
                 yield return null;
             }
         }
@@ -761,9 +766,7 @@ namespace BlockEnhancementMod
         private GenericEntity entity;
         private Rigidbody rigidbody;
         private FireTag fireTag;
-        private bool hasFireTag = false;
-        private bool isRocket = false;
-        private bool isBomb = false;
+        private Joint joint;
         private TimedRocket rocket;
         private ExplodeOnCollideBlock bomb;
 
@@ -771,7 +774,7 @@ namespace BlockEnhancementMod
         public Vector3 Velocity { get { return rigidbody != null ? rigidbody.velocity : Vector3.zero; } }
         public category Category { get; private set; } = category.Virtual;
         public float WarningValue { get; private set; } = -1;
-        public bool Enable { get { return isEnable(); } private set { Enable = value; } }
+        public bool Enable { get { return IsEnabled(); } private set { Enable = value; } }
 
         public enum category
         {
@@ -826,15 +829,63 @@ namespace BlockEnhancementMod
                 fireTag = collider.GetComponentInAll<FireTag>();
                 rocket = collider.GetComponentInAll<TimedRocket>();
                 bomb = collider.GetComponentInAll<ExplodeOnCollideBlock>();
+                joint = collider.GetComponentInAll<Joint>();
 
                 RefreshWarningValue();
             }
-
         }
+
+        public string ReturnTargetName()
+        {
+            return collider.name;
+        }
+
+        public Collider ReturnCollider()
+        {
+            return collider;
+        }
+
+        public bool ReturnIfRocket()
+        {
+            return rocket != null;
+        }
+
+        public BlockBehaviour ReturnBlockBehaviour()
+        {
+            return block;
+        }
+
+        public TimedRocket ReturnTimedrocket()
+        {
+            return rocket;
+        }
+
+        public FireTag ReturnFireTag()
+        {
+            return fireTag;
+        }
+
+        public bool HasFireTag()
+        {
+            return fireTag != null;
+        }
+
+        public bool JointBroken()
+        {
+            if (ReturnIfRocket()) return false;
+            if (joint == null) return true;
+            return joint.connectedBody == null;
+        }
+
         public void RefreshWarningValue()
         {
-            Category = calculateCategory();
-            WarningValue = calculateWarningValue();
+            Category = CalculateCategory();
+            WarningValue = CalculateWarningValue();
+        }
+
+        public bool IsNullTarget()
+        {
+            return transform == null;
         }
         //public void SetTargetWarningLevel()
         //{
@@ -890,13 +941,13 @@ namespace BlockEnhancementMod
         //        WarningLevel = warningLevel.normalBlockValue;
         //    }
         //}
-        private bool isEnable()
+        private bool IsEnabled()
         {
             var value = false;
 
             if (collider != null && collider.transform != null)
             {
-                if (!collider.isTrigger && isKinematicRigidbody(collider))
+                if (!collider.isTrigger && IsKinematicRigidbody(collider))
                 {
                     value = true;
                 }
@@ -904,7 +955,7 @@ namespace BlockEnhancementMod
 
             return value;
 
-            bool isKinematicRigidbody(Collider _collider)
+            bool IsKinematicRigidbody(Collider _collider)
             {
                 var _value = false;
                 var rigidbody = _collider.GetComponentInAll<Rigidbody>();
@@ -919,28 +970,26 @@ namespace BlockEnhancementMod
                 return _value;
             }
         }
-        private category calculateCategory()
+        private category CalculateCategory()
         {
             category category = category.Virtual;
 
             if (block != null)
             {
-                category = getBlockCategory(block);
+                category = GetBlockCategory(block);
             }
             else if (entity != null)
             {
-                category = getEntityCategory(entity);
+                category = GetEntityCategory(entity);
             }
 
             return category;
         }
-        private float calculateWarningValue()
+        private float CalculateWarningValue()
         {
-            var value = 0f;
-
             var base1 = (float)Category;
 
-            var factor1 = (hasFireTag && !fireTag.burning && !fireTag.hasBeenBurned) ? 3f : 0.5f;
+            var factor1 = (fireTag != null && !fireTag.burning && !fireTag.hasBeenBurned) ? 3f : 0f;
 
             var factor2 = 1f;
             if (rocket != null)
@@ -957,7 +1006,9 @@ namespace BlockEnhancementMod
 
             var factor3 = (bomb != null && !bomb.hasExploded) ? 4f : 1f;
 
-            value = base1 * factor1 * factor2 * factor3;
+            var factor4 = JointBroken() ? -1f : 1f;
+
+            var value = base1 * factor1 * factor2 * factor3 * factor4;
 
             return value;
         }
@@ -1051,7 +1102,7 @@ namespace BlockEnhancementMod
         };
         #endregion
 
-        private category getBlockCategory(BlockBehaviour block)
+        private category GetBlockCategory(BlockBehaviour block)
         {
             var id = block.BlockID;
 
@@ -1063,7 +1114,7 @@ namespace BlockEnhancementMod
             else if (automation.Contains(id)) return category.Automation;
             else return category.ModBlock;
         }
-        private category getEntityCategory(GenericEntity entity)
+        private category GetEntityCategory(GenericEntity entity)
         {
             var str = entity.prefab.category.ToString().ToLower();
 

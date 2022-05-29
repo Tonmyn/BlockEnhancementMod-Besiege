@@ -31,24 +31,28 @@ namespace BlockEnhancementMod
             BoilingToggle.DisplayInMapper = value;
         }
 
-        public override void ChangeParameter()
+        public override void OnSimulateStartAlways()
         {
-            WCC = GetComponent<WaterCannonController>();
-            BVC = GetComponent<BlockVisualController>();
-            FT = GetComponent<FireTag>();
+            if (EnhancementEnabled)
+            {
+                WCC = GetComponent<WaterCannonController>();
+                BVC = GetComponent<BlockVisualController>();
+                FT = GetComponent<FireTag>();
 
-            if (!EnhancementEnabled) { Boiling = orginBoiling; }
-  
+                SpeedSlider = WCC.StrengthSlider;
+                //if (!EnhancementEnabled) { Boiling = orginBoiling; }
+            } 
         }
 
-        public override void SimulateUpdateEnhancementEnableAlways()
+        public override void SimulateUpdateAlways_EnhancementEnable()
         {
+            base.SimulateUpdateAlways_EnhancementEnable();
             if (StatMaster.isClient) return;
 
-            if (Boiling)
+            if (/*Boiling*/BoilingToggle.IsActive)
             {
                 WCC.boiling = WCC.prevBoilingState = true;
-                BVC.heating.glowTimer = 1f;
+                //BVC.heating.glowTimer = 1f;
                 FT.burning = true;
             }
         }

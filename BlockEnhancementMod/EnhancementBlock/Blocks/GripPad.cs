@@ -6,32 +6,31 @@ using UnityEngine;
 using Modding;
 using Modding.Blocks;
 
-namespace BlockEnhancementMod.Blocks
+namespace BlockEnhancementMod
 {
-    public class GripPadScript : EnhancementBlock
+    public class GripPadScript : ChangeSpeedBlock,IChangeHardness
     {
 
         MSlider FrictionSlider;
-        MMenu HardnessMenu;
+        public MMenu HardnessMenu { get; private set; }
 
-        public float Friction = 1000;
-        public int Hardness = 1;
-        private float orginFriction = 1000;
-        private int orginHardness = 1;
+        //public float Friction = 1000;
+        //public int HardnessIndex = 1;
+        public ConfigurableJoint ConfigurableJoint { get; private set; }
 
-        private ConfigurableJoint CJ;
         private Collider[] colliders;
 
         public override void SafeAwake()
         {
 
-            HardnessMenu = BB.AddMenu(LanguageManager.hardness, Hardness, WoodHardness, false);
-            HardnessMenu.ValueChanged += (int value) => { Hardness = value; ChangedProperties(); };
+            HardnessMenu = /*BB.*/AddMenu("Hardness", /*HardnessIndex*/1, LanguageManager.Instance.CurrentLanguage.WoodenHardness/*, false*/);
+            //HardnessMenu.ValueChanged += (int value) => { HardnessIndex = value; ChangedProperties(); };
 
-            FrictionSlider = BB.AddSlider(LanguageManager.friction, "Friction", Friction, 0f, 1000f);
-            FrictionSlider.ValueChanged += (float value) => { Friction = Mathf.Abs(value); ChangedProperties(); };
+            FrictionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Friction, "Friction", /*Friction*/1f, 0f, /*1000f*/5f);
+            //FrictionSlider.ValueChanged += (float value) => { /*Friction*/FrictionSlider.Value = Mathf.Abs(value); ChangedProperties(); };
 
-
+            SpeedSlider = FrictionSlider;
+            base.SafeAwake();
 #if DEBUG
             ConsoleController.ShowMessage("摩擦垫添加进阶属性");
 #endif
@@ -40,34 +39,30 @@ namespace BlockEnhancementMod.Blocks
 
         public override void DisplayInMapper(bool value)
         {
-            base.DisplayInMapper(value);
             HardnessMenu.DisplayInMapper = value;
             FrictionSlider.DisplayInMapper = value;
+            base.DisplayInMapper(value);
         }
-       
-        public override void ChangeParameter()
+
+        public override void OnSimulateStartAlways()
         {
-            colliders = GetComponentsInChildren<Collider>();
-            CJ = GetComponent<ConfigurableJoint>();
-
-            if (!EnhancementEnabled)
+            if (EnhancementEnabled)
             {
-                Friction = orginFriction;
-                Hardness = orginHardness;
-            }
+                colliders = GetComponentsInChildren<Collider>();
+                ConfigurableJoint = GetComponent<ConfigurableJoint>();
+                ChangeHardnessBlock.Hardness hardness = new ChangeHardnessBlock.Hardness(ConfigurableJoint);
 
-            foreach (Collider c in colliders)
-            {
-                if (c.name == "Collider")
+                foreach (Collider c in colliders)
                 {
-                    c.material.staticFriction = c.material.dynamicFriction = Friction;
+                    if (c.name == "Collider")
+                    {
+                        c.material.staticFriction = c.material.dynamicFriction = /*Friction*/FrictionSlider.Value * 1000f;
 
-                    break;
+                        break;
+                    }
                 }
-
-            }
-
-            SwitchWoodHardness(Hardness, CJ);
+                hardness.SwitchWoodHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);
+            }        
         }
     }
 

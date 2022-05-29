@@ -6,30 +6,31 @@ using UnityEngine;
 
 namespace BlockEnhancementMod
 {
-    public class Balloon_EnhanceScript:ChangeSpeedBlock
+    class SqrBalloonScript : ChangeSpeedBlock
     {
         private MKey effectKey;
+        //private MSlider powerSlider;
         private MToggle toggleToggle,dragTogetherToggle;
-        private BalloonController  balloonController;
+        private SqrBalloonController sqrBalloonController;
 
+        public bool Effected { get { return effected; }set { effected = value; } }
         private bool effected = false;
-        private float lastSpeed = 0f, defaultDrag = 0f, defaultAngularDrag = 0f;
+        private float lastBuoyancy = 0f, defaultDrag = 0f, defaultAngularDrag = 0f;
+
         public override void SafeAwake()
         {
             effectKey = AddKey(LanguageManager.Instance.CurrentLanguage.Effected, "Effect", UnityEngine.KeyCode.E);
             toggleToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.ToggleMode, "Toggle", true);
             dragTogetherToggle = AddToggle(LanguageManager.Instance.CurrentLanguage.DragTogether, "Together", true);
 
-            balloonController = GetComponent<BalloonController>();
-            SpeedSlider = balloonController.BuoyancySlider;
+            sqrBalloonController = GetComponent<SqrBalloonController>();
+            SpeedSlider = sqrBalloonController.PowerSlider;
 
             base.SafeAwake();
-
 #if DEBUG
-            ConsoleController.ShowMessage("气球添加进阶属性");
+            ConsoleController.ShowMessage("热气球添加进阶属性");
 #endif
         }
-
         public override void DisplayInMapper(bool value)
         {
             base.DisplayInMapper(value);
@@ -43,7 +44,7 @@ namespace BlockEnhancementMod
         {
             base.OnSimulateStart_EnhancementEnabled();
 
-            lastSpeed = Speed;
+            lastBuoyancy = Speed;
             defaultDrag = GetComponent<Rigidbody>().drag;
             defaultAngularDrag = GetComponent<Rigidbody>().angularDrag;
         }
@@ -57,13 +58,13 @@ namespace BlockEnhancementMod
                     if (AddSpeedKey.IsPressed || AddSpeedKey.EmulationPressed())
                     {
                         Speed += ChangeSpeedValue.Value;
-                        lastSpeed = Speed;
+                        lastBuoyancy = Speed;
                     }
 
                     if (ReduceSpeedKey.IsPressed || ReduceSpeedKey.EmulationPressed())
                     {
                         Speed -= ChangeSpeedValue.Value;
-                        lastSpeed = Speed;
+                        lastBuoyancy = Speed;
                     }
                 }
             }
@@ -92,7 +93,7 @@ namespace BlockEnhancementMod
 
             void setValue()
             {
-                Speed = effected ? 0f : lastSpeed;
+                Speed = effected ? 0f : lastBuoyancy;
                 if (dragTogetherToggle.IsActive)
                 {
                     var rigi = GetComponent<Rigidbody>();

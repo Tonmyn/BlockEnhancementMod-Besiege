@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
             background.AddComponent<BoxCollider>();
             SafeAwake();
         }
-        void OnGUI()
+        public virtual void OnGUI()
         {
             if (GameObject.Find("HUD Cam") == null) return;
 

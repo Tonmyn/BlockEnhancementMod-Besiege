@@ -62,9 +62,6 @@ namespace BlockEnhancementMod
         /// <summary>零件添加进阶属性控件 </summary>
         private void AddSliders(Block block)
         {
-#if DEBUG
-            ConsoleController.ShowMessage("on block init");
-#endif
             BlockBehaviour blockbehaviour = block.BuildingBlock.InternalObject;
             if (!HasEnhancement(blockbehaviour))
                 AddSliders(blockbehaviour);
@@ -79,10 +76,6 @@ namespace BlockEnhancementMod
         /// <summary>零件添加进阶属性控件 </summary>
         private void AddSliders(BlockBehaviour block)
         {
-#if DEBUG
-            ConsoleController.ShowMessage(string.Format("Block ID: {0}", block.BlockID.ToString()));
-#endif
-
             if (dic_EnhancementBlock.ContainsKey(block.BlockID))
             {
                 var EB = dic_EnhancementBlock[block.BlockID];
@@ -118,7 +111,7 @@ namespace BlockEnhancementMod
             {(int)BlockType.SpinningBlock,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
             {(int)BlockType.SteeringHinge,typeof(SteeringWheel_GenericEnhanceScript) },
-            {(int)BlockType.SteeringBlock,typeof(SteeringWheel_GenericEnhanceScript) },
+            {(int)BlockType.SteeringBlock,typeof(SteeringBlockScript) },
             {(int)BlockType.Suspension,typeof(SuspensionScript) },
             {(int)BlockType.RopeWinch,typeof(SpringCode_GenericEnhanceScript) },
             { (int)BlockType.Flamethrower,typeof(FlamethrowerScript)},
@@ -137,6 +130,10 @@ namespace BlockEnhancementMod
             { (int)BlockType.WoodenPole,typeof(WoodenScript)},
             { (int)BlockType.WaterCannon,typeof(WaterCannonScript) },
             { (int)BlockType.ArmorPlateSmall,typeof(ArmorScript) },
+            { (int)BlockType.ArmorPlateRound,typeof(ArmorRoundScript) },
+            {  (int)BlockType.BuildSurface,typeof(BuildSurfaceScript)},
+            { (int)BlockType.Hinge,typeof(HingeScript)},
+            { (int)BlockType.SqrBalloon,typeof(SqrBalloonScript)}
         };
     }
 }

@@ -33,10 +33,10 @@ namespace BlockEnhancementMod
             steeringWheel = GetComponent<SteeringWheel>();
 
             r2cToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center", ReturnToCenter);
-            r2cToggle.Toggled += (bool value) => { ReturnToCenter = NearToggle.DisplayInMapper = value; ChangedProperties(); };
+            r2cToggle.Toggled += (bool value) => { ReturnToCenter = NearToggle.DisplayInMapper = value; ChangedProperties(r2cToggle); };
 
             NearToggle = BB.AddToggle(LanguageManager.Instance.CurrentLanguage.Near, "Near", Near);
-            NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(); };
+            NearToggle.Toggled += (bool value) => { Near = value; ChangedProperties(NearToggle); };
 
             leftKey = steeringWheel.KeyList.Find(match => match.Key == "left");
             rightKey = steeringWheel.KeyList.Find(match => match.Key == "right");
@@ -55,7 +55,7 @@ namespace BlockEnhancementMod
             NearToggle.DisplayInMapper = value && ReturnToCenter;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

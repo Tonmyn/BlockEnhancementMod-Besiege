@@ -35,7 +35,7 @@ namespace BlockEnhancementMod
             SpeedSlider.DisplayInMapper = value;
         }
 
-        public override void OnSimulateStartClient()
+        public override void OnSimulateStartAlways()
         {
             if (EnhancementEnabled)
             {

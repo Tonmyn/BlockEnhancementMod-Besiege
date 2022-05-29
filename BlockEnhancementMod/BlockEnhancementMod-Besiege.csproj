@@ -58,12 +58,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="AssetManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Armor.cs" />
+    <Compile Include="EnhancementBlock\Blocks\ArmorRound.cs" />
     <Compile Include="EnhancementBlock\Blocks\Balloon.cs" />
+    <Compile Include="EnhancementBlock\Blocks\BuildSurface.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
     <Compile Include="EnhancementBlock\Blocks\FlyingBlock.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Hinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SqrBalloonScript.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SteeringBlock.cs" />
     <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
+    <Compile Include="EnhancementBlock\Blocks\UnpoweredWheel.cs" />
     <Compile Include="EnhancementBlock\Blocks\UnpoweredCog.cs" />
     <Compile Include="EnhancementBlock\GenericScript\CanonBlock.cs" />
     <Compile Include="EnhancementBlock\GenericScript\InterceptionCalculation.cs" />
