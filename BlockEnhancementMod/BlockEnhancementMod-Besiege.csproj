@@ -67,6 +67,7 @@
     <Compile Include="EnhancementBlock\Blocks\FlyingBlock.cs" />
     <Compile Include="EnhancementBlock\Blocks\Hinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\Propeller_52.cs" />
+    <Compile Include="EnhancementBlock\Blocks\SqrBalloonScript.cs" />
     <Compile Include="EnhancementBlock\Blocks\SteeringBlock.cs" />
     <Compile Include="EnhancementBlock\Blocks\SteeringHinge.cs" />
     <Compile Include="EnhancementBlock\Blocks\UnpoweredWheel.cs" />

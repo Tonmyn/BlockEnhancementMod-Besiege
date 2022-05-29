@@ -22,7 +22,7 @@ namespace BlockEnhancementMod
     {
         { "简体中文",new Chinese()},
         { "English",new English()},
-            { "日本語",new Japanese()},
+        { "日本語",new Japanese()},
     };
 
         void Awake()
@@ -257,6 +257,10 @@ namespace BlockEnhancementMod
         string Distance { get; }
         string Doppler { get; }
         string SpatialBlend { get; }
+
+        //Balloon
+        string Effected { get; }
+        string DragTogether { get; }
     }
 
     public class Chinese : ILanguage
@@ -475,6 +479,10 @@ namespace BlockEnhancementMod
         public string Distance { get; } = "传播距离";
         public string Doppler { get; } = "多普勒效应";
         public string SpatialBlend { get; } = "空间衰减";
+
+        //Balloon
+        public string Effected { get; } = "使能开关";
+        public string DragTogether { get; } = "同时关闭阻力";
     }
 
     public class English : ILanguage
@@ -693,6 +701,9 @@ namespace BlockEnhancementMod
         public string Distance { get; } = "Distance";
         public string Doppler { get; } = "Doppler";
         public string SpatialBlend { get; } = "Spatial Blend";
+        //Balloon
+        public string Effected { get; } = "Enable Switch";
+        public string DragTogether { get; } = "Drag Together";
     }
 
     public class Japanese : ILanguage
@@ -912,5 +923,9 @@ namespace BlockEnhancementMod
         public string Distance { get; } = "ディスタンス";
         public string Doppler { get; } = "ドップラー";
         public string SpatialBlend { get; } = "空間ブレンド";
+
+        //Balloon
+        public string Effected { get; } = "イネーブルスイッチ";
+        public string DragTogether { get; } = "一緒にドラッグ";
     }
 }

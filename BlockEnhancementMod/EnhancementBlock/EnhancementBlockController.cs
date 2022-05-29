@@ -132,7 +132,8 @@ namespace BlockEnhancementMod
             { (int)BlockType.ArmorPlateSmall,typeof(ArmorScript) },
             { (int)BlockType.ArmorPlateRound,typeof(ArmorRoundScript) },
             {  (int)BlockType.BuildSurface,typeof(BuildSurfaceScript)},
-            { (int)BlockType.Hinge,typeof(HingeScript)}
+            { (int)BlockType.Hinge,typeof(HingeScript)},
+            { (int)BlockType.SqrBalloon,typeof(SqrBalloonScript)}
         };
     }
 }
