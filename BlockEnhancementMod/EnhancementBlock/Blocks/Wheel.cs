@@ -167,6 +167,45 @@ namespace BlockEnhancementMod.Blocks
             //    Destroy(WheelCollider);
             //}
         }
+
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            base.SimulateUpdateAlways_EnhancementEnable();
+    
+            var cog = BB.GetComponent<CogMotorControllerHinge>();
+            var joint = BB.GetComponent<HingeJoint>();
+            if (!cog.AutoBreakToggle.IsActive)
+            {
+                if (cog.Input == 0f)
+                {
+                    joint.useMotor = false;
+                }
+                else
+                {
+                    joint.useMotor = true;
+                }
+            }
+        }
+
+        public override void SimulateFixedUpdate_EnhancementEnabled()
+        {
+            base.SimulateFixedUpdate_EnhancementEnabled();
+            BB.Rigidbody.WakeUp();
+        }
+
+        //void OnGUI()
+        //{
+        //    if (BB.isSimulating)
+        //    {
+        //        var cog = BB.GetComponent<CogMotorControllerHinge>();
+        //        var joint = BB.GetComponent<HingeJoint>();
+        //        GUILayout.Label(joint.useMotor.ToString());
+        //        GUI.Label(new Rect(100, 100, 200, 30), string.Format("force {0} target V {1} ", cog.motor.force, cog.motor.targetVelocity.ToString("f3")));
+        //        cog.motor.force = 0f;
+        //        joint.useMotor = false;
+        //        //cog.motor.targetVelocity = 100;
+        //    }
+        //}
         private static PhysicMaterial SetPhysicMaterial(float friction, float bounciness,PhysicMaterialCombine combine)
         {
             PhysicMaterial PM = new PhysicMaterial
