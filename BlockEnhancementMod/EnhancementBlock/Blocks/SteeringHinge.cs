@@ -119,4 +119,36 @@ namespace BlockEnhancementMod
         }
     }
 
+
+    class Steering_Hinge : SteeringWheel_GenericEnhanceScript
+    {
+        MKey rtcEnableKey;
+
+        public override void SafeAwake()
+        {
+            base.SafeAwake();
+
+            rtcEnableKey = BB.AddKey("RTC Enable", "rtc_enable", KeyCode.R);
+
+#if DEBUG
+            ConsoleController.ShowMessage("转向关节添加进阶属性");
+#endif
+        }
+
+        public override void DisplayInMapper(bool value)
+        {
+            base.DisplayInMapper(value);
+            rtcEnableKey.DisplayInMapper = value;
+        }
+
+        public override void SimulateUpdateAlways_EnhancementEnable()
+        {
+            base.SimulateUpdateAlways_EnhancementEnable();
+
+            if (rtcEnableKey.IsPressed || rtcEnableKey.EmulationPressed())
+            {
+                steeringWheel.ReturnToCenterToggle.IsActive = !steeringWheel.ReturnToCenterToggle.IsActive;
+            }
+        }
+    }
 }
