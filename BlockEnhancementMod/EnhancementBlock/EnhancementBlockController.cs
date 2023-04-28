@@ -106,7 +106,7 @@ namespace BlockEnhancementMod
             { (int)BlockType.Wing,typeof(Propeller_GenericEnhanceScript)},
             { (int)BlockType.WingPanel,typeof(Propeller_GenericEnhanceScript)},
             { (int)BlockType.Unused3,typeof(PropellerScript_52)},
-            {(int)BlockType.Slider,typeof(SliderScript) },
+            //{(int)BlockType.Slider,typeof(SliderScript) },
             {(int)BlockType.SmallWheel,typeof(SmallwheelScript) },
             {(int)BlockType.SpinningBlock,typeof(CogMotoControllerHinge_GenericEnhanceScript) },
             {(int)BlockType.Spring,typeof(SpringScript) },
