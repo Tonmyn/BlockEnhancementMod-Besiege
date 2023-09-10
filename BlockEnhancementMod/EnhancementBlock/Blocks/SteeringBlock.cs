@@ -38,7 +38,9 @@ namespace BlockEnhancementMod
         public override void DisplayInMapper(bool enhance)
         {
             base.DisplayInMapper(enhance);
-            limitSlider.DisplayInMapper = enhance;
+            var useLimit = limitSlider.UseLimitsToggle.IsActive;
+
+            limitSlider.DisplayInMapper = enhance && useLimit;
             limitSlider.UseLimitsToggle.DisplayInMapper = enhance;
         }
 

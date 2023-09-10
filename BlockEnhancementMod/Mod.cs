@@ -166,5 +166,7 @@ namespace BlockEnhancementMod
             ConsoleController.ShowMessage(string.Format("<color=#{0}>{1}{2}</color>", _color, message, " -- Form Block Enhancement Mod"));
         }
     }
+
+
 }
 

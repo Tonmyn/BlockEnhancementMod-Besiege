@@ -51,7 +51,7 @@ namespace BlockEnhancementMod
             //alphaSlider = AddSlider("Alpha", "Alpha", 1f, 0f, 1f);
             //alphaSlider.ValueChanged += colorChanged;
 
-            radiusSlider = AddSlider("Radius", "Radius", 1f, 0.1f, 1f);
+            radiusSlider = AddSlider("Joint Radius", "Radius", 1f, 0.1f, 1f);
             radiusSlider.ValueChanged += radiusChanged;
 
 

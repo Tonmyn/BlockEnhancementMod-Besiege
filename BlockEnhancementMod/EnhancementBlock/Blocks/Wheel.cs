@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Modding;
 using System.Collections;
+using InternalModding.Mods;
+using InternalModding.Assemblies;
+using System.Reflection;
+using System.Security.AccessControl;
+using InternalModding.Misc;
+using System.Linq;
 
 namespace BlockEnhancementMod.Blocks
 {
@@ -113,21 +119,18 @@ namespace BlockEnhancementMod.Blocks
                     if (WheelCollider != null) return;
 
                     //禁用原有碰撞
-                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders") c.isTrigger = true; }
-
+                    foreach (Collider c in Colliders) { if (c.name == "CubeColliders" || c.name == "Collider") ((BoxCollider)c).isTrigger = true; }
+           
                     WheelCollider = (GameObject)Instantiate(WheelColliderOrgin, transform.position, transform.rotation, transform);
                     WheelCollider.SetActive(true);
                     WheelCollider.name = "Wheel Collider";
                     WheelCollider.transform.SetParent(transform);
-
-                    mFilter = WheelCollider.AddComponent<MeshFilter>();
-                    mFilter.sharedMesh = WheelCollider.GetComponent<MeshCollider>().sharedMesh;
-
+        
                     mCollider = WheelCollider.GetComponent<MeshCollider>();
                     mCollider.convex = true;
                     mCollider.material = wheelPhysicMaterial;
                     BB.myBounds.childColliders.Add(mCollider);
-
+      
                     if (/*ShowCollider*/ShowColliderToggle.IsActive)
                     {
                         mRenderer = WheelCollider.AddComponent<MeshRenderer>();
@@ -174,17 +177,24 @@ namespace BlockEnhancementMod.Blocks
     
             var cog = BB.GetComponent<CogMotorControllerHinge>();
             var joint = BB.GetComponent<HingeJoint>();
-            if (!cog.AutoBreakToggle.IsActive)
+
+            if (cog == null)
+                return;
+            else
             {
-                if (cog.Input == 0f)
+                if (!cog.AutoBreakToggle.IsActive)
                 {
-                    joint.useMotor = false;
-                }
-                else
-                {
-                    joint.useMotor = true;
+                    if (cog.Input == 0f)
+                    {
+                        joint.useMotor = false;
+                    }
+                    else
+                    {
+                        joint.useMotor = true;
+                    }
                 }
             }
+           
         }
 
         public override void SimulateFixedUpdate_EnhancementEnabled()
@@ -287,21 +297,25 @@ namespace BlockEnhancementMod.Blocks
 
         static IEnumerator ReadWheelMesh()
         {
+            
             WheelColliderOrgin = new GameObject("Wheel Collider Orgin");
             WheelColliderOrgin.transform.SetParent(EnhancementBlockController.Instance.transform);
             ModMesh modMesh = ModResource.CreateMeshResource("Wheel Mesh", "Resources" + @"/" + "Wheel.obj");
+            Mesh wMesh = AssetManager.Instance.LoadFormObj2("Wheel Mesh", @"Resources/Wheel.obj");
 
             yield return new WaitUntil(() => modMesh.Available);
 
+            MeshFilter mFilter = WheelColliderOrgin.AddComponent<MeshFilter>();
+            mFilter.sharedMesh = wMesh;
             MeshCollider meshCollider = WheelColliderOrgin.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = ModResource.GetMesh("Wheel Mesh");
+            meshCollider.sharedMesh = wMesh;
             meshCollider.convex = true;
             WheelColliderOrgin.SetActive(false);
-
-
+    
         }
 
     }
+
 }
 
 

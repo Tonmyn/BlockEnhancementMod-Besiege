@@ -17,7 +17,7 @@ namespace BlockEnhancementMod
         MKey ShrinkKey;
         MToggle HydraulicToggle;
         MToggle R2CToggle;
-        MSlider DamperSlider;
+        //MSlider DamperSlider;
         MSlider FeedSlider;
         MSlider ExtendLimitSlider;
         MSlider ShrinkLimitSlider;
@@ -49,7 +49,7 @@ namespace BlockEnhancementMod
 
             R2CToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.ReturnToCenter, "Return to center",/* R2C*/false);
 
-            DamperSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", /*Damper*/1f, 0f, 5f);
+            //DamperSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.Damper, "Damper", /*Damper*/1f, 0f, 5f);
 
             FeedSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.FeedSpeed, "feed", /*Feed*/0.5f, 0f, 2f);
 
@@ -74,7 +74,7 @@ namespace BlockEnhancementMod
 
             HardnessMenu.DisplayInMapper = value;
 
-            DamperSlider.DisplayInMapper = value;
+            //DamperSlider.DisplayInMapper = value;
             ExtendKey.DisplayInMapper = _value;
             ShrinkKey.DisplayInMapper = _value;
             HydraulicToggle.DisplayInMapper = value;
@@ -106,7 +106,7 @@ namespace BlockEnhancementMod
                 ConfigurableJoint.linearLimit = SJlimit;
 
                 var drive = ConfigurableJoint.xDrive;
-                drive.positionDamper *= /*Damper*/DamperSlider.Value;
+                //drive.positionDamper *= /*Damper*/DamperSlider.Value;
                 ConfigurableJoint.xDrive = drive;
 
                 hardness.SwitchMetalHardness(/*HardnessIndex*/HardnessMenu.Value, ConfigurableJoint);

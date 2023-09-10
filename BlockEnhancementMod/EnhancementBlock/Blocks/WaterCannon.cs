@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace BlockEnhancementMod
 {
@@ -50,11 +51,13 @@ namespace BlockEnhancementMod
             base.SimulateUpdateAlways_EnhancementEnable();
             if (StatMaster.isClient) return;
 
-            if (/*Boiling*/BoilingToggle.IsActive)
+            if (/*Boiling*/BoilingToggle.IsActive && WCC.isActive)
             {
-                WCC.boiling = WCC.prevBoilingState = true;
-                //BVC.heating.glowTimer = 1f;
-                FT.burning = true;
+                //WCC.boiling = WCC.prevBoilingState = true;
+                ////BVC.heating.glowTimer = 1f;
+                //FT.burning = true;
+                
+                WCC.OnIgnite(FT, BB.GetComponentsInChildren<Collider>()[0], true);
             }
         }
 
