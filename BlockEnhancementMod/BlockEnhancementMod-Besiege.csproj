@@ -67,6 +67,7 @@
     <Compile Include="AssetManager.cs" />
     <Compile Include="EnhancementBlock\Blocks\Armor.cs" />
     <Compile Include="EnhancementBlock\Blocks\ArmorRound.cs" />
+    <Compile Include="EnhancementBlock\Blocks\Axle.cs" />
     <Compile Include="EnhancementBlock\Blocks\Balloon.cs" />
     <Compile Include="EnhancementBlock\Blocks\BuildSurface.cs" />
     <Compile Include="EnhancementBlock\Blocks\Cog.cs" />
