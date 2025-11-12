@@ -13,7 +13,7 @@ namespace BlockEnhancementMod.Blocks
     public class CannonScript :CanonBlock_GenericEnhanceScript
     {
         public MToggle BullerCustomBulletToggle;
-        public MToggle BulletInheritSizeToggle;
+        //public MToggle BulletInheritSizeToggle;
         public MSlider BulletMassSlider;
         public MSlider BulletDragSlider;
         public MToggle BulletTrailToggle;
@@ -24,6 +24,7 @@ namespace BlockEnhancementMod.Blocks
         public Bullet bullet;
         private bool lastInfinite = false;
         private bool firstShoot = true;
+        private bool isRound = false;
 
         public class Bullet
         {
@@ -39,7 +40,7 @@ namespace BlockEnhancementMod.Blocks
             public Color TrailColor { get { return TrailRenderer.material.color; } set { TrailRenderer.material.SetColor("_TintColor", value); } }
 
             public bool Custom { get; set; }
-            public bool InheritSize { get; set; }
+            //public bool InheritSize { get; set; }
 
             internal CanonBlock CB;
 
@@ -47,7 +48,7 @@ namespace BlockEnhancementMod.Blocks
             {
                 CB = canonBlock;
 
-                bulletObject = Instantiate(CB.boltObject.gameObject);
+                bulletObject = Instantiate(CB.boltObjects[0].gameObject);
                 bulletObject.SetActive(false);
 
                 rigidbody = bulletObject.GetComponent<Rigidbody>();
@@ -61,6 +62,8 @@ namespace BlockEnhancementMod.Blocks
                 TrailRenderer.endWidth = 0.1f;
 
                 TrailRenderer.material = new Material(Shader.Find("Particles/Additive"));
+
+              
             }
             public void CreateCustomBullet()
             {
@@ -68,14 +71,14 @@ namespace BlockEnhancementMod.Blocks
 
                 bulletObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
 
-                CB.boltObject.gameObject.SetActive(false);
+                CB.boltObjects[0].gameObject.SetActive(false);
 
-                if (InheritSize)
-                {
-                    Vector3 scaleVector = Vector3.Scale(Vector3.one * Mathf.Min(cannon.localScale.x, cannon.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
+                //if (InheritSize)
+                //{
+                //    Vector3 scaleVector = Vector3.Scale(Vector3.one * Mathf.Min(cannon.localScale.x, cannon.localScale.z), new Vector3(0.5f, 0.5f, 0.5f));
 
-                    bulletObject.transform.localScale = CB.particles[0].transform.localScale = scaleVector;
-                }
+                //    bulletObject.transform.localScale = CB.particles[0].transform.localScale = scaleVector;
+                //}
             }
         }
 
@@ -87,7 +90,7 @@ namespace BlockEnhancementMod.Blocks
             #region 子弹控件初始化
 
             BullerCustomBulletToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.CustomBullet, "Bullet", false);
-            BulletInheritSizeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.InheritSize, "InheritSize", false);
+            //BulletInheritSizeToggle = /*BB.*/AddToggle(LanguageManager.Instance.CurrentLanguage.InheritSize, "InheritSize", false);
             BulletMassSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletMass, "BulletMass", 2f, 0.1f, 2f);
             BulletDragSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDrag, "BulletDrag", 0.2f, 0.01f, 0.5f);
             BulletDelayCollisionSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.BulletDelayCollision, "Delay Collision", 0.2f, 0f, 0.5f);
@@ -95,6 +98,18 @@ namespace BlockEnhancementMod.Blocks
             BulletTrailLengthSlider = /*BB.*/AddSlider(LanguageManager.Instance.CurrentLanguage.TrailLength, "trail length", 1f, 0.2f, 2f);
             BulletTrailColorSlider = /*BB.*/AddColourSlider(LanguageManager.Instance.CurrentLanguage.TrailColor, "trail color", Color.yellow, false);
 
+            CB.AmmunitionType.ValueChanged += (value) => 
+            {
+                isRound = (CanonBlock.AmmoType)value == CanonBlock.AmmoType.Round;
+
+                if (!isRound)
+                {
+                    EnhancementToggle.SetValue(false);
+                }
+
+                EnhancementToggle.DisplayInMapper = isRound;
+                DisplayInMapper(EnhancementEnabled && isRound);
+            };
             #endregion
 
 #if DEBUG
@@ -105,17 +120,21 @@ namespace BlockEnhancementMod.Blocks
         {
             base.DisplayInMapper(value);
 
+            
+            //var isRound = ((CanonBlock.AmmoType)CB.AmmunitionType.Value == CanonBlock.AmmoType.Round);
             var isSingle = StatMaster.IsLevelEditorOnly || !StatMaster.isMP;
-            var isCustomBullet = isSingle && BullerCustomBulletToggle.IsActive;
+            var isCustomBullet = value && isRound && isSingle && BullerCustomBulletToggle.IsActive ;
+            var isTrail = BulletTrailToggle.IsActive && isCustomBullet;
 
-            BullerCustomBulletToggle.DisplayInMapper = value && isSingle;
-            BulletInheritSizeToggle.DisplayInMapper = value && isCustomBullet;
-            BulletMassSlider.DisplayInMapper = value && isCustomBullet;
-            BulletDragSlider.DisplayInMapper = value && isCustomBullet;
-            BulletDelayCollisionSlider.DisplayInMapper = value && isCustomBullet;
-            BulletTrailToggle.DisplayInMapper = value && isCustomBullet;
-            BulletTrailColorSlider.DisplayInMapper = BulletTrailToggle.IsActive && isCustomBullet;
-            BulletTrailLengthSlider.DisplayInMapper = BulletTrailToggle.IsActive && isCustomBullet;
+            BullerCustomBulletToggle.DisplayInMapper = value && isSingle && isRound;
+
+            //BulletInheritSizeToggle.DisplayInMapper = value && isCustomBullet;
+            BulletMassSlider.DisplayInMapper = isCustomBullet;
+            BulletDragSlider.DisplayInMapper = isCustomBullet;
+            BulletDelayCollisionSlider.DisplayInMapper = isCustomBullet;
+            BulletTrailToggle.DisplayInMapper = isCustomBullet;
+            BulletTrailColorSlider.DisplayInMapper = isTrail ;
+            BulletTrailLengthSlider.DisplayInMapper = isTrail ;
         }
 
         public override void OnSimulateStartAlways()
@@ -125,8 +144,9 @@ namespace BlockEnhancementMod.Blocks
             lastInfinite = StatMaster.GodTools.InfiniteAmmoMode;
 
             BulletInit();
+            isRound = (CanonBlock.AmmoType)CB.AmmunitionType.Value == CanonBlock.AmmoType.Round;
 
-            if (StatMaster.isMP) { bullet.Custom = bullet.TrailEnable = false; }
+            if (StatMaster.isMP || !isRound) { bullet.Custom = bullet.TrailEnable = false; }
 
             //独立自定子弹
             if (bullet.Custom)
@@ -134,7 +154,7 @@ namespace BlockEnhancementMod.Blocks
                 bullet.CreateCustomBullet();
             }
 
-            if (EnhancementEnabled || CB.boltObject.gameObject.activeSelf == false)
+            if (EnhancementEnabled || CB.boltObjects[0].gameObject.activeSelf == false || !isRound)
             {
                 CB.randomDelay = 0f;
             }
@@ -145,7 +165,7 @@ namespace BlockEnhancementMod.Blocks
                 bullet.Mass = BulletMassSlider.Value;
                 bullet.Drag = BulletDragSlider.Value;
                 bullet.DelayCollision = BulletDelayCollisionSlider.Value;
-                bullet.InheritSize = BulletInheritSizeToggle.IsActive;
+                //bullet.InheritSize = BulletInheritSizeToggle.IsActive;
                 bullet.TrailEnable = BulletTrailToggle.IsActive;
                 bullet.TrailLength = BulletTrailLengthSlider.Value;
                 bullet.TrailColor = BulletTrailColorSlider.Value;
@@ -160,7 +180,7 @@ namespace BlockEnhancementMod.Blocks
         {
             base.SimulateUpdateAlways();
 
-            if (StatMaster.isClient) return;
+            if (StatMaster.isClient || !isRound) return;
 
             if (CB.ShootKey.IsReleased || CB.ShootKey.EmulationReleased())
             {
@@ -191,7 +211,7 @@ namespace BlockEnhancementMod.Blocks
             ShootEnabled = false;
             float randomDelay = 0f;
 
-            if (CB.boltObject.gameObject.activeSelf == false)
+            if (CB.boltObjects[0].gameObject.activeSelf == false)
             {
                 if (EnhancementEnabled)
                 {
@@ -201,12 +221,12 @@ namespace BlockEnhancementMod.Blocks
                     }
                     else
                     {
-                        StartCoroutine(shoot(CB.boltObject.gameObject));
+                        StartCoroutine(shoot(CB.boltObjects[0].gameObject));
                     }
                 }
                 else
                 {
-                    StartCoroutine(shoot(CB.boltObject.gameObject));
+                    StartCoroutine(shoot(CB.boltObjects[0].gameObject));
                 }
             }
             else
