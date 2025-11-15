@@ -57,7 +57,9 @@ namespace BlockEnhancementMod
         {
             yield return 0;
             transform.SetParent(Parent);
+#if DEBUG
             Debug.Log("restore");
+#endif
             Destroy(GetComponent<restorScript>());
         }
 

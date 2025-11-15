@@ -43,14 +43,15 @@ namespace BlockEnhancementMod
         public override void SimulateUpdateAlways_EnhancementEnable()
         {
             if (StatMaster.isClient) return;
-
+#if DEBUG
             Debug.Log(hinge.targetPosition); Debug.Log(hinge.targetRotation);
-
+#endif
             if (SwitchKey.IsPressed || SwitchKey.EmulationPressed())
             {
                 state = !state;
+#if DEBUG
                 Debug.Log("switch");
-               
+#endif
             }
             if (/*Held*/HeldToggle.IsActive)
             {

@@ -192,7 +192,9 @@ namespace BlockEnhancementMod
             }
 
             var value = transparentSupportToggle.IsActive;
+#if DEBUG
             Debug.Log("trans: " + value.ToString());
+#endif
             if (value)
             {
                 transparentChanged(value);
@@ -251,11 +253,14 @@ namespace BlockEnhancementMod
 
         private void transparentChanged(bool value)
         {
+#if DEBUG
             Debug.Log(buildSurface.Visual + "|" + visualValue);
+#endif
             if (OptionsMaster.skinsEnabled == false || visualValue == 0) return;
 
+#if DEBUG
             Debug.Log("trans changed: " + value.ToString());
-
+#endif
             if (value)
             {
                 //oldShader = materialRenderer.material.shader;
@@ -290,12 +295,13 @@ namespace BlockEnhancementMod
         private void skinChanged(int value)
         {
             if (!EnhancementEnabled) return;
-
+#if DEBUG
             Debug.Log("skin changed" + value.ToString());
-
+#endif
             visualValue = value;
+#if DEBUG
             Debug.Log(lastSkinValue + "||" + visualValue);
-
+#endif
             if (visualValue != lastSkinValue)
             {
                 transparentSupportToggle.IsActive = false;
