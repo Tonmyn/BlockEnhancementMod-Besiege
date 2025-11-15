@@ -79,6 +79,8 @@ namespace BlockEnhancementMod.Blocks
 
                 //    bulletObject.transform.localScale = CB.particles[0].transform.localScale = scaleVector;
                 //}
+
+                bulletObject.transform.localScale *= CB.ProjectileSlider.Value;
             }
         }
 
