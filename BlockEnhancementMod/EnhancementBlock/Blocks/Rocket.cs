@@ -572,7 +572,7 @@ namespace BlockEnhancementMod
 
                     var go = Instantiate(bombControl.explosionEffectPrefab.gameObject, position, rotation, ReferenceMaster.physicsGoalInstance) as GameObject;
                     go.SetActive(true);
-                    go.GetComponent<ExplosionEffect>().startSize = Vector3.one * bombExplosiveCharge * 1.8f;
+                    go.GetComponent<ExplosionEffect>().startSize = Vector3.one * bombExplosiveCharge * 1.2f ;
 
                     //bombControl.radius = radius * bombExplosiveCharge;
                     //bombControl.power = power * bombExplosiveCharge;
