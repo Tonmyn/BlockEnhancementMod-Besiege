@@ -1,9 +1,11 @@
 ﻿using Modding;
+using Modding.Blocks;
 using Modding.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static ProjectileScript;
 
 namespace BlockEnhancementMod
 {
@@ -104,7 +106,7 @@ namespace BlockEnhancementMod
         //High power explosion related setting
         MToggle HighExploToggle;
         private bool bombHasExploded = false;
-        private readonly int levelBombCategory = 4;
+        private readonly int levelBombCategory = 5;
         private readonly int levelBombID = 5001;
         private float bombExplosiveCharge = 0;
         private float explosiveCharge = 0f;
@@ -189,6 +191,9 @@ namespace BlockEnhancementMod
             rocket = gameObject.GetComponent<TimedRocket>();
             rocketRigidbody = gameObject.GetComponent<Rigidbody>();
 
+
+      
+
 #if DEBUG
             ConsoleController.ShowMessage("火箭添加进阶属性");
 #endif
@@ -254,6 +259,25 @@ namespace BlockEnhancementMod
 
         public override void OnSimulateStart_EnhancementEnabled()
         {
+            //GameObject bomb;
+            //BlockPrefab prefab;
+
+            //bomb = GameObject.Find("_PERSISTENT/BLOCKS/Prefabs/Bomb");
+            //if (bomb!= null)
+            //{
+            //    Debug.Log(bomb.name);
+
+            //    //bomb = (GameObject)Instantiate(bomb.GetComponent<BlockBehaviour>(), rocket.transform.position, Quaternion.identity);
+            //    //bomb.gameObject.SetActive(true);
+            //    var bb= Instantiate<BlockBehaviour>(PrefabMaster.BlockPrefabs[23].blockBehaviour);
+            //    bomb = (GameObject)Instantiate(bb.gameObject, rocket.transform.position, rocket.transform.rotation);
+            //    bomb.SetActive(true);
+            //    //bomb = (GameObject)Instantiate(prefab.gameObject, position, rotation);
+            //    //bomb.SetActive(true);
+            //    //bomb.transform.GetComponentsInChildren<Component>().ToList().ForEach(a => Debug.Log(a.gameObject.name));
+            //}
+
+
             rocketInBuildSent = removedFromGroup = false;
 
             // Read the charge from rocket
@@ -311,6 +335,8 @@ namespace BlockEnhancementMod
                 guideController.Setup(rocket, rocketRigidbody, radar, rocket.PowerSlider.Value, searchAngle, Mathf.Clamp(TorqueSlider.Value, 0, 100), false);
 
                 StopAllCoroutines();
+
+             
             }
 
             smokeTrail = null;
@@ -559,12 +585,52 @@ namespace BlockEnhancementMod
                 try
                 {
                     GameObject bomb = (GameObject)Instantiate(PrefabMaster.LevelPrefabs[levelBombCategory].GetValue(levelBombID).gameObject, position, rotation);
+                    //GameObject bomb = Instantiate(PrefabMaster.BlockPrefabs[(int)BlockType.Bomb].gameObject);
+
+                    //GameObject bomb = (GameObject)Instantiate(PrefabMaster.Instance.transform.FindChild("BLOCKS/Prefabs/Bomb").gameObject, position, rotation);
+                    //GameObject bomb;
+                    //BlockPrefab prefab;
+                    //if (PrefabMaster.GetPrefab(BlockType.Bomb, out prefab) != false)
+                    //{
+                    //    Debug.Log(prefab.name);
+
+                    //    bomb =  (GameObject)Instantiate(prefab.gameObject, position, rotation);
+                    //    bomb.SetActive(true);
+                    //    //bomb = (GameObject)Instantiate(prefab.gameObject, position, rotation);
+                    //    //bomb.SetActive(true);
+                    //    //bomb.transform.GetComponentsInChildren<Component>().ToList().ForEach(a => Debug.Log(a.gameObject.name));
+                    //}
                     ExplodeOnCollide bombControl = bomb.GetComponent<ExplodeOnCollide>();
-                    bomb.transform.localScale = Vector3.one * bombExplosiveCharge;
+                    //Debug.Log("?? " + bombExplosiveCharge);
+
+                    //bomb.GetComponentsInChildren<Component>().ToList().ForEach(c => Debug.Log(c.name.ToString()));
+
+                    //var bombE = bombControl.explosionEffect;
+                    //bombE.localScale = Vector3.one * 50f;
+                    //bomb.SetActive(true);
+                    //var comp =  bomb.GetComponentsInChildren<Component>(true).ToList();
+                    //foreach (var com in comp)
+                    //{
+                    //    //Debug.Log(com.name);
+
+
+
+                    //    if (com.name == "BombExplosion")
+                    //    {
+                    //        Debug.Log(com.gameObject.GetComponent<ParticleSystem>() == null);
+                    //        //com.GetComponentsInChildren<Component>(true).ToList().ForEach(a => Debug.Log(a.name));
+                    //    }
+                    //}
+                    //bomb.transform.localScale = Vector3.one * bombExplosiveCharge * 10f;
+                    //bombControl.ScaleExplosion = true;
+                    //bombControl.version = 1;
+                    //bomb.GetComponent<ExplosionEffect>().startSize *= Mathf.Sqrt(bombExplosiveCharge); 
+                    bombControl.explosionEffectPrefab.transform.localScale *= Mathf.Sqrt(bombExplosiveCharge);
                     bombControl.radius = radius * bombExplosiveCharge;
                     bombControl.power = power * bombExplosiveCharge;
                     bombControl.torquePower = torquePower * bombExplosiveCharge;
                     bombControl.upPower = upPower;
+
                     bombControl.Explodey();
                 }
                 catch { }
