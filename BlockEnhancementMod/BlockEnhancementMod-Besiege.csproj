@@ -126,6 +126,18 @@
     <Content Include="Resources\Square-Red.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="readme\Balloon-FlyingBlock.md" />
+    <None Include="readme\BuildSurface-GripPad-Others.md" />
+    <None Include="readme\Camera.md" />
+    <None Include="readme\Cannon.md" />
+    <None Include="readme\Flamethrower-WaterCannon-Decoupler.md" />
+    <None Include="readme\Piston-Spring-Hinge.md" />
+    <None Include="readme\README.md" />
+    <None Include="readme\Rocket.md" />
+    <None Include="readme\Suspension.md" />
+    <None Include="readme\Wheel.md" />
+    <None Include="readme\Wiki-Index.md" />
+    <None Include="readme\截屏指南.md" />
     <None Include="Resources\Wheel.obj" />
   </ItemGroup>
   <ItemGroup />
